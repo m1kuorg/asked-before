@@ -82,7 +82,7 @@ export function mountStack(root: HTMLElement, { messages, returned, onOpen }: St
   if (kept?.messages === messages) showStack(kept);
   else sortMessages();
 
-  /** While the cards are cataloged, the plate holds the count of your own messages. */
+  /** Until there are cards to show, the plate holds the count of your own messages. */
   function messagePlate() {
     return plate(messages.length, "of your own messages");
   }
@@ -105,7 +105,10 @@ export function mountStack(root: HTMLElement, { messages, returned, onOpen }: St
 
   function showStack(stack: Stack) {
     if (stack.cards.length === 0) {
-      block.replaceChildren(el("p", undefined, "Nothing in this chat export was asked more than once, so there are no cards."));
+      block.replaceChildren(
+        el("p", undefined, "Nothing in this chat export was asked more than once, so there are no cards."),
+        messagePlate(),
+      );
       return;
     }
     const keys = stack.cards.map((card, index) => {
