@@ -1,13 +1,185 @@
 ---
 name: Asked Before
-description: Your own phrasings and their dates, twinned around one vermilion rail with a key for every borrow.
+description: Your own phrasings and their dates, twinned around one rail with a vermilion key for every borrow.
+colors:
+  rubric: "#B42D16"
+  proof-gray: "#E8EBED"
+  block-white: "#FFFFFF"
+  iron-black: "#1A1A1A"
+  rule-gray: "#C3C8CC"
+  gray-200: "#D5D9DC"
+  gray-600: "#606263"
+  gray-800: "#373839"
+typography:
+  display:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "3.375rem"
+    fontWeight: 900
+    lineHeight: 1
+    letterSpacing: "-0.02em"
+  display-narrow:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "2.5rem"
+    fontWeight: 900
+    lineHeight: 1
+    letterSpacing: "-0.02em"
+  count:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "9.375rem"
+    fontWeight: 900
+    lineHeight: 0.85
+    letterSpacing: "-0.02em"
+  headline:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "1.5rem"
+    fontWeight: 500
+    lineHeight: 1.4
+  title:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "1.25rem"
+    fontWeight: 800
+    lineHeight: 1.2
+  body:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "1.25rem"
+    fontWeight: 400
+    lineHeight: 1.5
+    fontFeature: "tnum"
+  body-row:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "1.25rem"
+    fontWeight: 400
+    lineHeight: 1.25
+    fontFeature: "tnum"
+  label:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "1.125rem"
+    fontWeight: 600
+    lineHeight: 1.3
+  label-small:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 600
+    lineHeight: 1.45
+  label-button:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "1.125rem"
+    fontWeight: 800
+    lineHeight: 1.2
+  label-nav:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "1.125rem"
+    fontWeight: 700
+    lineHeight: 1.2
+  label-stamp:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "1rem"
+    fontWeight: 700
+    lineHeight: 1.3
+  apparatus:
+    fontFamily: "Hanken Grotesk, sans-serif"
+    fontSize: "0.9375rem"
+    fontWeight: 700
+    lineHeight: 1.3
+    letterSpacing: "0.08em"
+rounded:
+  none: "0px"
+spacing:
+  space-1: "0.25rem"
+  space-2: "0.5rem"
+  space-3: "0.75rem"
+  space-4: "1rem"
+  space-5: "1.5rem"
+  space-6: "2rem"
+  space-7: "2.5rem"
+  column: "32.5rem"
+  rail-width: "4.5rem"
+  measure: "60ch"
+components:
+  button-primary:
+    backgroundColor: "{colors.iron-black}"
+    textColor: "{colors.block-white}"
+    typography: "{typography.label-button}"
+    rounded: "{rounded.none}"
+    padding: "0.875rem 1.5rem"
+  button-primary-active:
+    backgroundColor: "{colors.gray-800}"
+    textColor: "{colors.block-white}"
+  button-primary-disabled:
+    backgroundColor: "transparent"
+    textColor: "{colors.gray-600}"
+  button-retry:
+    backgroundColor: "{colors.block-white}"
+    textColor: "{colors.iron-black}"
+    typography: "{typography.label-button}"
+    rounded: "{rounded.none}"
+    padding: "0.875rem 1.5rem"
+  button-retry-hover:
+    backgroundColor: "{colors.gray-200}"
+  button-retry-active:
+    backgroundColor: "{colors.rule-gray}"
+  margin-key:
+    backgroundColor: "transparent"
+    textColor: "{colors.iron-black}"
+    typography: "{typography.label}"
+    padding: "0.75rem 0.5rem"
+  margin-key-hover:
+    backgroundColor: "{colors.gray-200}"
+  margin-key-active:
+    backgroundColor: "{colors.rule-gray}"
+  margin-key-current:
+    backgroundColor: "{colors.block-white}"
+  margin-key-letter:
+    textColor: "{colors.rubric}"
+  rail-channel:
+    backgroundColor: "{colors.proof-gray}"
+    width: "{spacing.rail-width}"
+  rail-key:
+    backgroundColor: "{colors.rubric}"
+    rounded: "{rounded.none}"
+    size: "1.375rem"
+  rail-detent:
+    size: "1.875rem"
+  plate:
+    backgroundColor: "{colors.iron-black}"
+    textColor: "{colors.block-white}"
+    typography: "{typography.label}"
+    padding: "1rem 1.5rem 1.5rem"
+    width: "14rem"
+  block:
+    backgroundColor: "{colors.block-white}"
+    rounded: "{rounded.none}"
+    padding: "{spacing.space-7}"
+  verdict:
+    textColor: "{colors.iron-black}"
+    padding: "1rem 1.5rem"
+  answer-box:
+    backgroundColor: "{colors.block-white}"
+    textColor: "{colors.iron-black}"
+    typography: "{typography.body}"
+    rounded: "{rounded.none}"
+    padding: "0.75rem 1rem"
+    height: "9.5rem"
+  answer-box-disabled:
+    textColor: "{colors.gray-600}"
+  error:
+    textColor: "{colors.iron-black}"
+    padding: "0.75rem 1rem"
+  demo-label:
+    textColor: "{colors.iron-black}"
+    typography: "{typography.label-stamp}"
+    padding: "0.25rem 0.75rem"
+  nav:
+    backgroundColor: "{colors.proof-gray}"
+    textColor: "{colors.iron-black}"
+    typography: "{typography.label-nav}"
+    padding: "0.75rem 2.5rem"
+    height: "3.75rem"
 ---
-
-<!-- SEED: established with the user before implementation; re-run /impeccable document once there's code to capture the actual tokens and components. -->
 
 # Asked Before design
 
-The visual world for Asked Before, chosen in [impeccable](/.claude/skills/impeccable/SKILL.md)'s direction workshop on October 16, 2026, with rules grounded in a search of X the same day. It's a seed: it commits the world and its rules, and the real tokens come from the first build. [PRODUCT.md](/docs/PRODUCT.md) owns what the product is, and the [card stack surface brief](/.impeccable/surfaces/apps-src-index-tsx.md) owns that screen's composition; this file is strictly visual. When a review catches a visual mistake, add a one-line Named Rule here.
+The visual world for Asked Before, chosen in [impeccable](/.claude/skills/impeccable/SKILL.md)'s direction workshop on October 16, 2026, with rules grounded in a search of X the same day, and recorded from the shipped `public/styles.css`. The frontmatter's tokens are normative and match that stylesheet's custom properties. [The scope](/devpost/scope.md) owns what the product is, and the [card stack surface brief](/.impeccable/surfaces/apps-src-index-tsx.md) owns that screen's composition; this file is strictly visual. When a review catches a visual mistake, add a one-line Named Rule here.
 
 Contents:
 
@@ -22,6 +194,15 @@ Contents:
 1.  [Layout](#layout)
 1.  [Elevation & Depth](#elevation--depth)
 1.  [Shapes](#shapes)
+1.  [Components](#components)
+    1.  [Buttons](#buttons)
+    1.  [Navigation](#navigation)
+    1.  [Margin keys](#margin-keys)
+    1.  [The rail](#the-rail)
+    1.  [The reversed plate](#the-reversed-plate)
+    1.  [Verdicts](#verdicts)
+    1.  [The answer box](#the-answer-box)
+    1.  [Waits and errors](#waits-and-errors)
 1.  [Do's and Don'ts](#dos-and-donts)
     1.  [Design do's](#design-dos)
     1.  [Design don'ts](#design-donts)
@@ -31,15 +212,15 @@ Contents:
 
 **Creative North Star: "The Centre Rail"**
 
-Every screen is set like a page of a wide-margin reference edition drawn by a ruling engine. A small, dense block holds the work; a wide margin around it carries the apparatus; and down the middle of the block runs one vermilion rail with a key on it for every borrow. Your own words sit on one side of the rail and what they point to sits on the other, so the keys show how often you asked before any number does.
+Every screen is set like a page of a wide-margin reference edition drawn by a ruling engine. A small, dense block holds the work; a wide margin around it carries the apparatus; and down the middle of the block runs one rail with a vermilion key on it for every borrow. Your own words sit on one side of the rail and what they point to sits on the other, so the keys show how often you asked before any number does.
 
 The surface is for operating, not reading: navigation, buttons, and inputs stay the web's standard controls, and the world lends only type, palette, density, and the rail. The edition's bone stock and text serif are translated to proof gray and a grotesk, because a warm cream ground with a serif is the default look the user ruled out. Density is high and calm: one block per screen, ruled in 1px hairlines, with nothing that glows, floats, or bounces.
 
-Motion has one grammar: a key drops into its detent along a single damped axis with no overshoot. That drop is the only orchestrated motion; when it runs, and whether keys drop together or in date order, is [to be resolved during implementation]. Under reduced motion the keys are simply in place.
+Motion has one grammar: a key drops into its detent along a single damped axis with no overshoot. That drop is the only orchestrated motion. It runs in date order, across the year cut, every time a borrowed card is set in the block: each key falls 120% of its height into its detent over 400ms, one 55ms step after the key before it, so nine keys are seated in 840ms. The easing is a critically damped spring written as `linear()` that never passes 1, and the detent clips the key, so nothing fades. A returned card's keys are already seated and don't drop. Under reduced motion the keys are simply in place.
 
 **Key Characteristics:**
 
-- One vermilion rail per block, one key per borrow.
+- One rail per block, one vermilion key per borrow.
 - Proof-gray ground, white block, iron-black ink, one rubric.
 - One reversed black plate per screen, for the number that matters.
 - Square corners and 1px hairlines; no shadows and no radius.
@@ -55,62 +236,112 @@ Two inks on proof gray: iron black does the work, and rubric vermilion marks onl
 
 ### Neutral colors
 
-- **Proof Gray** (#E8EBED): the page ground and the margin.
-- **Block White** (#FFFFFF): the block that holds the work.
+- **Proof Gray** (#E8EBED): the page ground, the margin, and the rail's recessed bar.
+- **Block White** (#FFFFFF): the block that holds the work, the answer box, the current margin key, and the retry button.
 - **Iron Black** (#1A1A1A): text, hairlines, the reversed plate, and the primary button.
-- **Rule Gray** (#C3C8CC): the rules between rows inside the block.
-- Further neutral steps: [to be resolved during implementation], on one ramp from Proof Gray to Iron Black.
+- **Rule Gray** (#C3C8CC): the rules between rows inside the block, and the pressed fill of the retry button and margin keys.
+- **Hover Gray** (#D5D9DC): the instant hover fill of the retry button and margin keys.
+- **Disabled Gray** (#606263): disabled text and dotted frames, placeholders, and the locked answer's frame; 5.1:1 on proof gray.
+- **Pressed Iron** (#373839): the pressed primary button.
 
 ### Color rules
 
 **The One Rubric Rule.** Vermilion appears only on the rail's keys and the margin's key letters. On a heading, a border, a background, or a state, it's wrong.
 
-**The One Ramp Rule.** Every neutral comes from one fixed ramp between Proof Gray and Iron Black. No one-off grays.
+**The One Ramp Rule.** Every neutral comes from one fixed ramp between Proof Gray and Iron Black, stepped in OKLab: Proof Gray, Hover Gray, Rule Gray, Disabled Gray, Pressed Iron, Iron Black. No one-off grays.
 
-**The No New Ink Rule.** States add no color: a returned card's margin key is struck through in iron black. How a failed rep shows within the two inks is [to be resolved during implementation].
+**The No New Ink Rule.** States add no color: a returned card's margin key is struck through in iron black, and a failed rep's verdict frame goes from 1px to 3px iron black.
 
 ## Typography
 
-**Body and UI font:** Hanken Grotesk (with sans-serif)
-**Apparatus:** [to be resolved during implementation]. Hanken Grotesk has no true small caps (`smcp`), so the choice is tracked capitals in Hanken Grotesk or a second family with real small caps.
+**Body and UI font:** Hanken Grotesk (with sans-serif), self-hosted as the roman and italic variable faces under the OFL.
+**Apparatus:** tracked capitals in Hanken Grotesk. It has no true small caps (`smcp`), and at 15px the capitals' height matches the 20px body's x-height, so they read as small caps without a second family.
 
-**Character:** a plain, sturdy grotesk standing in for the edition's text serif, so the page reads as a reference work without reading as a bookish default. Figures are tabular wherever a date or count appears.
+**Character:** a plain, sturdy grotesk standing in for the edition's text serif, so the page reads as a reference work without reading as a bookish default. Figures are tabular wherever a date or count appears, and your own phrasings are set in the italic.
 
 ### Type hierarchy
 
-- **Display** (900, 54px, 1.0, −0.02em): the heading at the head of the block.
-- **Count** (900, 150px, 0.85): the number on the reversed plate, and nowhere else.
-- **Body** (400, at least 20px, line height [to be resolved during implementation]): your words, dates, and prose. The chosen sketch set 17px; the floor below raises it.
-- **Label** (600–800, 14–18px): navigation, buttons, the margin list, the demo-data label, and the privacy line.
-- **Apparatus** (at least 14px): margin notes and key letters, in the face and tracking chosen above.
+- **Display** (900, 54px, 1.0, −0.02em): the skill name or heading at the head of the block; 40px on narrow screens.
+- **Count** (900, 150px, 0.85, −0.02em): the number on the reversed plate, and nowhere else.
+- **Headline** (500, 24px, 1.4): the rep's problem.
+- **Title** (800, 20px, 1.2): the headings of the lesson, the problem, and the verdict.
+- **Body** (400, 20px, 1.5): prose, captions, and the answer box, capped at 60ch. In the rail rows the line height is 1.25, so nine rows fit the 1080 frame.
+- **Label** (600–800, 16–18px): navigation, buttons, the margin list, the plate's caption, the demo-data label, and the privacy line. Key letters are single capitals at 18px, weight 800.
+- **Apparatus** (700, 15px, +0.08em, uppercase): margin headings only. Margin notes stay in sentence case at the 16px label size.
 
 ### Type rules
 
 **The 1080p Floor Rule.** In the demo video's 1080p frame, body text renders at 20px or more and labels and apparatus at 14px or more; size the CSS for the viewport the video records. Judges may only see the video, and one builder's rule for product videos is "body text ≥ 20px at 1080p" ([@elie2222][x-video]). The sketch's 13px and 17px sizes fall below it and don't carry over.
 
-**The No Display Face Rule.** No display face beyond the text family, and no monospace. Apparatus may add one small-caps family if the decision above needs it.
+**The No Display Face Rule.** No display face beyond the text family, and no monospace. Apparatus stays in tracked capitals of the same family.
 
 [x-video]: https://x.com/elie2222/status/2107186094777434454
 
 ## Layout
 
-The block holds its measure and the margin absorbs the width: two short columns of equal measure around a narrow rail, with extra desktop width going to the margins, never to the line length. The exact measure and the spacing scale are [to be resolved during implementation]. The top navigation is the standard one, with the demo-data label always visible while the demo export is loaded.
+The block holds its measure and the margin absorbs the width: two short columns of equal measure (520px, about 52 characters) around a 72px rail, inside 40px of padding, which makes the block 1194px. Extra desktop width goes to the margins in a 5:3 split, never to the line length: the wide left margin carries the keys, notes, and the privacy line at its foot, and the narrower right margin holds the plate. The block sits 32px below the navigation. Space steps are 4, 8, 12, 16, 24, 32, and 40px, and rail rows are padded 9px top and bottom.
 
-On narrow screens, where the rail goes is [to be resolved during implementation]; it must not become a colored edge stripe.
+The cold rep keeps the same two columns either side of a centre hairline: the verdict and lesson on the left, the problem and answer box on the right. After a pass, "Back to the stack" sits under the Returned verdict in the left column, so it stays in the frame however long the locked answer runs.
+
+At 67.5rem (1080px) and below there's one column, with the margin above the block, 16px of page padding, and 16px of block padding. The rail moves outboard to the text's left edge as the same gray bar, each key spanning its phrasing and the date under it; it never becomes a colored edge stripe. The plate goes in flow with 24px above it, hanging 12px past the block's right edge.
 
 ## Elevation & Depth
 
-The system is flat. Nothing has a shadow; depth comes from 1px hairlines and from one reversed plate that hangs over the block's edge. That overlap is the only place one surface sits on another.
+The system is flat. Nothing has a shadow; depth comes from 1px hairlines, from the rail's bar recessed in proof gray, and from one reversed plate that hangs over the block's edge. That overlap is the only place one surface sits on another, and it overlaps only 32px of the block's 40px padding, never a stamp or the rep's problem.
 
 **The Reversed Plate Rule.** One element per screen sits on a black plate with white type: the number that matters most on that screen. A second plate means the first one isn't the point.
 
+**The Plate Holds Rule.** Every state of a screen keeps its one plate, inside the block's padding: waiting and error too. A plate that drops out of a short state, or hangs past the block's foot, is wrong.
+
 ## Shapes
 
-Square everywhere: no radius on blocks, buttons, inputs, or keys. Keys are small vermilion squares seated in square detents cut into the rail. Frames are 1px iron-black rules. Control states (focus, pressed, disabled) are [to be resolved during implementation] in the world's printed marks, such as brackets and fills, and must not reuse the strike that marks a returned card.
+Square everywhere: no radius on blocks, buttons, inputs, plates, or keys. Keys are small vermilion squares (22px) seated in square detents (30px) along the rail's bar. Frames are 1px iron-black rules; heavier rules carry meaning: 3px for a failed verdict, 4px for a returned rail's end rule and an error's head rule. Control states use the world's printed marks: square brackets for focus, a fill one ramp step down for pressed, and a dotted frame for disabled or locked. None reuses the 2px strike that marks a returned card.
+
+**The One Bar Rule.** Each year's rail is one continuous gray bar between two iron hairlines, and a key has no cell or frame of its own. Keys in separate gray cells read as a column of checkboxes.
+
+## Components
+
+Standard controls, set in the world's type and printed marks. Hover fills are instant, with no transition.
+
+### Buttons
+
+- **Shape:** square (0px), with a 1px iron frame.
+- **Primary:** iron-black fill, white label at 18px weight 800, padded 14px by 24px. Pressed fills Pressed Iron.
+- **Retry:** the same shape outlined, white fill and iron label; it fills Hover Gray on hover and Rule Gray when pressed.
+- **Focus:** printed square brackets, 2px iron, standing 8px outside each side and 6px above and below; anything that isn't a button gets a 2px iron outline offset 3px.
+- **Disabled:** the frame drops to a dotted Disabled Gray rule, the fill lifts, and the label goes Disabled Gray.
+
+### Navigation
+
+The web's standard top bar on proof gray, 60px tall, closed by an iron hairline. The product name is 20px weight 900; the demo-data label sits at the far right in a 1px iron frame at 16px weight 700, on every screen while the demo export is loaded. On narrow screens the label wraps under the name.
+
+### Margin keys
+
+Full-width rows between iron hairlines: the vermilion key letter, the skill, and its count right-aligned in tabular figures. The current key fills Block White and goes to weight 800; others fill Hover Gray on hover and Rule Gray when pressed. A returned key is struck through with a 2px iron line. The margin heading above them is in apparatus capitals, and when a card's borrows span more than one year the margin carries the note "A cut in the rail marks a new year of asking."
+
+### The rail
+
+One rail per year of borrows, each opening on an iron hairline. Each row sets the phrasing right-aligned in italic, the key in the bar, and the date in tabular figures, with Rule Gray rules between rows. The bar is Proof Gray between two iron hairlines, closed at its foot; the 12px gap between rails is the year cut. The detent has no fill or frame and only clips the key's drop. A returned card's rail closes with a 4px iron end rule carrying "Returned" and the date.
+
+### The reversed plate
+
+An iron-black plate, at least 14rem wide, with the count at 150px over a balanced white caption at 18px weight 600. On desktop it hangs from the block's top padding, overlapping only the padding and standing outboard into the right margin. A short block (waiting, error) has a 19.5rem minimum height, so it holds the whole plate.
+
+### Verdicts
+
+A framed note at the head of the rep's left column: 1px iron for Returned, with a framed "Stamped returned" date stamp at 16px weight 700; 3px iron for Still borrowed. The lesson and the problem open on an iron hairline instead of a frame.
+
+### The answer box
+
+A square textarea with a 1px iron frame, white fill, body type, a 152px minimum height, and Disabled Gray placeholder. While locked (read-only or disabled), its words stay readable and its frame drops to a dotted Disabled Gray rule; it grows to fit its text up to 13 whole lines, then scrolls, so the 1080 frame never cuts a line.
+
+### Waits and errors
+
+A waiting line opens with a short piece of rail, the same gray bar empty of keys, with the line beside it at weight 500. An error is a notice: a 1px iron frame with a 4px head rule, so it can't be mistaken for a disabled control, followed by an outlined retry.
 
 ## Do's and Don'ts
 
-These hold for every screen. The ones from X cite the post they came from; the rest come from the user's answers in the direction workshop, [PRODUCT.md](/docs/PRODUCT.md#asked-before-voice), and [CONTEXT.md](/docs/CONTEXT.md#avoid-the-generic-ai-look).
+These hold for every screen. The ones from X cite the post they came from; the rest come from the user's answers in the direction workshop, [the scope's voice](/devpost/scope.md#inspiration--identity), and [the PRD's look and feel](/devpost/prd.md#look-and-feel).
 
 ### Design do's
 
@@ -130,8 +361,8 @@ These hold for every screen. The ones from X cite the post they came from; the r
 - **Don't** make it feel like an app kit: no rounded cards, soft shadows, toasts, or progress bars. The user ruled these out too.
 - **Don't** use the tells from a widely shared list of reasons a site "looks vibe-coded": Inter, Geist, or Space Grotesk; Lucide icons; emoji; sparkle icons; bento grids; dot grids; a colored left stripe; soft corner radius; hover animations ([@suraj_sharma14][x-vibe]).
 - **Don't** fade or slide sections in on load, and don't stagger reveals; "everything fading in" is the model's default look ([@ArchiveExplorer][x-ref]), even though a widely shared aesthetics prompt recommends staggered reveals ([@vincenteliezer][x-stagger]). The rail's key drop is the only orchestrated motion.
-- **Don't** add purple gradients, all-caps eyebrow labels above headings, or "→" on buttons ([CONTEXT.md](/docs/CONTEXT.md#avoid-the-generic-ai-look)). Apparatus lives in the margin, never as an eyebrow.
-- **Don't** draw streaks, flames, badges, scores, or charts. [PRODUCT.md](/docs/PRODUCT.md#asked-before-voice) rules them out, and one critique says Duolingo "monetizes guilt through streaks, badges & reminders" ([@StockSavvyShay][x-guilt]).
+- **Don't** add purple gradients, all-caps eyebrow labels above headings, or "→" on buttons ([the PRD's Avoid list](/devpost/prd.md#look-and-feel)). Apparatus lives in the margin, never as an eyebrow.
+- **Don't** draw streaks, flames, badges, scores, or charts. [The PRD's Avoid list](/devpost/prd.md#look-and-feel) rules out streaks, badges, scores, and charts, and one critique says Duolingo "monetizes guilt through streaks, badges & reminders" ([@StockSavvyShay][x-guilt]).
 
 [x-vibe]: https://x.com/suraj_sharma14/status/2102254059151565233
 [x-stagger]: https://x.com/vincenteliezer/status/1991480152585347102
@@ -141,8 +372,8 @@ These hold for every screen. The ones from X cite the post they came from; the r
 
 - [Card stack surface brief](/.impeccable/surfaces/apps-src-index-tsx.md), with the direction contract
 - [Chosen card stack sketch](/.impeccable/mocks/decision/r2-lead.html) and its [Centre Rail figure](/.impeccable/mocks/decision/r2-lead.png)
-- [Asked Before product](/docs/PRODUCT.md)
-- [Asked Before product requirements](/docs/PRD.md)
-- [Hackathon context](/docs/CONTEXT.md)
+- [Asked Before scope](/devpost/scope.md)
+- [Asked Before product requirements](/devpost/prd.md)
+- [Asked Before technical spec, Look and Feel](/devpost/spec.md#look-and-feel)
 
 [x-ref]: https://x.com/ArchiveExplorer/status/2105023417716191488

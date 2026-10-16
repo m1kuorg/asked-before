@@ -1,0 +1,336 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-16T14:36:15.543Z",
+  "title": "Design System: Asked Before",
+  "extensions": {
+    "colorMeta": {
+      "rubric": {
+        "role": "primary",
+        "displayName": "Rubric Vermilion",
+        "canonical": "#B42D16",
+        "tonalRamp": [
+          "#3B0D05",
+          "#5E1609",
+          "#83200E",
+          "#B42D16",
+          "#D4492F",
+          "#E8806B",
+          "#F3B6A9",
+          "#FBE4DE"
+        ]
+      },
+      "proof-gray": {
+        "role": "neutral",
+        "displayName": "Proof Gray",
+        "canonical": "#E8EBED",
+        "tonalRamp": [
+          "#E8EBED",
+          "#D5D9DC",
+          "#C3C8CC",
+          "#606263",
+          "#373839",
+          "#1A1A1A"
+        ]
+      },
+      "block-white": {
+        "role": "neutral",
+        "displayName": "Block White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#FFFFFF",
+          "#E8EBED",
+          "#D5D9DC",
+          "#C3C8CC",
+          "#606263",
+          "#373839",
+          "#1A1A1A"
+        ]
+      },
+      "iron-black": {
+        "role": "neutral",
+        "displayName": "Iron Black",
+        "canonical": "#1A1A1A",
+        "tonalRamp": [
+          "#E8EBED",
+          "#D5D9DC",
+          "#C3C8CC",
+          "#606263",
+          "#373839",
+          "#1A1A1A"
+        ]
+      },
+      "rule-gray": {
+        "role": "neutral",
+        "displayName": "Rule Gray",
+        "canonical": "#C3C8CC",
+        "tonalRamp": [
+          "#E8EBED",
+          "#D5D9DC",
+          "#C3C8CC",
+          "#606263",
+          "#373839",
+          "#1A1A1A"
+        ]
+      },
+      "gray-200": {
+        "role": "neutral",
+        "displayName": "Hover Gray",
+        "canonical": "#D5D9DC",
+        "tonalRamp": [
+          "#E8EBED",
+          "#D5D9DC",
+          "#C3C8CC",
+          "#606263",
+          "#373839",
+          "#1A1A1A"
+        ]
+      },
+      "gray-600": {
+        "role": "neutral",
+        "displayName": "Disabled Gray",
+        "canonical": "#606263",
+        "tonalRamp": [
+          "#E8EBED",
+          "#D5D9DC",
+          "#C3C8CC",
+          "#606263",
+          "#373839",
+          "#1A1A1A"
+        ]
+      },
+      "gray-800": {
+        "role": "neutral",
+        "displayName": "Pressed Iron",
+        "canonical": "#373839",
+        "tonalRamp": [
+          "#E8EBED",
+          "#D5D9DC",
+          "#C3C8CC",
+          "#606263",
+          "#373839",
+          "#1A1A1A"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The skill name or heading at the head of the block; 40px on narrow screens."
+      },
+      "count": {
+        "displayName": "Count",
+        "purpose": "The number on the reversed plate, and nowhere else."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The rep's problem."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "The headings of the lesson, the problem, and the verdict."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Prose, captions, and the answer box, capped at 60ch; tabular figures."
+      },
+      "body-row": {
+        "displayName": "Body, rail rows",
+        "purpose": "Phrasings (italic) and dates in the rail, so nine rows fit the 1080 frame."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Navigation, buttons, the margin list, and the plate's caption; key letters at weight 800."
+      },
+      "label-small": {
+        "displayName": "Small label",
+        "purpose": "The demo-data label, the privacy line, margin notes, stamps, and the end rule."
+      },
+      "apparatus": {
+        "displayName": "Apparatus",
+        "purpose": "Tracked uppercase margin headings, standing in for small caps."
+      },
+      "label-button": {
+        "displayName": "Button label",
+        "purpose": "Primary and retry button labels: 800, 18px, 1.2."
+      },
+      "label-nav": {
+        "displayName": "Navigation label",
+        "purpose": "The top navigation's text: 700, 18px, 1.2; the product name inside it is 900, 20px."
+      },
+      "label-stamp": {
+        "displayName": "Stamp label",
+        "purpose": "Framed small labels: the demo-data label, the end rule, and the verdict's returned stamp: 700, 16px, 1.3."
+      },
+      "display-narrow": {
+        "displayName": "Display, narrow",
+        "purpose": "The display heading at 67.5rem and below: 40px."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "drop-duration",
+        "value": "400ms",
+        "purpose": "One rail key's drop into its detent."
+      },
+      {
+        "name": "drop-step",
+        "value": "55ms",
+        "purpose": "Delay between successive keys, in date order across the year cut; nine keys seat in 840ms."
+      },
+      {
+        "name": "drop-ease",
+        "value": "linear(0, 0.036 4%, 0.12 8%, 0.224 12%, 0.333 16%, 0.438 20%, 0.555 25%, 0.654 30%, 0.749 36%, 0.821 42%, 0.888 50%, 0.941 60%, 0.974 72%, 0.992 86%, 1)",
+        "purpose": "A critically damped spring: it rises to rest and never passes it. The key falls from translate 0 -120%; none under reduced motion or on a returned card."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow",
+        "value": "67.5rem",
+        "purpose": "At and below: one column, margin above the block, rail outboard on the left, plate in flow."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one action closing a block: iron fill, printed brackets on focus, Pressed Iron when pressed.",
+      "html": "<button class=\"ds-btn\">Open key A</button> <button class=\"ds-btn\" disabled>Check my answer</button>",
+      "css": ".ds-btn { position: relative; appearance: none; margin: 0; padding: 0.875rem var(--space-5); border: 1px solid var(--iron-black); border-radius: 0; color: var(--block-white); background: var(--iron-black); font: 800 var(--label-size) / 1.2 var(--face); cursor: pointer; } .ds-btn:active { border-color: var(--gray-800); background: var(--gray-800); } .ds-btn:disabled { border: 1px dotted var(--gray-600); color: var(--gray-600); background: transparent; cursor: not-allowed; } .ds-btn:focus-visible { outline: none; } .ds-btn:focus-visible::before, .ds-btn:focus-visible::after { content: ''; position: absolute; top: -6px; bottom: -6px; width: 10px; border: 2px solid var(--iron-black); pointer-events: none; } .ds-btn:focus-visible::before { left: -8px; border-right: 0; } .ds-btn:focus-visible::after { right: -8px; border-left: 0; }"
+    },
+    {
+      "name": "Retry Button",
+      "kind": "button",
+      "refersTo": "button-retry",
+      "description": "The outlined secondary button after an error: instant Hover Gray, Rule Gray when pressed.",
+      "html": "<button class=\"ds-btn-retry\">Try again</button>",
+      "css": ".ds-btn-retry { position: relative; appearance: none; margin: 0; padding: 0.875rem var(--space-5); border: 1px solid var(--iron-black); border-radius: 0; color: var(--iron-black); background: var(--block-white); font: 800 var(--label-size) / 1.2 var(--face); cursor: pointer; } @media (hover: hover) { .ds-btn-retry:hover { background: var(--gray-200); } } .ds-btn-retry:active { border-color: var(--iron-black); background: var(--gray-300); } .ds-btn-retry:focus-visible { outline: none; } .ds-btn-retry:focus-visible::before, .ds-btn-retry:focus-visible::after { content: ''; position: absolute; top: -6px; bottom: -6px; width: 10px; border: 2px solid var(--iron-black); pointer-events: none; } .ds-btn-retry:focus-visible::before { left: -8px; border-right: 0; } .ds-btn-retry:focus-visible::after { right: -8px; border-left: 0; }"
+    },
+    {
+      "name": "Margin Keys",
+      "kind": "custom",
+      "refersTo": "margin-key",
+      "description": "The margin's card list: vermilion letter, skill, count; current fills white, returned is struck in iron.",
+      "html": "<ol class=\"ds-keys\"><li><button class=\"ds-margin-key\" aria-current=\"true\"><b>A</b> <span>Undo a git commit</span> <span>9</span></button></li><li><button class=\"ds-margin-key\"><b>B</b> <span>Center an element with CSS</span> <span>4</span></button></li><li><button class=\"ds-margin-key is-returned\"><b>C</b> <span>Free a port that's already in use</span> <span>3</span></button></li></ol>",
+      "css": ".ds-keys { list-style: none; margin: 0; padding: 0; width: 24rem; } .ds-keys li:last-child > .ds-margin-key { border-bottom: var(--hairline); } .ds-margin-key { position: relative; display: grid; grid-template-columns: 1.5em minmax(0, 1fr) auto; column-gap: var(--space-3); align-items: baseline; width: 100%; margin: 0; padding: var(--space-3) var(--space-2); border: 0; border-top: var(--hairline); border-radius: 0; color: var(--iron-black); background: transparent; font: 600 var(--label-size) / 1.3 var(--face); font-variant-numeric: tabular-nums; text-align: left; cursor: pointer; } .ds-margin-key > :first-child { color: var(--rubric); font-weight: 800; } .ds-margin-key > :last-child { text-align: right; } .ds-margin-key[aria-current='true'] { background: var(--block-white); font-weight: 800; } .ds-margin-key.is-returned { text-decoration: line-through 2px var(--iron-black); } @media (hover: hover) { .ds-margin-key:not([aria-current='true']):hover { background: var(--gray-200); } } .ds-margin-key:active { background: var(--gray-300); } .ds-margin-key:focus-visible { outline: none; } .ds-margin-key:focus-visible::before, .ds-margin-key:focus-visible::after { content: ''; position: absolute; top: -6px; bottom: -6px; width: 10px; border: 2px solid var(--iron-black); pointer-events: none; } .ds-margin-key:focus-visible::before { left: -8px; border-right: 0; } .ds-margin-key:focus-visible::after { right: -8px; border-left: 0; }"
+    },
+    {
+      "name": "The Rail",
+      "kind": "custom",
+      "refersTo": "rail-key",
+      "description": "One year's rail: phrasing, a vermilion key in one continuous gray bar, the date; keys drop in date order.",
+      "html": "<ol class=\"ds-rail\"><li><span class=\"ds-phrasing\">how do i undo my last git commit</span><span class=\"ds-rail-key\"></span><span class=\"ds-stamp\">2025-03-04</span></li><li style=\"--row: 1\"><span class=\"ds-phrasing\">revert last commit git</span><span class=\"ds-rail-key\"></span><span class=\"ds-stamp\">2026-01-14</span></li></ol>",
+      "css": ".ds-rail { position: relative; list-style: none; margin: 0; padding: 0; border-top: var(--hairline); background: var(--block-white); font: 400 var(--body-size) / var(--row-leading) var(--face); font-variant-numeric: tabular-nums; color: var(--iron-black); } .ds-rail::before { content: ''; position: absolute; top: 0; bottom: 0; left: calc(50% - var(--rail-width) / 2); width: var(--rail-width); border: var(--hairline); border-top: 0; background: var(--proof-gray); pointer-events: none; } .ds-rail > li { display: grid; grid-template-columns: minmax(0, 1fr) var(--rail-width) minmax(0, 1fr); } .ds-phrasing, .ds-stamp { grid-row: 1; padding: var(--row-pad) var(--space-4); border-bottom: var(--row-rule); } .ds-phrasing { grid-column: 1; font-style: italic; text-align: right; } .ds-stamp { grid-column: 3; font-weight: 500; } .ds-rail-key { grid-column: 2; grid-row: 1; justify-self: center; align-self: start; position: relative; overflow: hidden; width: var(--detent); height: var(--detent); margin-top: calc(var(--row-pad) + var(--body-size) * var(--row-leading) / 2 - var(--detent) / 2); } .ds-rail-key::before { content: ''; position: absolute; inset: calc((var(--detent) - var(--key)) / 2); background: var(--rubric); animation: ds-key-drop var(--drop-duration) var(--drop-ease) backwards; animation-delay: calc(var(--row, 0) * var(--drop-step)); } @keyframes ds-key-drop { from { translate: 0 -120%; } } @media (prefers-reduced-motion: reduce) { .ds-rail-key::before { animation: none; } }"
+    },
+    {
+      "name": "Reversed Plate",
+      "kind": "custom",
+      "refersTo": "plate",
+      "description": "The one number that matters on a screen, white on an iron plate.",
+      "html": "<p class=\"ds-plate\"><b>9</b> <span>times borrowed, not returned</span></p>",
+      "css": ".ds-plate { width: min-content; min-width: 14rem; margin: 0; padding: var(--space-4) var(--space-5) var(--space-5); color: var(--block-white); background: var(--iron-black); font: 600 var(--label-size) / 1.3 var(--face); letter-spacing: 0.01em; font-variant-numeric: tabular-nums; } .ds-plate > :first-child { display: block; font-size: var(--count-size); font-weight: 900; line-height: 0.85; letter-spacing: -0.02em; } .ds-plate > :first-child ~ * { display: block; margin-top: var(--space-3); text-wrap: balance; }"
+    },
+    {
+      "name": "Verdict",
+      "kind": "card",
+      "refersTo": "verdict",
+      "description": "The check's verdict: a 1px iron frame with a stamp for Returned, a 3px frame for Still borrowed.",
+      "html": "<section class=\"ds-verdict\"><h2>Returned</h2><p>You correctly say a pushed commit should be reverted.</p><p class=\"ds-verdict-stamp\">Stamped returned 2026-10-16</p></section><section class=\"ds-verdict is-failed\"><h2>Still borrowed</h2><p>Stash does not remove a commit from main.</p></section>",
+      "css": ".ds-verdict { max-width: var(--measure); margin: 0 0 var(--space-5); padding: var(--space-4) var(--space-5); border: var(--hairline); background: var(--block-white); color: var(--iron-black); font: 400 var(--body-size) / var(--prose-leading) var(--face); } .ds-verdict h2 { margin: 0 0 var(--space-2); font: 800 var(--body-size) / 1.2 var(--face); } .ds-verdict p { margin: 0; } .ds-verdict.is-failed { padding: calc(var(--space-4) - 2px) calc(var(--space-5) - 2px); border-width: 3px; } .ds-verdict-stamp { display: inline-block; margin-top: var(--space-3) !important; padding: var(--space-1) var(--space-3); border: var(--hairline); font: 700 var(--small-label-size) / 1.3 var(--face); font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Answer Box",
+      "kind": "input",
+      "refersTo": "answer-box",
+      "description": "A square textarea; focus is an offset 2px rule; locked drops to a dotted gray frame and grows up to 13 lines.",
+      "html": "<form class=\"ds-answer\"><label>Your answer, in your own words, without AI<textarea rows=\"6\" placeholder=\"Type it as you would at a terminal\"></textarea></label><label>Locked<textarea rows=\"2\" readonly>git revert HEAD, then git push.</textarea></label></form>",
+      "css": ".ds-answer { display: grid; gap: var(--space-4); max-width: var(--measure); } .ds-answer label { display: grid; gap: var(--space-2); font: 700 var(--label-size) / 1.3 var(--face); color: var(--iron-black); } .ds-answer textarea { appearance: none; display: block; width: 100%; min-height: 9.5rem; margin: 0; padding: var(--space-3) var(--space-4); border: var(--hairline); border-radius: 0; color: var(--iron-black); background: var(--block-white); font: 400 var(--body-size) / var(--prose-leading) var(--face); resize: vertical; } .ds-answer textarea::placeholder { color: var(--gray-600); opacity: 1; } .ds-answer textarea:focus-visible { outline: 2px solid var(--iron-black); outline-offset: 3px; } .ds-answer textarea:is(:disabled, :read-only) { min-height: 0; border-style: dotted; border-color: var(--gray-600); field-sizing: content; max-block-size: calc(13lh + var(--space-3) + 2px); overflow-y: auto; resize: none; } .ds-answer textarea:disabled { color: var(--gray-600); }"
+    },
+    {
+      "name": "Waiting Line and Error Notice",
+      "kind": "custom",
+      "refersTo": "error",
+      "description": "A wait opens with an empty piece of rail; an error is a frame with a 4px head rule, then a retry.",
+      "html": "<p class=\"ds-waiting\" role=\"status\">Cataloging your questions…</p><p class=\"ds-error\" role=\"alert\">Your questions couldn't be cataloged. The model timed out.</p>",
+      "css": ".ds-waiting { position: relative; display: flex; align-items: center; min-height: 3rem; margin: 0 0 var(--space-5); padding-left: calc(var(--rail-width) + var(--space-4)); color: var(--iron-black); font: 500 var(--body-size) / var(--prose-leading) var(--face); cursor: progress; } .ds-waiting::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: var(--rail-width); border-inline: var(--hairline); background: var(--proof-gray); } .ds-error { max-width: var(--measure); margin: 0; padding: var(--space-3) var(--space-4); border: var(--hairline); border-top-width: 4px; background: var(--block-white); color: var(--iron-black); font: 400 var(--body-size) / var(--prose-leading) var(--face); }"
+    },
+    {
+      "name": "Top Navigation",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "The standard top bar with the product name and the always-visible demo-data label.",
+      "html": "<nav class=\"ds-nav\"><span class=\"ds-nav-name\">Asked Before</span> <span class=\"ds-demo-label\">Demo data: a made-up chat export</span></nav>",
+      "css": ".ds-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-5); min-height: 3.75rem; padding: var(--space-3) var(--space-7); border-bottom: var(--hairline); background: var(--proof-gray); color: var(--iron-black); font: 700 var(--label-size) / 1.2 var(--face); } .ds-nav-name { font-size: var(--body-size); font-weight: 900; } .ds-demo-label { margin-left: auto; padding: var(--space-1) var(--space-3); border: var(--hairline); font: 700 var(--small-label-size) / 1.3 var(--face); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Centre Rail",
+    "overview": "Every screen is set like a page of a wide-margin reference edition drawn by a ruling engine. A small, dense block holds the work; a wide margin around it carries the apparatus; and down the middle of the block runs one rail with a vermilion key on it for every borrow. Your own words sit on one side of the rail and what they point to sits on the other, so the keys show how often you asked before any number does.\n\nThe surface is for operating, not reading: navigation, buttons, and inputs stay the web's standard controls, and the world lends only type, palette, density, and the rail. The edition's bone stock and text serif are translated to proof gray and a grotesk, because a warm cream ground with a serif is the default look the user ruled out. Density is high and calm: one block per screen, ruled in 1px hairlines, with nothing that glows, floats, or bounces.\n\nMotion has one grammar: a key drops into its detent along a single damped axis with no overshoot. That drop is the only orchestrated motion. It runs in date order, across the year cut, every time a borrowed card is set in the block: each key falls 120% of its height into its detent over 400ms, one 55ms step after the key before it, so nine keys are seated in 840ms. The easing is a critically damped spring written as `linear()` that never passes 1, and the detent clips the key, so nothing fades. A returned card's keys are already seated and don't drop. Under reduced motion the keys are simply in place.",
+    "keyCharacteristics": [
+      "One rail per block, one vermilion key per borrow.",
+      "Proof-gray ground, white block, iron-black ink, one rubric.",
+      "One reversed black plate per screen, for the number that matters.",
+      "Square corners and 1px hairlines; no shadows and no radius.",
+      "Standard controls in the world's type, never a costume of a printed page."
+    ],
+    "rules": [
+      {
+        "name": "The One Rubric Rule",
+        "body": "Vermilion appears only on the rail's keys and the margin's key letters. On a heading, a border, a background, or a state, it's wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Ramp Rule",
+        "body": "Every neutral comes from one fixed ramp between Proof Gray and Iron Black, stepped in OKLab: Proof Gray, Hover Gray, Rule Gray, Disabled Gray, Pressed Iron, Iron Black. No one-off grays.",
+        "section": "colors"
+      },
+      {
+        "name": "The No New Ink Rule",
+        "body": "States add no color: a returned card's margin key is struck through in iron black, and a failed rep's verdict frame goes from 1px to 3px iron black.",
+        "section": "colors"
+      },
+      {
+        "name": "The 1080p Floor Rule",
+        "body": "In the demo video's 1080p frame, body text renders at 20px or more and labels and apparatus at 14px or more; size the CSS for the viewport the video records. Judges may only see the video, and one builder's rule for product videos is \"body text ≥ 20px at 1080p\" ([@elie2222][x-video]). The sketch's 13px and 17px sizes fall below it and don't carry over.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Display Face Rule",
+        "body": "No display face beyond the text family, and no monospace. Apparatus stays in tracked capitals of the same family.",
+        "section": "typography"
+      },
+      {
+        "name": "The Reversed Plate Rule",
+        "body": "One element per screen sits on a black plate with white type: the number that matters most on that screen. A second plate means the first one isn't the point.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Plate Holds Rule",
+        "body": "Every state of a screen keeps its one plate, inside the block's padding: waiting and error too. A plate that drops out of a short state, or hangs past the block's foot, is wrong.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Bar Rule",
+        "body": "Each year's rail is one continuous gray bar between two iron hairlines, and a key has no cell or frame of its own. Keys in separate gray cells read as a column of checkboxes.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "**Do** build from the chosen sketch and the world's [quality-bar board][board], not from adjectives; a builder's advice for avoiding the model's default look is \"Steal a reference, don't describe one\" ([@ArchiveExplorer][x-ref]).",
+      "**Do** keep to three signature elements: the rail, the reversed plate, and the hairlines. One designer's checklist for distinctive AI-built UI says \"1–3 strong custom elements beat 20 random assets\" ([@Hartdrawss][x-mood]).",
+      "**Do** take texture only from the real object, the ruling engine's hairlines. One post calls the skeuomorphism revival \"already as obnoxious and overplayed\" ([@PalmyrPar][x-revival]), and a reply says \"we don't need AI to give a UI a paper texture and a fun font\" ([@Mirteaaa][x-costume]).",
+      "**Do** keep the reversed plate's number readable at thumbnail size, and let motion settle before the next interaction, so a recording never shows half-moved state."
+    ],
+    "donts": [
+      "**Don't** use a warm cream ground or a serif display face; together they're the bookish default the user ruled out.",
+      "**Don't** make it feel like an app kit: no rounded cards, soft shadows, toasts, or progress bars. The user ruled these out too.",
+      "**Don't** use the tells from a widely shared list of reasons a site \"looks vibe-coded\": Inter, Geist, or Space Grotesk; Lucide icons; emoji; sparkle icons; bento grids; dot grids; a colored left stripe; soft corner radius; hover animations ([@suraj_sharma14][x-vibe]).",
+      "**Don't** fade or slide sections in on load, and don't stagger reveals; \"everything fading in\" is the model's default look ([@ArchiveExplorer][x-ref]), even though a widely shared aesthetics prompt recommends staggered reveals ([@vincenteliezer][x-stagger]). The rail's key drop is the only orchestrated motion.",
+      "**Don't** add purple gradients, all-caps eyebrow labels above headings, or \"→\" on buttons ([the PRD's Avoid list](/devpost/prd.md#look-and-feel)). Apparatus lives in the margin, never as an eyebrow.",
+      "**Don't** draw streaks, flames, badges, scores, or charts. [The PRD's Avoid list](/devpost/prd.md#look-and-feel) rules out streaks, badges, scores, and charts, and one critique says Duolingo \"monetizes guilt through streaks, badges & reminders\" ([@StockSavvyShay][x-guilt])."
+    ]
+  }
+}

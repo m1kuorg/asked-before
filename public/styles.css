@@ -288,7 +288,7 @@ body > nav > span:first-child {
   border-top: var(--hairline);
 }
 
-/* The channel the keys sit in: two hairlines, closed at the foot. One rail per year, so the gap between rails is the cut where the year turns. */
+/* The channel the keys sit in: one continuous recessed bar between two hairlines, closed at the foot. One rail per year, so the gap between rails is the cut where the year turns. */
 .rail::before {
   content: "";
   position: absolute;
@@ -298,6 +298,7 @@ body > nav > span:first-child {
   width: var(--rail-width);
   border: var(--hairline);
   border-top: 0;
+  background: var(--proof-gray);
   pointer-events: none;
 }
 
@@ -330,7 +331,7 @@ body > nav > span:first-child {
   font-weight: 500;
 }
 
-/* A square detent cut into the rail, a recess down to the proof-gray ground; the key is its ::before, and drops in from the detent's mouth. */
+/* A square detent in the bar, drawn by nothing but the key it holds; the key is its ::before, and drops in from the detent's mouth. */
 .rail-key {
   grid-column: 2;
   grid-row: 1;
@@ -341,7 +342,6 @@ body > nav > span:first-child {
   width: var(--detent);
   height: var(--detent);
   margin-top: calc(var(--row-pad) + var(--body-size) * var(--row-leading) / 2 - var(--detent) / 2);
-  background: var(--proof-gray);
 }
 
 .rail-key::before {
@@ -476,6 +476,11 @@ body > nav > span:first-child {
   margin: 0;
 }
 
+/* A short block (waiting, an error) still holds the whole plate: the padding, the plate, the padding. */
+.block:has(> .plate):has(> .is-waiting, > .error) {
+  min-block-size: 19.5rem;
+}
+
 /* The cold rep: what you were told on the left, what you do on the right, either side of a centre hairline. */
 
 .block > div:not([class]):has(> .verdict, > .lesson, > .problem) {
@@ -522,6 +527,12 @@ body > nav > span:first-child {
     grid-row: 1 / span 4;
   }
 
+  /* After a pass, the way back sits under the Returned verdict, so it stays in the frame however long the locked answer runs. */
+  & > .verdict:not(.is-failed) ~ button {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
   @media (max-width: 67.5rem) {
     grid-template-columns: minmax(0, 1fr);
 
@@ -531,7 +542,8 @@ body > nav > span:first-child {
 
     & > *,
     & > :is(.verdict, .lesson),
-    &:not(:has(> .verdict)) > .lesson {
+    &:not(:has(> .verdict)) > .lesson,
+    & > .verdict:not(.is-failed) ~ button {
       grid-column: 1;
       grid-row: auto;
     }
@@ -614,10 +626,14 @@ textarea::placeholder {
   opacity: 1;
 }
 
-/* A locked answer keeps its words readable; only the frame drops to a dotted rule. */
+/* A locked answer keeps its words readable; only the frame drops to a dotted rule. It grows to fit, up to 13 whole lines, then scrolls, so the 1080 frame never cuts a line. */
 textarea:is(:disabled, :read-only) {
   border-style: dotted;
   border-color: var(--gray-600);
+  field-sizing: content;
+  max-block-size: calc(13lh + var(--space-3) + 2px); /* the top padding, 13 lines, the frame: the last visible line ends on the frame */
+  overflow-y: auto;
+  resize: none;
 }
 
 textarea:disabled {
@@ -626,7 +642,7 @@ textarea:disabled {
 
 /* Waits and failures. */
 
-/* A waiting line opens with a short piece of rail whose detent is still empty. */
+/* A waiting line opens with a short piece of rail, its bar still empty of keys. */
 .is-waiting {
   position: relative;
   display: flex;
@@ -637,25 +653,14 @@ textarea:disabled {
   cursor: progress;
 }
 
-.is-waiting::before,
-.is-waiting::after {
+.is-waiting::before {
   content: "";
   position: absolute;
-  left: 0;
-}
-
-.is-waiting::before {
   top: 0;
   bottom: 0;
+  left: 0;
   width: var(--rail-width);
   border-inline: var(--hairline);
-}
-
-.is-waiting::after {
-  top: calc(50% - var(--detent) / 2);
-  left: calc((var(--rail-width) - var(--detent)) / 2);
-  width: var(--detent);
-  height: var(--detent);
   background: var(--proof-gray);
 }
 
@@ -788,6 +793,7 @@ button:focus-visible::after {
 
   .block > .plate {
     position: static;
+    margin-top: var(--space-5);
     margin-left: auto;
     margin-right: calc(-1 * var(--block-pad) - 0.75rem);
   }
