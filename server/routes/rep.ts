@@ -6,7 +6,10 @@ import { z } from "zod";
 import type { RepRequest, RepResponse } from "../../src/types";
 import { askStructured, type Effort } from "../model";
 
-/** Tuned on the demo skill with `bun run scripts/check-rep-routes.ts` (m1kuorg/basics#27). */
+/**
+ * Tuned on the demo skill with `bun run scripts/check-rep-routes.ts` (m1kuorg/basics#27).
+ * Kept in m1kuorg/basics#37: on its prompt, high named the fix no less often, and a first rep took 9s, not 6s.
+ */
 export const REP_EFFORT: Effort = "medium";
 
 const Body = z.strictObject({
@@ -16,6 +19,12 @@ const Body = z.strictObject({
   withLesson: z.boolean(),
 }) satisfies z.ZodType<RepRequest>;
 
+// The case comes before the problem and is never shown: naming it by the facts
+// that decide it gives the problem those facts to state, instead of the fix.
+const Case = z
+  .string()
+  .min(1)
+  .describe("Not shown: the case of the skill this problem tests, named by the facts that decide its right approach, never by the fix.");
 const Problem = z
   .string()
   .min(1)
@@ -24,19 +33,21 @@ const Lesson = z
   .string()
   .min(1)
   .describe("The lesson: the skill's general method and how to choose between its common cases, in plain text.");
-const WithLesson = z.object({ lesson: Lesson, problem: Problem });
-const ProblemOnly = z.object({ problem: Problem });
+const WithLesson = z.object({ lesson: Lesson, case: Case, problem: Problem });
+const ProblemOnly = z.object({ case: Case, problem: Problem });
 
 const SYSTEM = `You write cold reps for Asked Before, an app for someone who keeps asking a chatbot the same question. Each card is one skill they asked about again and again. A cold rep is a fresh problem of that skill, which they answer on their own, without AI, in one plain text box.
 
 You get the skill, their own past phrasings of the question, and the problems this card has already had.
 
+First name the problem's case, for yourself; it isn't shown. Name it by the facts that decide the right approach, as they would see them, not by the fix. Then write the problem around those facts.
+
 Write one new problem:
 - A concrete, everyday situation where they need the skill, written to them as "you", ending by asking what they would do: the commands or steps, and nothing more. Never ask for an explanation, the output, a message to type, or what things look like afterwards. One to three sentences, under 60 words.
 - Its goal is the skill itself, as its name says, not a neighbouring task that needs other knowledge. Keep to the skill's common, standard cases, solvable with the usual tools in a few lines of plain text, with one clearly right approach.
-- Every want in it fits that one approach. Don't add a second job beyond the skill, such as also deleting, cleaning up, or securing something, and don't ask for a result the usual practice rules out, such as removing work others already have from the history they share.
+- Every want in it fits that one approach. Don't add a second job beyond the skill, such as also deleting, cleaning up, or securing something, and don't ask for a result the usual practice rules out, such as making work vanish from copies others already have.
 - Make it a new scenario, in your own words. Don't reword, quote, or borrow wording from any of their phrasings, and don't repeat or closely echo an earlier problem: when there are earlier problems, pick a case of the skill they haven't covered, one with a different right answer where the skill has one.
-- Don't give the answer away: they must come up with the method themselves. Say only the situation and the result they want, as they would see it (their files, their branch, their teammates' copies), never what the fix does or how it works, nor how the history should look afterwards: no commands, functions, flags, or steps, nothing like "use X" or "try X", and nothing like "a new commit that cancels it out", "a new commit that undoes it", or "move the branch back".
+- Don't give the answer away: working out the method is the rep. Write the problem as they would put it before they know the fix: the facts they can see (what's in it, whether it's pushed, who already has it), and the result they want, as something they would notice afterwards (their files, their working app, what their teammates get on their next pull). What the fix does is the answer, so the problem never says it: nothing about the history or the log, such as keeping it, rewriting it, or how it should look; nothing about what the fix does to the commit, such as taking it out or cancelling it with another; and no command, function, flag, or step. When a fact decides the approach, such as teammates having already pulled the commit, stating that fact is enough: it rules out the wrong approaches without a rule about the remedy. When the want is the skill's goal itself, say it with the skill's own verb, as its name has it (for "Undo a git commit", undo), or as the state they want back (the code as it was before that commit). Other verbs for what happens to the change, such as backing it out or reversing it, are names of its methods.
 
 When asked for a lesson, write that too: a short explanation of the skill as a whole, three or four sentences and at most 80 words, that teaches the general method, naming the actual commands, functions, or tools, and how to choose between its common cases, so it helps with any problem on this skill. Don't mention this problem's scenario.
 
@@ -55,6 +66,7 @@ export async function rep(request: Request): Promise<Response> {
 
 ${withLesson ? "Write the lesson and the first problem." : "Write the next problem only."}`;
 
-  const result: RepResponse = await askStructured(SYSTEM, userText, withLesson ? WithLesson : ProblemOnly, REP_EFFORT);
-  return Response.json(result);
+  // The case stays here; the page gets only the lesson and the problem.
+  const { lesson, problem }: RepResponse = await askStructured(SYSTEM, userText, withLesson ? WithLesson : ProblemOnly, REP_EFFORT);
+  return Response.json({ lesson, problem } satisfies RepResponse);
 }
