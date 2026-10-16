@@ -1,0 +1,74 @@
+{
+  "note": "Never served and never sent to the model. Skills are in margin-key order, A first.",
+  "skills": [
+    {
+      "name": "Undo a git commit",
+      "count": 9,
+      "firstMonth": "March 2025",
+      "lastMonth": "September 2026",
+      "messageIds": [
+        "m1",
+        "m5",
+        "m8",
+        "m11",
+        "m14",
+        "m16",
+        "m19",
+        "m23",
+        "m27"
+      ]
+    },
+    {
+      "name": "Center an element with CSS",
+      "count": 4,
+      "firstMonth": "April 2025",
+      "lastMonth": "July 2026",
+      "messageIds": [
+        "m3",
+        "m10",
+        "m18",
+        "m24"
+      ]
+    },
+    {
+      "name": "Free a port that's already in use",
+      "count": 3,
+      "firstMonth": "June 2025",
+      "lastMonth": "May 2026",
+      "messageIds": [
+        "m6",
+        "m15",
+        "m22"
+      ]
+    },
+    {
+      "name": "Parse a date string in JavaScript",
+      "count": 2,
+      "firstMonth": "October 2025",
+      "lastMonth": "August 2026",
+      "messageIds": [
+        "m12",
+        "m26"
+      ]
+    },
+    {
+      "name": "Sort a list of dictionaries in Python",
+      "count": 2,
+      "firstMonth": "April 2025",
+      "lastMonth": "April 2026",
+      "messageIds": [
+        "m4",
+        "m20"
+      ]
+    }
+  ],
+  "oneOffs": [
+    "m2",
+    "m7",
+    "m9",
+    "m13",
+    "m17",
+    "m21",
+    "m25"
+  ]
+}

@@ -1,0 +1,3091 @@
+[
+  {
+    "title": "Undo last Git commit",
+    "create_time": 1741079560,
+    "update_time": 1744358533,
+    "mapping": {
+      "bf8e29b4-759f-42a7-8434-2f370b8b458d": {
+        "id": "bf8e29b4-759f-42a7-8434-2f370b8b458d",
+        "message": null,
+        "parent": null,
+        "children": [
+          "ec4fa508-854a-4f25-9f52-0c23580f5be8"
+        ]
+      },
+      "ec4fa508-854a-4f25-9f52-0c23580f5be8": {
+        "id": "ec4fa508-854a-4f25-9f52-0c23580f5be8",
+        "message": {
+          "id": "ec4fa508-854a-4f25-9f52-0c23580f5be8",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "bf8e29b4-759f-42a7-8434-2f370b8b458d",
+        "children": [
+          "d199914c-35c9-4bb5-943d-33033b7639a2"
+        ]
+      },
+      "d199914c-35c9-4bb5-943d-33033b7639a2": {
+        "id": "d199914c-35c9-4bb5-943d-33033b7639a2",
+        "message": {
+          "id": "d199914c-35c9-4bb5-943d-33033b7639a2",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "how do i undo my last git commit"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "ec4fa508-854a-4f25-9f52-0c23580f5be8",
+        "children": [
+          "d63037e3-0863-4f9c-b8fb-c11dc4115c0b"
+        ]
+      },
+      "d63037e3-0863-4f9c-b8fb-c11dc4115c0b": {
+        "id": "d63037e3-0863-4f9c-b8fb-c11dc4115c0b",
+        "message": {
+          "id": "d63037e3-0863-4f9c-b8fb-c11dc4115c0b",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1741079564.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "If you haven't pushed it yet, run `git reset --soft HEAD~1`. That removes the commit and keeps your changes staged, so you can fix them and commit again."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "d199914c-35c9-4bb5-943d-33033b7639a2",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "d63037e3-0863-4f9c-b8fb-c11dc4115c0b",
+    "plugin_ids": null,
+    "conversation_id": "d743ed24-1277-4795-abb3-5147938585c6",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "d743ed24-1277-4795-abb3-5147938585c6"
+  },
+  {
+    "title": "Junior frontend cover letter",
+    "create_time": 1742589665,
+    "update_time": 1742589670.3,
+    "mapping": {
+      "081e37e6-e8e2-4e5d-9b04-d085500de2a6": {
+        "id": "081e37e6-e8e2-4e5d-9b04-d085500de2a6",
+        "message": null,
+        "parent": null,
+        "children": [
+          "def8d944-337f-4681-bcf8-f2aecf19eb98"
+        ]
+      },
+      "def8d944-337f-4681-bcf8-f2aecf19eb98": {
+        "id": "def8d944-337f-4681-bcf8-f2aecf19eb98",
+        "message": {
+          "id": "def8d944-337f-4681-bcf8-f2aecf19eb98",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "081e37e6-e8e2-4e5d-9b04-d085500de2a6",
+        "children": [
+          "996ae668-51c4-46b8-8b45-6a7132955b0f"
+        ]
+      },
+      "996ae668-51c4-46b8-8b45-6a7132955b0f": {
+        "id": "996ae668-51c4-46b8-8b45-6a7132955b0f",
+        "message": {
+          "id": "996ae668-51c4-46b8-8b45-6a7132955b0f",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1742589665.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "write a cover letter opening for a junior frontend developer role at a small agency"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "def8d944-337f-4681-bcf8-f2aecf19eb98",
+        "children": [
+          "7dee1aa5-a1a9-4e96-90c3-08053954b669"
+        ]
+      },
+      "7dee1aa5-a1a9-4e96-90c3-08053954b669": {
+        "id": "7dee1aa5-a1a9-4e96-90c3-08053954b669",
+        "message": {
+          "id": "7dee1aa5-a1a9-4e96-90c3-08053954b669",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1742589669.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Here's an opening you can adapt: \"I build small, fast interfaces, and I'd love to do it for your clients...\""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "996ae668-51c4-46b8-8b45-6a7132955b0f",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "7dee1aa5-a1a9-4e96-90c3-08053954b669",
+    "plugin_ids": null,
+    "conversation_id": "3094d3ae-e9be-41dc-baff-ea74c1cc46a1",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "3094d3ae-e9be-41dc-baff-ea74c1cc46a1"
+  },
+  {
+    "title": "Center div horizontally and vertically",
+    "create_time": 1743599151,
+    "update_time": 1743599156.3,
+    "mapping": {
+      "11f4f534-3be4-4af3-b097-1c57e4c86f81": {
+        "id": "11f4f534-3be4-4af3-b097-1c57e4c86f81",
+        "message": null,
+        "parent": null,
+        "children": [
+          "fdd5d915-0b51-4492-8706-028b277472c5"
+        ]
+      },
+      "fdd5d915-0b51-4492-8706-028b277472c5": {
+        "id": "fdd5d915-0b51-4492-8706-028b277472c5",
+        "message": {
+          "id": "fdd5d915-0b51-4492-8706-028b277472c5",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "11f4f534-3be4-4af3-b097-1c57e4c86f81",
+        "children": [
+          "b15bd8ed-4697-4dff-943e-97c08601bb4a"
+        ]
+      },
+      "b15bd8ed-4697-4dff-943e-97c08601bb4a": {
+        "id": "b15bd8ed-4697-4dff-943e-97c08601bb4a",
+        "message": {
+          "id": "b15bd8ed-4697-4dff-943e-97c08601bb4a",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1743599151.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "how to center a div horizontally and vertically"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "fdd5d915-0b51-4492-8706-028b277472c5",
+        "children": [
+          "7f2cb0f5-4028-4628-be92-1f2ea22aa300"
+        ]
+      },
+      "7f2cb0f5-4028-4628-be92-1f2ea22aa300": {
+        "id": "7f2cb0f5-4028-4628-be92-1f2ea22aa300",
+        "message": {
+          "id": "7f2cb0f5-4028-4628-be92-1f2ea22aa300",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1743599155.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Make the parent a flex container: `display: flex; justify-content: center; align-items: center;` and give it a height."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "b15bd8ed-4697-4dff-943e-97c08601bb4a",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "7f2cb0f5-4028-4628-be92-1f2ea22aa300",
+    "plugin_ids": null,
+    "conversation_id": "3706813c-db13-4df4-a4c7-0c57cad4413e",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "3706813c-db13-4df4-a4c7-0c57cad4413e"
+  },
+  {
+    "title": "Sort dicts by age",
+    "create_time": 1745857339,
+    "update_time": 1745857347.4,
+    "mapping": {
+      "8a2da66f-8c7b-4974-83c8-ad8d8a290abd": {
+        "id": "8a2da66f-8c7b-4974-83c8-ad8d8a290abd",
+        "message": null,
+        "parent": null,
+        "children": [
+          "f6b1538b-b1c8-47a8-b138-992de5f92ba2"
+        ]
+      },
+      "f6b1538b-b1c8-47a8-b138-992de5f92ba2": {
+        "id": "f6b1538b-b1c8-47a8-b138-992de5f92ba2",
+        "message": {
+          "id": "f6b1538b-b1c8-47a8-b138-992de5f92ba2",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "8a2da66f-8c7b-4974-83c8-ad8d8a290abd",
+        "children": [
+          "b31d9df6-c189-4c2d-a0e6-9e5df2b68e1b"
+        ]
+      },
+      "b31d9df6-c189-4c2d-a0e6-9e5df2b68e1b": {
+        "id": "b31d9df6-c189-4c2d-a0e6-9e5df2b68e1b",
+        "message": {
+          "id": "b31d9df6-c189-4c2d-a0e6-9e5df2b68e1b",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1745857339.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "python sort list of dicts by the 'age' key"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "f6b1538b-b1c8-47a8-b138-992de5f92ba2",
+        "children": [
+          "be3bf93a-b7db-46c5-bc6b-1ea68da95719"
+        ]
+      },
+      "be3bf93a-b7db-46c5-bc6b-1ea68da95719": {
+        "id": "be3bf93a-b7db-46c5-bc6b-1ea68da95719",
+        "message": {
+          "id": "be3bf93a-b7db-46c5-bc6b-1ea68da95719",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1745857343.8,
+          "update_time": null,
+          "content": {
+            "content_type": "code",
+            "language": "unknown",
+            "text": "people = [{'name': 'Ana', 'age': 31}, {'name': 'Ben', 'age': 24}]\nprint(sorted(people, key=lambda p: p['age']))"
+          },
+          "status": "finished_successfully",
+          "end_turn": false,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "python",
+          "channel": null
+        },
+        "parent": "b31d9df6-c189-4c2d-a0e6-9e5df2b68e1b",
+        "children": [
+          "de1069b3-6a3a-48a9-bfe5-3bb908ad77e7"
+        ]
+      },
+      "de1069b3-6a3a-48a9-bfe5-3bb908ad77e7": {
+        "id": "de1069b3-6a3a-48a9-bfe5-3bb908ad77e7",
+        "message": {
+          "id": "de1069b3-6a3a-48a9-bfe5-3bb908ad77e7",
+          "author": {
+            "role": "tool",
+            "name": "python",
+            "metadata": {}
+          },
+          "create_time": 1745857345.7,
+          "update_time": null,
+          "content": {
+            "content_type": "execution_output",
+            "text": "[{'name': 'Ben', 'age': 24}, {'name': 'Ana', 'age': 31}]"
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "be3bf93a-b7db-46c5-bc6b-1ea68da95719",
+        "children": [
+          "2d1de84f-54d5-4fa1-a995-a3a423c6af99"
+        ]
+      },
+      "2d1de84f-54d5-4fa1-a995-a3a423c6af99": {
+        "id": "2d1de84f-54d5-4fa1-a995-a3a423c6af99",
+        "message": {
+          "id": "2d1de84f-54d5-4fa1-a995-a3a423c6af99",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1745857346.9,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Use `sorted(people, key=lambda p: p['age'])`, or `operator.itemgetter('age')` as the key."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "de1069b3-6a3a-48a9-bfe5-3bb908ad77e7",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "2d1de84f-54d5-4fa1-a995-a3a423c6af99",
+    "plugin_ids": null,
+    "conversation_id": "c1e5bcd9-cb2c-473a-bcf8-0d930657321f",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "c1e5bcd9-cb2c-473a-bcf8-0d930657321f"
+  },
+  {
+    "title": "Commit on wrong branch",
+    "create_time": 1747655222,
+    "update_time": 1747655227.3,
+    "mapping": {
+      "3772c31e-bfc6-4245-b393-2f7a40f59b70": {
+        "id": "3772c31e-bfc6-4245-b393-2f7a40f59b70",
+        "message": null,
+        "parent": null,
+        "children": [
+          "2bd7ede4-ec41-417c-a0e0-1cdd01781a39"
+        ]
+      },
+      "2bd7ede4-ec41-417c-a0e0-1cdd01781a39": {
+        "id": "2bd7ede4-ec41-417c-a0e0-1cdd01781a39",
+        "message": {
+          "id": "2bd7ede4-ec41-417c-a0e0-1cdd01781a39",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "3772c31e-bfc6-4245-b393-2f7a40f59b70",
+        "children": [
+          "d48a7885-c784-41e5-98cf-5b99da7a27ae"
+        ]
+      },
+      "d48a7885-c784-41e5-98cf-5b99da7a27ae": {
+        "id": "d48a7885-c784-41e5-98cf-5b99da7a27ae",
+        "message": {
+          "id": "d48a7885-c784-41e5-98cf-5b99da7a27ae",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1747655222.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "I committed to the wrong branch, how do I take that commit back?"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "2bd7ede4-ec41-417c-a0e0-1cdd01781a39",
+        "children": [
+          "356accdd-d18c-46a6-9c61-7b917e65b16e"
+        ]
+      },
+      "356accdd-d18c-46a6-9c61-7b917e65b16e": {
+        "id": "356accdd-d18c-46a6-9c61-7b917e65b16e",
+        "message": {
+          "id": "356accdd-d18c-46a6-9c61-7b917e65b16e",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1747655226.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "On the wrong branch, run `git reset --soft HEAD~1` to take the commit back while keeping the changes, then `git switch` to the right branch and commit there."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "d48a7885-c784-41e5-98cf-5b99da7a27ae",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "356accdd-d18c-46a6-9c61-7b917e65b16e",
+    "plugin_ids": null,
+    "conversation_id": "b57a8c12-fbcb-43d4-8c4a-bcc1a175cf35",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "b57a8c12-fbcb-43d4-8c4a-bcc1a175cf35"
+  },
+  {
+    "title": "Port 3000 already in use",
+    "create_time": 1749630627,
+    "update_time": 1749630632.3,
+    "mapping": {
+      "9558263f-f707-47e9-bb69-b82e5a7cb3a9": {
+        "id": "9558263f-f707-47e9-bb69-b82e5a7cb3a9",
+        "message": null,
+        "parent": null,
+        "children": [
+          "290b97dd-f2c1-448e-8bea-864cb84ebf33"
+        ]
+      },
+      "290b97dd-f2c1-448e-8bea-864cb84ebf33": {
+        "id": "290b97dd-f2c1-448e-8bea-864cb84ebf33",
+        "message": {
+          "id": "290b97dd-f2c1-448e-8bea-864cb84ebf33",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "9558263f-f707-47e9-bb69-b82e5a7cb3a9",
+        "children": [
+          "627cd8fd-6caf-4566-843b-7f24b831714d"
+        ]
+      },
+      "627cd8fd-6caf-4566-843b-7f24b831714d": {
+        "id": "627cd8fd-6caf-4566-843b-7f24b831714d",
+        "message": {
+          "id": "627cd8fd-6caf-4566-843b-7f24b831714d",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1749630627.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "port 3000 already in use, how do i find and kill whatever is using it"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "290b97dd-f2c1-448e-8bea-864cb84ebf33",
+        "children": [
+          "d5865614-4f6b-4181-9483-33479cc1b0a9"
+        ]
+      },
+      "d5865614-4f6b-4181-9483-33479cc1b0a9": {
+        "id": "d5865614-4f6b-4181-9483-33479cc1b0a9",
+        "message": {
+          "id": "d5865614-4f6b-4181-9483-33479cc1b0a9",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1749630631.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Run `lsof -i :3000` to see the process ID, then `kill <PID>`. If it won't stop, `kill -9 <PID>`."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "627cd8fd-6caf-4566-843b-7f24b831714d",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "d5865614-4f6b-4181-9483-33479cc1b0a9",
+    "plugin_ids": null,
+    "conversation_id": "42d4e47e-475e-4173-b53b-7e3fe9e3ffbc",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "42d4e47e-475e-4173-b53b-7e3fe9e3ffbc"
+  },
+  {
+    "title": "HTTP 418",
+    "create_time": 1751321024,
+    "update_time": 1751321029.3,
+    "mapping": {
+      "369f62aa-c4dc-46da-b387-c1088a6bfb89": {
+        "id": "369f62aa-c4dc-46da-b387-c1088a6bfb89",
+        "message": null,
+        "parent": null,
+        "children": [
+          "ea3327d2-b95b-4b17-99fe-6f8e0a7b8152"
+        ]
+      },
+      "ea3327d2-b95b-4b17-99fe-6f8e0a7b8152": {
+        "id": "ea3327d2-b95b-4b17-99fe-6f8e0a7b8152",
+        "message": {
+          "id": "ea3327d2-b95b-4b17-99fe-6f8e0a7b8152",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "369f62aa-c4dc-46da-b387-c1088a6bfb89",
+        "children": [
+          "0566eeb2-e3f2-4113-9dd7-db1f6e9b5155"
+        ]
+      },
+      "0566eeb2-e3f2-4113-9dd7-db1f6e9b5155": {
+        "id": "0566eeb2-e3f2-4113-9dd7-db1f6e9b5155",
+        "message": {
+          "id": "0566eeb2-e3f2-4113-9dd7-db1f6e9b5155",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1751321024.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "what does HTTP 418 mean"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "ea3327d2-b95b-4b17-99fe-6f8e0a7b8152",
+        "children": [
+          "712fdb08-12d4-4d02-adae-741238478f91"
+        ]
+      },
+      "712fdb08-12d4-4d02-adae-741238478f91": {
+        "id": "712fdb08-12d4-4d02-adae-741238478f91",
+        "message": {
+          "id": "712fdb08-12d4-4d02-adae-741238478f91",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1751321028.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "418 is \"I'm a teapot\", from an April Fools' RFC in 1998. Some servers return it as a joke; it isn't used for real errors."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "0566eeb2-e3f2-4113-9dd7-db1f6e9b5155",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "712fdb08-12d4-4d02-adae-741238478f91",
+    "plugin_ids": null,
+    "conversation_id": "b1c9f28c-2b05-40eb-968f-b680120b0b62",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "b1c9f28c-2b05-40eb-968f-b680120b0b62"
+  },
+  {
+    "title": "Remove commit, keep changes",
+    "create_time": 1751987769,
+    "update_time": 1751987774.3,
+    "mapping": {
+      "b2182d95-64d6-4b42-b5df-a6c6f70efa7c": {
+        "id": "b2182d95-64d6-4b42-b5df-a6c6f70efa7c",
+        "message": null,
+        "parent": null,
+        "children": [
+          "ca2f6b13-4763-468b-84db-e956257545bc"
+        ]
+      },
+      "ca2f6b13-4763-468b-84db-e956257545bc": {
+        "id": "ca2f6b13-4763-468b-84db-e956257545bc",
+        "message": {
+          "id": "ca2f6b13-4763-468b-84db-e956257545bc",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "b2182d95-64d6-4b42-b5df-a6c6f70efa7c",
+        "children": [
+          "7278e55a-97b6-46c5-bdbb-06a324e0bde3"
+        ]
+      },
+      "7278e55a-97b6-46c5-bdbb-06a324e0bde3": {
+        "id": "7278e55a-97b6-46c5-bdbb-06a324e0bde3",
+        "message": {
+          "id": "7278e55a-97b6-46c5-bdbb-06a324e0bde3",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1751987768,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "The user is learning to code. Keep answers short and show the command."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "ca2f6b13-4763-468b-84db-e956257545bc",
+        "children": [
+          "a83ed348-af99-4073-a2cb-8b96e231f062"
+        ]
+      },
+      "a83ed348-af99-4073-a2cb-8b96e231f062": {
+        "id": "a83ed348-af99-4073-a2cb-8b96e231f062",
+        "message": {
+          "id": "a83ed348-af99-4073-a2cb-8b96e231f062",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1751987769.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "git: remove the most recent commit but keep my changes"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "7278e55a-97b6-46c5-bdbb-06a324e0bde3",
+        "children": [
+          "33eba805-d0f1-4806-b408-8828e69e3b56"
+        ]
+      },
+      "33eba805-d0f1-4806-b408-8828e69e3b56": {
+        "id": "33eba805-d0f1-4806-b408-8828e69e3b56",
+        "message": {
+          "id": "33eba805-d0f1-4806-b408-8828e69e3b56",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1751987773.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "`git reset HEAD~1` removes the commit and leaves your changes in the working tree, unstaged. Add `--soft` to keep them staged."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "a83ed348-af99-4073-a2cb-8b96e231f062",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "33eba805-d0f1-4806-b408-8828e69e3b56",
+    "plugin_ids": null,
+    "conversation_id": "782460cb-332c-4bad-8695-c796c79271a9",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "782460cb-332c-4bad-8695-c796c79271a9"
+  },
+  {
+    "title": "Big O explained",
+    "create_time": 1754132313,
+    "update_time": 1754132318.3,
+    "mapping": {
+      "ce1ecb9e-2f8c-4580-b258-37b6e2c15e17": {
+        "id": "ce1ecb9e-2f8c-4580-b258-37b6e2c15e17",
+        "message": null,
+        "parent": null,
+        "children": [
+          "e1c117a6-606a-4e68-968f-7d60fc4bb62f"
+        ]
+      },
+      "e1c117a6-606a-4e68-968f-7d60fc4bb62f": {
+        "id": "e1c117a6-606a-4e68-968f-7d60fc4bb62f",
+        "message": {
+          "id": "e1c117a6-606a-4e68-968f-7d60fc4bb62f",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "ce1ecb9e-2f8c-4580-b258-37b6e2c15e17",
+        "children": [
+          "8bd969d0-1617-44cb-b775-7e0ab5b509a9"
+        ]
+      },
+      "8bd969d0-1617-44cb-b775-7e0ab5b509a9": {
+        "id": "8bd969d0-1617-44cb-b775-7e0ab5b509a9",
+        "message": {
+          "id": "8bd969d0-1617-44cb-b775-7e0ab5b509a9",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1754132313.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "explain big O notation like I'm new to programming"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "e1c117a6-606a-4e68-968f-7d60fc4bb62f",
+        "children": [
+          "227a8233-efaa-4001-a457-f3c68e7747b6"
+        ]
+      },
+      "227a8233-efaa-4001-a457-f3c68e7747b6": {
+        "id": "227a8233-efaa-4001-a457-f3c68e7747b6",
+        "message": {
+          "id": "227a8233-efaa-4001-a457-f3c68e7747b6",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1754132317.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Big O describes how the work grows as the input grows. O(n) means twice the input is about twice the work; O(1) means the work stays the same."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "8bd969d0-1617-44cb-b775-7e0ab5b509a9",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "227a8233-efaa-4001-a457-f3c68e7747b6",
+    "plugin_ids": null,
+    "conversation_id": "3fff957f-aa37-4437-b717-c40fd852ac99",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "3fff957f-aa37-4437-b717-c40fd852ac99"
+  },
+  {
+    "title": "Login box won't center",
+    "create_time": 1755285896,
+    "update_time": 1755285901.3,
+    "mapping": {
+      "72e9d590-81c9-41e8-89bd-55b43684865d": {
+        "id": "72e9d590-81c9-41e8-89bd-55b43684865d",
+        "message": null,
+        "parent": null,
+        "children": [
+          "072ef147-7273-4e78-b1ce-ddbd50b52a14"
+        ]
+      },
+      "072ef147-7273-4e78-b1ce-ddbd50b52a14": {
+        "id": "072ef147-7273-4e78-b1ce-ddbd50b52a14",
+        "message": {
+          "id": "072ef147-7273-4e78-b1ce-ddbd50b52a14",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "72e9d590-81c9-41e8-89bd-55b43684865d",
+        "children": [
+          "5c95b1c3-f773-4b4f-b88a-420ac8c5db60"
+        ]
+      },
+      "5c95b1c3-f773-4b4f-b88a-420ac8c5db60": {
+        "id": "5c95b1c3-f773-4b4f-b88a-420ac8c5db60",
+        "message": {
+          "id": "5c95b1c3-f773-4b4f-b88a-420ac8c5db60",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1755285896.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "css: my login box won't center in the page, what's the cleanest way"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "072ef147-7273-4e78-b1ce-ddbd50b52a14",
+        "children": [
+          "0e3e62f7-bc7c-466e-b2ca-ea9bff411a84"
+        ]
+      },
+      "0e3e62f7-bc7c-466e-b2ca-ea9bff411a84": {
+        "id": "0e3e62f7-bc7c-466e-b2ca-ea9bff411a84",
+        "message": {
+          "id": "0e3e62f7-bc7c-466e-b2ca-ea9bff411a84",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1755285900.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Put `display: grid; place-items: center; min-height: 100vh;` on the body or a wrapper. The box sits in the middle both ways."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "5c95b1c3-f773-4b4f-b88a-420ac8c5db60",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "0e3e62f7-bc7c-466e-b2ca-ea9bff411a84",
+    "plugin_ids": null,
+    "conversation_id": "6e7cf778-f3cf-4202-a417-de6e21b03272",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "6e7cf778-f3cf-4202-a417-de6e21b03272"
+  },
+  {
+    "title": "Reverse a commit before pushing",
+    "create_time": 1758649152,
+    "update_time": 1758649157.3,
+    "mapping": {
+      "c76f1c4a-8f25-4fb6-b2e6-77eeebb33514": {
+        "id": "c76f1c4a-8f25-4fb6-b2e6-77eeebb33514",
+        "message": null,
+        "parent": null,
+        "children": [
+          "d8f4fedf-8bc2-495f-a278-3763b6cc662d"
+        ]
+      },
+      "d8f4fedf-8bc2-495f-a278-3763b6cc662d": {
+        "id": "d8f4fedf-8bc2-495f-a278-3763b6cc662d",
+        "message": {
+          "id": "d8f4fedf-8bc2-495f-a278-3763b6cc662d",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "c76f1c4a-8f25-4fb6-b2e6-77eeebb33514",
+        "children": [
+          "f3f80e82-0b46-462e-b983-aa23ae2c884c"
+        ]
+      },
+      "f3f80e82-0b46-462e-b983-aa23ae2c884c": {
+        "id": "f3f80e82-0b46-462e-b983-aa23ae2c884c",
+        "message": {
+          "id": "f3f80e82-0b46-462e-b983-aa23ae2c884c",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1758649152.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "just made a commit by mistake, how do I reverse it before I push"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "d8f4fedf-8bc2-495f-a278-3763b6cc662d",
+        "children": [
+          "4fcdd9ef-c1d0-4513-8025-cbd6f1f4c8a3"
+        ]
+      },
+      "4fcdd9ef-c1d0-4513-8025-cbd6f1f4c8a3": {
+        "id": "4fcdd9ef-c1d0-4513-8025-cbd6f1f4c8a3",
+        "message": {
+          "id": "4fcdd9ef-c1d0-4513-8025-cbd6f1f4c8a3",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1758649156.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Since it isn't pushed, `git reset --soft HEAD~1` is the cleanest: the commit is gone and your changes stay staged."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "f3f80e82-0b46-462e-b983-aa23ae2c884c",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "4fcdd9ef-c1d0-4513-8025-cbd6f1f4c8a3",
+    "plugin_ids": null,
+    "conversation_id": "73cf8224-ab1e-4fdc-961c-dc8824c9748a",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "73cf8224-ab1e-4fdc-961c-dc8824c9748a"
+  },
+  {
+    "title": "String to Date without timezone shift",
+    "create_time": 1760011848,
+    "update_time": 1760011853.3,
+    "mapping": {
+      "b878f4ce-253f-45d1-9840-f609ae4d24da": {
+        "id": "b878f4ce-253f-45d1-9840-f609ae4d24da",
+        "message": null,
+        "parent": null,
+        "children": [
+          "6bc91fa2-4317-4aa8-bbf7-a64ddeb6ce1d"
+        ]
+      },
+      "6bc91fa2-4317-4aa8-bbf7-a64ddeb6ce1d": {
+        "id": "6bc91fa2-4317-4aa8-bbf7-a64ddeb6ce1d",
+        "message": {
+          "id": "6bc91fa2-4317-4aa8-bbf7-a64ddeb6ce1d",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "b878f4ce-253f-45d1-9840-f609ae4d24da",
+        "children": [
+          "ec9b3dca-c70b-41ea-888a-45d8ee18ceb8"
+        ]
+      },
+      "ec9b3dca-c70b-41ea-888a-45d8ee18ceb8": {
+        "id": "ec9b3dca-c70b-41ea-888a-45d8ee18ceb8",
+        "message": {
+          "id": "ec9b3dca-c70b-41ea-888a-45d8ee18ceb8",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760011848.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "convert '2025-10-09' string to a Date in javascript without timezone weirdness"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "6bc91fa2-4317-4aa8-bbf7-a64ddeb6ce1d",
+        "children": [
+          "771fa5a1-200a-49e4-addc-9d676cb5def0"
+        ]
+      },
+      "771fa5a1-200a-49e4-addc-9d676cb5def0": {
+        "id": "771fa5a1-200a-49e4-addc-9d676cb5def0",
+        "message": {
+          "id": "771fa5a1-200a-49e4-addc-9d676cb5def0",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760011852.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "`new Date('2025-10-09')` is parsed as UTC midnight. For local midnight, split it: `const [y, m, d] = s.split('-').map(Number); new Date(y, m - 1, d)`."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "ec9b3dca-c70b-41ea-888a-45d8ee18ceb8",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "771fa5a1-200a-49e4-addc-9d676cb5def0",
+    "plugin_ids": null,
+    "conversation_id": "8d78b2ad-b0f1-4ca0-b088-65474ff18f0c",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "8d78b2ad-b0f1-4ca0-b088-65474ff18f0c"
+  },
+  {
+    "title": "Quick dinner with eggs",
+    "create_time": 1761590721,
+    "update_time": 1761590726.3,
+    "mapping": {
+      "6540fb26-1bc4-4c81-9a0e-be17acd3e057": {
+        "id": "6540fb26-1bc4-4c81-9a0e-be17acd3e057",
+        "message": null,
+        "parent": null,
+        "children": [
+          "ba483c50-2d74-4c31-83b0-8194b2497aa4"
+        ]
+      },
+      "ba483c50-2d74-4c31-83b0-8194b2497aa4": {
+        "id": "ba483c50-2d74-4c31-83b0-8194b2497aa4",
+        "message": {
+          "id": "ba483c50-2d74-4c31-83b0-8194b2497aa4",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "6540fb26-1bc4-4c81-9a0e-be17acd3e057",
+        "children": [
+          "7fbfdccd-3180-42d8-8e74-c14141f95d13"
+        ]
+      },
+      "7fbfdccd-3180-42d8-8e74-c14141f95d13": {
+        "id": "7fbfdccd-3180-42d8-8e74-c14141f95d13",
+        "message": {
+          "id": "7fbfdccd-3180-42d8-8e74-c14141f95d13",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1761590721.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "quick dinner ideas with eggs, spinach and rice"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "ba483c50-2d74-4c31-83b0-8194b2497aa4",
+        "children": [
+          "68d16d52-04f4-445e-846a-20b152aba4c2"
+        ]
+      },
+      "68d16d52-04f4-445e-846a-20b152aba4c2": {
+        "id": "68d16d52-04f4-445e-846a-20b152aba4c2",
+        "message": {
+          "id": "68d16d52-04f4-445e-846a-20b152aba4c2",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1761590725.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Try egg fried rice with spinach stirred in at the end, or a spinach omelette over rice with soy sauce."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "7fbfdccd-3180-42d8-8e74-c14141f95d13",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "68d16d52-04f4-445e-846a-20b152aba4c2",
+    "plugin_ids": null,
+    "conversation_id": "8a7d0b7d-fce5-426c-8707-92ea154cb0ad",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "8a7d0b7d-fce5-426c-8707-92ea154cb0ad"
+  },
+  {
+    "title": "reset --soft vs --hard",
+    "create_time": 1764511357,
+    "update_time": 1764511362.3,
+    "mapping": {
+      "75358f36-8bf1-4a19-8edb-53d56d9150d8": {
+        "id": "75358f36-8bf1-4a19-8edb-53d56d9150d8",
+        "message": null,
+        "parent": null,
+        "children": [
+          "95507332-7e4b-4050-a481-a4b0b2caf7c2"
+        ]
+      },
+      "95507332-7e4b-4050-a481-a4b0b2caf7c2": {
+        "id": "95507332-7e4b-4050-a481-a4b0b2caf7c2",
+        "message": {
+          "id": "95507332-7e4b-4050-a481-a4b0b2caf7c2",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "75358f36-8bf1-4a19-8edb-53d56d9150d8",
+        "children": [
+          "ebae3302-693d-4242-af40-c731960f926a"
+        ]
+      },
+      "ebae3302-693d-4242-af40-c731960f926a": {
+        "id": "ebae3302-693d-4242-af40-c731960f926a",
+        "message": {
+          "id": "ebae3302-693d-4242-af40-c731960f926a",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1764511357.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "what's the difference between git reset --soft and --hard for undoing a commit"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "95507332-7e4b-4050-a481-a4b0b2caf7c2",
+        "children": [
+          "4e18faa7-5c62-4087-8c27-e06f6612b652"
+        ]
+      },
+      "4e18faa7-5c62-4087-8c27-e06f6612b652": {
+        "id": "4e18faa7-5c62-4087-8c27-e06f6612b652",
+        "message": {
+          "id": "4e18faa7-5c62-4087-8c27-e06f6612b652",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1764511361.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "`--soft` undoes the commit but keeps your changes staged. `--hard` undoes the commit and throws the changes away, so only use it when you're sure."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "ebae3302-693d-4242-af40-c731960f926a",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "4e18faa7-5c62-4087-8c27-e06f6612b652",
+    "plugin_ids": null,
+    "conversation_id": "efcdfeba-120e-49a1-bfdb-2b03e87b5c19",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "efcdfeba-120e-49a1-bfdb-2b03e87b5c19"
+  },
+  {
+    "title": "EADDRINUSE on 8080",
+    "create_time": 1764755474,
+    "update_time": 1764755479.3,
+    "mapping": {
+      "933dd11a-e344-4acf-8167-9785d63d98e9": {
+        "id": "933dd11a-e344-4acf-8167-9785d63d98e9",
+        "message": null,
+        "parent": null,
+        "children": [
+          "05751f28-6112-435a-82ce-1c120eff8e7d"
+        ]
+      },
+      "05751f28-6112-435a-82ce-1c120eff8e7d": {
+        "id": "05751f28-6112-435a-82ce-1c120eff8e7d",
+        "message": {
+          "id": "05751f28-6112-435a-82ce-1c120eff8e7d",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "933dd11a-e344-4acf-8167-9785d63d98e9",
+        "children": [
+          "5e6f54d5-a330-4d07-bfcd-87b613f36d78"
+        ]
+      },
+      "5e6f54d5-a330-4d07-bfcd-87b613f36d78": {
+        "id": "5e6f54d5-a330-4d07-bfcd-87b613f36d78",
+        "message": {
+          "id": "5e6f54d5-a330-4d07-bfcd-87b613f36d78",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1764755474.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "EADDRINUSE :::8080 how to free the port on mac"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "05751f28-6112-435a-82ce-1c120eff8e7d",
+        "children": [
+          "d527e94b-aa82-4d01-a08a-67865d9d35c1"
+        ]
+      },
+      "d527e94b-aa82-4d01-a08a-67865d9d35c1": {
+        "id": "d527e94b-aa82-4d01-a08a-67865d9d35c1",
+        "message": {
+          "id": "d527e94b-aa82-4d01-a08a-67865d9d35c1",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1764755478.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Something is still listening on 8080. `lsof -ti :8080 | xargs kill` stops it."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "5e6f54d5-a330-4d07-bfcd-87b613f36d78",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "d527e94b-aa82-4d01-a08a-67865d9d35c1",
+    "plugin_ids": null,
+    "conversation_id": "4dc5fca4-ac75-4d8d-852f-0214d0ae874f",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "4dc5fca4-ac75-4d8d-852f-0214d0ae874f"
+  },
+  {
+    "title": "Revert last commit",
+    "create_time": 1768426438,
+    "update_time": 1768426443.3,
+    "mapping": {
+      "69903a62-043f-4aeb-8de0-a393f1ea326e": {
+        "id": "69903a62-043f-4aeb-8de0-a393f1ea326e",
+        "message": null,
+        "parent": null,
+        "children": [
+          "784d0891-e183-4348-aff8-38cff77a830d"
+        ]
+      },
+      "784d0891-e183-4348-aff8-38cff77a830d": {
+        "id": "784d0891-e183-4348-aff8-38cff77a830d",
+        "message": {
+          "id": "784d0891-e183-4348-aff8-38cff77a830d",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "69903a62-043f-4aeb-8de0-a393f1ea326e",
+        "children": [
+          "c9b29fd8-7742-455a-bae0-8a443e4a72e8"
+        ]
+      },
+      "c9b29fd8-7742-455a-bae0-8a443e4a72e8": {
+        "id": "c9b29fd8-7742-455a-bae0-8a443e4a72e8",
+        "message": {
+          "id": "c9b29fd8-7742-455a-bae0-8a443e4a72e8",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1768426438.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "revert last commit git"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "784d0891-e183-4348-aff8-38cff77a830d",
+        "children": [
+          "d40344a7-1bda-48b9-a643-0c78d284cff7"
+        ]
+      },
+      "d40344a7-1bda-48b9-a643-0c78d284cff7": {
+        "id": "d40344a7-1bda-48b9-a643-0c78d284cff7",
+        "message": {
+          "id": "d40344a7-1bda-48b9-a643-0c78d284cff7",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1768426442.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "If it's pushed, `git revert HEAD` makes a new commit that undoes it. If it isn't, `git reset --soft HEAD~1` removes it."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "c9b29fd8-7742-455a-bae0-8a443e4a72e8",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "d40344a7-1bda-48b9-a643-0c78d284cff7",
+    "plugin_ids": null,
+    "conversation_id": "7091fb3d-8929-4170-b51f-8e477091780c",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "7091fb3d-8929-4170-b51f-8e477091780c"
+  },
+  {
+    "title": "VS Code explorer missing",
+    "create_time": 1769702845,
+    "update_time": 1769702850.3,
+    "mapping": {
+      "93113aad-88e0-4e4c-8edb-2b207ee0f6c3": {
+        "id": "93113aad-88e0-4e4c-8edb-2b207ee0f6c3",
+        "message": null,
+        "parent": null,
+        "children": [
+          "99835c0e-631b-4d89-81e7-ab1836491a74"
+        ]
+      },
+      "99835c0e-631b-4d89-81e7-ab1836491a74": {
+        "id": "99835c0e-631b-4d89-81e7-ab1836491a74",
+        "message": {
+          "id": "99835c0e-631b-4d89-81e7-ab1836491a74",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "93113aad-88e0-4e4c-8edb-2b207ee0f6c3",
+        "children": [
+          "00bcb70e-c5e7-4878-a5f4-e17ffaac5e2b"
+        ]
+      },
+      "00bcb70e-c5e7-4878-a5f4-e17ffaac5e2b": {
+        "id": "00bcb70e-c5e7-4878-a5f4-e17ffaac5e2b",
+        "message": {
+          "id": "00bcb70e-c5e7-4878-a5f4-e17ffaac5e2b",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1769702845.412,
+          "update_time": null,
+          "content": {
+            "content_type": "multimodal_text",
+            "parts": [
+              {
+                "content_type": "image_asset_pointer",
+                "asset_pointer": "file-service://file-e619f22dec094ce5951afc",
+                "size_bytes": 184213,
+                "width": 1280,
+                "height": 800,
+                "fovea": null,
+                "metadata": null
+              },
+              "here's a screenshot of my VS Code sidebar, how do I get the file explorer back?"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "99835c0e-631b-4d89-81e7-ab1836491a74",
+        "children": [
+          "bec8d7cb-3707-4eca-8c42-39486566afd0"
+        ]
+      },
+      "bec8d7cb-3707-4eca-8c42-39486566afd0": {
+        "id": "bec8d7cb-3707-4eca-8c42-39486566afd0",
+        "message": {
+          "id": "bec8d7cb-3707-4eca-8c42-39486566afd0",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1769702849.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Press Cmd+Shift+E (Ctrl+Shift+E on Windows), or pick View > Explorer."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "00bcb70e-c5e7-4878-a5f4-e17ffaac5e2b",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "bec8d7cb-3707-4eca-8c42-39486566afd0",
+    "plugin_ids": null,
+    "conversation_id": "ad74c37c-f978-4806-a192-ff06cf9f296f",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "ad74c37c-f978-4806-a192-ff06cf9f296f"
+  },
+  {
+    "title": "Flexbox center",
+    "create_time": 1770718443,
+    "update_time": 1770718448.3,
+    "mapping": {
+      "ce79f765-ac28-4b96-ac29-43bbd558ee23": {
+        "id": "ce79f765-ac28-4b96-ac29-43bbd558ee23",
+        "message": null,
+        "parent": null,
+        "children": [
+          "ef21d5c2-0aaa-4355-93c5-a25808948477"
+        ]
+      },
+      "ef21d5c2-0aaa-4355-93c5-a25808948477": {
+        "id": "ef21d5c2-0aaa-4355-93c5-a25808948477",
+        "message": {
+          "id": "ef21d5c2-0aaa-4355-93c5-a25808948477",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "ce79f765-ac28-4b96-ac29-43bbd558ee23",
+        "children": [
+          "695adec7-9383-4d2a-9e6f-381c1c95797d"
+        ]
+      },
+      "695adec7-9383-4d2a-9e6f-381c1c95797d": {
+        "id": "695adec7-9383-4d2a-9e6f-381c1c95797d",
+        "message": {
+          "id": "695adec7-9383-4d2a-9e6f-381c1c95797d",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1770718443.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "flexbox center element in middle of screen"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "ef21d5c2-0aaa-4355-93c5-a25808948477",
+        "children": [
+          "d382524b-0ad9-4032-834e-4213b8a5aba9"
+        ]
+      },
+      "d382524b-0ad9-4032-834e-4213b8a5aba9": {
+        "id": "d382524b-0ad9-4032-834e-4213b8a5aba9",
+        "message": {
+          "id": "d382524b-0ad9-4032-834e-4213b8a5aba9",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1770718447.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "On the parent: `display: flex; justify-content: center; align-items: center; height: 100vh;`."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "695adec7-9383-4d2a-9e6f-381c1c95797d",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "d382524b-0ad9-4032-834e-4213b8a5aba9",
+    "plugin_ids": null,
+    "conversation_id": "355f1d70-e301-4e83-9574-47e58ce5db64",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "355f1d70-e301-4e83-9574-47e58ce5db64"
+  },
+  {
+    "title": "Undo a pushed commit",
+    "create_time": 1774653641,
+    "update_time": 1774653646.3,
+    "mapping": {
+      "8648ee8d-5570-4620-bad1-ac6539d3fa78": {
+        "id": "8648ee8d-5570-4620-bad1-ac6539d3fa78",
+        "message": null,
+        "parent": null,
+        "children": [
+          "f5f04be6-db3e-4063-96cb-c08e191c30cc"
+        ]
+      },
+      "f5f04be6-db3e-4063-96cb-c08e191c30cc": {
+        "id": "f5f04be6-db3e-4063-96cb-c08e191c30cc",
+        "message": {
+          "id": "f5f04be6-db3e-4063-96cb-c08e191c30cc",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "8648ee8d-5570-4620-bad1-ac6539d3fa78",
+        "children": [
+          "7180b45e-256a-48f0-a8a5-b500b2dc16f2"
+        ]
+      },
+      "7180b45e-256a-48f0-a8a5-b500b2dc16f2": {
+        "id": "7180b45e-256a-48f0-a8a5-b500b2dc16f2",
+        "message": {
+          "id": "7180b45e-256a-48f0-a8a5-b500b2dc16f2",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1774653641.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "I pushed a commit that broke prod. how do I undo it without rewriting history?"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "f5f04be6-db3e-4063-96cb-c08e191c30cc",
+        "children": [
+          "a3ff4ba0-4fdd-4588-9fe8-aad8daf7b3bb"
+        ]
+      },
+      "a3ff4ba0-4fdd-4588-9fe8-aad8daf7b3bb": {
+        "id": "a3ff4ba0-4fdd-4588-9fe8-aad8daf7b3bb",
+        "message": {
+          "id": "a3ff4ba0-4fdd-4588-9fe8-aad8daf7b3bb",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1774653645.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Use `git revert <commit>`. It adds a new commit that reverses the bad one, so nobody's history is rewritten. Push that."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "7180b45e-256a-48f0-a8a5-b500b2dc16f2",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "a3ff4ba0-4fdd-4588-9fe8-aad8daf7b3bb",
+    "plugin_ids": null,
+    "conversation_id": "2a1a0b5a-0d5c-411c-939c-26cdbe34a937",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "2a1a0b5a-0d5c-411c-939c-26cdbe34a937"
+  },
+  {
+    "title": "Sort dicts by value, descending",
+    "create_time": 1776174510,
+    "update_time": 1776174515.3,
+    "mapping": {
+      "75b5b810-0564-4778-bbf4-5f7743090a78": {
+        "id": "75b5b810-0564-4778-bbf4-5f7743090a78",
+        "message": null,
+        "parent": null,
+        "children": [
+          "254bbbb1-c5f7-4104-805e-322efaa6fcc9"
+        ]
+      },
+      "254bbbb1-c5f7-4104-805e-322efaa6fcc9": {
+        "id": "254bbbb1-c5f7-4104-805e-322efaa6fcc9",
+        "message": {
+          "id": "254bbbb1-c5f7-4104-805e-322efaa6fcc9",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "75b5b810-0564-4778-bbf4-5f7743090a78",
+        "children": [
+          "6a0ac40c-4660-4d01-a123-2fdbcc456392"
+        ]
+      },
+      "6a0ac40c-4660-4d01-a123-2fdbcc456392": {
+        "id": "6a0ac40c-4660-4d01-a123-2fdbcc456392",
+        "message": {
+          "id": "6a0ac40c-4660-4d01-a123-2fdbcc456392",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1776174510.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "how do I sort a list of dictionaries by one of the values in python, descending"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "254bbbb1-c5f7-4104-805e-322efaa6fcc9",
+        "children": [
+          "9f3561a6-4f33-4341-962a-08f0ccacb9fd"
+        ]
+      },
+      "9f3561a6-4f33-4341-962a-08f0ccacb9fd": {
+        "id": "9f3561a6-4f33-4341-962a-08f0ccacb9fd",
+        "message": {
+          "id": "9f3561a6-4f33-4341-962a-08f0ccacb9fd",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1776174514.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "`sorted(rows, key=lambda r: r['score'], reverse=True)`."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "6a0ac40c-4660-4d01-a123-2fdbcc456392",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "9f3561a6-4f33-4341-962a-08f0ccacb9fd",
+    "plugin_ids": null,
+    "conversation_id": "8a607e48-5cf6-44c8-af34-c138ae0a4306",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "8a607e48-5cf6-44c8-af34-c138ae0a4306"
+  },
+  {
+    "title": "Python venv on Windows",
+    "create_time": 1777537612,
+    "update_time": 1777537617.3,
+    "mapping": {
+      "29e972cb-504a-4b8e-b5a7-e6974b36c195": {
+        "id": "29e972cb-504a-4b8e-b5a7-e6974b36c195",
+        "message": null,
+        "parent": null,
+        "children": [
+          "e0dcd80c-3c2c-4f53-b3fb-61d7bffc12d4"
+        ]
+      },
+      "e0dcd80c-3c2c-4f53-b3fb-61d7bffc12d4": {
+        "id": "e0dcd80c-3c2c-4f53-b3fb-61d7bffc12d4",
+        "message": {
+          "id": "e0dcd80c-3c2c-4f53-b3fb-61d7bffc12d4",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "29e972cb-504a-4b8e-b5a7-e6974b36c195",
+        "children": [
+          "7efa6bd2-f9e5-48bc-9d43-7690f05b1af5"
+        ]
+      },
+      "7efa6bd2-f9e5-48bc-9d43-7690f05b1af5": {
+        "id": "7efa6bd2-f9e5-48bc-9d43-7690f05b1af5",
+        "message": {
+          "id": "7efa6bd2-f9e5-48bc-9d43-7690f05b1af5",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1777537612.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "how do I set up a python virtual environment on windows"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "e0dcd80c-3c2c-4f53-b3fb-61d7bffc12d4",
+        "children": [
+          "5963082f-b80d-4a00-928b-7349533fbd7a"
+        ]
+      },
+      "5963082f-b80d-4a00-928b-7349533fbd7a": {
+        "id": "5963082f-b80d-4a00-928b-7349533fbd7a",
+        "message": {
+          "id": "5963082f-b80d-4a00-928b-7349533fbd7a",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1777537616.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Run `py -m venv .venv`, then `.venv\\Scripts\\activate`. Install packages with pip while it's active."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "7efa6bd2-f9e5-48bc-9d43-7690f05b1af5",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "5963082f-b80d-4a00-928b-7349533fbd7a",
+    "plugin_ids": null,
+    "conversation_id": "59a6429d-f71b-4b47-98a0-fcd6fe6e74d8",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "59a6429d-f71b-4b47-98a0-fcd6fe6e74d8"
+  },
+  {
+    "title": "Port 5432 held",
+    "create_time": 1778097316,
+    "update_time": 1778097321.3,
+    "mapping": {
+      "787d97ab-1413-4a22-b8a3-0d2144bdc5c2": {
+        "id": "787d97ab-1413-4a22-b8a3-0d2144bdc5c2",
+        "message": null,
+        "parent": null,
+        "children": [
+          "fbac1ecf-2c38-4de4-a577-743a7b981e98"
+        ]
+      },
+      "fbac1ecf-2c38-4de4-a577-743a7b981e98": {
+        "id": "fbac1ecf-2c38-4de4-a577-743a7b981e98",
+        "message": {
+          "id": "fbac1ecf-2c38-4de4-a577-743a7b981e98",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "787d97ab-1413-4a22-b8a3-0d2144bdc5c2",
+        "children": [
+          "d458e1cf-c6fc-4665-8ea9-d9a75212c780"
+        ]
+      },
+      "d458e1cf-c6fc-4665-8ea9-d9a75212c780": {
+        "id": "d458e1cf-c6fc-4665-8ea9-d9a75212c780",
+        "message": {
+          "id": "d458e1cf-c6fc-4665-8ea9-d9a75212c780",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1778097316.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "how do I stop the process that's holding port 5432"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "fbac1ecf-2c38-4de4-a577-743a7b981e98",
+        "children": [
+          "72aa9c53-228e-42c4-8bc2-c2e53338f43b"
+        ]
+      },
+      "72aa9c53-228e-42c4-8bc2-c2e53338f43b": {
+        "id": "72aa9c53-228e-42c4-8bc2-c2e53338f43b",
+        "message": {
+          "id": "72aa9c53-228e-42c4-8bc2-c2e53338f43b",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1778097320.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Find it with `lsof -i :5432`. If it's a Postgres you started yourself, stop it the way you started it, for example `brew services stop postgresql`."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "d458e1cf-c6fc-4665-8ea9-d9a75212c780",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "72aa9c53-228e-42c4-8bc2-c2e53338f43b",
+    "plugin_ids": null,
+    "conversation_id": "e557628a-a8ed-43f5-95c5-23dd33977ea2",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "e557628a-a8ed-43f5-95c5-23dd33977ea2"
+  },
+  {
+    "title": "Uncommit before push",
+    "create_time": 1781008269,
+    "update_time": 1781008274.3,
+    "mapping": {
+      "47d47575-57b4-4497-80c7-5ef312fed563": {
+        "id": "47d47575-57b4-4497-80c7-5ef312fed563",
+        "message": null,
+        "parent": null,
+        "children": [
+          "f42cd7a4-163c-4005-a470-8b1eacc06bb1"
+        ]
+      },
+      "f42cd7a4-163c-4005-a470-8b1eacc06bb1": {
+        "id": "f42cd7a4-163c-4005-a470-8b1eacc06bb1",
+        "message": {
+          "id": "f42cd7a4-163c-4005-a470-8b1eacc06bb1",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "47d47575-57b4-4497-80c7-5ef312fed563",
+        "children": [
+          "e0e543e6-a87b-4dff-8180-6381aad30e6f"
+        ]
+      },
+      "e0e543e6-a87b-4dff-8180-6381aad30e6f": {
+        "id": "e0e543e6-a87b-4dff-8180-6381aad30e6f",
+        "message": {
+          "id": "e0e543e6-a87b-4dff-8180-6381aad30e6f",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1781008269.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "can you uncommit something in git? haven't pushed yet"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "f42cd7a4-163c-4005-a470-8b1eacc06bb1",
+        "children": [
+          "4b3c09d0-7a34-4644-9950-a699715e17f4"
+        ]
+      },
+      "4b3c09d0-7a34-4644-9950-a699715e17f4": {
+        "id": "4b3c09d0-7a34-4644-9950-a699715e17f4",
+        "message": {
+          "id": "4b3c09d0-7a34-4644-9950-a699715e17f4",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1781008273.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Yes: `git reset --soft HEAD~1`. The commit disappears and the changes stay staged."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "e0e543e6-a87b-4dff-8180-6381aad30e6f",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "4b3c09d0-7a34-4644-9950-a699715e17f4",
+    "plugin_ids": null,
+    "conversation_id": "a166cfcf-8ef5-407d-999b-accd9f2f3c5d",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "a166cfcf-8ef5-407d-999b-accd9f2f3c5d"
+  },
+  {
+    "title": "Modern CSS centering",
+    "create_time": 1784648567,
+    "update_time": 1784648572.3,
+    "mapping": {
+      "e4a269f5-1149-4614-a271-8356547da43e": {
+        "id": "e4a269f5-1149-4614-a271-8356547da43e",
+        "message": null,
+        "parent": null,
+        "children": [
+          "223059ee-59ec-4c98-a452-fee6ab13cf14"
+        ]
+      },
+      "223059ee-59ec-4c98-a452-fee6ab13cf14": {
+        "id": "223059ee-59ec-4c98-a452-fee6ab13cf14",
+        "message": {
+          "id": "223059ee-59ec-4c98-a452-fee6ab13cf14",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "e4a269f5-1149-4614-a271-8356547da43e",
+        "children": [
+          "8e726f7c-119f-420d-965a-28a63138078d"
+        ]
+      },
+      "8e726f7c-119f-420d-965a-28a63138078d": {
+        "id": "8e726f7c-119f-420d-965a-28a63138078d",
+        "message": {
+          "id": "8e726f7c-119f-420d-965a-28a63138078d",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1784648567.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "what's the modern way to center something in css, both axes"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "223059ee-59ec-4c98-a452-fee6ab13cf14",
+        "children": [
+          "6dceca5d-d625-43c3-b156-2ba0dbc4e9dd"
+        ]
+      },
+      "6dceca5d-d625-43c3-b156-2ba0dbc4e9dd": {
+        "id": "6dceca5d-d625-43c3-b156-2ba0dbc4e9dd",
+        "message": {
+          "id": "6dceca5d-d625-43c3-b156-2ba0dbc4e9dd",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1784648571.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "`display: grid; place-items: center;` on the container is the shortest."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "8e726f7c-119f-420d-965a-28a63138078d",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "6dceca5d-d625-43c3-b156-2ba0dbc4e9dd",
+    "plugin_ids": null,
+    "conversation_id": "540deb34-b4da-43c8-8e05-d92781008b04",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "540deb34-b4da-43c8-8e05-d92781008b04"
+  },
+  {
+    "title": "Rust as a second language",
+    "create_time": 1785961114,
+    "update_time": 1785961119.3,
+    "mapping": {
+      "194f18d8-47ef-4696-9c91-463a2f54da43": {
+        "id": "194f18d8-47ef-4696-9c91-463a2f54da43",
+        "message": null,
+        "parent": null,
+        "children": [
+          "f1fda3c6-4d19-40ec-acf8-10d7f122ddc7"
+        ]
+      },
+      "f1fda3c6-4d19-40ec-acf8-10d7f122ddc7": {
+        "id": "f1fda3c6-4d19-40ec-acf8-10d7f122ddc7",
+        "message": {
+          "id": "f1fda3c6-4d19-40ec-acf8-10d7f122ddc7",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "194f18d8-47ef-4696-9c91-463a2f54da43",
+        "children": [
+          "d38edac6-af54-4927-82e1-76b6c1f94a45"
+        ]
+      },
+      "d38edac6-af54-4927-82e1-76b6c1f94a45": {
+        "id": "d38edac6-af54-4927-82e1-76b6c1f94a45",
+        "message": {
+          "id": "d38edac6-af54-4927-82e1-76b6c1f94a45",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1785961114.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "is it worth learning rust as my second language after javascript"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "f1fda3c6-4d19-40ec-acf8-10d7f122ddc7",
+        "children": [
+          "866aa6d3-9b2a-4e93-a21b-8a56eb553fab"
+        ]
+      },
+      "866aa6d3-9b2a-4e93-a21b-8a56eb553fab": {
+        "id": "866aa6d3-9b2a-4e93-a21b-8a56eb553fab",
+        "message": {
+          "id": "866aa6d3-9b2a-4e93-a21b-8a56eb553fab",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1785961118.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "It can be, if you want to learn how memory works. If you want a job sooner, a typed backend language like TypeScript on Node or Go may pay off faster."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "d38edac6-af54-4927-82e1-76b6c1f94a45",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "866aa6d3-9b2a-4e93-a21b-8a56eb553fab",
+    "plugin_ids": null,
+    "conversation_id": "05729ca5-0700-4b61-802e-6bb53545f19e",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "05729ca5-0700-4b61-802e-6bb53545f19e"
+  },
+  {
+    "title": "Parse yyyy-mm-dd in JS",
+    "create_time": 1787051002,
+    "update_time": 1787051007.3,
+    "mapping": {
+      "c4d8e43f-f02d-4308-b0e8-defca5d436ba": {
+        "id": "c4d8e43f-f02d-4308-b0e8-defca5d436ba",
+        "message": null,
+        "parent": null,
+        "children": [
+          "9fa79aeb-57a7-4860-9c78-62c9dc6ce59d"
+        ]
+      },
+      "9fa79aeb-57a7-4860-9c78-62c9dc6ce59d": {
+        "id": "9fa79aeb-57a7-4860-9c78-62c9dc6ce59d",
+        "message": {
+          "id": "9fa79aeb-57a7-4860-9c78-62c9dc6ce59d",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "c4d8e43f-f02d-4308-b0e8-defca5d436ba",
+        "children": [
+          "e87ae351-baad-4c7e-b1aa-c0a11a8fe7be"
+        ]
+      },
+      "e87ae351-baad-4c7e-b1aa-c0a11a8fe7be": {
+        "id": "e87ae351-baad-4c7e-b1aa-c0a11a8fe7be",
+        "message": {
+          "id": "e87ae351-baad-4c7e-b1aa-c0a11a8fe7be",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1787051002.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "js parse date from string yyyy-mm-dd"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "9fa79aeb-57a7-4860-9c78-62c9dc6ce59d",
+        "children": [
+          "d665267f-6f85-4128-9d2b-0eff2310e6cc"
+        ]
+      },
+      "d665267f-6f85-4128-9d2b-0eff2310e6cc": {
+        "id": "d665267f-6f85-4128-9d2b-0eff2310e6cc",
+        "message": {
+          "id": "d665267f-6f85-4128-9d2b-0eff2310e6cc",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1787051006.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "`new Date('2026-08-18')` works and treats it as UTC. Use `Date.UTC` or split the parts if you need to control the timezone."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "e87ae351-baad-4c7e-b1aa-c0a11a8fe7be",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "d665267f-6f85-4128-9d2b-0eff2310e6cc",
+    "plugin_ids": null,
+    "conversation_id": "82fb5c18-c37c-40d5-902e-5e405b5895e2",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "82fb5c18-c37c-40d5-902e-5e405b5895e2"
+  },
+  {
+    "title": "Roll back last commit",
+    "create_time": 1788368995,
+    "update_time": 1788369000.3,
+    "mapping": {
+      "7a83675f-4a3e-4e19-bb18-af6e73161034": {
+        "id": "7a83675f-4a3e-4e19-bb18-af6e73161034",
+        "message": null,
+        "parent": null,
+        "children": [
+          "45d12f43-bed1-47cc-97e9-2ed299e5a39f"
+        ]
+      },
+      "45d12f43-bed1-47cc-97e9-2ed299e5a39f": {
+        "id": "45d12f43-bed1-47cc-97e9-2ed299e5a39f",
+        "message": {
+          "id": "45d12f43-bed1-47cc-97e9-2ed299e5a39f",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 0,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "7a83675f-4a3e-4e19-bb18-af6e73161034",
+        "children": [
+          "15c62ae4-d2c1-47d6-9c90-d06ef51aba66"
+        ]
+      },
+      "15c62ae4-d2c1-47d6-9c90-d06ef51aba66": {
+        "id": "15c62ae4-d2c1-47d6-9c90-d06ef51aba66",
+        "message": {
+          "id": "15c62ae4-d2c1-47d6-9c90-d06ef51aba66",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1788368995.412,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "oops, wrong commit message and wrong files. how do I roll back the last commit?"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "45d12f43-bed1-47cc-97e9-2ed299e5a39f",
+        "children": [
+          "18da7ae8-9ec6-4356-8419-706817aaf6a2"
+        ]
+      },
+      "18da7ae8-9ec6-4356-8419-706817aaf6a2": {
+        "id": "18da7ae8-9ec6-4356-8419-706817aaf6a2",
+        "message": {
+          "id": "18da7ae8-9ec6-4356-8419-706817aaf6a2",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1788368999.8,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "`git reset --soft HEAD~1`, fix the files, then commit again with the right message. For only the message, `git commit --amend` is enough."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all",
+          "channel": null
+        },
+        "parent": "15c62ae4-d2c1-47d6-9c90-d06ef51aba66",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "18da7ae8-9ec6-4356-8419-706817aaf6a2",
+    "plugin_ids": null,
+    "conversation_id": "84f7f5ea-d4c1-4008-8594-66018e560796",
+    "conversation_template_id": null,
+    "gizmo_id": null,
+    "is_archived": false,
+    "safe_urls": [],
+    "id": "84f7f5ea-d4c1-4008-8594-66018e560796"
+  }
+]
