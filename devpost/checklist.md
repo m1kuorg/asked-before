@@ -33,7 +33,7 @@ Build mode: fast
   Learner check: Press the load button and confirm card A reads "Undo a git commit", borrowed 9 times, March 2025 to September 2026, with nine phrasings and dates around the rail.
   Commit: `docs: tick slice 2, the card stack` (code in 5b201fd)
 
-- [ ] **3. The model writes a cold rep and checks your answer**
+- [x] **3. The model writes a cold rep and checks your answer**
   Becomes usable: The rep route returns a lesson (first rep only) and a fresh problem that doesn't give away its answer; the check route returns pass or fail with a reason about the answer it checked.
   Why now: This is the unique kernel, and the model's behavior is the biggest risk in the build.
   PRD ref: `prd.md > Features and Behavior` (The lesson and the cold rep), `prd.md > States and Boundaries`
