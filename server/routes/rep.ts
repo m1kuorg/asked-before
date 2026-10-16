@@ -20,11 +20,13 @@ const Body = z.strictObject({
 }) satisfies z.ZodType<RepRequest>;
 
 // The case comes before the problem and is never shown: naming it by the facts
-// that decide it gives the problem those facts to state, instead of the fix.
+// that decide it gives the problem those facts to state, instead of the fix. It
+// holds only the facts, since a case that says what the fix must do passes that
+// on to the problem.
 const Case = z
   .string()
   .min(1)
-  .describe("Not shown: the case of the skill this problem tests, named by the facts that decide its right approach, never by the fix.");
+  .describe("Not shown: the case of the skill this problem tests, named only by the facts that decide its right approach, as the learner would see them. Never what those facts mean for the fix, such as what it must or mustn't do: that is the answer.");
 const Problem = z
   .string()
   .min(1)
@@ -40,14 +42,14 @@ const SYSTEM = `You write cold reps for Asked Before, an app for someone who kee
 
 You get the skill, their own past phrasings of the question, and the problems this card has already had.
 
-First name the problem's case, for yourself; it isn't shown. Name it by the facts that decide the right approach, as they would see them, not by the fix. Then write the problem around those facts.
+First name the problem's case, for yourself; it isn't shown. Name it only by the facts that decide the right approach, as they would see them, and stop at the facts: what they mean for the fix, such as what it must or mustn't do, is the answer, so it goes in neither the case nor the problem. Then write the problem around those facts.
 
 Write one new problem:
 - A concrete, everyday situation where they need the skill, written to them as "you", ending by asking what they would do: the commands or steps, and nothing more. Never ask for an explanation, the output, a message to type, or what things look like afterwards. One to three sentences, under 60 words.
 - Its goal is the skill itself, as its name says, not a neighbouring task that needs other knowledge. Keep to the skill's common, standard cases, solvable with the usual tools in a few lines of plain text, with one clearly right approach.
 - Every want in it fits that one approach. Don't add a second job beyond the skill, such as also deleting, cleaning up, or securing something, and don't ask for a result the usual practice rules out, such as making work vanish from copies others already have.
 - Make it a new scenario, in your own words. Don't reword, quote, or borrow wording from any of their phrasings, and don't repeat or closely echo an earlier problem: when there are earlier problems, pick a case of the skill they haven't covered, one with a different right answer where the skill has one.
-- Don't give the answer away: working out the method is the rep. Write the problem as they would put it before they know the fix: the facts they can see (what's in it, whether it's pushed, who already has it), and the result they want, as something they would notice afterwards (their files, their working app, what their teammates get on their next pull). What the fix does is the answer, so the problem never says it: nothing about the history or the log, such as keeping it, rewriting it, or how it should look; nothing about what the fix does to the commit, such as taking it out or cancelling it with another; and no command, function, flag, or step. When a fact decides the approach, such as teammates having already pulled the commit, stating that fact is enough: it rules out the wrong approaches without a rule about the remedy. When the want is the skill's goal itself, say it with the skill's own verb, as its name has it (for "Undo a git commit", undo), or as the state they want back (the code as it was before that commit). Other verbs for what happens to the change, such as backing it out or reversing it, are names of its methods.
+- Don't give the answer away: working out the method is the rep. Write the problem as they would put it before they know the fix: the facts they can see (what's in it, whether it's pushed, who already has it), and the result they want, as something they would see in their own files or their working app. The want ends at that result. How to get there, and what it must not do on the way, is the answer, so the problem never says it: nothing about the history or the log, such as how it should look afterwards; nothing about what the fix does to the commit, such as taking it out or cancelling it with another; no condition on the method or on anyone else's copy; and no command, function, flag, or step. When a fact decides the approach, such as teammates having already pulled the commit, stating that fact is enough: it rules out the wrong approaches on its own, and seeing that is the learner's job. When the want is the skill's goal itself, say it with the skill's own verb, as its name has it (for "Undo a git commit", undo), or as the state they want back (the code as it was before that commit, or their edits back in their files, not yet committed). Other words for what happens to the change, such as backing it out, reversing it, or removing it from somewhere, are names of its methods.
 
 When asked for a lesson, write that too: a short explanation of the skill as a whole, three or four sentences and at most 80 words, that teaches the general method, naming the actual commands, functions, or tools, and how to choose between its common cases, so it helps with any problem on this skill. Don't mention this problem's scenario.
 
