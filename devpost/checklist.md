@@ -53,7 +53,7 @@ Build mode: fast
   Learner check: Open key A, submit a wrong answer and read the reason, then answer the new problem correctly and confirm the stack shows key A struck through.
   Commit: `docs: tick slice 4, the rep screen` (code in 8d15bef)
 
-- [ ] **5. Every screen is set in the Centre Rail**
+- [x] **5. Every screen is set in the Centre Rail**
   Becomes usable: The page wears the Centre Rail: white block on proof gray, hairlines, one vermilion rail, the reversed plate, Hanken Grotesk at 1080p sizes, and the waiting, failed, and returned states without new ink.
   Why now: The look lands once the screens' markup is settled, so styling doesn't chase moving class names.
   PRD ref: `prd.md > Look and Feel`
