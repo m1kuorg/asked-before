@@ -80,6 +80,7 @@ Build mode: fast
 
 ## Final Review
 
+- [ ] Stack's "nothing asked more than once" state keeps the plate with the count of your own messages (DESIGN.md's Plate Holds Rule) — `showStack` in `src/screens/stack.ts` adds `messagePlate()`, and `public/styles.css`'s short-block rule now covers every block with a plate, so it sits inside the padding; `check:styles`, `check:rep`, and `journey` pass. Awaiting the learner's retry.
 - [ ] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
@@ -95,3 +96,5 @@ Reflection:
 Activity mode: 
 
 ## Revisions
+
+- The Load screen's unreadable-export state keeps no plate, the one exception to DESIGN.md's Plate Holds Rule — the final review found that nothing was read there, so any count would be made up and break "code counts"; the docs stay as they are.

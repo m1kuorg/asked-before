@@ -483,8 +483,8 @@ body > nav > span:first-child {
   margin: 0;
 }
 
-/* A short block (waiting, an error) still holds the whole plate: the padding, the plate, the padding. */
-.block:has(> .plate):has(> .is-waiting, > .error) {
+/* A short block (waiting, an error, no cards) still holds the whole plate: the padding, the plate, the padding. */
+.block:has(> .plate) {
   min-block-size: 19.5rem;
 }
 
