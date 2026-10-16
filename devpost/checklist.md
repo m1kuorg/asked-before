@@ -43,7 +43,7 @@ Build mode: fast
   Learner check: Covered in slice 4's check, where the rep and verdict show on screen.
   Commit: `docs: tick slice 3, cold reps and checks` (code in 5e6b975)
 
-- [ ] **4. You can take a cold rep, fail it, pass a new one, and see the card returned**
+- [x] **4. You can take a cold rep, fail it, pass a new one, and see the card returned**
   Becomes usable: Opening a card shows the lesson, the problem, and one answer box. A fail shows the reason, the lesson again, and a different problem; a pass stamps the card returned with today's date and the stack strikes its key and closes its rail.
   Why now: It completes the core journey on top of slices 2 and 3.
   PRD ref: `prd.md > The Core Journey` (steps 5-8)
