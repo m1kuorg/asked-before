@@ -1,29 +1,50 @@
-// The Load screen, as a placeholder until m1kuorg/basics#26 lands: its inputs
-// as plain text, with its controls.
+// The Load screen. Before anything is sent, it says how many of your own
+// messages the demo export holds and that only those go to the model, with the
+// one load action. If the export can't be read, it shows the parser's error and
+// a retry instead, never a count.
 
 import { PRIVACY_LINE } from "../main";
 import type { LoadProps } from "../types";
 
+function element<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, ...children: (Node | string)[]) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  node.append(...children);
+  return node;
+}
+
+function button(text: string, onClick: () => void, className = "") {
+  const node = element("button", className, text);
+  node.addEventListener("click", onClick);
+  return node;
+}
+
 export function mountLoad(root: HTMLElement, { state, onLoad, onRetry }: LoadProps) {
   if ("error" in state) {
-    const error = document.createElement("p");
-    error.className = "error";
-    error.textContent = state.error;
-    const retry = document.createElement("button");
-    retry.className = "retry";
-    retry.textContent = "Try again";
-    retry.addEventListener("click", onRetry);
-    root.append(error, retry);
+    const error = element("p", "error", state.error);
+    error.setAttribute("role", "alert");
+    root.append(
+      element(
+        "section",
+        "block",
+        element("h1", "", "The chat export can't be read"),
+        error,
+        element("p", "", "Nothing was sent to the model."),
+        button("Read it again", onRetry, "retry"),
+      ),
+    );
     return;
   }
 
-  const privacy = document.createElement("p");
-  privacy.className = "privacy-line";
-  privacy.textContent = PRIVACY_LINE;
-  const count = document.createElement("p");
-  count.textContent = `${state.messages.length} of your own messages are ready to send.`;
-  const load = document.createElement("button");
-  load.textContent = "Load the demo export";
-  load.addEventListener("click", onLoad);
-  root.append(privacy, count, load);
+  root.append(
+    element(
+      "section",
+      "block",
+      element("h1", "", "The demo chat export"),
+      element("p", "plate", element("b", "", String(state.messages.length)), " ", element("span", "", "of your own messages")),
+      element("p", "", "Loading it sorts them into cards, one for each question you asked more than once."),
+      element("p", "privacy-line", PRIVACY_LINE),
+      button("Load the demo export", onLoad),
+    ),
+  );
 }
