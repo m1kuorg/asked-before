@@ -29,9 +29,11 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 The picked sketch is `.impeccable/mocks/decision/r2-lead.html`; the decision figure `.impeccable/mocks/decision/r2-lead.png` is the critique reference.
 
-## Unresolved decisions
+## Resolved decisions
 
-- A face with true small caps, or tracked caps for apparatus.
-- The type scale at 1080p: body at least 20px.
-- The rail outboard under two columns on narrow screens.
-- The cold rep and returned states beyond the first viewport.
+The build settled the four decisions this brief left open, and [DESIGN.md](/docs/DESIGN.md) records them as shipped:
+
+- Tracked capitals in Hanken Grotesk for apparatus, under Typography.
+- The 1080p type scale, with body at 20px, under Typography.
+- The rail outboard of the text on narrow screens, under Layout.
+- The cold rep and returned states, under Layout and Components.

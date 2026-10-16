@@ -6,6 +6,9 @@
     "start": "bun run server.ts",
     "check:key": "bun run scripts/check-answer-key.ts",
     "check:cards": "bun run scripts/check-cards.ts",
+    "check:styles": "bun run scripts/check-styles.ts",
+    "check:rep": "bun run scripts/check-rep.ts",
+    "check:rep-routes": "bun run scripts/check-rep-routes.ts",
     "check:grouping": "bun run scripts/check-grouping.ts",
     "journey": "bun run scripts/journey.ts"
   },
