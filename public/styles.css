@@ -1,0 +1,821 @@
+/*
+  Asked Before: the Centre Rail (m1kuorg/basics#33).
+
+  The one stylesheet. It styles #25's class names and the bare elements the
+  page entry and the screens emit around them: the nav, headings, paragraphs,
+  buttons, and the answer textarea. Tokens follow docs/DESIGN.md. Two inks on
+  proof gray: iron black does the work, and rubric vermilion marks only the
+  borrows, on .rail-key and the margin's key letters.
+
+  Markup shapes it reads (from the screens' notes): `.margin` and `.block` are
+  children of #app; a block holds one `ol.rail` per year of `li` rows, each
+  `.phrasing` / `.rail-key` / `.stamp`; `.plate`'s first child is the count;
+  `.margin-key` holds the letter, the skill, and the count, and the card in
+  the block has aria-current="true".
+*/
+
+@font-face {
+  font-family: "Hanken Grotesk";
+  src: url("./fonts/HankenGrotesk-Variable.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Hanken Grotesk";
+  src: url("./fonts/HankenGrotesk-Italic-Variable.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: block;
+}
+
+:root {
+  /* Inks. */
+  --proof-gray: #e8ebed;
+  --block-white: #ffffff;
+  --iron-black: #1a1a1a;
+  --rule-gray: #c3c8cc;
+  --rubric: #b42d16;
+
+  /* The one neutral ramp, from Proof Gray to Iron Black through Rule Gray, in OKLab. */
+  --gray-200: #d5d9dc; /* hover fill */
+  --gray-300: var(--rule-gray); /* pressed fill, rules between rows */
+  --gray-600: #606263; /* disabled text and frames, placeholders: 5.1:1 on proof gray */
+  --gray-800: #373839; /* pressed primary */
+
+  /* Type, sized for the 1080p frame. */
+  --face: "Hanken Grotesk", sans-serif;
+  --display-size: 3.375rem; /* 54px */
+  --count-size: 9.375rem; /* 150px, the plate only */
+  --body-size: 1.25rem; /* 20px, the floor for body text */
+  --label-size: 1.125rem; /* 18px */
+  --small-label-size: 1rem; /* 16px */
+  --apparatus-size: 0.9375rem; /* 15px tracked capitals: their cap height matches the body's x-height */
+  --prose-leading: 1.5;
+  --row-leading: 1.25;
+  --measure: 60ch;
+
+  /* Space: 4, 8, 12, 16, 24, 32, and 40px. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+
+  /* The block: two columns of equal measure around a narrow rail. */
+  --column: 32.5rem; /* 520px, about 52 characters of body */
+  --rail-width: 4.5rem;
+  --block-pad: var(--space-7);
+  --block-width: calc(2 * var(--column) + var(--rail-width) + 2 * var(--block-pad) + 2px);
+  --row-pad: 0.5625rem;
+  --hairline: 1px solid var(--iron-black);
+  --row-rule: 1px solid var(--rule-gray);
+
+  /* The rail's keys. */
+  --detent: 1.875rem; /* 30px square detent */
+  --key: 1.375rem; /* 22px square key */
+  --plate-inset: var(--space-6); /* the plate overlaps only the block's padding, never its content */
+  --drop-duration: 400ms;
+  --drop-step: 55ms;
+  /* A critically damped spring: it rises to rest and never passes it. */
+  --drop-ease: linear(0, 0.036 4%, 0.12 8%, 0.224 12%, 0.333 16%, 0.438 20%, 0.555 25%, 0.654 30%, 0.749 36%, 0.821 42%, 0.888 50%, 0.941 60%, 0.974 72%, 0.992 86%, 1);
+}
+
+/* Page. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+  scrollbar-color: var(--gray-600) var(--proof-gray);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font: 400 var(--body-size) / var(--prose-leading) var(--face);
+  color: var(--iron-black);
+  background: var(--proof-gray);
+  caret-color: var(--iron-black);
+  font-variant-numeric: tabular-nums; /* every date and count; the roman's default figures are tabular already */
+}
+
+h1,
+h2,
+p,
+ol,
+form {
+  margin: 0;
+}
+
+::selection {
+  color: var(--block-white);
+  background: var(--iron-black);
+}
+
+/* The standard top navigation, drawn by the page entry. */
+
+body > nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  min-height: 3.75rem;
+  padding: var(--space-3) var(--space-7);
+  border-bottom: var(--hairline);
+  font: 700 var(--label-size) / 1.2 var(--face);
+}
+
+body > nav > span:first-child {
+  font-size: var(--body-size);
+  font-weight: 900;
+}
+
+.demo-label {
+  margin-left: auto;
+  padding: var(--space-1) var(--space-3);
+  border: var(--hairline);
+  font: 700 var(--small-label-size) / 1.3 var(--face);
+}
+
+/* The page: a wide margin, the block, and a narrower outer margin that the plate hangs into. */
+
+#app {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(16rem, 5fr) minmax(0, var(--block-width)) minmax(13rem, 3fr);
+  align-content: start;
+}
+
+#app > * {
+  grid-column: 2;
+}
+
+#app > .margin {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+}
+
+/* The margin carries the apparatus: the keys, then the privacy line. */
+
+.margin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-7) var(--space-6) var(--space-7) var(--space-7);
+  font: 500 var(--small-label-size) / 1.45 var(--face);
+}
+
+.margin h2 {
+  font: 700 var(--apparatus-size) / 1.3 var(--face);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.margin p {
+  max-width: 34ch;
+}
+
+.margin ol {
+  list-style: none;
+  padding: 0;
+}
+
+.margin > .privacy-line {
+  margin-top: auto;
+}
+
+.privacy-line {
+  max-width: 34ch;
+  padding-top: var(--space-3);
+  border-top: var(--hairline);
+  font: 600 var(--small-label-size) / 1.45 var(--face);
+}
+
+.margin-key {
+  display: grid;
+  grid-template-columns: 1.5em minmax(0, 1fr) auto;
+  column-gap: var(--space-3);
+  align-items: baseline;
+  width: 100%;
+  padding: var(--space-3) var(--space-2);
+  border: 0;
+  border-top: var(--hairline);
+  color: var(--iron-black);
+  background: transparent;
+  font: 600 var(--label-size) / 1.3 var(--face);
+  text-align: left;
+}
+
+.margin li:last-child > .margin-key {
+  border-bottom: var(--hairline);
+}
+
+.margin-key > :first-child {
+  color: var(--rubric);
+  font-weight: 800;
+}
+
+.margin-key > :last-child {
+  text-align: right;
+}
+
+.margin-key[aria-current="true"] {
+  background: var(--block-white);
+  font-weight: 800;
+}
+
+.margin-key.is-returned {
+  text-decoration: line-through 2px var(--iron-black);
+}
+
+/* The block holds the work. */
+
+.block {
+  position: relative;
+  align-self: start;
+  margin-block: var(--space-6);
+  padding: var(--block-pad);
+  border: var(--hairline);
+  background: var(--block-white);
+}
+
+.block > * + *,
+.block > div:not([class]) > * + * {
+  margin-top: var(--space-5);
+}
+
+.skill,
+.block h1 {
+  font: 900 var(--display-size) / 1 var(--face);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.block > :is(h1, .skill) + p:not([class]) {
+  margin-top: var(--space-3);
+  font-weight: 500;
+}
+
+.block h2 {
+  margin-bottom: var(--space-2);
+  font: 800 var(--body-size) / 1.2 var(--face);
+}
+
+.block p:not([class]) {
+  max-width: var(--measure);
+}
+
+.block > button,
+.block > div:not([class]) > button {
+  margin-top: var(--space-6);
+}
+
+/* The rail: your words left, their dates right, one key per borrow down the middle. */
+
+.rail {
+  position: relative;
+  list-style: none;
+  padding: 0;
+  border-top: var(--hairline);
+}
+
+/* The channel the keys sit in: two hairlines, closed at the foot. One rail per year, so the gap between rails is the cut where the year turns. */
+.rail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - var(--rail-width) / 2);
+  width: var(--rail-width);
+  border: var(--hairline);
+  border-top: 0;
+  pointer-events: none;
+}
+
+.block > .rail + .rail {
+  margin-top: var(--space-3);
+}
+
+.rail > * {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rail-width) minmax(0, 1fr);
+}
+
+.rail .phrasing,
+.rail .stamp {
+  grid-row: 1;
+  padding: var(--row-pad) var(--space-4);
+  border-bottom: var(--row-rule);
+  line-height: var(--row-leading);
+}
+
+.rail .phrasing {
+  grid-column: 1;
+  font-style: italic;
+  text-align: right;
+  text-wrap: pretty;
+}
+
+.rail .stamp {
+  grid-column: 3;
+  font-weight: 500;
+}
+
+/* A square detent cut into the rail, a recess down to the proof-gray ground; the key is its ::before, and drops in from the detent's mouth. */
+.rail-key {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  align-self: start;
+  position: relative;
+  overflow: hidden;
+  width: var(--detent);
+  height: var(--detent);
+  margin-top: calc(var(--row-pad) + var(--body-size) * var(--row-leading) / 2 - var(--detent) / 2);
+  background: var(--proof-gray);
+}
+
+.rail-key::before {
+  content: "";
+  position: absolute;
+  inset: calc((var(--detent) - var(--key)) / 2);
+  background: var(--rubric);
+  animation: key-drop var(--drop-duration) var(--drop-ease) backwards;
+  animation-delay: calc((var(--before, 0) + var(--row, 0)) * var(--drop-step));
+}
+
+@keyframes key-drop {
+  from {
+    translate: 0 -120%;
+  }
+}
+
+/* A returned card's rail is closed: its keys are already seated. */
+.block:has(> .end-rule) .rail-key::before {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-key::before {
+    animation: none;
+  }
+}
+
+/* Keys drop in date order: each row's place in its rail, after every row in the rails above it.
+   Exact for up to 16 rows a rail and 3 rails (the demo spans two years); past that, keys share the last delay. */
+.rail > :nth-child(2) { --row: 1; }
+.rail > :nth-child(3) { --row: 2; }
+.rail > :nth-child(4) { --row: 3; }
+.rail > :nth-child(5) { --row: 4; }
+.rail > :nth-child(6) { --row: 5; }
+.rail > :nth-child(7) { --row: 6; }
+.rail > :nth-child(8) { --row: 7; }
+.rail > :nth-child(9) { --row: 8; }
+.rail > :nth-child(10) { --row: 9; }
+.rail > :nth-child(11) { --row: 10; }
+.rail > :nth-child(12) { --row: 11; }
+.rail > :nth-child(13) { --row: 12; }
+.rail > :nth-child(14) { --row: 13; }
+.rail > :nth-child(15) { --row: 14; }
+.rail > :nth-child(n + 16) { --row: 15; }
+
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(1):last-child) { --rows-1: 1; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(2):last-child) { --rows-1: 2; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(3):last-child) { --rows-1: 3; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(4):last-child) { --rows-1: 4; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(5):last-child) { --rows-1: 5; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(6):last-child) { --rows-1: 6; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(7):last-child) { --rows-1: 7; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(8):last-child) { --rows-1: 8; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(9):last-child) { --rows-1: 9; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(10):last-child) { --rows-1: 10; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(11):last-child) { --rows-1: 11; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(12):last-child) { --rows-1: 12; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(13):last-child) { --rows-1: 13; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(14):last-child) { --rows-1: 14; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(15):last-child) { --rows-1: 15; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(n + 16):last-child) { --rows-1: 16; }
+
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(1):last-child) { --rows-2: 1; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(2):last-child) { --rows-2: 2; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(3):last-child) { --rows-2: 3; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(4):last-child) { --rows-2: 4; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(5):last-child) { --rows-2: 5; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(6):last-child) { --rows-2: 6; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(7):last-child) { --rows-2: 7; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(8):last-child) { --rows-2: 8; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(9):last-child) { --rows-2: 9; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(10):last-child) { --rows-2: 10; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(11):last-child) { --rows-2: 11; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(12):last-child) { --rows-2: 12; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(13):last-child) { --rows-2: 13; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(14):last-child) { --rows-2: 14; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(15):last-child) { --rows-2: 15; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(n + 16):last-child) { --rows-2: 16; }
+
+.rail:nth-child(2 of .rail) {
+  --before: var(--rows-1, 0);
+}
+
+.rail:nth-child(n + 3 of .rail) {
+  --before: calc(var(--rows-1, 0) + var(--rows-2, 0));
+}
+
+/* The end rule closes a returned card's rail. */
+.end-rule {
+  padding-top: var(--space-3);
+  border-top: 4px solid var(--iron-black);
+  font: 700 var(--small-label-size) / 1.3 var(--face);
+  text-align: center;
+}
+
+.block > .rail + .end-rule {
+  margin-top: 0;
+}
+
+/* The reversed plate: the number that matters, hanging over the block's right edge. */
+
+.plate {
+  width: min-content;
+  min-width: 14rem;
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  color: var(--block-white);
+  background: var(--iron-black);
+  font: 600 var(--label-size) / 1.3 var(--face);
+  letter-spacing: 0.01em;
+}
+
+.plate > :first-child {
+  display: block;
+  font-size: var(--count-size);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+}
+
+.plate > :first-child ~ * {
+  display: block;
+  margin-top: var(--space-3);
+  text-wrap: balance;
+}
+
+.block > .plate {
+  position: absolute;
+  z-index: 1;
+  top: var(--block-pad);
+  left: calc(100% - var(--plate-inset));
+  margin: 0;
+}
+
+/* The cold rep: what you were told on the left, what you do on the right, either side of a centre hairline. */
+
+.block > div:not([class]):has(> .verdict, > .lesson, > .problem) {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rail-width) minmax(0, 1fr);
+  row-gap: var(--space-5);
+  align-items: start;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    border-left: var(--hairline);
+  }
+
+  & > * {
+    grid-column: 3;
+    max-width: none;
+    margin-top: 0;
+  }
+
+  & > button {
+    justify-self: start;
+  }
+
+  & > .error + .retry {
+    margin-top: 0;
+  }
+
+  & > .verdict {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  & > .lesson {
+    grid-column: 1;
+    grid-row: 2 / span 3;
+  }
+
+  &:not(:has(> .verdict)) > .lesson {
+    grid-row: 1 / span 4;
+  }
+
+  @media (max-width: 67.5rem) {
+    grid-template-columns: minmax(0, 1fr);
+
+    &::before {
+      content: none;
+    }
+
+    & > *,
+    & > :is(.verdict, .lesson),
+    &:not(:has(> .verdict)) > .lesson {
+      grid-column: 1;
+      grid-row: auto;
+    }
+  }
+}
+
+.lesson,
+.problem,
+.verdict,
+.error,
+.answer-box {
+  max-width: var(--measure);
+}
+
+.lesson,
+.problem {
+  padding-top: var(--space-4);
+  border-top: var(--hairline);
+}
+
+.lesson p + p {
+  margin-top: var(--space-2);
+}
+
+.problem {
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.verdict {
+  padding: var(--space-4) var(--space-5);
+  border: var(--hairline);
+}
+
+/* A failed rep stays within the two inks: the verdict's frame is set heavy, never in vermilion. */
+.verdict.is-failed {
+  padding: calc(var(--space-4) - 2px) calc(var(--space-5) - 2px);
+  border-width: 3px;
+}
+
+.verdict .stamp {
+  display: inline-block;
+  margin-top: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  border: var(--hairline);
+  font: 700 var(--small-label-size) / 1.3 var(--face);
+}
+
+.answer-box {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+}
+
+.answer-box label {
+  display: grid;
+  gap: var(--space-2);
+  justify-self: stretch;
+  font: 700 var(--label-size) / 1.3 var(--face);
+}
+
+textarea {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 9.5rem;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: var(--hairline);
+  border-radius: 0;
+  color: var(--iron-black);
+  background: var(--block-white);
+  font: 400 var(--body-size) / var(--prose-leading) var(--face);
+  resize: vertical;
+}
+
+textarea::placeholder {
+  color: var(--gray-600);
+  opacity: 1;
+}
+
+/* A locked answer keeps its words readable; only the frame drops to a dotted rule. */
+textarea:is(:disabled, :read-only) {
+  border-style: dotted;
+  border-color: var(--gray-600);
+}
+
+textarea:disabled {
+  color: var(--gray-600);
+}
+
+/* Waits and failures. */
+
+/* A waiting line opens with a short piece of rail whose detent is still empty. */
+.is-waiting {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 3rem;
+  padding-left: calc(var(--rail-width) + var(--space-4));
+  font-weight: 500;
+  cursor: progress;
+}
+
+.is-waiting::before,
+.is-waiting::after {
+  content: "";
+  position: absolute;
+  left: 0;
+}
+
+.is-waiting::before {
+  top: 0;
+  bottom: 0;
+  width: var(--rail-width);
+  border-inline: var(--hairline);
+}
+
+.is-waiting::after {
+  top: calc(50% - var(--detent) / 2);
+  left: calc((var(--rail-width) - var(--detent)) / 2);
+  width: var(--detent);
+  height: var(--detent);
+  background: var(--proof-gray);
+}
+
+/* An error is a notice: a frame with a heavy head rule, so it can't be mistaken for a disabled control. */
+.error {
+  padding: var(--space-3) var(--space-4);
+  border: var(--hairline);
+  border-top-width: 4px;
+}
+
+.block > .error + .retry,
+.block > div:not([class]) > .error + .retry {
+  margin-top: var(--space-4);
+}
+
+/* Controls: the web's standard ones, in the world's type and printed marks. */
+
+button {
+  appearance: none;
+  position: relative;
+  margin: 0;
+  padding: 0.875rem var(--space-5);
+  border: 1px solid var(--iron-black);
+  border-radius: 0;
+  color: var(--block-white);
+  background: var(--iron-black);
+  font: 800 var(--label-size) / 1.2 var(--face);
+  cursor: pointer;
+}
+
+.retry {
+  color: var(--iron-black);
+  background: var(--block-white);
+}
+
+@media (hover: hover) {
+  .retry:hover,
+  .margin-key:not([aria-current="true"]):hover {
+    background: var(--gray-200);
+  }
+}
+
+/* Pressed: a fill one step down the ramp. */
+button:active {
+  border-color: var(--gray-800);
+  background: var(--gray-800);
+}
+
+.retry:active,
+.margin-key:active {
+  border-color: var(--iron-black);
+  background: var(--gray-300);
+}
+
+/* Disabled: the frame drops to a dotted rule and the fill lifts. */
+button:disabled {
+  border: 1px dotted var(--gray-600);
+  color: var(--gray-600);
+  background: transparent;
+  cursor: not-allowed;
+}
+
+/* Focus: printed brackets around a button, an offset rule around anything else. */
+:focus-visible {
+  outline: 2px solid var(--iron-black);
+  outline-offset: 3px;
+}
+
+button:focus-visible {
+  outline: none;
+}
+
+button:focus-visible::before,
+button:focus-visible::after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  width: 10px;
+  border: 2px solid var(--iron-black);
+  pointer-events: none;
+}
+
+button:focus-visible::before {
+  left: -8px;
+  border-right: 0;
+}
+
+button:focus-visible::after {
+  right: -8px;
+  border-left: 0;
+}
+
+/* Narrow screens: one column, and the rail moves outboard of the text, still a ruled channel of keys. */
+
+@media (max-width: 67.5rem) {
+  body > nav {
+    flex-wrap: wrap;
+    padding-inline: var(--space-4);
+  }
+
+  #app {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: var(--space-4);
+  }
+
+  #app > *,
+  #app > .margin {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .margin {
+    padding: var(--space-5) 0 0;
+  }
+
+  .margin > .privacy-line {
+    margin-top: 0;
+  }
+
+  .block {
+    --block-pad: var(--space-4);
+    margin-block: var(--space-5);
+  }
+
+  .skill,
+  .block h1 {
+    font-size: 2.5rem;
+  }
+
+  .block > .plate {
+    position: static;
+    margin-left: auto;
+    margin-right: calc(-1 * var(--block-pad) - 0.75rem);
+  }
+
+  .rail::before {
+    left: 0;
+  }
+
+  .rail > * {
+    grid-template-columns: var(--rail-width) minmax(0, 1fr);
+  }
+
+  .rail .phrasing {
+    grid-column: 2;
+    grid-row: 1;
+    padding-bottom: 0;
+    border-bottom: 0;
+    text-align: left;
+  }
+
+  .rail .stamp {
+    grid-column: 2;
+    grid-row: 2;
+    padding-top: var(--space-1);
+  }
+
+  .rail-key {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+}
