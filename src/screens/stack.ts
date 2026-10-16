@@ -34,6 +34,13 @@ function time(date: string) {
   return node;
 }
 
+/** The reversed plate: the count, then what it counts. */
+function plate(count: number, caption: string) {
+  const node = el("p", "plate");
+  node.append(el("b", undefined, String(count)), " ", el("span", undefined, caption));
+  return node;
+}
+
 /** The rail, cut where the year turns: one `.rail` per year of borrows, oldest first. */
 function rails(borrows: Borrow[]) {
   const years = Map.groupBy(borrows, (borrow) => borrow.date.slice(0, 4));
@@ -56,6 +63,7 @@ function rails(borrows: Borrow[]) {
 export function mountStack(root: HTMLElement, { messages, returned, onOpen }: StackProps) {
   const margin = el("aside", "margin");
   const privacy = el("p", "privacy-line", PRIVACY_LINE);
+  const yearCut = el("p", undefined, "A cut in the rail marks a new year of asking.");
   margin.append(privacy);
   const block = el("section", "block");
   root.append(margin, block);
@@ -63,8 +71,13 @@ export function mountStack(root: HTMLElement, { messages, returned, onOpen }: St
   if (kept?.messages === messages) showStack(kept);
   else sortMessages();
 
+  /** While the cards are cataloged, the plate holds the count of your own messages. */
+  function messagePlate() {
+    return plate(messages.length, "of your own messages");
+  }
+
   async function sortMessages() {
-    block.replaceChildren(el("p", "is-waiting", "Cataloging your questions…"));
+    block.replaceChildren(el("p", "is-waiting", "Cataloging your questions…"), messagePlate());
     try {
       const cards = buildCards(await postJson("/api/group", toGroupRequest(messages)), messages);
       kept = { messages, cards, chosen: 0 };
@@ -74,6 +87,7 @@ export function mountStack(root: HTMLElement, { messages, returned, onOpen }: St
       block.replaceChildren(
         el("p", "error", `Your questions couldn't be cataloged. ${reason}`),
         button("Try again", "retry", sortMessages),
+        messagePlate(),
       );
     }
   }
@@ -107,12 +121,7 @@ export function mountStack(root: HTMLElement, { messages, returned, onOpen }: St
 
   function showCard(card: Card, letter: string) {
     const returnedOn = returned.get(card.skill);
-    const plate = el("p", "plate");
-    plate.append(
-      el("b", undefined, String(card.count)),
-      " ",
-      el("span", undefined, returnedOn ? "times borrowed, returned" : "times borrowed, not returned"),
-    );
+    const countPlate = plate(card.count, returnedOn ? "times borrowed, returned" : "times borrowed, not returned");
     // A returned card's rail closes with an end rule, dated the day it was stamped returned.
     const endRule: HTMLElement[] = [];
     if (returnedOn) {
@@ -120,11 +129,15 @@ export function mountStack(root: HTMLElement, { messages, returned, onOpen }: St
       rule.append(time(returnedOn));
       endRule.push(rule);
     }
+    const cardRails = rails(card.borrows);
+    // The margin explains the cut whenever the card's borrows span more than one year.
+    if (cardRails.length > 1) privacy.before(yearCut);
+    else yearCut.remove();
     block.replaceChildren(
       el("h1", "skill", card.skill),
       el("p", undefined, `Key ${letter}: borrowed ${card.count} times, ${card.firstMonth} to ${card.lastMonth}`),
-      plate,
-      ...rails(card.borrows),
+      countPlate,
+      ...cardRails,
       ...endRule,
       button(`Open key ${letter}`, undefined, () => onOpen(card)),
     );
