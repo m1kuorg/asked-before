@@ -85,15 +85,15 @@ Build mode: fast
 
 ## Code Tour and App Map
 
-- [ ] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
-- [ ] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
-- [ ] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
+- [x] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
+- [x] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
+- [x] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
-Activity and evidence: 
-Route and stops: 
-Edit outcome: 
-Reflection: 
-Activity mode: 
+Activity and evidence: Guided route (the default, since no learning outcome was written down) on one action: submitting a cold-rep answer. The learner opened each stop in the source at 855607d and matched it to what the final review's browser walk showed: the three keys in each check request, "Still borrowed" and "The lesson, again" after both wrong answers, reasons naming that answer, and key A struck after the pass, with a reload starting over. Practice to reuse in the map: the Plate Holds Rule checked as a measurement on the running app, which caught the plate hanging past the block's foot in the final-review fix.
+Route and stops: all three completed — `src/screens/rep.ts` `answer()` (posts to `/api/check`, fail and pass branches, `onReturned(date)`); `server/routes/check.ts` `check()`, `Verdict` (reason before verdict), `SYSTEM`; `src/main.ts` `showRep()` (`returned.set(card.skill, date)` into the in-memory `Map`).
+Edit outcome: declined — the suggested label change isn't in the entrant's written decisions.
+Reflection: offered; completed during the wrap-up.
+Activity mode: live app and editor — source read at 855607d against the final review's browser walk on 3131. Map: `devpost/app-map.html`, checked offline with scripts disabled at 1920x1080.
 
 ## Revisions
 

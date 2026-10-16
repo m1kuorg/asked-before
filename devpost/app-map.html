@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asked Before — App Map</title>
+<style>
+  :root { --ground: #E8EBED; --white: #FFFFFF; --ink: #1A1A1A; --rule: #C3C8CC; --rubric: #B42D16; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font: 18px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 60rem; margin: 2rem auto; padding: 2rem 2.5rem; background: var(--white); border: 1px solid var(--ink); }
+  h1 { font-size: 2rem; margin: 0 0 .25rem; }
+  h2 { font-size: 1.25rem; margin: 2rem 0 .5rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+  p.note { margin: 0; font-size: 15px; }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em; }
+  pre { background: var(--ground); padding: .75rem 1rem; overflow-x: auto; font-size: 15px; border: 1px solid var(--rule); }
+  ol.route > li { margin-bottom: 1rem; }
+  ol.route > li::marker { color: var(--rubric); font-weight: 700; }
+  table { border-collapse: collapse; width: 100%; font-size: 16px; }
+  th, td { text-align: left; vertical-align: top; padding: .4rem .6rem; border-bottom: 1px solid var(--rule); }
+  details { margin-top: .5rem; }
+  summary { cursor: pointer; font-weight: 600; }
+  summary:focus-visible, a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  svg { width: 100%; height: auto; display: block; margin: 1rem 0; }
+</style>
+</head>
+<body>
+<main>
+<h1>Asked Before — App Map</h1>
+<p class="note">A snapshot of the code at commit <code>855607d</code>. The code can drift after this, so check the paths and names before relying on them. Made for the entrant (@kymil4).</p>
+
+<h2>What the app is</h2>
+<p>Asked Before turns the questions you keep asking a chatbot into library cards, stamped once for every time you borrowed the answer. A card is stamped returned only after a <strong>cold rep</strong>: a fresh problem of the same kind, answered without AI. It runs on a made-up demo chat export.</p>
+<p>There are two pieces:</p>
+<ul>
+  <li><strong>The page</strong> (<code>public/index.html</code>, <code>src/</code>) is plain HTML, CSS, and TypeScript. It reads the export, keeps only your own messages, counts and dates every card in code, and shows one screen at a time: Load, Stack, or Rep.</li>
+  <li><strong>The server</strong> (<code>server.ts</code>, <code>server/</code>) is a small Bun program. It serves the page, holds the Anthropic API key, and answers three requests (<code>/api/group</code>, <code>/api/rep</code>, <code>/api/check</code>) by asking Claude Haiku 5.5 for structured output. It stores nothing.</li>
+</ul>
+
+<h2>One action: submitting a cold-rep answer</h2>
+<svg viewBox="0 0 900 230" role="img" aria-labelledby="flow-title flow-desc">
+  <title id="flow-title">How a cold-rep answer flows through the app</title>
+  <desc id="flow-desc">The answer box in src/screens/rep.ts posts skill, problem, and answer to /api/check. server/routes/check.ts asks Claude Haiku for a reason and a verdict. On a fail the rep screen shows the reason, the lesson again, and a new problem. On a pass, src/main.ts records the returned date and redraws the stack with the key struck through.</desc>
+  <g font-family="system-ui, sans-serif" font-size="15" fill="#1A1A1A">
+    <rect x="10" y="20" width="230" height="80" fill="#FFFFFF" stroke="#1A1A1A"/>
+    <text x="25" y="48" font-weight="700">Rep screen</text>
+    <text x="25" y="70">src/screens/rep.ts</text>
+    <text x="25" y="90">answer()</text>
+    <rect x="335" y="20" width="230" height="80" fill="#FFFFFF" stroke="#1A1A1A"/>
+    <text x="350" y="48" font-weight="700">Check route</text>
+    <text x="350" y="70">server/routes/check.ts</text>
+    <text x="350" y="90">check(), Verdict, SYSTEM</text>
+    <rect x="660" y="20" width="230" height="80" fill="#1A1A1A"/>
+    <text x="675" y="48" font-weight="700" fill="#FFFFFF">Claude Haiku 5.5</text>
+    <text x="675" y="70" fill="#FFFFFF">server/model.ts</text>
+    <text x="675" y="90" fill="#FFFFFF">askStructured()</text>
+    <line x1="240" y1="60" x2="335" y2="60" stroke="#B42D16" stroke-width="3"/>
+    <text x="248" y="13" font-size="13">skill, problem, answer</text>
+    <line x1="565" y1="60" x2="660" y2="60" stroke="#B42D16" stroke-width="3"/>
+    <rect x="10" y="140" width="400" height="70" fill="#FFFFFF" stroke="#1A1A1A"/>
+    <text x="25" y="167" font-weight="700">Fail: "Still borrowed"</text>
+    <text x="25" y="190">the reason, the lesson again, a new problem</text>
+    <rect x="490" y="140" width="400" height="70" fill="#FFFFFF" stroke="#1A1A1A"/>
+    <text x="505" y="167" font-weight="700">Pass: src/main.ts showRep()</text>
+    <text x="505" y="190">returned.set(skill, date), stack key struck</text>
+    <line x1="450" y1="100" x2="210" y2="140" stroke="#1A1A1A"/>
+    <line x1="450" y1="100" x2="690" y2="140" stroke="#1A1A1A"/>
+    <text x="410" y="125" font-size="13">{ reason, verdict }</text>
+  </g>
+</svg>
+
+<h2>The route through the code</h2>
+<p class="note">The learner walked these three stops against the source and the browser during the wrap-up.</p>
+<ol class="route">
+  <li><strong><code>src/screens/rep.ts</code> → <code>answer()</code>.</strong> The answer box's submit handler trims your text, locks the box, and posts <code>{ skill, problem, answer }</code> to <code>/api/check</code>. A fail calls <code>rep()</code> again with "Still borrowed" and "The lesson, again". A pass shows "Stamped returned" and a "Back to the stack" button that calls <code>onReturned(date)</code>.
+    <details><summary>The pass branch</summary>
+<pre><code>const passed = section("verdict", "Returned", reason);
+passed.append(el("p", "stamp", `Stamped returned ${date}`));
+const back = button("Back to the stack", () =&gt; onReturned(date));</code></pre>
+    </details>
+  </li>
+  <li><strong><code>server/routes/check.ts</code> → <code>check()</code>, <code>Verdict</code>, <code>SYSTEM</code>.</strong> The route rejects a bad body with 400, then sends only that body to the model with the <code>Verdict</code> schema. The schema puts <code>reason</code> before <code>verdict</code>, so the verdict follows from the reason, and <code>SYSTEM</code> requires the reason to name what this answer gets right or wrong.
+    <details><summary>The schema</summary>
+<pre><code>// The reason comes first, so the verdict follows from it.
+const Verdict = z.object({
+  reason: z.string().min(1).describe("One or two sentences to the learner, ..."),
+  verdict: z.enum(["pass", "fail"]),
+});</code></pre>
+    </details>
+  </li>
+  <li><strong><code>src/main.ts</code> → <code>showRep()</code>.</strong> <code>onReturned</code> writes <code>returned.set(card.skill, date)</code> into an in-memory <code>Map</code>, then redraws the stack, which strikes that card's margin key and closes its rail. Because the <code>Map</code> lives only in the tab, a reload starts over.</li>
+</ol>
+
+<h2>To change this, start here</h2>
+<table>
+  <tr><th>To change…</th><th>Start at</th></tr>
+  <tr><td>How answers are judged</td><td><code>server/routes/check.ts</code>: <code>SYSTEM</code>, <code>CHECK_EFFORT</code></td></tr>
+  <tr><td>How problems and the lesson are written</td><td><code>server/routes/rep.ts</code>: <code>rep()</code>, <code>REP_EFFORT</code></td></tr>
+  <tr><td>How messages are grouped into skills</td><td><code>server/routes/group.ts</code>: <code>group()</code>; then <code>src/cards.ts</code>: <code>buildCards()</code>, which counts, dates, and rejects bad groups</td></tr>
+  <tr><td>Which model every request uses</td><td><code>server/model.ts</code>: <code>MODEL</code>, <code>askStructured()</code></td></tr>
+  <tr><td>Reading the export</td><td><code>src/parser.ts</code>: <code>parseExport()</code>; the demo data is in <code>demo/</code></td></tr>
+  <tr><td>The stack's states and plate</td><td><code>src/screens/stack.ts</code>: <code>mountStack()</code>, <code>showStack()</code>, <code>messagePlate()</code></td></tr>
+  <tr><td>The look</td><td><code>public/styles.css</code>, with <code>docs/DESIGN.md</code> as its record</td></tr>
+</table>
+
+<h2>A practice to reuse</h2>
+<p><strong>Turn a written rule into something you measure on the running app.</strong> <code>docs/DESIGN.md</code>'s Plate Holds Rule says every state keeps its plate inside the block. At the final review, a browser walk found that the stack's "nothing asked more than once" state had no plate. Adding the plate in <code>showStack()</code> wasn't enough: measuring it at 1920×1080 showed it hanging below the block's foot (plate bottom 359px, block bottom 234px). That led to widening the short-block rule in <code>public/styles.css</code> to every block that holds a plate. The fix then passed the same measurement (block bottom 404px), and <code>bun run check:styles</code> and <code>bun run journey</code> stayed green.</p>
+<p>On another project, when a design or product rule says "always" or "never", write down the observable it implies (here, "the plate's bottom is at or above the block's bottom") and check it in the real UI. That's how this check caught a second problem that a code read-through would have missed.</p>
+
+<h2>Run it again</h2>
+<pre><code>bun install
+cp .env.example .env        # then set ANTHROPIC_API_KEY=...
+bun run start               # PORT=3131 bun run start for another port
+# open http://localhost:3000
+
+bun run journey             # the whole journey, nothing stubbed (needs the key)</code></pre>
+</main>
+</body>
+</html>
