@@ -8,8 +8,8 @@ import { MAX_SKILL_NAME } from "../../src/cards";
 import type { GroupResponse } from "../../src/types";
 import { askStructured, type Effort } from "../model";
 
-/** Tuned on the demo export with `bun run check:grouping` (m1kuorg/basics#28). */
-const GROUP_EFFORT: Effort = "low";
+/** Tuned on the demo export with `bun run check:grouping` (m1kuorg/basics#28, m1kuorg/basics#30). */
+const GROUP_EFFORT: Effort = "medium";
 
 const Body = z.strictObject({
   messages: z.array(z.strictObject({ id: z.string().min(1), text: z.string().min(1) })),
