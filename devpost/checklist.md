@@ -76,12 +76,12 @@ Build mode: fast
 ## Hands-on Checkpoints
 
 - [x] Early usable behavior explored — after slice 2: load the demo export and look at the stack. Walked on 3131 at 1920x1080 with nothing stubbed: load screen, waiting state, stack A to E with counts and months matching the answer key, the group request held only ids and texts, no "ChatGPT", demo answer files and .env 404. No changes requested.
-- [ ] Final kick-the-tires exploration and feedback completed
+- [x] Final kick-the-tires exploration and feedback completed — walked on 3131 at 1920x1080 with nothing stubbed (stubs only in the learner's own script for the failure probes): the full journey, two fails and a pass, another card, empty and long answers, reload, request contents, and the error and empty states. One fix requested (the empty stack's plate), made and retried.
 
 ## Final Review
 
-- [ ] Stack's "nothing asked more than once" state keeps the plate with the count of your own messages (DESIGN.md's Plate Holds Rule) — `showStack` in `src/screens/stack.ts` adds `messagePlate()`, and `public/styles.css`'s short-block rule now covers every block with a plate, so it sits inside the padding; `check:styles`, `check:rep`, and `journey` pass. Awaiting the learner's retry.
-- [ ] Final review complete — feedback resolved and learner confirms ready to ship
+- [x] Stack's "nothing asked more than once" state keeps the plate with the count of your own messages (DESIGN.md's Plate Holds Rule) — `showStack` in `src/screens/stack.ts` adds `messagePlate()`, and `public/styles.css`'s short-block rule now covers every block with a plate, so it sits inside the padding; `check:styles`, `check:rep`, and `journey` pass. Retried by the learner on 3131 at 55555ed: the plate sits inside the block (plate 133 to 359, block foot 404), with no regressions in the other states' plates.
+- [x] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
 
