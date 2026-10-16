@@ -20,11 +20,24 @@ function button(text: string, onClick: () => void, className?: string) {
   return node;
 }
 
+/**
+ * Text with each command flag (`-m`, `--soft`) in a bare span, so the
+ * stylesheet keeps the flag on one line. The split's capture group puts the
+ * flags at the odd indexes.
+ */
+function flagged(text: string) {
+  return text.split(/((?<![\w-])--?\w[\w-]*)/).map((part, i) => (i % 2 ? el("span", undefined, part) : part));
+}
+
 /** A titled section whose text keeps the model's line breaks as paragraphs. */
 function section(className: string, title: string, text: string) {
   const node = el("section", className);
   node.append(el("h2", undefined, title));
-  for (const line of text.split(/\n+/).filter((l) => l.trim())) node.append(el("p", undefined, line));
+  for (const line of text.split(/\n+/).filter((l) => l.trim())) {
+    const paragraph = el("p");
+    paragraph.append(...flagged(line));
+    node.append(paragraph);
+  }
   return node;
 }
 

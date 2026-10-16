@@ -34,6 +34,15 @@ function time(date: string) {
   return node;
 }
 
+/**
+ * Text with each command flag (`-m`, `--soft`) in a bare span, so the
+ * stylesheet keeps the flag on one line. The split's capture group puts the
+ * flags at the odd indexes.
+ */
+function flagged(text: string) {
+  return text.split(/((?<![\w-])--?\w[\w-]*)/).map((part, i) => (i % 2 ? el("span", undefined, part) : part));
+}
+
 /** The reversed plate: the count, then what it counts. */
 function plate(count: number, caption: string) {
   const node = el("p", "plate");
@@ -52,8 +61,10 @@ function rails(borrows: Borrow[]) {
       key.setAttribute("aria-hidden", "true");
       const stamp = el("span", "stamp");
       stamp.append(time(borrow.date));
+      const phrasing = el("span", "phrasing");
+      phrasing.append(...flagged(borrow.text));
       const row = el("li");
-      row.append(el("span", "phrasing", borrow.text), " ", key, " ", stamp);
+      row.append(phrasing, " ", key, " ", stamp);
       rail.append(row);
     }
     return rail;
