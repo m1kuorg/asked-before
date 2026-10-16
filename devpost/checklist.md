@@ -63,7 +63,7 @@ Build mode: fast
   Learner check: Look at the stack and rep screens at 1920x1080 and say whether they read like a page of a reference edition, not a dashboard.
   Commit: `docs: tick slice 5, the centre rail` (code in ad7d6bf)
 
-- [ ] **6. The whole journey runs end to end with nothing stubbed**
+- [x] **6. The whole journey runs end to end with nothing stubbed**
   Becomes usable: `bun run journey` walks load, the stack, open key A, a fail, a pass, and the returned card in Chromium at 1920x1080, inside the time limits.
   Why now: It proves the pieces fit together and is the PRD's "Done when".
   PRD ref: `prd.md > The Core Journey`, `prd.md > What We're Building`
