@@ -42,7 +42,7 @@ export function mountLoad(root: HTMLElement, { state, onLoad, onRetry }: LoadPro
       "block",
       element("h1", "", "The demo chat export"),
       element("p", "plate", element("b", "", String(state.messages.length)), " ", element("span", "", "of your own messages")),
-      element("p", "", "Loading it sorts them into cards, one for each question you asked more than once."),
+      element("p", "", "Loading it sorts your messages into cards, one for each question you asked more than once."),
       element("p", "privacy-line", PRIVACY_LINE),
       button("Load the demo export", onLoad),
     ),
