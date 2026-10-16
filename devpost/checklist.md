@@ -23,7 +23,7 @@ Build mode: fast
   Learner check: Start the app, open http://localhost:3131, and confirm the demo-data label, the line saying only your own messages go to the model, and the load button.
   Commit: `docs: tick slice 1, load the demo export` (code in f28c961)
 
-- [ ] **2. The demo export becomes a stack of cards, counted and dated by code**
+- [x] **2. The demo export becomes a stack of cards, counted and dated by code**
   Becomes usable: Loading groups your messages through the group route; the card builder counts and dates them from timestamps; the stack shows cards A to E with card A "Undo a git commit", 9 borrows, March 2025 to September 2026.
   Why now: The kernel needs a real repeated question to test, so grouping and counting come before the cold rep.
   PRD ref: `prd.md > The Core Journey` (steps 3-4), `prd.md > Features and Behavior` (The card stack)
@@ -75,7 +75,7 @@ Build mode: fast
 
 ## Hands-on Checkpoints
 
-- [ ] Early usable behavior explored — after slice 2: load the demo export and look at the stack
+- [x] Early usable behavior explored — after slice 2: load the demo export and look at the stack. Walked on 3131 at 1920x1080 with nothing stubbed: load screen, waiting state, stack A to E with counts and months matching the answer key, the group request held only ids and texts, no "ChatGPT", demo answer files and .env 404. No changes requested.
 - [ ] Final kick-the-tires exploration and feedback completed
 
 ## Final Review
