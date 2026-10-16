@@ -295,7 +295,7 @@ The system is flat. Nothing has a shadow; depth comes from 1px hairlines, from t
 
 ## Shapes
 
-Square everywhere: no radius on blocks, buttons, inputs, plates, or keys. Keys are small vermilion squares (22px) seated in square detents (30px) along the rail's bar. Frames are 1px iron-black rules; heavier rules carry meaning: 3px for a failed verdict, 4px for a returned rail's end rule and an error's head rule. Control states use the world's printed marks: square brackets for focus, a fill one ramp step down for pressed, and a dotted frame for disabled or locked. None reuses the 2px strike that marks a returned card.
+Square everywhere: no radius on blocks, buttons, inputs, plates, or keys. Keys are small vermilion squares (22px) seated in square detents (30px) along the rail's bar. Frames are 1px iron-black rules; heavier rules carry meaning, at one 3px weight: a failed verdict's frame, a returned rail's end rule, and an error's head rule. Control states use the world's printed marks: square brackets for focus, a fill one ramp step down for pressed, and a dotted frame for disabled or locked. None reuses the 2px strike that marks a returned card.
 
 **The One Bar Rule.** Each year's rail is one continuous gray bar between two iron hairlines, and a key has no cell or frame of its own. Keys in separate gray cells read as a column of checkboxes.
 
@@ -321,7 +321,7 @@ Full-width rows between iron hairlines: the vermilion key letter, the skill, and
 
 ### The rail
 
-One rail per year of borrows, each opening on an iron hairline. Each row sets the phrasing right-aligned in italic, the key in the bar, and the date in tabular figures, with Rule Gray rules between rows. The bar is Proof Gray between two iron hairlines, closed at its foot; the 12px gap between rails is the year cut. The detent has no fill or frame and only clips the key's drop. A returned card's rail closes with a 4px iron end rule carrying "Returned" and the date.
+One rail per year of borrows, each opening on an iron hairline. Each row sets the phrasing right-aligned in italic, the key in the bar, and the date in tabular figures, with Rule Gray rules between rows. The bar is Proof Gray between two iron hairlines, closed at its foot; the 12px gap between rails is the year cut. The detent has no fill or frame and only clips the key's drop. A returned card's rail closes with a 3px iron end rule carrying "Returned" and the date.
 
 ### The reversed plate
 
@@ -337,7 +337,7 @@ A square textarea with a 1px iron frame, white fill, body type, a 152px minimum 
 
 ### Waits and errors
 
-A waiting line opens with a short piece of rail, the same gray bar empty of keys, with the line beside it at weight 500. An error is a notice: a 1px iron frame with a 4px head rule, so it can't be mistaken for a disabled control, followed by an outlined retry.
+A waiting line opens with a short piece of rail, the same gray bar empty of keys, with the line beside it at weight 500. An error is a notice: a 1px iron frame with a 3px head rule, so it can't be mistaken for a disabled control, followed by an outlined retry.
 
 ## Do's and Don'ts
 

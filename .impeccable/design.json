@@ -139,11 +139,11 @@
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Navigation, buttons, the margin list, and the plate's caption; key letters at weight 800."
+        "purpose": "The margin list and the plate's caption; key letters at weight 800."
       },
       "label-small": {
         "displayName": "Small label",
-        "purpose": "The demo-data label, the privacy line, margin notes, stamps, and the end rule."
+        "purpose": "The privacy line; margin notes take its size and leading at weight 500."
       },
       "apparatus": {
         "displayName": "Apparatus",
@@ -247,15 +247,15 @@
       "refersTo": "answer-box",
       "description": "A square textarea; focus is an offset 2px rule; locked drops to a dotted gray frame and grows up to 13 lines.",
       "html": "<form class=\"ds-answer\"><label>Your answer, in your own words, without AI<textarea rows=\"6\" placeholder=\"Type it as you would at a terminal\"></textarea></label><label>Locked<textarea rows=\"2\" readonly>git revert HEAD, then git push.</textarea></label></form>",
-      "css": ".ds-answer { display: grid; gap: var(--space-4); max-width: var(--measure); } .ds-answer label { display: grid; gap: var(--space-2); font: 700 var(--label-size) / 1.3 var(--face); color: var(--iron-black); } .ds-answer textarea { appearance: none; display: block; width: 100%; min-height: 9.5rem; margin: 0; padding: var(--space-3) var(--space-4); border: var(--hairline); border-radius: 0; color: var(--iron-black); background: var(--block-white); font: 400 var(--body-size) / var(--prose-leading) var(--face); resize: vertical; } .ds-answer textarea::placeholder { color: var(--gray-600); opacity: 1; } .ds-answer textarea:focus-visible { outline: 2px solid var(--iron-black); outline-offset: 3px; } .ds-answer textarea:is(:disabled, :read-only) { min-height: 0; border-style: dotted; border-color: var(--gray-600); field-sizing: content; max-block-size: calc(13lh + var(--space-3) + 2px); overflow-y: auto; resize: none; } .ds-answer textarea:disabled { color: var(--gray-600); }"
+      "css": ".ds-answer { display: grid; gap: var(--space-4); max-width: var(--measure); } .ds-answer label { display: grid; gap: var(--space-2); font: 700 var(--label-size) / 1.3 var(--face); color: var(--iron-black); } .ds-answer textarea { appearance: none; display: block; width: 100%; min-height: 9.5rem; margin: 0; padding: var(--space-3) var(--space-4); border: var(--hairline); border-radius: 0; color: var(--iron-black); background: var(--block-white); font: 400 var(--body-size) / var(--prose-leading) var(--face); resize: vertical; } .ds-answer textarea::placeholder { color: var(--gray-600); opacity: 1; } .ds-answer textarea:focus-visible { outline: 2px solid var(--iron-black); outline-offset: 3px; } .ds-answer textarea:is(:disabled, :read-only) { border-style: dotted; border-color: var(--gray-600); field-sizing: content; max-block-size: calc(13lh + var(--space-3) + 2px); overflow-y: auto; resize: none; } .ds-answer textarea:disabled { color: var(--gray-600); }"
     },
     {
       "name": "Waiting Line and Error Notice",
       "kind": "custom",
       "refersTo": "error",
-      "description": "A wait opens with an empty piece of rail; an error is a frame with a 4px head rule, then a retry.",
+      "description": "A wait opens with an empty piece of rail; an error is a frame with a 3px head rule, then a retry.",
       "html": "<p class=\"ds-waiting\" role=\"status\">Cataloging your questions…</p><p class=\"ds-error\" role=\"alert\">Your questions couldn't be cataloged. The model timed out.</p>",
-      "css": ".ds-waiting { position: relative; display: flex; align-items: center; min-height: 3rem; margin: 0 0 var(--space-5); padding-left: calc(var(--rail-width) + var(--space-4)); color: var(--iron-black); font: 500 var(--body-size) / var(--prose-leading) var(--face); cursor: progress; } .ds-waiting::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: var(--rail-width); border-inline: var(--hairline); background: var(--proof-gray); } .ds-error { max-width: var(--measure); margin: 0; padding: var(--space-3) var(--space-4); border: var(--hairline); border-top-width: 4px; background: var(--block-white); color: var(--iron-black); font: 400 var(--body-size) / var(--prose-leading) var(--face); }"
+      "css": ".ds-waiting { position: relative; display: flex; align-items: center; min-height: 3rem; margin: 0 0 var(--space-5); padding-left: calc(var(--rail-width) + var(--space-4)); color: var(--iron-black); font: 500 var(--body-size) / var(--prose-leading) var(--face); cursor: progress; } .ds-waiting::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: var(--rail-width); border-inline: var(--hairline); background: var(--proof-gray); } .ds-error { max-width: var(--measure); margin: 0; padding: var(--space-3) var(--space-4); border: var(--hairline); border-top-width: 3px; background: var(--block-white); color: var(--iron-black); font: 400 var(--body-size) / var(--prose-leading) var(--face); }"
     },
     {
       "name": "Top Navigation",
