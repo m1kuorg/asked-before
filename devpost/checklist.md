@@ -13,7 +13,7 @@ Build mode: fast
 
 ## Slices
 
-- [ ] **1. You can open the app and load the demo export in one action**
+- [x] **1. You can open the app and load the demo export in one action**
   Becomes usable: `bun run start` serves the Load screen with the demo-data label, the privacy line, and one load action. The parser keeps only your own messages, and an unreadable export shows the error and a retry.
   Why now: The scaffold, server, key handling, and parser are what every later slice runs on, and the privacy line must be on screen before anything goes to the model.
   PRD ref: `prd.md > The Core Journey` (steps 1-2), `prd.md > Features and Behavior` (Loading the export)
