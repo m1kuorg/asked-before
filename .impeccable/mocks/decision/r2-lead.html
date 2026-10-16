@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Asked Before · Centre Rail sketch</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400..900&display=swap" rel="stylesheet" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        width: 1440px;
+        height: 900px;
+        overflow: hidden;
+      }
+      body {
+        font-family: 'Hanken Grotesk', sans-serif;
+        font-variant-numeric: tabular-nums;
+        color: #1a1a1a;
+        background: #e8ebed;
+        display: grid;
+        grid-template-columns: 300px 1fr 300px;
+        grid-template-rows: 56px 1fr;
+      }
+      .head {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        padding: 14px 40px;
+        border-bottom: 1px solid #1a1a1a;
+      }
+      .head b {
+        font-weight: 900;
+        font-size: 20px;
+      }
+      .head nav a {
+        color: #1a1a1a;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 600;
+        margin-right: 18px;
+        font-variant: small-caps;
+        letter-spacing: 0.04em;
+      }
+      .head nav a.on {
+        text-decoration: underline;
+        text-underline-offset: 6px;
+      }
+      .head .demo {
+        margin-left: auto;
+        font-size: 14px;
+        font-weight: 700;
+        border: 1px solid #1a1a1a;
+        padding: 4px 10px;
+      }
+      .margin-l {
+        padding: 40px 28px 40px 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .margin-l h2 {
+        font-size: 13px;
+        font-variant: small-caps;
+        letter-spacing: 0.04em;
+        font-weight: 700;
+      }
+      .key {
+        display: grid;
+        grid-template-columns: 28px 1fr auto;
+        gap: 10px;
+        align-items: baseline;
+        padding: 8px 0;
+        border-top: 1px solid #1a1a1a;
+        font-size: 16px;
+      }
+      .key i {
+        font-style: normal;
+        font-weight: 800;
+        color: #b42d16;
+      }
+      .key.on {
+        font-weight: 800;
+      }
+      .margin-l .privacy {
+        margin-top: auto;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .block {
+        background: #ffffff;
+        margin: 40px 0;
+        padding: 28px 32px;
+        border: 1px solid #1a1a1a;
+        position: relative;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 18px;
+      }
+      .block h1 {
+        font-weight: 900;
+        font-size: 54px;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+      .block .sub {
+        font-size: 16px;
+        font-variant: small-caps;
+        letter-spacing: 0.05em;
+        margin-top: 8px;
+      }
+      .cols {
+        display: grid;
+        grid-template-columns: 1fr 64px 1fr;
+        border-top: 1px solid #1a1a1a;
+        padding-top: 10px;
+      }
+      .col div {
+        height: 42px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #c3c8cc;
+        font-size: 17px;
+        padding: 0 12px;
+      }
+      .col.words div {
+        justify-content: flex-end;
+        font-style: italic;
+      }
+      .rail {
+        border-left: 1px solid #b42d16;
+        border-right: 1px solid #b42d16;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .rail span {
+        height: 42px;
+        display: grid;
+        place-items: center;
+      }
+      .rail span::before {
+        content: '';
+        width: 18px;
+        height: 18px;
+        background: #b42d16;
+        display: block;
+      }
+      .rail span.cut::before {
+        outline: 3px solid #1a1a1a;
+        outline-offset: 3px;
+      }
+      .block button {
+        justify-self: start;
+        background: #1a1a1a;
+        color: #ffffff;
+        border: 0;
+        font: inherit;
+        font-weight: 800;
+        font-size: 18px;
+        padding: 14px 24px;
+      }
+      .hang {
+        position: absolute;
+        right: -150px;
+        top: 70px;
+        width: 210px;
+        background: #1a1a1a;
+        color: #ffffff;
+        padding: 16px 20px;
+      }
+      .hang b {
+        display: block;
+        font-weight: 900;
+        font-size: 150px;
+        line-height: 0.85;
+      }
+      .hang span {
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .margin-r {
+        padding: 300px 40px 40px 180px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="head">
+      <b>Asked Before</b>
+      <nav><a class="on" href="#">Cards</a><a href="#">Returned</a><a href="#">Load an export</a></nav>
+      <span class="demo">Demo data: a made-up export</span>
+    </header>
+    <aside class="margin-l">
+      <h2>Keys, most borrowed first</h2>
+      <div class="key on"><i>A</i><span>Undo a git commit</span><span>9</span></div>
+      <div class="key"><i>B</i><span>Center a div</span><span>4</span></div>
+      <div class="key"><i>C</i><span>Write a SQL left join</span><span>3</span></div>
+      <div class="key"><i>D</i><span>Resolve a merge conflict</span><span>3</span></div>
+      <div class="key"><i>E</i><span>Read a Python stack trace</span><span>2</span></div>
+      <p class="privacy">Only your own messages go to the model. The chatbot's answers never leave this page.</p>
+    </aside>
+    <main class="block">
+      <div>
+        <h1>Undo a git commit</h1>
+        <p class="sub">Key A · your words left, their dates right</p>
+      </div>
+      <div class="cols">
+        <div class="col words">
+          <div>how do i undo my last commit</div>
+          <div>undo commit keep changes</div>
+          <div>git undo commit not pushed</div>
+          <div>revert last commit locally??</div>
+          <div>remove last commit but keep files</div>
+          <div>uncommit in git</div>
+          <div>undo git commit before push</div>
+          <div>reset last commit soft or hard</div>
+          <div>take back a commit</div>
+        </div>
+        <div class="rail">
+          <span></span><span></span><span></span><span class="cut"></span><span></span><span></span
+          ><span class="cut"></span><span></span><span></span>
+        </div>
+        <div class="col">
+          <div>2025-03-11</div>
+          <div>2025-05-02</div>
+          <div>2025-06-19</div>
+          <div>2025-08-27</div>
+          <div>2025-11-04</div>
+          <div>2026-01-15</div>
+          <div>2026-03-30</div>
+          <div>2026-06-08</div>
+          <div>2026-09-22</div>
+        </div>
+      </div>
+      <button>Open key A</button>
+      <div class="hang"><b>9</b><span>times borrowed, not returned</span></div>
+    </main>
+    <aside class="margin-r">A cut on the rail marks a new year of asking.</aside>
+  </body>
+</html>

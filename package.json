@@ -1,0 +1,21 @@
+{
+  "name": "asked-before",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run server.ts",
+    "check:key": "bun run scripts/check-answer-key.ts",
+    "check:cards": "bun run scripts/check-cards.ts",
+    "check:grouping": "bun run scripts/check-grouping.ts",
+    "journey": "bun run scripts/journey.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.3",
+    "playwright": "^1.64.1",
+    "typescript": "^7.0.2"
+  }
+}
