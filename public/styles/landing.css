@@ -3,10 +3,10 @@
   src/pages/landing.ts). The block opens on the pitch, then sets card A of
   the demo export on stack.css's rail, its plate hanging over the block's
   right edge. Each section after it opens on an iron hairline and is set on
-  the rail's own columns: its heading on the left, set against the centre as
-  a phrasing sits against the rail, and its words on the right. Each side-note
-  (an aside.margin) hangs into the wide margin, level with its section, as
-  the edition's apparatus.
+  the rail's own columns: its heading and each item's title on the left, set
+  against the centre as a phrasing sits against the rail, facing their words
+  on the right. Each side-note (an aside.margin) hangs into the wide margin,
+  level with its section, as the edition's apparatus.
 */
 
 #app[data-screen="landing"] {
@@ -17,7 +17,7 @@
 }
 
 /* The rail's columns: two of equal measure either side of the rail's width. */
-#app[data-screen="landing"] :is(.landing-lede, .landing-section) {
+#app[data-screen="landing"] :is(.landing-lede, .landing-section, .landing-items > *) {
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--rail-width) minmax(0, 1fr);
 }
@@ -25,7 +25,7 @@
 /* The head: the pitch across the block, then the lede on the left and its action on the right. */
 
 #app[data-screen="landing"] .landing-lede {
-  align-items: end;
+  align-items: start;
   margin-top: var(--space-3);
 }
 
@@ -38,13 +38,27 @@
   grid-column: 3;
 }
 
-/* The card and every section after it open on an iron hairline. */
+/* The card and every section after it open on an iron hairline; the card sits closer, as the pitch's proof, so its rail closes inside the 1080 frame. */
 
 #app[data-screen="landing"] :is(.landing-card, .landing-section) {
+  --landing-pad: var(--space-5);
   position: relative;
   margin-top: var(--space-7);
-  padding-top: var(--space-5);
+  padding-top: var(--landing-pad);
   border-top: var(--hairline);
+}
+
+#app[data-screen="landing"] .landing-card {
+  --landing-pad: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+#app[data-screen="landing"] .landing-card > .rail {
+  margin-top: var(--space-4);
+}
+
+#app[data-screen="landing"] .landing-card > .rail + .rail {
+  margin-top: var(--space-3);
 }
 
 /* The card's skill and each section's heading, a step under the pitch. */
@@ -72,25 +86,34 @@
 #app[data-screen="landing"] .landing-card > .plate {
   position: absolute;
   z-index: 1;
-  top: var(--space-5);
+  top: var(--landing-pad);
   left: calc(100% + var(--block-pad) - var(--plate-inset));
   margin: 0;
 }
 
-/* A section: its heading set against the centre on the left, its words on the right. */
+/* A section: its heading set against the centre on the left, its words on the right, then its items across both, then what follows them. */
+
+#app[data-screen="landing"] .landing-section {
+  row-gap: var(--space-5);
+}
 
 #app[data-screen="landing"] .landing-section > h2 {
   grid-column: 1;
   text-align: right;
 }
 
-.landing-body {
+.landing-body,
+.landing-after {
   grid-column: 3;
   min-width: 0;
 }
 
 .landing-body > * + * {
   margin-top: var(--space-5);
+}
+
+.landing-section > .landing-items {
+  grid-column: 1 / -1;
 }
 
 /* Side-notes: each hangs into the margin column beside its section, set as the margin sets its notes. */
@@ -100,25 +123,21 @@
   right: calc(100% + var(--block-pad) + 1px);
   width: var(--landing-margin);
   margin: 0;
-  padding-top: var(--space-5);
+  padding-top: var(--landing-pad);
   padding-bottom: 0;
 }
 
-/* Items: a title over its words, with Rule Gray between them. */
+/* Items: each title against the centre on the left, facing its words on the right, with Rule Gray between rows. */
 
 .landing-items {
   padding: 0;
   list-style: none;
 }
 
-.landing-items > * {
+#app[data-screen="landing"] .landing-items > * {
+  align-items: baseline;
   padding-block: var(--space-4);
   border-top: var(--row-rule);
-}
-
-.landing-items > :first-child {
-  padding-top: 0;
-  border-top: 0;
 }
 
 .landing-items > :last-child {
@@ -126,8 +145,16 @@
 }
 
 .landing-items > * > :first-child {
-  margin: 0 0 var(--space-2);
+  grid-column: 1;
+  margin: 0;
   font: 800 var(--body-size) / 1.2 var(--face);
+  text-align: right;
+  text-wrap: balance;
+}
+
+.landing-items > * > :last-child {
+  grid-column: 3;
+  margin: 0;
 }
 
 /* What leaves this computer, said once, at the headline size. */
@@ -139,16 +166,17 @@
 /* Narrow screens: one column; the headings, the plate, and the side-notes go in flow. */
 
 @media (max-width: 67.5rem) {
-  #app[data-screen="landing"] :is(.landing-lede, .landing-section) {
+  #app[data-screen="landing"] :is(.landing-lede, .landing-section, .landing-items > *) {
     grid-template-columns: minmax(0, 1fr);
     row-gap: var(--space-5);
   }
 
-  #app[data-screen="landing"] :is(.landing-lede, .landing-section) > * {
-    grid-column: 1;
+  #app[data-screen="landing"] .landing-items > * {
+    row-gap: var(--space-2);
   }
 
-  #app[data-screen="landing"] .landing-section > h2 {
+  #app[data-screen="landing"] :is(.landing-lede, .landing-section, .landing-items > *) > * {
+    grid-column: 1;
     text-align: left;
   }
 
