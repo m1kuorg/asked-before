@@ -189,7 +189,7 @@ function apiKeys({ client, signal }: ScreenProps) {
 
   return section(
     "API keys",
-    el("p", undefined, "A key can read your projects and add to them, but it can't delete anything, export your data, manage keys, or change your account."),
+    el("p", undefined, "A key can read your projects and add to them, but it can't rename or delete anything, download your data, manage keys, or change your account."),
     list,
     create,
   );

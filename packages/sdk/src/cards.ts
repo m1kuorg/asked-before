@@ -24,23 +24,25 @@ export type Card = {
   returnedAt: string | null;
 };
 
-/** One borrow: a phrasing on a card, word for word, with when you sent it. */
-export type Borrow = {
+/** One of your phrasings as Asked Before keeps it: on a card, unsorted, or waiting for its sort. */
+export type StoredPhrasing = {
   id: string;
   /** The export's own message id, or a generated one for a capture. */
   sourceId: string;
+  /** Your words, word for word. */
   text: string;
+  /** When you sent it. */
   time: string;
 };
+
+/** One borrow: a phrasing on a card. */
+export type Borrow = StoredPhrasing;
 
 /** A card with its lesson (null until its first cold rep), every borrow, oldest first, and its reps, oldest first. */
 export type CardDetail = Card & { lesson: string | null; borrows: Borrow[]; reps: Rep[] };
 
-/** A phrasing a sort has seen that isn't on a card, because nothing else so far asks the same thing. */
-export type UnsortedPhrasing = Borrow;
-
-/** One page of a project's unsorted phrasings, newest first. Pass `next` as the cursor for the page after; it's null on the last. */
-export type UnsortedPage = { phrasings: UnsortedPhrasing[]; next: string | null };
+/** One page of a project's unsorted phrasings, newest first: those a sort has seen that aren't on a card, because nothing else so far asks the same thing. Pass `next` as the cursor for the page after; it's null on the last. */
+export type UnsortedPage = { phrasings: StoredPhrasing[]; next: string | null };
 
 export type UnsortedListOptions = { limit?: number; cursor?: string };
 
