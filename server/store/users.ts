@@ -32,3 +32,24 @@ export function findLogin(email: string): { id: string; passwordHash: string } |
     passwordHash: string;
   } | null;
 }
+
+/** The account with its new name or email, or null when the email already belongs to another account. */
+export function updateAccount(userId: string, change: { name?: string; email?: string }): Account | null {
+  const row = db
+    .query(
+      `UPDATE OR IGNORE users SET name = coalesce($name, name), email = coalesce($email, email) WHERE id = $userId
+       RETURNING id, name, email, created_at`,
+    )
+    .get({ userId, name: change.name ?? null, email: change.email ?? null }) as Row | null;
+  return row && toAccount(row);
+}
+
+/** The hash a password change checks the current password against. */
+export function passwordHashOf(userId: string): string | null {
+  const row = db.query("SELECT password_hash AS passwordHash FROM users WHERE id = $userId").get({ userId }) as { passwordHash: string } | null;
+  return row?.passwordHash ?? null;
+}
+
+export function setPasswordHash(userId: string, passwordHash: string): void {
+  db.query("UPDATE users SET password_hash = $passwordHash WHERE id = $userId").run({ userId, passwordHash });
+}
