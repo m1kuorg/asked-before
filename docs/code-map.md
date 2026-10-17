@@ -33,7 +33,8 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `server/api/<area>.ts` | One module per area of the spec's API table | See [the route table](#the-apis-route-table) |
 | `server/store/db.ts` | The SQLite connection: foreign keys, WAL, busy timeout, and the schema | m1kuorg/basics#41 |
 | `server/store/schema.sql` | The spec's whole schema, and the `card_status` view | m1kuorg/basics#41; changed in place by whoever needs to |
-| `server/store/users.ts`, `sessions.ts`, `projects.ts`, `usage.ts` | Accounts, sessions, projects with their counts, and the daily model-request counters | m1kuorg/basics#41; m1kuorg/basics#48 and #49 add to `users.ts` and `sessions.ts` |
+| `server/store/users.ts`, `sessions.ts`, `projects.ts`, `usage.ts` | Accounts, sessions, projects with their counts, and the daily model-request counters. `deleteUser()` deletes an account, and everything in it by cascade | m1kuorg/basics#41; m1kuorg/basics#48 and #49 add to `users.ts` and `sessions.ts` |
+| `server/store/account-data.ts` | `accountData()`: an account's download, read in one transaction. Projects, uploads, and cards come through the same functions the API answers with, so the download matches the API; every phrasing is read here, on a card, unsorted, or still waiting for its sort | m1kuorg/basics#49 |
 | `server/store/<area>.ts` | A new store module per area, such as `uploads.ts`, `cards.ts`, `reps.ts`, and `keys.ts` | The area's ticket |
 | `server/store/uploads.ts` | Uploads, and appending their phrasings, skipping any whose source id the project holds already; deleting one, with any card it leaves under two borrows | m1kuorg/basics#43; deleting is m1kuorg/basics#45's |
 | `server/pages.ts` | The page table, built at startup; `/assets/*`, the demo exports, and `notFound`, which serves `public/not-found.html` with a 404 | m1kuorg/basics#42 |
@@ -75,6 +76,7 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `scripts/check-sort-rules.ts` | `bun run check:sort-rules`: the sort's rules and the cards endpoints through the SDK, with the model stubbed | m1kuorg/basics#44 |
 | `scripts/check-sort-page.ts` | `bun run check:sort-page`: the upload page's sort states in a real browser, with the model stubbed | m1kuorg/basics#44 |
 | `scripts/check-settings.ts` | `bun run check:settings`: API keys and the account through the SDK, then the settings page in a real browser | m1kuorg/basics#48 |
+| `scripts/check-data.ts` | `bun run check:data`: downloading and deleting your data, with the model stubbed. Through the SDK, after the demo project and one returned card, the download against the API and the phrasings sent; deleting the account, checked in the database too, with another account's data untouched. Then both in the settings page, in a real browser | m1kuorg/basics#49 |
 | `scripts/check-landing.ts` | `bun run check:landing`: the landing page's card against the answer key, its sections, and signing up and logging in from it, in a real browser | m1kuorg/basics#52 |
 | `scripts/check-project.ts` | `bun run check:project`: the project page in a real browser, against the answer key: the demo project's stack, each card's status (after real cold reps, with the model's answers queued, and a newer upload), stamps in the learner's time zone, unsorted, the upload history, deleting an upload (checked in the API), and the empty stack | m1kuorg/basics#45; real reps are m1kuorg/basics#46's |
 | `scripts/check-styles.ts`, `scripts/lib/styles.ts` | `bun run check:styles` and its kit | m1kuorg/basics#42 |
@@ -94,8 +96,8 @@ Every endpoint is under `/api/v1`. An endpoint whose ticket hasn't landed answer
 | Auth | `GET /auth/me` | `auth.me` | m1kuorg/basics#41 |
 | Account | `PATCH /account`, session only | `account.update` | m1kuorg/basics#48 |
 | Account | `POST /account/password`, session only: needs the current password, and ends every other session | `account.changePassword` | m1kuorg/basics#48 |
-| Account | `GET /account/export`, session only | `account` | m1kuorg/basics#49 |
-| Account | `DELETE /account`, session only | `account` | m1kuorg/basics#49 |
+| Account | `GET /account/export`, session only: the account and each project with its uploads, every phrasing (with its origin, its upload, and its card), and its cards with their lessons and cold reps; no API key or password | `account.export` | m1kuorg/basics#49 |
+| Account | `DELETE /account`, session only, with `{ password }`: a wrong one is a 403. Deletes everything in the account and ends every session, clearing this one's cookie | `account.delete` | m1kuorg/basics#49 |
 | API keys | `GET /keys`, `POST /keys`, `DELETE /keys/:keyId`, session only | `keys.list`, `keys.create`, `keys.revoke` | m1kuorg/basics#48 |
 | Projects | `GET /projects`, `POST /projects` | `projects.list`, `projects.create` | m1kuorg/basics#41 |
 | Projects | `GET /projects/:projectId`, `PATCH /projects/:projectId` | `projects.get`, `projects.rename` | m1kuorg/basics#41 |
@@ -171,7 +173,7 @@ The route table is `src/app/routes.ts`. Every screen in the spec already has its
 | `/app/projects/:projectId` | `src/screens/project.ts`: the card stack, its keys in the margin under the project's name, with `?card=<id>` for the chosen card; `?view=unsorted` and `?view=uploads`, the unsorted phrasings and the upload history with its deletes, a page at a time; and an empty stack that says why it's empty | m1kuorg/basics#45 |
 | `/app/projects/:projectId/upload` | `src/screens/upload.ts`: the instructions, the drop zone, the preview, and sending in chunks. `?upload=<id>` shows one finished upload and watches its sort: progress, and a failure with a retry (m1kuorg/basics#44), and `?export=demo` uploads the demo export into a demo project. `startDemoProject()` is the demo action, for the dashboard too | m1kuorg/basics#43 |
 | `/app/cards/:cardId` | `src/screens/card.ts`: the card and its cold rep, with the proof of concept's rep look. The margin names the project, the card's borrows and months, and its status; the block holds the skill, the plate, and the rep (the verdict and lesson left, the problem and answer box right), then the card's phrasings on the rail, closed by its return stamp, and its earlier cold reps, newest first. Opening a card takes up its open rep, or starts one | m1kuorg/basics#46 |
-| `/app/settings` | `src/screens/settings.ts`: the profile, the password, API keys, and the setup snippets to connect an agent; #49 adds its own sections | m1kuorg/basics#48, then #49 |
+| `/app/settings` | `src/screens/settings.ts`: the profile, the password, API keys, and the setup snippets to connect an agent; then your data, downloaded as one JSON file named for the day, and deleting the account: the password, then the delete confirmation, then the landing page | m1kuorg/basics#48, then #49 |
 | anything else under `/app` | `src/screens/not-found.ts` | m1kuorg/basics#42 |
 
 A screen is `(root: HTMLElement, props: ScreenProps<"param">) => void | Promise<void>`. The router empties `#app`, sets `#app[data-screen="<name>"]` and the page title, marks the navigation's section, and mounts the screen with:

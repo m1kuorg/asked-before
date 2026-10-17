@@ -64,7 +64,7 @@ await step("1. The health check answers, and every kind of answer carries the se
     ["a missing endpoint", "/api/v1/no-such-endpoint", 404],
     ["a method an endpoint doesn't have", "/api/v1/health?method=PUT", 404],
     ["an endpoint that needs a session", "/api/v1/projects", 401],
-    ["a stub endpoint", "/api/v1/account/export", 501],
+    ["a stub endpoint", "/api/v1/projects/p1/captures?method=POST", 501],
   ];
   for (const [what, path, status] of answers) {
     const url = new URL(path, app.url);
@@ -82,8 +82,6 @@ await step("1. The health check answers, and every kind of answer carries the se
 
 await step("2. Every stub area answers 501 with { error }", async () => {
   const stubs: [string, string][] = [
-    ["GET", "/api/v1/account/export"],
-    ["DELETE", "/api/v1/account"],
     ["POST", "/api/v1/projects/p1/captures"],
   ];
   for (const [method, path] of stubs) {

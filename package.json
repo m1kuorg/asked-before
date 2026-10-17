@@ -23,6 +23,7 @@
     "check:reps": "bun run scripts/check-reps.ts",
     "check:rep-rules": "bun run scripts/check-rep-rules.ts",
     "check:card-page": "bun run scripts/check-card-page.ts",
+    "check:data": "bun run scripts/check-data.ts",
     "check:dashboard": "bun run scripts/check-dashboard.ts"
   },
   "dependencies": {
