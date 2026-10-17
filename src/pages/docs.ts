@@ -93,7 +93,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
       { method: "GET", path: "/projects", sdk: "projects.list", who: KEY, does: "{ projects }: each with its counts of cards, borrowed, returned, and borrowed again, and when its latest upload was made." },
       { method: "POST", path: "/projects", sdk: "projects.create", who: KEY, does: "Makes a project named { name }, of 1 to 80 characters, or a demo project with demo: true: 201 with the project." },
       { method: "GET", path: "/projects/:projectId", sdk: "projects.get", who: KEY, does: "The project, with its counts." },
-      { method: "PATCH", path: "/projects/:projectId", sdk: "projects.rename", who: KEY, does: "Renames it with { name }: the project." },
+      { method: "PATCH", path: "/projects/:projectId", sdk: "projects.rename", who: SESSION, does: "Renames it with { name }: the project." },
       { method: "DELETE", path: "/projects/:projectId", sdk: "projects.delete", who: SESSION, does: "Deletes the project and everything in it: 204." },
     ],
   },
