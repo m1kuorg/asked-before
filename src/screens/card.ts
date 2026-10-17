@@ -10,12 +10,14 @@
 //
 // Opening a card takes its rep up where it stands: an open rep (the latest,
 // unchecked) is shown again, after the reason of a failed one before it;
-// otherwise a fresh rep starts. The card's first rep brings the lesson; a
-// failed rep shows its reason and the lesson again, then a different
-// problem; a pass stamps the card returned on the day it passed, and leads
-// back to the stack. Every model wait has its waiting line, and every
-// failure its error and a retry of the same request; the answer stays
-// locked while it's checked, so a retry checks what's on screen.
+// otherwise the card shows with Take a cold rep, which starts a fresh one,
+// so opening a card to look at it spends no model request. The card's
+// first rep brings the lesson; a failed rep shows its reason and the lesson
+// again, then a different problem; a pass stamps the card returned on the
+// day it passed, and leads back to the stack. Every model wait has its
+// waiting line, and every failure its error and a retry of the same
+// request; the answer stays locked while it's checked, so a retry checks
+// what's on screen.
 
 import type { CardDetail, Project, Rep } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
@@ -92,7 +94,7 @@ export function mountCard(root: HTMLElement, { client, params, navigate, signal 
     const failedBefore = lastChecked?.verdict === "fail" ? lastChecked : null;
     const open = card.reps.at(-1)?.checkedAt === null ? card.reps.at(-1)! : null;
     if (open) answer(told(failedBefore, lastChecked?.verdict === "pass" ? null : card.lesson), open);
-    else start(failedBefore);
+    else offer(failedBefore);
 
     /** The card's status wherever it shows: the margin, the plate, the end of its rail, and its earlier reps. */
     function showStatus() {
@@ -151,6 +153,13 @@ export function mountCard(root: HTMLElement, { client, params, navigate, signal 
           retry!.focus({ preventScroll: true });
         },
       );
+    }
+
+    /** The action that starts a fresh rep; after a failed one, under its reason and the lesson again. */
+    function offer(failed: Rep | null) {
+      const take = button("Take a cold rep", () => start(failed));
+      step.replaceChildren(...told(failed, failed && card.lesson), take);
+      take.focus({ preventScroll: true });
     }
 
     /** Starts a fresh rep. After a failed one, its reason and the lesson again stay above while the problem is written. */

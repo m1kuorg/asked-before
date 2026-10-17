@@ -170,6 +170,7 @@ try {
   let firstProblem = "";
   await step("A cold rep on card A fails with the known wrong answer", async () => {
     await page.locator(".block").getByRole("link", { name: "Open key A" }).click();
+    await page.locator(".block").getByRole("button", { name: "Take a cold rep" }).click();
     await settles(".block .problem");
     expect((await text(".block .lesson h2")) === "The lesson", "the first cold rep doesn't bring the lesson");
     firstProblem = await text(".block .problem");
