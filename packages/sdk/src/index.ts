@@ -4,7 +4,7 @@
 // edits its own file.
 
 export { createClient, type Client } from "./client.ts";
-export { ApiError, type ClientOptions } from "./http.ts";
+export { ApiError, type ClientOptions, type PageOptions } from "./http.ts";
 export { ExportError, MAX_PHRASING_LENGTH, readExport, type Phrasing, type ReadExport, type Source } from "./readers.ts";
 export { MAX_CHUNK } from "./uploads.ts";
 
