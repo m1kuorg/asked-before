@@ -25,7 +25,7 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | --- | --- | --- |
 | `server.ts` | The one process: composes the pages, the API, and the proof of concept's routes, all through `serve()`; its fallback is the 404, as `{ error }` under `/api/` | m1kuorg/basics#41 |
 | `server/config.ts` | Settings from the environment, with defaults: `PORT`, `DATABASE_PATH`, `PUBLIC_URL`, `DAILY_MODEL_REQUESTS`, and `SORT_BATCH_SIZE` | m1kuorg/basics#41; `SORT_BATCH_SIZE` is m1kuorg/basics#44's |
-| `server/http.ts` | `HttpError`, `readJson`, `notBuilt`, `defineRoutes`, and `serve()`, which answers errors, adds the security headers, and logs | m1kuorg/basics#41 |
+| `server/http.ts` | `HttpError`, `readJson`, `defineRoutes`, and `serve()`, which answers errors, adds the security headers, and logs | m1kuorg/basics#41 |
 | `server/auth.ts` | `authed()`, `sameOrigin()`, and the session cookie; `authenticateKey()` takes a Bearer key through `store/keys.ts` | m1kuorg/basics#41; the key lookup is m1kuorg/basics#48's |
 | `server/throttle.ts` | The per-IP throttle on signing up and logging in | m1kuorg/basics#41 |
 | `server/model.ts` | The model client. Its `userId` argument is the daily cap's hook: it spends one of the account's daily requests, or throws 429. Requests stream, with room for 64,000 output tokens, since a sort batch can outgrow an unstreamed request's 16,000. The Anthropic SDK reads `ANTHROPIC_BASE_URL`, which is how a check points the app at its model stand-in | Proof of concept; the sort (m1kuorg/basics#44) and cold reps (m1kuorg/basics#46) pass `userId` with every request |
@@ -53,7 +53,7 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `src/pages/` | The public pages' scripts: log in and sign up; the landing page (`landing.ts`), and `demo-card.ts`, a Bun macro that reads card A of the demo export when the pages are bundled, so the page's script carries that one card and never the answer key | m1kuorg/basics#42; `landing.ts` and `demo-card.ts` are m1kuorg/basics#52's |
 | `packages/sdk/src/client.ts` | `createClient()`, which composes the areas | m1kuorg/basics#41 |
 | `packages/sdk/src/http.ts` | The request function, `ApiError`, and the `path` tag | m1kuorg/basics#41 |
-| `packages/sdk/src/<area>.ts` | Each area's types and methods; stub areas have none yet | See [the route table](#the-apis-route-table) |
+| `packages/sdk/src/<area>.ts` | Each area's types and methods | See [the route table](#the-apis-route-table) |
 | `packages/sdk/src/index.ts` | The SDK's exports. Every area's types are exported already | m1kuorg/basics#41; m1kuorg/basics#43 added the export readers and `MAX_CHUNK` |
 | `packages/sdk/src/readers.ts` | `readExport()`, `ExportError`, and `MAX_PHRASING_LENGTH`: a ChatGPT or Claude export, zip or JSON, read into phrasings in Bun, Node, or a browser. A zip is read from its directory, inflating only its conversations files | m1kuorg/basics#43 |
 | `packages/sdk/fixtures/` | Small exports in each format for the readers' check, written by `make.ts` there | m1kuorg/basics#43 |
@@ -90,7 +90,7 @@ Installed up front: `fflate` in `packages/sdk` for the export readers, `@modelco
 
 ## The API's route table
 
-Every endpoint is under `/api/v1`. An endpoint whose ticket hasn't landed answers 501 with `{ error }`; anything else under `/api/` is a 404. "Session only" means `authed(..., { sessionOnly: true })`: an API key gets 403 there.
+Every endpoint is under `/api/v1`, and every one is built (captures, m1kuorg/basics#50, were the last to answer 501); anything else under `/api/` is a 404. "Session only" means `authed(..., { sessionOnly: true })`: an API key gets 403 there.
 
 | Area | Method and path | SDK method | Owner |
 | --- | --- | --- | --- |
@@ -121,7 +121,7 @@ Collections sit under their parent and single items stand alone, so `/uploads/:u
 
 ## Adding an endpoint
 
-1. In `server/api/<area>.ts`, replace the `notBuilt(...)` stub with a handler wrapped in `authed()`. Add `{ sessionOnly: true }` for anything a key can't do: deleting, exporting, keys, and the account. `req.params` is typed from the path.
+1. In `server/api/<area>.ts`, add a handler wrapped in `authed()`. Add `{ sessionOnly: true }` for anything a key can't do: deleting, exporting, keys, and the account. `req.params` is typed from the path.
 1. Read the body with `readJson(req, schema)`, a zod schema with a message per field, which answers 400 with the first one. Throw `HttpError(status, message)` for any other failure. A message is shown to the caller, so it never holds phrasing text.
 1. Put the SQL in `server/store/<area>.ts`, scoped by `auth.userId`, and return the SDK's types. Nothing outside `server/store/` imports `db`.
 1. Add the methods and their types to `packages/sdk/src/<area>.ts`; the server's answers use `satisfies` with those types.
