@@ -34,3 +34,8 @@ export function findSession(token: string | null): { id: string; userId: string 
 export function deleteSession(sessionId: string): void {
   db.query("DELETE FROM sessions WHERE id = $sessionId").run({ sessionId });
 }
+
+/** Ends every session of the account but the one given, as changing the password does. */
+export function deleteOtherSessions(userId: string, keepSessionId: string): void {
+  db.query("DELETE FROM sessions WHERE user_id = $userId AND id != $keepSessionId").run({ userId, keepSessionId });
+}

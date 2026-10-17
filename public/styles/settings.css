@@ -1,5 +1,69 @@
 /*
-  Settings (m1kuorg/basics#48 and m1kuorg/basics#49 own this file). Scope
-  every rule under #app[data-screen="settings"], and compose the shared parts
-  (parts.css) before adding a look of its own.
+  Settings (src/screens/settings.ts; m1kuorg/basics#48 and m1kuorg/basics#49
+  own this file). Each section opens on an iron hairline, like the lesson and
+  the problem, and composes the shared parts: forms, the rows of API keys
+  with a new key shown once in a code block under its row, and the setup
+  snippets in code blocks.
 */
+
+#app[data-screen="settings"] {
+  .settings-section {
+    margin-top: var(--space-7);
+    padding-top: var(--space-4);
+    border-top: var(--hairline);
+  }
+
+  .settings-section > * + * {
+    margin-top: var(--space-4);
+  }
+
+  .settings-section > h2 {
+    margin-bottom: 0;
+  }
+
+  /* A setup snippet's note sits close under its well, and the next snippet stands clear of it. */
+  .settings-section > .code-block + p {
+    margin-top: var(--space-2);
+  }
+
+  .settings-section > p + .code-block {
+    margin-top: var(--space-6);
+  }
+
+  /* A form that went through says so above its button, in the label weight. */
+  .saved {
+    font-weight: 600;
+  }
+
+  .rows col.is-prefix {
+    width: 15rem;
+  }
+
+  .rows col.is-date {
+    width: 9rem;
+  }
+
+  .rows col.is-actions {
+    width: 7rem;
+  }
+
+  .key-list > .error + .retry {
+    margin-top: var(--space-4);
+  }
+
+  /* A new key, shown once under its row, in prose leading rather than the row's. */
+  .key-shown {
+    max-width: calc(var(--column) + 14rem);
+    padding-top: var(--space-3);
+    line-height: var(--prose-leading);
+  }
+
+  .key-shown > * + * {
+    margin-top: var(--space-3);
+  }
+
+  .new-key,
+  .settings-section > .code-block {
+    max-width: calc(var(--column) + 14rem);
+  }
+}

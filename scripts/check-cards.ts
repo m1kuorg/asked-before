@@ -1,14 +1,14 @@
-// Runs the parser and the card builder on the demo export, with the answer
+// Runs the SDK's reader and the card builder on the demo export, with the answer
 // key's groups standing in for the group route, and checks the cards against
 // the key; then feeds it broken groupings and expects a GroupingError.
 // Run: bun run check:cards
 
 import { buildCards, GroupingError, MAX_SKILL_NAME } from "../src/cards";
-import { parseExport } from "../src/parser";
 import type { GroupResponse } from "../src/types";
+import { demoMessages } from "./lib/demo";
 
 const read = (path: string) => Bun.file(new URL(path, import.meta.url)).text();
-const messages = parseExport(await read("../demo/export.json"));
+const messages = await demoMessages("export.json");
 const key: { skills: { name: string; messageIds: string[]; count: number; firstMonth: string; lastMonth: string }[]; oneOffs: string[] } =
   JSON.parse(await read("../demo/answer-key.json"));
 
@@ -65,7 +65,7 @@ expectError("empty name", [{ name: "  ", messageIds: a!.messageIds }]);
 console.log("\nGroups under two borrows are dropped quietly");
 const dropped = buildCards({ skills: [{ name: "x".repeat(MAX_SKILL_NAME + 1), messageIds: [key.oneOffs[0]!] }] }, messages);
 check(dropped.length === 0, "a group of one makes no card, and its name isn't checked");
-const single = parseExport(await read("../demo/no-repeats.json"));
+const single = await demoMessages("no-repeats.json");
 const none = buildCards({ skills: single.map((m) => ({ name: "Asked once", messageIds: [m.id] })) }, single);
 check(none.length === 0, `the no-repeats export makes zero cards (${single.length} messages)`);
 

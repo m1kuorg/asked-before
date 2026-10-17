@@ -26,7 +26,7 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `server.ts` | The one process: composes the pages, the API, and the proof of concept's routes, all through `serve()`; its fallback is the 404, as `{ error }` under `/api/` | m1kuorg/basics#41 |
 | `server/config.ts` | Settings from the environment, with defaults: `PORT`, `DATABASE_PATH`, `PUBLIC_URL`, `DAILY_MODEL_REQUESTS` | m1kuorg/basics#41; `SORT_BATCH_SIZE` joins with m1kuorg/basics#44 |
 | `server/http.ts` | `HttpError`, `readJson`, `notBuilt`, `defineRoutes`, and `serve()`, which answers errors, adds the security headers, and logs | m1kuorg/basics#41 |
-| `server/auth.ts` | `authed()`, `sameOrigin()`, and the session cookie; `authenticateKey()` is a stub that refuses every key | m1kuorg/basics#41; the key lookup is m1kuorg/basics#48's |
+| `server/auth.ts` | `authed()`, `sameOrigin()`, and the session cookie; `authenticateKey()` takes a Bearer key through `store/keys.ts` | m1kuorg/basics#41; the key lookup is m1kuorg/basics#48's |
 | `server/throttle.ts` | The per-IP throttle on signing up and logging in | m1kuorg/basics#41 |
 | `server/model.ts` | The model client. Its `userId` argument is the daily cap's hook: it spends one of the account's daily requests, or throws 429 | Proof of concept; m1kuorg/basics#44 passes `userId` and proves the cap |
 | `server/api/index.ts` | The API's route table, composed from the areas here and only here | m1kuorg/basics#41 |
@@ -35,6 +35,7 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `server/store/schema.sql` | The spec's whole schema, and the `card_status` view | m1kuorg/basics#41; changed in place by whoever needs to |
 | `server/store/users.ts`, `sessions.ts`, `projects.ts`, `usage.ts` | Accounts, sessions, projects with their counts, and the daily model-request counters | m1kuorg/basics#41; m1kuorg/basics#48 and #49 add to `users.ts` and `sessions.ts` |
 | `server/store/<area>.ts` | A new store module per area, such as `uploads.ts`, `cards.ts`, `reps.ts`, and `keys.ts` | The area's ticket |
+| `server/store/uploads.ts` | Uploads, and appending their phrasings, skipping any whose source id the project holds already | m1kuorg/basics#43 |
 | `server/pages.ts` | The page table, built at startup; `/assets/*`, the demo exports, and `notFound`, which serves `public/not-found.html` with a 404 | m1kuorg/basics#42 |
 | `server/routes/` | The proof of concept's three model routes | Retired by m1kuorg/basics#44 and #46 |
 | `public/*.html` | One HTML file per page | See [who owns which page files](#who-owns-which-page-files) |
@@ -43,15 +44,23 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `src/screens/<screen>.ts` | One module per app screen | See [the app page](#the-app-page) |
 | `src/parts/` | The shared parts every screen composes | m1kuorg/basics#42; see [shared parts](#shared-parts) |
 | `src/pages/` | The public pages' scripts: log in and sign up; the landing page (`landing.ts`), and `demo-card.ts`, a Bun macro that reads card A of the demo export when the pages are bundled, so the page's script carries that one card and never the answer key | m1kuorg/basics#42; `landing.ts` and `demo-card.ts` are m1kuorg/basics#52's |
-| `src/parser.ts`, `src/cards.ts`, `src/types.ts`, `src/api.ts` | The proof of concept's export parser, card builder, and request shapes, which its model routes and some checks still use | See [proof-of-concept leftovers](#proof-of-concept-leftovers) |
+| `src/cards.ts`, `src/types.ts`, `src/api.ts` | The proof of concept's card builder and request shapes, which its model routes and some checks still use | See [proof-of-concept leftovers](#proof-of-concept-leftovers) |
 | `packages/sdk/src/client.ts` | `createClient()`, which composes the areas | m1kuorg/basics#41 |
 | `packages/sdk/src/http.ts` | The request function, `ApiError`, and the `path` tag | m1kuorg/basics#41 |
 | `packages/sdk/src/<area>.ts` | Each area's types and methods; stub areas have none yet | See [the route table](#the-apis-route-table) |
-| `packages/sdk/src/index.ts` | The SDK's exports. Every area's types are exported already | m1kuorg/basics#41; m1kuorg/basics#43 adds the export readers |
+| `packages/sdk/src/index.ts` | The SDK's exports. Every area's types are exported already | m1kuorg/basics#41; m1kuorg/basics#43 added the export readers and `MAX_CHUNK` |
+| `packages/sdk/src/readers.ts` | `readExport()`, `ExportError`, and `MAX_PHRASING_LENGTH`: a ChatGPT or Claude export, zip or JSON, read into phrasings in Bun, Node, or a browser. A zip is read from its directory, inflating only its conversations files | m1kuorg/basics#43 |
+| `packages/sdk/fixtures/` | Small exports in each format for the readers' check, written by `make.ts` there | m1kuorg/basics#43 |
 | `packages/mcp/src/server.ts` | A placeholder; `@modelcontextprotocol/server` and `zod` are installed | m1kuorg/basics#50 |
+| `packages/mcp/src/connect.ts` | How an agent launches the MCP server, in one place: the command, the environment names (`ASKED_BEFORE_URL`, `ASKED_BEFORE_API_KEY`), and the Claude Code, Claude Desktop, and Cursor snippets that settings shows. It has no imports, so the page bundles it | m1kuorg/basics#48; m1kuorg/basics#50 corrects the environment, and #51 the snippets once the plugin carries its build |
 | `scripts/lib/app.ts` | `startApp()`, the one helper that starts the app for a check | m1kuorg/basics#41 |
 | `scripts/check-accounts.ts` | `bun run check:accounts` | m1kuorg/basics#41 |
 | `scripts/check-shell.ts` | `bun run check:shell`: the shell's journey in a real browser | m1kuorg/basics#42 |
+| `scripts/check-readers.ts` | `bun run check:readers`: the export readers on every fixture and on broken exports | m1kuorg/basics#43 |
+| `scripts/check-uploads.ts` | `bun run check:uploads`: the uploads endpoints through the SDK | m1kuorg/basics#43 |
+| `scripts/check-upload-page.ts` | `bun run check:upload-page`: the upload page and the demo action in a real browser, with every request it sends read | m1kuorg/basics#43 |
+| `scripts/lib/demo.ts` | `demoMessages()`: a demo export through the SDK's reader, in the proof of concept's message shape, for its checks | m1kuorg/basics#43; goes with those checks |
+| `scripts/check-settings.ts` | `bun run check:settings`: API keys and the account through the SDK, then the settings page in a real browser | m1kuorg/basics#48 |
 | `scripts/check-landing.ts` | `bun run check:landing`: the landing page's card against the answer key, its sections, and signing up and logging in from it, in a real browser | m1kuorg/basics#52 |
 | `scripts/check-styles.ts`, `scripts/lib/styles.ts` | `bun run check:styles` and its kit | m1kuorg/basics#42 |
 | `scripts/styles/<surface>.ts` | One styles-check module per surface | Each surface's ticket; see [check scripts](#check-scripts) |
@@ -68,16 +77,16 @@ Every endpoint is under `/api/v1`. An endpoint whose ticket hasn't landed answer
 | Auth | `POST /auth/login` | `auth.logIn` | m1kuorg/basics#41 |
 | Auth | `POST /auth/logout`, session only | `auth.logOut` | m1kuorg/basics#41 |
 | Auth | `GET /auth/me` | `auth.me` | m1kuorg/basics#41 |
-| Account | `PATCH /account`, session only | `account` | m1kuorg/basics#48 |
-| Account | `POST /account/password`, session only | `account` | m1kuorg/basics#48 |
+| Account | `PATCH /account`, session only | `account.update` | m1kuorg/basics#48 |
+| Account | `POST /account/password`, session only: needs the current password, and ends every other session | `account.changePassword` | m1kuorg/basics#48 |
 | Account | `GET /account/export`, session only | `account` | m1kuorg/basics#49 |
 | Account | `DELETE /account`, session only | `account` | m1kuorg/basics#49 |
-| API keys | `GET /keys`, `POST /keys`, `DELETE /keys/:keyId`, session only | `keys` | m1kuorg/basics#48 |
+| API keys | `GET /keys`, `POST /keys`, `DELETE /keys/:keyId`, session only | `keys.list`, `keys.create`, `keys.revoke` | m1kuorg/basics#48 |
 | Projects | `GET /projects`, `POST /projects` | `projects.list`, `projects.create` | m1kuorg/basics#41 |
 | Projects | `GET /projects/:projectId`, `PATCH /projects/:projectId` | `projects.get`, `projects.rename` | m1kuorg/basics#41 |
 | Projects | `DELETE /projects/:projectId`, session only | `projects.delete` | m1kuorg/basics#41 |
-| Uploads | `GET /projects/:projectId/uploads`, `POST /projects/:projectId/uploads` | `uploads` | m1kuorg/basics#43 |
-| Uploads | `GET /uploads/:uploadId`, `POST /uploads/:uploadId/phrasings`, `POST /uploads/:uploadId/finish` | `uploads` | m1kuorg/basics#43 |
+| Uploads | `GET /projects/:projectId/uploads`, `POST /projects/:projectId/uploads` | `uploads.list`, `uploads.create` | m1kuorg/basics#43 |
+| Uploads | `GET /uploads/:uploadId`, `POST /uploads/:uploadId/phrasings`, `POST /uploads/:uploadId/finish` | `uploads.get`, `uploads.append`, `uploads.finish` | m1kuorg/basics#43 |
 | Uploads | `POST /uploads/:uploadId/retry` | `uploads` | m1kuorg/basics#44 |
 | Uploads | `DELETE /uploads/:uploadId`, session only | `uploads` | m1kuorg/basics#45 |
 | Cards | `GET /projects/:projectId/cards`, `GET /projects/:projectId/unsorted`, `GET /cards/:cardId` | `cards` | m1kuorg/basics#44 |
@@ -102,12 +111,13 @@ Don't edit `server/api/index.ts` or `packages/sdk/src/client.ts` to add an endpo
 
 - JSON in and out. A failure is a non-2xx status with `{ error }`; the SDK throws it as `ApiError`, with `status` and `message`.
 - Ids are opaque strings (UUIDv7). Times are ISO timestamps over the API and Unix milliseconds in the store.
-- A list comes inside an object, as `{ projects: [...] }`, and the SDK unwraps it. Lists that can grow without bound take a limit and a cursor.
+- A list comes inside an object, as `{ projects: [...] }`, and the SDK unwraps it. Lists that can grow without bound take a limit and a cursor: they answer a page as `{ uploads: [...], next }`, newest first, which the SDK returns whole, and `next` is the cursor for the page after, or null on the last.
+- A phrasing goes over the wire as `{ sourceId, text, time }` and nothing else; a body with any other key is a 400.
 - Card status is `"borrowed"`, `"returned"`, or `"borrowed_again"`, from the `card_status` view. A project's counts are `{ cards, borrowed, returned, borrowedAgain }`.
 - A model failure is a `ModelError`, an `HttpError` with status 502. Past the daily cap, the model client throws 429.
 - Signing up and logging in return `{ account, next }`. `next` echoes the request's `next` only when it's a path inside the app, and is otherwise `/app`, the app's home. The page goes there; m1kuorg/basics#42 serves the app at `/app` and its client routes under `/app/`.
 - A cookie-authenticated request that changes something must carry an `Origin` matching the app's origin, and a JSON content type unless it's a bodiless DELETE. The SDK sends JSON on every POST and PATCH, and the browser adds the `Origin`. Signing up and logging in follow the same rule, against forged log-ins, before the throttle counts the try. Either one ends the session the browser already had.
-- A Bearer key, when sent, is the only credential considered; the cookie is ignored.
+- A Bearer key, when sent, is the only credential considered; the cookie is ignored. A key is `ab_<id>_<secret>`, with a 16-hex-digit id and a 32-hex-digit secret; a bad or revoked one is a 401, and a good one on a session-only endpoint a 403.
 
 ## The store
 
@@ -115,7 +125,7 @@ Don't edit `server/api/index.ts` or `packages/sdk/src/client.ts` to add an endpo
 - Every child table cascades on delete from its parent. A phrasing's `card_id` is set to null when its card goes, which leaves it unsorted.
 - `card_status` gives, per card, `borrows`, `first_borrow_at`, `last_borrow_at`, `returned_at` (the latest passed rep's `checked_at`), and `status`, comparing timestamps rather than dates.
 - `usage` counts model requests per account per UTC day; `spendModelRequest()` in `store/usage.ts` is the only writer.
-- Sessions store the SHA-256 of the cookie's token. An API key's secret is meant to be stored the same way, in `api_keys.secret_hash`.
+- Sessions store the SHA-256 of the cookie's token. An API key's secret is stored the same way, in `api_keys.secret_hash`, and only `keys.create` ever returns the whole key. A key's `last_used_at` is written at most once a minute.
 
 ## Pages
 
@@ -134,11 +144,11 @@ The route table is `src/app/routes.ts`. Every screen in the spec already has its
 | Path | Screen module | Owner |
 | --- | --- | --- |
 | `/app` | `src/screens/dashboard.ts`, a placeholder | m1kuorg/basics#47 |
-| `/app/projects` | `src/screens/projects.ts`: list, create, rename, delete | m1kuorg/basics#42 |
+| `/app/projects` | `src/screens/projects.ts`: list, create, rename, delete; its empty state offers the demo project (m1kuorg/basics#43) | m1kuorg/basics#42 |
 | `/app/projects/:projectId` | `src/screens/project.ts`, a placeholder: the card stack, unsorted, and uploads go here | m1kuorg/basics#45 |
-| `/app/projects/:projectId/upload` | `src/screens/upload.ts`, a placeholder | m1kuorg/basics#43 |
+| `/app/projects/:projectId/upload` | `src/screens/upload.ts`: the instructions, the drop zone, the preview, and sending in chunks. `?upload=<id>` shows one finished upload (where m1kuorg/basics#44 adds the sort's progress), and `?export=demo` uploads the demo export into a demo project. `startDemoProject()` is the demo action, for the dashboard too | m1kuorg/basics#43 |
 | `/app/cards/:cardId` | `src/screens/card.ts`, a placeholder: the card and its cold rep | m1kuorg/basics#46 |
-| `/app/settings` | `src/screens/settings.ts`, a placeholder | m1kuorg/basics#48, then #49 |
+| `/app/settings` | `src/screens/settings.ts`: the profile, the password, API keys, and the setup snippets to connect an agent; #49 adds its own sections | m1kuorg/basics#48, then #49 |
 | anything else under `/app` | `src/screens/not-found.ts` | m1kuorg/basics#42 |
 
 A screen is `(root: HTMLElement, props: ScreenProps<"param">) => void | Promise<void>`. The router empties `#app`, sets `#app[data-screen="<name>"]` and the page title, marks the navigation's section, and mounts the screen with:
@@ -203,7 +213,7 @@ Each uses the shared parts and `PRIVACY_LINE` as they are. A change a part needs
 ## Check scripts
 
 - `startApp(env?)` from `scripts/lib/app.ts` starts `bun server.ts` on a free port with a temporary database, and returns `{ url, databasePath, log, browser, stop }`. `env` overrides settings, such as `DAILY_MODEL_REQUESTS`.
-- `app.browser()` is one browser: an SDK client that keeps its own session cookie and sends the app's `Origin`. `cookie()` gives its Cookie header for requests made without the SDK. Until API keys land (m1kuorg/basics#48), scripts reach the API this way.
+- `app.browser()` is one browser: an SDK client that keeps its own session cookie and sends the app's `Origin`. `cookie()` gives its Cookie header for requests made without the SDK. A script can also make a key with `keys.create` and reach the API as a script or agent would, with `createClient({ baseUrl: app.url, apiKey })`.
 - Each copy of the app allows 20 sign-up and log-in tries per address in 15 minutes, so a script making many accounts should start its own copy.
 - A browser check stubs a request only inside the script, with Playwright's `page.route`, never in the app.
 - `check:styles` signs up one learner on a fresh copy of the app, then runs every module in `scripts/styles/`, in name order. A module's default export is `(kit: Kit) => Promise<void>` (`scripts/lib/styles.ts`): it opens pages with `kit.page({ loggedIn })` and `kit.open()`, drives them into each state, and calls `kit.shoot(page, name)`, which saves the screenshot and checks the type floor, vermilion, radius and shadow, the inks, contrast, the plate count, and sideways scroll. A surface's ticket adds its own module rather than editing another's. `shell.ts` and `parts.ts` are m1kuorg/basics#42's; `stack.ts` and `rep.ts` set the proof of concept's sample markup into the app page until m1kuorg/basics#45 and #46 retarget them to their real screens.
@@ -213,7 +223,7 @@ Each uses the shared parts and `PRIVACY_LINE` as they are. A change a part needs
 | Piece | Retired or retargeted by |
 | --- | --- |
 | The single page at `/` and its screens | Retired by m1kuorg/basics#42: the load, stack, and rep screens became the upload, project, and card placeholders |
-| `src/parser.ts`, used by the model routes' checks and the styles samples | m1kuorg/basics#43 replaces it with the SDK's readers |
+| `src/parser.ts`, used by the model routes' checks and the styles samples | Retired by m1kuorg/basics#43: those read the demo export through `scripts/lib/demo.ts`, which uses the SDK's reader |
 | `src/cards.ts`, `src/api.ts`, `src/types.ts`, used by the model routes and their checks | m1kuorg/basics#44 and #46, with the routes |
 | `POST /api/group`, `/api/rep`, `/api/check` in `server/routes/`, with no account and no cap | m1kuorg/basics#44 (group) and m1kuorg/basics#46 (rep and check) |
 | `check:key`, `check:cards`, `check:grouping` | m1kuorg/basics#44 replaces the grouping check with the incremental sort check |
