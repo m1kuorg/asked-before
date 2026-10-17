@@ -75,7 +75,6 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `scripts/check-readers.ts` | `bun run check:readers`: the export readers on every fixture and on broken exports | m1kuorg/basics#43 |
 | `scripts/check-uploads.ts` | `bun run check:uploads`: the uploads endpoints through the SDK | m1kuorg/basics#43 |
 | `scripts/check-upload-page.ts` | `bun run check:upload-page`: the upload page and the demo action in a real browser, with every request it sends read | m1kuorg/basics#43 |
-| `scripts/lib/demo.ts` | `demoMessages()`: a demo export through the SDK's reader, in the proof of concept's message shape, for `check:key` | m1kuorg/basics#43; goes with that check |
 | `scripts/lib/model-stub.ts` | `startModelStub()`: a stand-in for the Anthropic API that records every request the app sends the model and answers it with `forward` (the real API), `reply()`, `refuse()`, or `hold()` | m1kuorg/basics#44 |
 | `scripts/lib/answer-key.ts` | The demo export as m1, m2, …; `upload()` and `sortEnds()` through the SDK; `compareWithKey()`, a project's cards and unsorted against the answer key; and `keySorter`, a stand-in's answer that sorts as the key does, or `keySorterWith()`, which places phrasings the export doesn't hold too | m1kuorg/basics#44; `keySorterWith()` is m1kuorg/basics#46's |
 | `scripts/lib/reps.ts` | For the cold rep checks: the demo skill's known answers; `kindOf()`, a model request's kind (sort, rep, or check); `repRequest()` and `checkRequest()`, what one sent; `sortsByKey()`, a stand-in that sorts as the key does and hands reps and checks on (to the real model by default); `repReply()`, `verdictReply()`, and `stopped()`, the stand-in's answers; and `smallExport()`, a small Claude export read by the SDK's reader | m1kuorg/basics#46 |
@@ -274,7 +273,7 @@ Each uses the shared parts and `PRIVACY_LINE` as they are. A change a part needs
 | Piece | Retired or retargeted by |
 | --- | --- |
 | The single page at `/` and its screens | Retired by m1kuorg/basics#42: the load, stack, and rep screens became the upload, project, and card placeholders |
-| `src/parser.ts`, used by the model routes' checks and the styles samples | Retired by m1kuorg/basics#43: those read the demo export through `scripts/lib/demo.ts`, which uses the SDK's reader |
+| `src/parser.ts`, used by the model routes' checks and the styles samples | Retired by m1kuorg/basics#43: those read the demo export through the SDK's reader. `check:key` reads the reader's phrasings as they are, so `scripts/lib/demo.ts`, which reshaped them into the parser's messages, went with the review fixes |
 | `src/api.ts`, the group request's shape | Deleted by m1kuorg/basics#44 |
 | `src/cards.ts` and `src/types.ts`, used by the rep and check routes, `check:cards`, and the rep styles sample | Deleted by m1kuorg/basics#46, with that sample and those routes; the stack's sample went with m1kuorg/basics#45 |
 | `POST /api/group` | Deleted by m1kuorg/basics#44: the sort (`server/sort.ts`) replaces it |
