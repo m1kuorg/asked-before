@@ -21,11 +21,6 @@ export const MODEL = "claude-haiku-5-5";
 const MAX_TOKENS = 64000;
 
 export type Effort = NonNullable<Anthropic.OutputConfig["effort"]>;
-/**
- * The default effort. A route that tunes its own on the demo export passes it
- * to askStructured instead (spec.md, Decisions and Open Issues).
- */
-export const EFFORT: Effort = "medium";
 
 /** A request that gave no usable result. Its message is safe to show and holds no message text. */
 export class ModelError extends HttpError {
@@ -41,14 +36,15 @@ export async function askStructured<S extends z.ZodType>(
   system: string,
   userText: string,
   schema: S,
-  effort: Effort = EFFORT,
-  /** The account the request is for. The proof of concept's routes have none. */
-  userId?: string,
+  /** Each caller tunes its own on the demo export. */
+  effort: Effort,
+  /** The account the request is for, which spends one of its daily model requests. */
+  userId: string,
 ): Promise<z.infer<S>> {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new ModelError("The server has no ANTHROPIC_API_KEY. Set it in .env, as the README says.");
   }
-  if (userId) spendModelRequest(userId);
+  spendModelRequest(userId);
   client ??= new Anthropic();
   const format = zodOutputFormat(schema);
 

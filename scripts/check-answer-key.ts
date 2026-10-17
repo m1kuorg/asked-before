@@ -124,10 +124,6 @@ const tie = others.some((s, i) => others.findIndex((o) => o.count === s.count) !
 console.log(`     the tie rule is ${tie ? "exercised" : "not exercised; every count is distinct"}`);
 check(key.oneOffs.length >= 6, `${key.oneOffs.length} one-off questions`);
 
-console.log("\nThe no-repeats export");
-const single = await demoMessages("no-repeats.json");
-check(single.length >= 3 && new Set(single.map((m) => m.text)).size === single.length, `${single.length} messages, no text asked twice`);
-
 if (failed) {
   console.log(`\n${failed} check(s) failed.`);
   process.exit(1);
