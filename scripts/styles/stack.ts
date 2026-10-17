@@ -3,11 +3,12 @@
 // sorted as the answer key sorts it (check:styles's model stand-in), so the
 // stack holds cards A to E. Its states: card A as the stack first shows it,
 // mid-drop; card A returned and card B borrowed again, from the API's own
-// answers with their status rewritten here, never in the app (nothing can
-// pass a rep before m1kuorg/basics#46); the waiting and error states, with
-// the cards' request held and answered here; the unsorted phrasings; and the
-// upload history with a delete being confirmed. Then the faces, the key
-// drop, focus, pressing, widths, a narrow screen, and reduced motion.
+// answers with their status rewritten here, never in the app (real reps would
+// need the model, so faking them keeps this check fast); the waiting and error
+// states, with the cards' request held and answered here; the unsorted
+// phrasings; and the upload history with a delete being confirmed. Then the
+// faces, the key drop, focus, pressing, widths, a narrow screen, and reduced
+// motion.
 
 import type { Card, CardDetail } from "@asked-before/sdk";
 import { join } from "node:path";
@@ -112,7 +113,7 @@ export default async function stack(kit: Kit) {
   const keyLetters = await page.evaluate(() => [...document.querySelectorAll(".margin-key > :first-child")].map((b) => getComputedStyle(b).color));
   check(keyLetters.length === 5 && keyLetters.every((c) => c === VERMILION), "the five margin key letters are vermilion");
 
-  // Card A returned and card B borrowed again, as the API would answer once reps can pass.
+  // Card A returned and card B borrowed again, as the API answers after real reps.
   const [cardA, cardB] = await learner.client.cards.list(demo.id);
   const status = (card: Card): Partial<Card> =>
     card.id === cardA!.id
