@@ -1,7 +1,7 @@
 // Uploads: list a project's uploads, create one, append a chunk of up to
 // 2,000 phrasings, finish it, and get one (m1kuorg/basics#43); retry a
 // failed sort (m1kuorg/basics#44); delete one, which needs a session
-// (m1kuorg/basics#45). Stubs answer 501 until then.
+// (m1kuorg/basics#45).
 //
 // A chunk holds phrasings as { sourceId, text, time } and nothing else, so
 // no answer, title, or other part of an export can reach the server (ADR
@@ -10,14 +10,16 @@
 // upload answers with it waiting to be sorted, and starts the project's sort
 // (server/sort.ts), which records its progress and any failure on the
 // upload. Retrying a failed sort carries on from the first phrasing it
-// hadn't offered; anything but a failed upload is a 409.
+// hadn't offered; anything but a failed upload is a 409. Deleting an upload
+// deletes its phrasings, and any card left with fewer than two borrows,
+// whose remaining phrasing becomes unsorted; a sort under way on it stops.
 
 import { MAX_CHUNK, MAX_PHRASING_LENGTH, type Upload } from "@asked-before/sdk";
 import { z } from "zod";
 import { authed } from "../auth";
-import { defineRoutes, HttpError, notBuilt, readJson } from "../http";
+import { defineRoutes, HttpError, readJson } from "../http";
 import { sortProject } from "../sort";
-import { appendPhrasings, createUpload, finishUpload, getUpload, listUploads, retryUpload } from "../store/uploads";
+import { appendPhrasings, createUpload, deleteUpload, finishUpload, getUpload, listUploads, retryUpload } from "../store/uploads";
 
 const DAY = 24 * 60 * 60 * 1000;
 /** The largest chunk body: MAX_CHUNK phrasings of MAX_PHRASING_LENGTH characters, every one escaped, with room to spare. */
@@ -79,7 +81,13 @@ export const uploads = defineRoutes({
   },
   "/api/v1/uploads/:uploadId": {
     GET: authed((req, auth) => Response.json(found(getUpload(auth.userId, req.params.uploadId)))),
-    DELETE: notBuilt("m1kuorg/basics#45"),
+    DELETE: authed(
+      (req, auth) => {
+        if (!deleteUpload(auth.userId, req.params.uploadId)) throw new HttpError(404, "There's no such upload.");
+        return new Response(null, { status: 204 });
+      },
+      { sessionOnly: true },
+    ),
   },
   "/api/v1/uploads/:uploadId/phrasings": {
     POST: authed(async (req, auth) => {

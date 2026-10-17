@@ -44,7 +44,6 @@ CREATE TABLE IF NOT EXISTS uploads (
   project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   source TEXT NOT NULL CHECK (source IN ('chatgpt', 'claude')),
   file_name TEXT NOT NULL,
-  message_count INTEGER NOT NULL DEFAULT 0, -- your messages it held; the new ones are its phrasings
   status TEXT NOT NULL DEFAULT 'receiving'
     CHECK (status IN ('receiving', 'waiting', 'sorting', 'sorted', 'failed')),
   error TEXT,                              -- why the sort failed
@@ -52,6 +51,15 @@ CREATE TABLE IF NOT EXISTS uploads (
   finished_at INTEGER
 );
 CREATE INDEX IF NOT EXISTS uploads_by_project ON uploads(project_id);
+
+-- Every one of your messages an upload was sent, by its source id, once:
+-- its count is the upload's messages, so a chunk sent twice counts once.
+-- The new ones among them are the upload's phrasings.
+CREATE TABLE IF NOT EXISTS upload_messages (
+  upload_id TEXT NOT NULL REFERENCES uploads(id) ON DELETE CASCADE,
+  source_id TEXT NOT NULL,
+  PRIMARY KEY (upload_id, source_id)
+) WITHOUT ROWID;
 
 CREATE TABLE IF NOT EXISTS cards (
   id TEXT PRIMARY KEY,

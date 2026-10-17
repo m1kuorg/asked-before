@@ -188,9 +188,9 @@ button,
   }
 }
 
-/* Pressed: a fill one step down the ramp. */
+/* Pressed: a fill one step down the ramp. A link drawn as the primary button is pressed while hovered too, so this matches the hover rule's weight. */
 button:active,
-.button:active {
+.button:not(.secondary):active {
   border-color: var(--gray-800);
   background: var(--gray-800);
 }

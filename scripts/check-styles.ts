@@ -7,6 +7,9 @@
 // the markup and in the pixels), no radius or shadow, only the inks and the
 // one ramp, contrast, at most one plate, and no sideways scroll. A surface's
 // ticket adds its own module there, so tickets never edit the same file.
+// The app's model is a stand-in that sorts as the demo export's answer key
+// does, so a module can upload the demo export and get the key's cards,
+// with no key and no wait on the real model.
 // It prints selectors, never message text, and exits 1 on any failure.
 // Run: bun run check:styles [screenshot dir]
 
@@ -14,7 +17,9 @@ import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
+import { keySorter } from "./lib/answer-key";
 import { startApp } from "./lib/app";
+import { reply, startModelStub } from "./lib/model-stub";
 import { makeKit, type Result, type Surface } from "./lib/styles";
 
 const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-styles");
@@ -29,7 +34,8 @@ const check = (ok: boolean, what: string) => {
 };
 
 await mkdir(OUT, { recursive: true });
-const app = await startApp();
+const model = await startModelStub(reply(keySorter));
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
 const browser = await chromium.launch();
 const results: Result[] = [];
 
@@ -56,6 +62,7 @@ try {
 } finally {
   await browser.close();
   await app.stop();
+  model.stop();
 }
 
 console.log(failures.length ? `\n${failures.length} check(s) failed:\n${failures.join("\n")}` : "\nevery check passed");
