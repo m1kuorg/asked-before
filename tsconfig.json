@@ -16,5 +16,5 @@
     "noImplicitOverride": true,
     "types": ["bun"]
   },
-  "exclude": ["node_modules", ".worktrees", ".claude", ".agents", "agent"]
+  "exclude": ["node_modules", ".worktrees", ".claude", ".agents", "agent", "plugins/*/dist"]
 }
