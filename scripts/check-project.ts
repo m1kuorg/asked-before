@@ -14,7 +14,7 @@ import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, type Page } from "playwright";
-import { key, keySorter, phrasings } from "./lib/answer-key";
+import { key, keySorter, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
 import { reply, startModelStub } from "./lib/model-stub";
 
@@ -88,6 +88,12 @@ const railRows = (on: Page = page) =>
       rail: row.parentElement?.getAttribute("aria-label") ?? "",
       key: row.querySelector(".rail-key") !== null,
     })),
+  );
+
+/** The unsorted view's rows: each phrasing's words and its stamp's date. */
+const unsortedRows = (on: Page = page) =>
+  on.locator(".block table.rows tbody tr").evaluateAll((rows) =>
+    rows.map((row) => ({ text: row.querySelector(".phrasing")?.textContent ?? "", shown: row.querySelector("time")?.textContent ?? "" })),
   );
 
 let demo: Project;
@@ -190,6 +196,35 @@ try {
     const line = await text(".block h1.skill + p", east);
     check(line === `Key A: borrowed ${A.count} times, ${monthIn.format(new Date(borrows[0]!.time))} to ${monthIn.format(new Date(borrows.at(-1)!.time))}`, `its line reads "${line}"`);
   }, east);
+
+  await step("4. Unsorted lists the phrasings nothing else asks yet, word for word, newest first, a page at a time", async () => {
+    await page.goto(`${app.url}/app/projects/${demo.id}`);
+    await page.locator(".margin").getByRole("link", { name: "Unsorted phrasings" }).click();
+    await page.locator(".block table.rows").waitFor();
+    check((await text(".block h1")) === "Unsorted phrasings", `headed "${await text(".block h1")}"`);
+    check(new URL(page.url()).searchParams.get("view") === "unsorted", `at ${new URL(page.url()).search}`);
+    const rows = await unsortedRows();
+    const want = key.oneOffs.map(keyed).sort((a, b) => Date.parse(b.time) - Date.parse(a.time));
+    check(rows.length === want.length, `${rows.length} unsorted, the key has ${want.length} one-offs`);
+    check(rows.every((r, i) => r.text === want[i]?.text && r.shown === utcDate(want[i]!.time)), "each is the export's phrasing, word for word, with its stamp, newest first");
+    check((await page.locator(".margin .margin-key").count()) === key.skills.length, "the margin still keys the cards");
+    check((await page.locator(".block").getByRole("button", { name: "Show more" }).count()) === 0, "one page holds them all");
+
+    // A project with more unsorted phrasings than a page holds: phrasings of the learner's that the key sorts nowhere.
+    const scratch = await ada.client.projects.create({ name: "Scratch" });
+    const loose = Array.from({ length: 60 }, (_, i) => ({ sourceId: `loose-${i}`, text: `how do i do thing number ${i}`, time: new Date(Date.UTC(2026, 0, 1, 0, i)).toISOString() }));
+    const made = await upload(ada.client, scratch.id, loose);
+    await sortEnds(ada.client, made.id);
+    await page.goto(`${app.url}/app/projects/${scratch.id}?view=unsorted`);
+    await page.locator(".block table.rows").waitFor();
+    const first = await unsortedRows();
+    check(first.length === 50 && first[0]?.text === loose[59]!.text, `the first page holds ${first.length}, newest first`);
+    await page.locator(".block").getByRole("button", { name: "Show more" }).click();
+    await page.locator(".block table.rows tbody tr").nth(59).waitFor();
+    const all = await unsortedRows();
+    check(all.length === 60 && all.every((r, i) => r.text === loose[59 - i]!.text), `Show more adds the rest: ${all.length}`);
+    check((await page.locator(".block").getByRole("button", { name: "Show more" }).count()) === 0, "and goes once there's no more");
+  });
 } finally {
   await browser.close();
   await app.stop();
