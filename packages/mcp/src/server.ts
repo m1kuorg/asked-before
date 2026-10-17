@@ -8,7 +8,7 @@
 // is a tool error carrying Asked Before's message. Nothing goes to stdout
 // but the protocol.
 
-import { ApiError, createClient, MAX_PHRASING_LENGTH, type Card, type Project } from "@asked-before/sdk";
+import { ApiError, createClient, MAX_PHRASING_LENGTH, type Card, type CardStatus, type Project } from "@asked-before/sdk";
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { z } from "zod";
@@ -27,15 +27,20 @@ const INSTRUCTIONS = `Asked Before keeps the learner's library cards. A card is 
 
 When the learner asks you how to do something, record their question with record_question, in their own words: only what they wrote, never your answer, their code, or secrets. If it lands on a card they asked before, tell them how many times they've borrowed it and offer a cold rep. During a cold rep, show the problem as written, give no hints and no answer, and pass their answer to check_answer exactly as they wrote it.`;
 
+/** Each status in the library's words. */
+const STATUS: Record<CardStatus, string> = { borrowed: "borrowed", returned: "returned", borrowed_again: "borrowed again" };
+
+/** A card as a tool gives it: the SDK's Card, less its project's id, which the tool gives once. */
+type CardOutput = Omit<Card, "projectId">;
 const CardOut = z.object({
   id: z.string(),
   skill: z.string(),
-  status: z.enum(["borrowed", "returned", "borrowed_again"]),
+  status: z.enum(Object.keys(STATUS) as [CardStatus, ...CardStatus[]]),
   count: z.number(),
   firstBorrowAt: z.string(),
   lastBorrowAt: z.string(),
   returnedAt: z.string().nullable(),
-});
+}) satisfies z.ZodType<CardOutput>;
 const ProjectRef = z.object({ id: z.string(), name: z.string() });
 const ProjectArg = z
   .string()
@@ -44,11 +49,10 @@ const ProjectArg = z
   .describe(`The project's name or id. Leave it out for the default project${defaultProject ? `, ${defaultProject}` : ""}.`);
 
 const day = (iso: string) => iso.slice(0, 10);
-const STATUS: Record<Card["status"], string> = { borrowed: "borrowed", returned: "returned", borrowed_again: "borrowed again" };
 const times = (n: number) => (n === 1 ? "once" : `${n} times`);
 const status = (card: Card) => (card.status === "returned" ? `returned ${day(card.returnedAt!)}` : STATUS[card.status]);
 const cardLine = (card: Card) => `"${card.skill}": borrowed ${times(card.count)}, first ${day(card.firstBorrowAt)}, last ${day(card.lastBorrowAt)}; ${status(card)}. Card id ${card.id}.`;
-const cardOut = ({ id, skill, status, count, firstBorrowAt, lastBorrowAt, returnedAt }: Card) => ({ id, skill, status, count, firstBorrowAt, lastBorrowAt, returnedAt });
+const cardOut = ({ projectId, ...card }: Card): CardOutput => card;
 const projectRef = ({ id, name }: Project) => ({ id, name });
 
 /** A tool's answer: a text for the agent, and the same facts as structured content. */

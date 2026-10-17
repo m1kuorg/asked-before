@@ -11,7 +11,7 @@
 // Deleting an upload, which needs a session rather than an API key, deletes
 // its phrasings, and any card left with fewer than two borrows.
 
-import { path, type Requester } from "./http.ts";
+import { paged, path, type PageOptions, type Requester } from "./http.ts";
 import type { Phrasing, Source } from "./readers.ts";
 
 /** The most phrasings one append may carry. */
@@ -44,16 +44,8 @@ export type NewUpload = { source: Source; fileName: string };
 /** One page of a project's uploads, newest first. Pass `next` as the cursor for the page after; it's null on the last. */
 export type UploadPage = { uploads: Upload[]; next: string | null };
 
-export type UploadListOptions = { limit?: number; cursor?: string };
-
 export const uploads = (request: Requester) => ({
-  list: (projectId: string, { limit, cursor }: UploadListOptions = {}) => {
-    const query = new URLSearchParams();
-    if (limit !== undefined) query.set("limit", String(limit));
-    if (cursor !== undefined) query.set("cursor", cursor);
-    const search = query.size ? `?${query}` : "";
-    return request<UploadPage>("GET", `${path`/projects/${projectId}/uploads`}${search}`);
-  },
+  list: (projectId: string, page: PageOptions = {}) => request<UploadPage>("GET", paged(path`/projects/${projectId}/uploads`, page)),
   create: (projectId: string, input: NewUpload) => request<Upload>("POST", path`/projects/${projectId}/uploads`, input),
   get: (uploadId: string) => request<Upload>("GET", path`/uploads/${uploadId}`),
   /** Sends up to MAX_CHUNK phrasings. Only `{ sourceId, text, time }` is sent of each. */

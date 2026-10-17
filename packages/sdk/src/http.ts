@@ -47,6 +47,17 @@ export function requester({ baseUrl = "", apiKey, fetch: send = globalThis.fetch
   };
 }
 
+/** A page of a list that can grow without bound: up to `limit` items (1 to 100, 50 by default), after `cursor`, the page before's `next`. */
+export type PageOptions = { limit?: number; cursor?: string };
+
+/** A list's path with its page's query. */
+export function paged(path: string, { limit, cursor }: PageOptions): string {
+  const query = new URLSearchParams();
+  if (limit !== undefined) query.set("limit", String(limit));
+  if (cursor !== undefined) query.set("cursor", cursor);
+  return query.size ? `${path}?${query}` : path;
+}
+
 /** A path with every interpolated value encoded as one segment: path`/projects/${id}`. */
 export const path = (strings: TemplateStringsArray, ...values: string[]) =>
   String.raw({ raw: strings }, ...values.map(encodeURIComponent));
