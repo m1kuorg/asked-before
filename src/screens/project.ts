@@ -153,7 +153,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
    * keys, most borrowed first, and the privacy line. A key chooses its card;
    * outside the stack it goes there.
    */
-  function drawMargin(project: Project, cards: Card[], choose?: (card: Card, index: number) => void, { named = true } = {}): HTMLButtonElement[] {
+  function drawMargin(project: Project, cards: Card[], choose?: (card: Card, index: number) => void, { withName = true } = {}): HTMLButtonElement[] {
     const keys = cards.map((card, index) => {
       const key = button("", () => (choose ? choose(card, index) : navigate(`${projectPath(project.id)}?card=${encodeURIComponent(card.id)}`)), card.status === "returned" ? "margin-key is-returned" : "margin-key");
       const skill = el("span", undefined, card.skill);
@@ -182,7 +182,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
     const name = el("p", "project-name", project.name);
     if (project.demo) name.append(demoLabel());
     margin.replaceChildren(
-      ...(named ? [name] : []),
+      ...(withName ? [name] : []),
       ways,
       ...(keys.length ? [el("h2", undefined, "Keys, most borrowed first"), el("ol", undefined, ...keys.map((key) => el("li", undefined, key)))] : []),
       privacy,
@@ -229,7 +229,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
   /** The project's unsorted phrasings, newest first: each word for word, with its stamp. */
   function unsorted(project: Project, heading: HTMLElement, first: Paged<UnsortedPhrasing>) {
     const lede = el("p", undefined, `Your phrasings in ${project.name} that nothing else asks yet. Each waits here until a later one asks the same thing, and then they become a card.`);
-    const count = cardsPlate(project);
+    const plateOf = cardsPlate(project);
     paged(
       first,
       (cursor) => client.cards.unsorted(project.id, { limit: PAGE, cursor }).then((page) => ({ items: page.phrasings, next: page.next })),
@@ -244,7 +244,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
               ],
             })
           : emptyState("Nothing is unsorted", `Every phrasing sorted into ${project.name} so far is on a card.`);
-        block.replaceChildren(heading, lede, count, list, ...tail);
+        block.replaceChildren(heading, lede, plateOf, list, ...tail);
       },
     );
   }
@@ -337,11 +337,10 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
   function noCards(project: Project, uploads: Upload[]) {
     const heading = el("div", "heading", el("h1", undefined, project.name));
     if (project.demo) heading.append(demoLabel());
-    drawMargin(project, [], undefined, { named: false });
-    const upload = link("Upload a chat export", uploadPath(project.id), "button");
+    drawMargin(project, [], undefined, { withName: false });
     const sorting = uploads.find((u) => u.status === "waiting" || u.status === "sorting");
     const why = !uploads.length
-      ? emptyState("No cards yet", "Upload a chat export into this project, and every question you asked more than once becomes a card.", upload)
+      ? emptyState("No cards yet", "Upload a chat export into this project, and every question you asked more than once becomes a card.", link("Upload a chat export", uploadPath(project.id), "button"))
       : sorting
         ? emptyState("No cards yet", `Your upload into ${project.name} is still being sorted. Its cards show here once the sort is done.`, link("See its sort", `${uploadPath(project.id)}?upload=${encodeURIComponent(sorting.id)}`, "button"))
         : emptyState(
