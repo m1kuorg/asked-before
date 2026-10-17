@@ -1,8 +1,12 @@
 // The pages. Each HTML file in PAGES is bundled once at startup by Bun's
 // bundler, with the scripts, styles, and fonts it links, and served from
 // memory, so its answers carry the security headers like every other
-// (Bun's own HTML routes can't take headers). The demo exports are served
-// as files; the answer key and the known answers never are.
+// (Bun's own HTML routes can't take headers). The public pages are the
+// landing page, the docs, log in, and sign up; the app is one page at /app
+// that routes every path under it on the client (src/app/router.ts), and
+// sends a logged-out visitor to log in and back. A path nothing routes gets
+// the not-found page. The demo exports are served as files; the answer key
+// and the known answers never are.
 
 import { join } from "node:path";
 import type { Handler, RouteTable } from "./http";
@@ -13,10 +17,18 @@ const PUBLIC = join(ROOT, "public");
 /** Each page's path, and its HTML file under public/. */
 const PAGES: Record<string, string> = {
   "/": "index.html",
+  "/docs": "docs.html",
+  "/login": "login.html",
+  "/signup": "signup.html",
+  "/app": "app.html",
+  "/app/*": "app.html",
 };
 
+/** The page for any path nothing else routes, answered with a 404. */
+const NOT_FOUND_PAGE = "not-found.html";
+
 const build = await Bun.build({
-  entrypoints: Object.values(PAGES).map((file) => join(PUBLIC, file)),
+  entrypoints: [...new Set([...Object.values(PAGES), NOT_FOUND_PAGE])].map((file) => join(PUBLIC, file)),
   root: PUBLIC,
   publicPath: "/assets/",
 });
@@ -46,4 +58,5 @@ export const pageRoutes: RouteTable = {
 };
 
 /** The answer for a path nothing else routes. */
-export const notFound = (_req: Request) => new Response("Not found", { status: 404 });
+export const notFound = (_req: Request) =>
+  new Response(built.get(NOT_FOUND_PAGE), { status: 404, headers: { "cache-control": "no-cache" } });

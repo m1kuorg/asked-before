@@ -1,0 +1,415 @@
+/*
+  The shared parts every screen composes (src/parts/): waits and notices,
+  form fields, rows, empty states, the delete confirmation, the drop zone,
+  and code blocks. Each is drawn from the world's own marks: iron hairlines
+  open and close a list with Rule Gray between its rows; a notice is framed
+  with a 3px head rule; a well (the drop zone, a code block) is recessed proof
+  gray, like the rail's bar. No part takes vermilion.
+*/
+
+/* Waits and notices. */
+
+/* A waiting line opens with a short piece of rail, its bar still empty of keys. */
+.is-waiting {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 3rem;
+  padding-left: calc(var(--rail-width) + var(--space-4));
+  font-weight: 500;
+  cursor: progress;
+}
+
+.is-waiting::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--rail-width);
+  border-inline: var(--hairline);
+  background: var(--proof-gray);
+}
+
+/* An error is a notice: a frame with a heavy head rule, so it can't be mistaken for a disabled control. */
+.error {
+  max-width: var(--measure);
+  padding: var(--space-3) var(--space-4);
+  border: var(--hairline);
+  border-top-width: 3px;
+}
+
+.block > .error + .retry,
+.block > div:not([class]) > .error + .retry {
+  margin-top: var(--space-4);
+}
+
+/* Buttons side by side, with room for a focused one's brackets. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* Form fields: a label above a square box in body type, and a hint under it. */
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+  max-width: var(--column);
+}
+
+.field > label {
+  font: 700 var(--label-size) / 1.3 var(--face);
+}
+
+.field-hint {
+  font: 500 var(--small-label-size) / 1.45 var(--face);
+}
+
+input:not([type="file"], [type="checkbox"], [type="radio"]) {
+  appearance: none;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: var(--hairline);
+  border-radius: 0;
+  color: var(--iron-black);
+  background: var(--block-white);
+  font: 400 var(--body-size) / var(--row-leading) var(--face);
+}
+
+/* A field a failure names: its frame goes heavy, as a failed verdict's does, never red. */
+input[aria-invalid="true"] {
+  padding: calc(var(--space-3) - 2px) calc(var(--space-4) - 2px);
+  border-width: 3px;
+}
+
+/* The browser's autofill tint is held off, so a saved password doesn't bring a new ink. */
+input:autofill {
+  transition:
+    background-color 0s 600000s,
+    color 0s 600000s;
+}
+
+textarea {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 9.5rem;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: var(--hairline);
+  border-radius: 0;
+  color: var(--iron-black);
+  background: var(--block-white);
+  font: 400 var(--body-size) / var(--prose-leading) var(--face);
+  resize: vertical;
+}
+
+:is(input, textarea)::placeholder {
+  color: var(--gray-600);
+  opacity: 1;
+}
+
+/* A locked field keeps its words readable; only the frame drops to a dotted rule. */
+input:is(:disabled, :read-only):not([type="file"], [type="checkbox"], [type="radio"]) {
+  border-style: dotted;
+  border-color: var(--gray-600);
+}
+
+/* A locked answer grows to fit, up to 13 whole lines, then scrolls, so the 1080 frame never cuts a line. */
+textarea:is(:disabled, :read-only) {
+  border-style: dotted;
+  border-color: var(--gray-600);
+  field-sizing: content;
+  max-block-size: calc(13lh + var(--space-3) + 2px); /* the top padding, 13 lines, the frame: the last visible line ends on the frame */
+  overflow-y: auto;
+  resize: none;
+}
+
+:is(input, textarea):disabled {
+  color: var(--gray-600);
+}
+
+/* A form: its fields in a column, its notice, then its button. */
+.form {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-5);
+  max-width: var(--column);
+}
+
+.form > .field {
+  justify-self: stretch;
+}
+
+/* One field and its button on one line, the button seated on the field's foot. */
+.field-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-4);
+}
+
+.field-row > .field {
+  flex: 1 1 20rem;
+}
+
+.field-row > .error {
+  flex-basis: 100%;
+  max-width: var(--measure);
+}
+
+/* Rows: a list set between two iron hairlines, with Rule Gray between its rows. */
+
+.rows {
+  position: relative; /* holds its hidden labels, so a scrolled list keeps them inside */
+  width: 100%;
+  border-collapse: collapse;
+  border-block: var(--hairline);
+}
+
+.rows th {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--hairline);
+  font: 700 var(--small-label-size) / 1.3 var(--face);
+  text-align: left;
+  vertical-align: bottom;
+}
+
+.rows td {
+  padding: var(--row-pad) var(--space-4);
+  border-bottom: var(--row-rule);
+  line-height: var(--row-leading);
+  vertical-align: middle;
+}
+
+.rows tbody tr:last-child > td {
+  border-bottom: 0;
+}
+
+/* The list's words sit flush with the block's heading. */
+.rows :is(th, td):first-child {
+  padding-left: 0;
+}
+
+.rows :is(th, td):last-child {
+  padding-right: 0;
+}
+
+.rows .is-numeric {
+  text-align: right;
+}
+
+.rows .row-actions {
+  padding-block: var(--space-1);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rows .row-actions > * + * {
+  margin-left: var(--space-2);
+}
+
+/* A row's title and what stands beside it, such as a demo project's label, wrapping together. */
+.row-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+/* On a narrow screen a row stacks: its title, a line of its counts with their names, then its actions, so nothing scrolls out of reach. */
+@media (max-width: 67.5rem) {
+  .rows,
+  .rows tbody,
+  .rows td {
+    display: block;
+  }
+
+  .rows thead,
+  .rows colgroup {
+    display: none;
+  }
+
+  .rows tbody tr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-4);
+    padding: var(--row-pad) 0;
+    border-bottom: var(--row-rule);
+  }
+
+  .rows tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .rows :is(th, td),
+  .rows .row-actions {
+    padding: 0;
+    border: 0;
+  }
+
+  .rows td:first-child,
+  .rows .row-actions,
+  .rows .row-detail > td {
+    flex-basis: 100%;
+  }
+
+  .rows td.is-numeric {
+    text-align: left;
+  }
+
+  .rows td.is-numeric::before {
+    content: attr(data-label) " ";
+    font: 600 var(--small-label-size) / 1.45 var(--face);
+  }
+
+  .rows .row-actions {
+    margin-left: calc(-1 * var(--space-3));
+    text-align: left;
+  }
+
+  .rows .row-detail {
+    padding-top: 0;
+  }
+}
+
+/* A full-width row under another, such as its delete confirmation. */
+.rows .row-detail > td {
+  padding: 0 0 var(--space-4);
+}
+
+/* Empty states: a section that opens on an iron hairline, says what goes here, and leads to it. */
+
+.empty {
+  max-width: var(--measure);
+  padding-top: var(--space-4);
+  border-top: var(--hairline);
+}
+
+.empty > * + * {
+  margin-top: var(--space-3);
+}
+
+.empty > .actions {
+  margin-top: var(--space-5);
+}
+
+/* The delete confirmation: a notice, framed like an error, naming everything that goes. */
+
+.confirm {
+  max-width: var(--measure);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  border: var(--hairline);
+  border-top-width: 3px;
+  background: var(--block-white);
+}
+
+.confirm h2 {
+  margin-bottom: var(--space-2);
+  font: 800 var(--body-size) / 1.2 var(--face);
+}
+
+.confirm > .actions {
+  margin-top: var(--space-5);
+}
+
+.confirm > .error {
+  margin-top: var(--space-4);
+}
+
+/* The drop zone: a recessed well, like the rail's bar, that a file drops into. */
+
+.drop-zone {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--space-2);
+  min-block-size: 15rem;
+  padding: var(--space-6);
+  border: var(--hairline);
+  background: var(--proof-gray);
+  text-align: center;
+  cursor: pointer;
+}
+
+/* The file input is read only by assistive technology; the well is what's drawn. */
+.drop-zone > input {
+  appearance: none;
+}
+
+.drop-zone-title {
+  font: 800 var(--body-size) / 1.2 var(--face);
+}
+
+.drop-zone-choose {
+  margin-top: var(--space-3);
+  padding: 0.875rem var(--space-5);
+  border: var(--hairline);
+  background: var(--block-white);
+  font: 800 var(--label-size) / 1.2 var(--face);
+}
+
+@media (hover: hover) {
+  .drop-zone:hover .drop-zone-choose {
+    background: var(--gray-200);
+  }
+}
+
+/* A file held over the well: the well fills one ramp step down. */
+.drop-zone.is-over {
+  background: var(--gray-200);
+}
+
+.drop-zone:focus-within {
+  outline: 2px solid var(--iron-black);
+  outline-offset: 3px;
+}
+
+.drop-zone:has(input:disabled) {
+  border-style: dotted;
+  border-color: var(--gray-600);
+  color: var(--gray-600);
+  cursor: not-allowed;
+}
+
+.drop-zone-file {
+  font: 600 var(--small-label-size) / 1.45 var(--face);
+}
+
+/* Code blocks: a setup snippet in a recessed well, in the text family (the world has no monospace), with its copy button. */
+
+.code-block figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-2);
+  font: 700 var(--label-size) / 1.3 var(--face);
+}
+
+.code-block figcaption > button {
+  padding: var(--space-2) var(--space-4);
+}
+
+.code-block pre {
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  border: var(--hairline);
+  background: var(--proof-gray);
+  overflow-x: auto;
+  font: 400 var(--body-size) / var(--prose-leading) var(--face);
+  tab-size: 2;
+  white-space: pre;
+}
+
+.code-block code {
+  font: inherit;
+}

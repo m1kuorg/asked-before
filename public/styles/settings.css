@@ -1,0 +1,5 @@
+/*
+  Settings (m1kuorg/basics#48 and m1kuorg/basics#49 own this file). Scope
+  every rule under #app[data-screen="settings"], and compose the shared parts
+  (parts.css) before adding a look of its own.
+*/

@@ -1,0 +1,5 @@
+/*
+  The upload page (m1kuorg/basics#43 owns this file). Scope every rule under
+  #app[data-screen="upload"], and compose the shared parts (parts.css) before
+  adding a look of its own.
+*/
