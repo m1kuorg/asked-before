@@ -2,9 +2,10 @@
 // on the real page, logged out: the first viewport with card A's keys
 // seated, the whole page, the close's sign-up form refusing a weak password,
 // and a narrow screen. It also checks the key drop runs in date order, the
-// plate overlaps only the block's padding, every side-note sits in the
-// margin level with its section, and nothing scrolls sideways at common
-// desktop widths.
+// whole rail closes inside the 1080 frame, the plate overlaps only the
+// block's padding, every side-note sits in the margin level with its section
+// and clear of the next, nothing scrolls sideways at common desktop widths,
+// and on a narrow screen the phrasings come before the card's side-note.
 
 import type { Page } from "playwright";
 import { FRAME, type Kit } from "../lib/styles";
@@ -27,6 +28,8 @@ export default async function landing(kit: Kit) {
   check(Math.max(...drops.timings.map((t) => t.end)) <= 1000, "every key is seated within a second");
   await settle(page);
   await kit.shoot(page, "landing");
+  const foot = await page.evaluate(() => Math.max(...[...document.querySelectorAll(".rail")].map((rail) => rail.getBoundingClientRect().bottom)));
+  check(foot <= FRAME.height, `the whole rail, all nine keys and its foot, closes inside the 1080 frame (at ${foot.toFixed(0)}px)`);
 
   // Where things hang: the plate over the block's padding, each side-note in the margin, level with its section.
   const placed = await page.evaluate(() => {
@@ -83,5 +86,10 @@ export default async function landing(kit: Kit) {
   await kit.open(page, "/", ".block .rail");
   await settle(page);
   await kit.shoot(page, "landing-narrow", { fullPage: true });
+  const order = await page.evaluate(() => {
+    const rails = [...document.querySelectorAll(".landing-card > .rail")].map((rail) => rail.getBoundingClientRect().bottom);
+    return { rail: Math.max(...rails), note: document.querySelector(".landing-card > .margin")!.getBoundingClientRect().top };
+  });
+  check(order.note > order.rail, "on a narrow screen the phrasings come before the card's side-note");
   await page.setViewportSize(FRAME);
 }

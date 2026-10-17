@@ -20,12 +20,28 @@ const monthYear = new Intl.DateTimeFormat("en-US", { month: "long", year: "numer
 /** A side-note: margin notes in sentence case, beside the section that holds it. */
 const note = (...lines: string[]) => el("aside", "margin", ...lines.map((line) => el("p", undefined, line)));
 
-/** A section after the head: it opens on an iron hairline, with its heading set against the centre, its words across it, and its side-note. */
-function section(className: string, heading: string, notes: string[], ...children: Child[]): HTMLElement {
-  return el("section", `landing-section ${className}`, el("h2", undefined, heading), el("div", "landing-body", ...children), note(...notes));
+type Section = { body?: Child[]; items?: HTMLElement; after?: Child[] };
+
+/**
+ * A section after the head, set on the rail's columns. It opens on an iron
+ * hairline with its heading on the left, set against the centre, and its
+ * words on the right, level with it; then its items, each title facing its
+ * words across the centre as a phrasing faces its date; then what follows
+ * them on the right; and its side-note in the margin.
+ */
+function section(className: string, heading: string, notes: string[], { body, items, after }: Section): HTMLElement {
+  return el(
+    "section",
+    `landing-section ${className}`,
+    el("h2", undefined, heading),
+    ...(body ? [el("div", "landing-body", ...body)] : []),
+    ...(items ? [items] : []),
+    ...(after ? [el("div", "landing-after", ...after)] : []),
+    note(...notes),
+  );
 }
 
-/** Items between Rule Gray rules, each a title over its words. */
+/** Items between Rule Gray rules, each title facing its words across the centre. */
 function items<K extends "ol" | "dl">(tag: K, className: string, entries: [string, string][]): HTMLElement {
   const list = el(tag, `landing-items ${className}`);
   for (const [title, words] of entries) {
@@ -41,9 +57,15 @@ function phrasing(text: string): HTMLElement {
   return node;
 }
 
-/** One rail per year of borrows, a key on it for each, as the card stack sets them. */
+/**
+ * One rail per year of borrows, a key on it for each, as the card stack sets
+ * them. The rails sit in the card's section rather than straight in the
+ * block, so each takes the count of keys above it here, and its keys drop
+ * after theirs, in date order across the year cut.
+ */
 function rails(borrows: { text: string; at: string }[]): HTMLElement[] {
   const years = Map.groupBy(borrows, (borrow) => new Date(borrow.at).getFullYear());
+  let before = 0;
   return [...years].map(([year, rows]) => {
     const rail = el(
       "ol",
@@ -55,6 +77,8 @@ function rails(borrows: { text: string; at: string }[]): HTMLElement[] {
       }),
     );
     rail.setAttribute("aria-label", `Borrowed in ${year}`);
+    rail.style.setProperty("--before", String(before));
+    before += rows.length;
     return rail;
   });
 }
@@ -99,7 +123,7 @@ function head(): Child[] {
   ];
 }
 
-function cardHead(): HTMLElement {
+function demo(): HTMLElement {
   const first = new Date(card.borrows[0]!.at);
   const last = new Date(card.borrows.at(-1)!.at);
   const name = el("h2", "skill", card.skill);
@@ -110,6 +134,7 @@ function cardHead(): HTMLElement {
     el("div", "heading", name, demoLabel()),
     el("p", undefined, `Borrowed ${card.borrows.length} times, ${monthYear.format(first)} to ${monthYear.format(last)}`),
     plate(card.borrows.length, "times borrowed, not returned"),
+    ...rails(card.borrows),
     note(
       "The most borrowed card in the demo export, a made-up chat export that comes with Asked Before.",
       "Each phrasing is one of its messages, word for word, beside the day it was sent. Each time it was asked is a borrow, with one key on the rail.",
@@ -129,7 +154,7 @@ function steps(): HTMLElement {
       "A question you've asked only once waits as unsorted, and becomes a card when you ask it again.",
       "Upload next month's export into the same project, and the phrasings already there are skipped.",
     ],
-    items("ol", "landing-steps", [
+    { items: items("ol", "landing-steps", [
       [
         "Upload a chat export",
         "Request your data from your chatbot, then drop the export on the upload page, as its .zip or its conversations.json. Your browser reads the file and sends only your phrasings: your own messages, in your own words.",
@@ -142,7 +167,7 @@ function steps(): HTMLElement {
         "Pass a cold rep",
         "Open a card for a fresh problem of its skill, and answer it in a plain box, without AI. Pass, and the card is stamped returned. Ask the chatbot again later, and the card is borrowed again.",
       ],
-    ]),
+    ]) },
   );
 }
 
@@ -151,7 +176,7 @@ function privacy(): HTMLElement {
     "landing-privacy",
     "What leaves this computer",
     ["System and tool messages stay too. The server logs requests, never your words."],
-    el("p", "landing-statement", PRIVACY_LINE),
+    { body: [el("p", "landing-statement", PRIVACY_LINE)] },
   );
 }
 
@@ -160,35 +185,43 @@ function agents(): HTMLElement {
     "landing-agents",
     "In your coding agent",
     ["Your agent reaches your projects with an API key you make in Settings, where each agent's setup has your server address filled in."],
-    el(
-      "p",
-      undefined,
-      "Your agent can record each how-to question as you ask it. Asked Before's skill and tools tell it to send only your own words, never its answer, your code, or secrets. If the question is on a card already, the agent says how many times you've borrowed it and can run a cold rep in the chat, told to show the problem, give no hints, and pass on your answer as you wrote it.",
-    ),
-    items("dl", "landing-setups", [
-      ["Claude Code", "Install the Asked Before plugin: the MCP server, and a skill that tells the agent when to use it."],
-      ["Claude Desktop and Cursor", "Add the MCP server with a config snippet."],
-    ]),
-    link("Read the docs", "/docs", "button secondary"),
+    {
+      body: [
+        el(
+          "p",
+          undefined,
+          "Your agent can record each how-to question as you ask it. Asked Before's skill and tools tell it to send only your own words, never its answer, your code, or secrets. If the question is on a card already, the agent says how many times you've borrowed it and can run a cold rep in the chat, told to show the problem, give no hints, and pass on your answer as you wrote it.",
+        ),
+      ],
+      items: items("dl", "landing-setups", [
+        ["Claude Code", "Install the Asked Before plugin: the MCP server, and a skill that tells the agent when to use it."],
+        ["Claude Desktop and Cursor", "Add the MCP server with a config snippet."],
+      ]),
+      after: [link("Read the docs", "/docs", "button secondary")],
+    },
   );
 }
 
 function close(): HTMLElement {
   const node = section(
     "landing-close",
-    "Sign up",
+    "Keep your cards",
     ["Once you sign up, this browser stays logged in for 30 days, or until you log out."],
-    el(
-      "p",
-      undefined,
-      "An account keeps your projects, their cards, and every return stamp. Your first visit offers a demo project made from the demo export, so you can try every step before you find your own export.",
-    ),
-    signUpForm.form,
-    el("p", undefined, "Already signed up? ", link("Log in", "/login")),
+    {
+      body: [
+        el(
+          "p",
+          undefined,
+          "An account keeps your projects, their cards, and every return stamp. Your first visit offers a demo project made from the demo export, so you can try every step before you find your own export.",
+        ),
+        signUpForm.form,
+        el("p", undefined, "Already signed up? ", link("Log in", "/login")),
+      ],
+    },
   );
   node.id = "sign-up";
   return node;
 }
 
 const root = document.querySelector<HTMLElement>("#app")!;
-root.replaceChildren(el("main", "block", ...head(), cardHead(), ...rails(card.borrows), steps(), privacy(), agents(), close()));
+root.replaceChildren(el("main", "block", ...head(), demo(), steps(), privacy(), agents(), close()));
