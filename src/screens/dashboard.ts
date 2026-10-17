@@ -143,7 +143,8 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
           { label: "Last borrow", numeric: true, className: "is-date", cell: (card) => stamp(card.lastBorrowAt) },
         ],
       }),
-      link(`Take a cold rep on ${top.skill}`, cardPath(top.id), "button take-rep"),
+      // ?rep=start has the card page start the rep at once, since this action already says it takes one.
+      link(`Take a cold rep on ${top.skill}`, `${cardPath(top.id)}?rep=start`, "button take-rep"),
     ];
   }
 
