@@ -3,10 +3,11 @@
 // logs out every other browser), API keys (made and shown once, listed with
 // their prefix and their made and last-used dates, revoked after a
 // confirmation), and the setup snippets that connect an agent, with this
-// server's address filled in. m1kuorg/basics#49 adds the data export and
-// account deletion as sections of their own.
+// server's address filled in. Then your data (m1kuorg/basics#49): all of it
+// downloaded as one JSON file, and deleting the account, which takes the
+// password and then a confirmation, and logs out to the landing page.
 
-import type { Account, ApiKey, CreatedApiKey } from "@asked-before/sdk";
+import type { Account, AccountData, ApiKey, CreatedApiKey } from "@asked-before/sdk";
 import { connectSnippets, PLACEHOLDERS } from "../../packages/mcp/src/connect";
 import type { ScreenProps } from "../app/router";
 import { codeBlock } from "../parts/code-block";
@@ -22,6 +23,7 @@ export function mountSettings(root: HTMLElement, props: ScreenProps) {
   const { block } = frame(root, [
     el("p", undefined, "Your name shows in the navigation, and your email is how you log in."),
     el("p", undefined, "An API key lets a script or an agent reach your projects without your password. Make one for each, so you can revoke one alone."),
+    el("p", undefined, "Your data is yours: download all of it, or delete your account and leave nothing behind."),
   ]);
   const loggedIn = el("p", undefined, loggedInAs(props.account));
   block.append(
@@ -31,6 +33,8 @@ export function mountSettings(root: HTMLElement, props: ScreenProps) {
     password(props),
     apiKeys(props),
     agents(location.origin),
+    yourData(props),
+    deleteAccount(props),
   );
 }
 
@@ -208,5 +212,80 @@ function agents(serverUrl: string) {
     el("p", undefined, `In Claude Desktop, open Settings, then Developer, then Edit Config, and add it to claude_desktop_config.json. ${whichBun} Then restart Claude Desktop.`),
     codeBlock("Cursor", snippets.cursor),
     el("p", undefined, `Add it to ~/.cursor/mcp.json, or to .cursor/mcp.json for one project. ${whichBun}`),
+  );
+}
+
+function yourData({ client }: ScreenProps) {
+  const sent = form({
+    fields: [],
+    submit: "Download your data",
+    onSubmit: async (target) => {
+      target.querySelector(".saved")?.remove();
+      saved(target, `Downloaded ${download(await client.account.export())}.`);
+    },
+  });
+  return section(
+    "Your data",
+    el(
+      "p",
+      undefined,
+      "Download everything Asked Before keeps for you as one JSON file: your account, your projects and their uploads, every phrasing, and your cards with their lessons and cold reps. Your API keys and password aren't in it.",
+    ),
+    sent,
+  );
+}
+
+/** Saves the data as a JSON file named for today, in the learner's own time zone, and returns its name. */
+function download(data: AccountData): string {
+  const name = `asked-before-${stamp(data.exportedAt).textContent}.json`;
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+  const save = el("a");
+  save.href = url;
+  save.download = name;
+  save.click();
+  // The browser has the file once the download starts; the URL is let go well after.
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  return name;
+}
+
+/**
+ * The password, then the delete confirmation under it. The form stays
+ * locked while the confirmation asks: Keep it (or Escape) goes back to the
+ * password, and a refused delete shows on the form, marking the password.
+ */
+function deleteAccount({ client }: ScreenProps) {
+  const password = field({ label: "Your password", name: "password", type: "password", autocomplete: "current-password" });
+  const sent = form({
+    fields: [password.element],
+    submit: "Delete your account",
+    onSubmit: (target) =>
+      new Promise<void>((resolve, reject) => {
+        const confirmation = confirmDelete({
+          title: "Delete your account and everything in it?",
+          body: "Your projects, their uploads and phrasings, your cards with their lessons and cold reps, and your API keys all go, and every browser is logged out. It can't be undone.",
+          action: "Delete everything",
+          onConfirm: async () => {
+            try {
+              await client.account.delete({ password: password.input.value });
+            } catch (error) {
+              confirmation.remove();
+              reject(error);
+              return;
+            }
+            location.assign("/");
+          },
+          onCancel: () => {
+            confirmation.remove();
+            resolve();
+            password.input.focus();
+          },
+        });
+        target.after(confirmation);
+      }),
+  });
+  return section(
+    "Delete your account",
+    el("p", undefined, "Deleting your account deletes everything Asked Before keeps for you. It can't be undone, so download your data first if you want to keep it."),
+    sent,
   );
 }
