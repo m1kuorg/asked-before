@@ -264,6 +264,7 @@ Contents:
     1.  [The delete confirmation](#the-delete-confirmation)
     1.  [Wells: the drop zone and code blocks](#wells-the-drop-zone-and-code-blocks)
     1.  [The landing page](#the-landing-page)
+    1.  [The dashboard](#the-dashboard)
 1.  [Do's and Don'ts](#dos-and-donts)
     1.  [Design do's](#design-dos)
     1.  [Design don'ts](#design-donts)
@@ -454,6 +455,20 @@ The landing page sets one real card and the sections after it in the block, with
 **The Clear Notes Rule.** A side-note is placed absolutely and pushes nothing, so each must end above the next one at every desktop width, down to the 16rem margin at 1440. Side-notes about to collide where the margin narrows to 16rem at 1440 were the mistake.
 
 **The Phrasings First Rule.** On a narrow screen the card's phrasings come before its side-note. A narrow card that put its explanation before its phrasings was the mistake.
+
+### The dashboard
+
+The dashboard sets what's still borrowed in the block, the latest borrows on the rail, and the latest returns in rows, with the totals in the margin.
+
+- **The ledger:** under "Your cards" in apparatus capitals, the margin counts your cards as hairline rows at the 18px label size: Borrowed, Borrowed again, and Returned, each word left and its count right at weight 800 in tabular figures, with Rule Gray between rows. All cards closes it under an iron hairline at weight 800, as a sum is ruled off. Margin notes under it name the projects counted and what borrowed, returned, and borrowed again mean; when the latest borrows span more than one year, a note says "A cut in the rail marks where the year turns."
+- **Still borrowed:** the heading at display size, a one-line lede, and the plate's count of cards not returned hanging over the block's right edge. The cards follow in rows, most borrowed first: the skill, its project with the demo-data label, borrows, and the last borrow's date. A card borrowed again says "Borrowed again" under its skill at weight 500, in words and no new ink. The section closes 32px below its rows with "Take a cold rep on <skill>", a link drawn as the primary button, for the top card.
+- **Latest borrows:** 40px below, under a 20px weight 800 heading and a lede, the rail, newest first, so its keys are already seated and don't drop. Your phrasing sits on the left in italic; on the right the stamp, then the card's skill as a link at weight 400, wrapping in its own column. On a narrow screen the skill goes under the stamp, at the text's whole width.
+- **Latest returns:** 40px below, in rows: the skill, its project, and the day it was returned. A returned card's skill is struck through by the 2px iron line its margin key carries; a card borrowed again since isn't struck, and says "Borrowed again <date>" under its skill.
+- **Empty states:** the same heading over a plate of 0. With no projects, "No cards yet" offers "Try the demo project", then a field, "Or name your first project", that shares a line with an outlined "Upload a chat export" and goes to that project's upload. With projects but no cards, "No cards yet" leads to them with "Go to your projects". When no card is still borrowed, "Every card is returned" takes the rows' place; when none is returned yet, Latest returns keeps its heading over one line on how a card gets stamped.
+
+**The Narrow Stamp Rule.** On a narrow screen a rail row's stamp and skill stack in one column, so the skill keeps the text's whole width. A right cell that kept its two columns on a narrow screen and squeezed a skill to four lines was the mistake.
+
+**The Whole Status Rule.** A status line under a skill finishes its thought, with its date. A returned card borrowed again that said only "Borrowed again since", ending mid-thought, was the mistake.
 
 ## Do's and Don'ts
 
