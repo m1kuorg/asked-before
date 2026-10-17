@@ -90,7 +90,7 @@
   padding-bottom: 0;
 }
 
-/* Pairs: a term on the left of the rail's columns, its words on the right, with Rule Gray between. */
+/* Pairs: a term set against the centre, as a phrasing sits against the rail, and its words across it, with Rule Gray between. */
 
 .landing-pairs {
   padding: 0;
@@ -112,6 +112,8 @@
   grid-column: 1;
   margin: 0;
   font: 800 var(--body-size) / 1.2 var(--face);
+  text-align: right;
+  text-wrap: balance;
 }
 
 .landing-pairs > * > :last-child {
@@ -178,6 +180,7 @@
 
   #app[data-screen="landing"] :is(.landing-lede, .landing-pairs > *, .landing-columns) > * {
     grid-column: 1;
+    text-align: left;
   }
 
   .landing-columns::before {
