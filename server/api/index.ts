@@ -1,7 +1,7 @@
 // The public API's route table, version 1, composed here and only here.
 // Each area of the spec's API table is its own module, built by its own
-// ticket; an area whose ticket hasn't landed answers 501. Anything else
-// under /api/, a path or a method, falls through to server.ts's 404.
+// ticket. Anything else under /api/, a path or a method, falls through to
+// server.ts's 404.
 
 import type { RouteTable } from "../http";
 import { account } from "./account";

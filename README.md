@@ -46,11 +46,15 @@ bun run check:card-page    # a card's page and its cold rep in a browser: card A
 bun run check:sort         # sorts the demo export three ways and compares the cards with the answer key
 bun run check:sort-rules   # the sort's rules and the cards endpoints, with the model stubbed
 bun run check:sort-page    # the upload page's sort progress, failure, retry, and daily cap, with the model stubbed
+bun run check:captures     # captures' rules through the SDK, with the model stubbed
+bun run check:capture-sort # where captures land with the real model: rephrasings of the demo skills, and questions none of them ask
+bun run check:mcp          # the MCP server over stdio with the official client, a real key, and the real model
 ```
 
 - `check:accounts`, `check:shell`, and `check:styles` start their own copy of the app on a free port, and need no key. `check:styles` needs Chromium.
 - `check:reps` and `check:card-page` start their own copy of the app too, and need the key: `check:reps` makes 10 model calls in a minute or two, and `check:card-page` 4. `check:rep-rules` stubs the model in the script, so it needs no key.
 - `check:sort` starts its own copies of the app too, and needs the key: each run makes 6 model calls in about 10 seconds. Add a number, as in `bun run check:sort 10`, for that many runs (1 if you don't). `check:sort-rules` and `check:sort-page` stub the model in the script, so they need no key.
+- `check:mcp` and `check:capture-sort` start their own copy of the app too, and need the key: `check:mcp` makes 4 model calls in under a minute, and each run of `check:capture-sort` 20. Add a number, as in `bun run check:capture-sort 3`, for that many runs. `check:captures` stubs the model in the script, so it needs no key.
 
 ## Disclosures
 
