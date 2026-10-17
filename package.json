@@ -23,7 +23,8 @@
     "check:reps": "bun run scripts/check-reps.ts",
     "check:rep-rules": "bun run scripts/check-rep-rules.ts",
     "check:card-page": "bun run scripts/check-card-page.ts",
-    "check:captures": "bun run scripts/check-captures.ts"
+    "check:captures": "bun run scripts/check-captures.ts",
+    "check:mcp": "bun run scripts/check-mcp.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
