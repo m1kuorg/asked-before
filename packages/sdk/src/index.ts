@@ -6,6 +6,7 @@
 export { createClient, type Client } from "./client";
 export { ApiError, type ClientOptions } from "./http";
 export { ExportError, MAX_PHRASING_LENGTH, readExport, type Phrasing, type ReadExport, type Source } from "./readers";
+export { MAX_CHUNK } from "./uploads";
 
 export type * from "./account";
 export type * from "./auth";
