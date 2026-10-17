@@ -5,8 +5,10 @@
 // line, before anything is sent. Uploading sends only the phrasings, in
 // chunks, with the progress on the waiting line; a failed chunk shows the
 // error and a retry that carries on with the same upload. A finished upload
-// is shown from the query, ?upload=<id>, waiting to be sorted (the sort is
-// m1kuorg/basics#44's).
+// is shown from the query, ?upload=<id>, and watched while it waits and is
+// sorted (m1kuorg/basics#44): the waiting line counts the phrasings sorted
+// so far, and a sort that fails shows its error and a retry, which carries
+// on from where it stopped.
 //
 // The demo action, startDemoProject(), makes a project flagged demo and
 // comes here with ?export=demo, which reads the demo export with the same
@@ -21,6 +23,8 @@ import { demoLabel, privacyLine } from "../parts/library";
 
 const SOURCES = { chatgpt: "ChatGPT", claude: "Claude" } as const;
 const DEMO_EXPORT = "/demo/export.json";
+/** How often a sort's progress is asked for while it runs. */
+const WATCH_MS = 1000;
 
 const count = (n: number) => n.toLocaleString("en-US");
 const plural = (n: number, one: string, many: string) => `${count(n)} ${n === 1 ? one : many}`;
@@ -146,8 +150,14 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
         void attempt();
       }
 
-      /** A finished upload: how many of its messages were new, and where it stands. */
+      /** A finished upload: where its sort stands, watched until it ends. */
       function done(upload: Upload) {
+        show(upload, ...standing(upload));
+        if (upload.status === "waiting" || upload.status === "sorting") setTimeout(() => void watch(upload), WATCH_MS);
+      }
+
+      /** A finished upload, how many of its messages were new, and then `lines`. */
+      function show(upload: Upload, ...lines: Node[]) {
         const already = upload.messages - upload.phrasings;
         const said =
           upload.phrasings > 0
@@ -157,26 +167,50 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
               : `All ${count(upload.messages)} of your messages in ${upload.fileName} were in ${project.name} already, so nothing new was added.`;
         draw(
           plate(count(upload.phrasings), upload.phrasings === 1 ? "new phrasing" : "new phrasings"),
-          el("section", "upload-done", el("p", undefined, said), el("p", undefined, standing(upload))),
+          el("section", "upload-done", el("p", undefined, said), ...lines),
           el("div", "actions", link(`Go to ${project.name}`, projectPath(project.id), "button"), link("Upload another export", uploadPath(project.id), "button secondary")),
         );
+      }
+
+      /** Where an upload stands, in the library's words. */
+      function standing(upload: Upload): Node[] {
+        const one = upload.phrasings === 1;
+        switch (upload.status) {
+          case "receiving":
+            return [el("p", undefined, "This upload stopped before all its messages arrived. Upload the export again: nothing already sent is counted twice.")];
+          case "waiting":
+            return [upload.phrasings === 0 ? el("p", undefined, "There's nothing new to sort.") : waiting(`${one ? "It waits" : "They wait"} to be sorted into ${project.name}'s cards…`)];
+          case "sorting":
+            return [waiting(`Sorting ${one ? "it" : "them"} into ${project.name}'s cards: ${count(upload.offered)} of ${count(upload.phrasings)} sorted…`)];
+          case "sorted":
+            return [el("p", undefined, upload.phrasings === 0 ? "There was nothing new to sort." : `${one ? "It's" : "They're"} sorted into ${project.name}'s cards.`)];
+          case "failed": {
+            const lines: Node[] = [notice(upload.error ?? "The sort failed.")];
+            if (upload.offered > 0) lines.push(el("p", undefined, `${count(upload.offered)} of ${count(upload.phrasings)} were sorted before it stopped. Trying again carries on from there.`));
+            return [...lines, button("Try again", () => void retry(upload), "retry")];
+          }
+        }
+      }
+
+      /** Asks where the sort stands now; a failed ask shows its error and a retry that watches again. */
+      async function watch(upload: Upload) {
+        if (signal.aborted) return;
+        try {
+          done(await client.uploads.get(upload.id));
+        } catch (error) {
+          show(upload, ...failure(error, () => void watch(upload)));
+        }
+      }
+
+      async function retry(upload: Upload) {
+        show(upload, waiting("Starting the sort again…"));
+        try {
+          done(await client.uploads.retry(upload.id));
+        } catch (error) {
+          show(upload, ...failure(error, () => void retry(upload)));
+        }
       }
     },
   });
 }
 
-/** Where an upload stands, in the library's words. */
-function standing(upload: Upload): string {
-  switch (upload.status) {
-    case "receiving":
-      return "This upload stopped before all its messages arrived. Upload the export again: nothing already sent is counted twice.";
-    case "waiting":
-      return upload.phrasings === 0 ? "There's nothing new to sort." : `${upload.phrasings === 1 ? "It waits" : "They wait"} to be sorted into the project's cards.`;
-    case "sorting":
-      return "They're being sorted into the project's cards…";
-    case "sorted":
-      return "They're sorted into the project's cards.";
-    case "failed":
-      return `The sort failed: ${upload.error ?? "no reason was given."}`;
-  }
-}

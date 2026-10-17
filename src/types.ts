@@ -16,7 +16,6 @@ export type Card = {
   borrows: Borrow[];
 };
 
-export type GroupRequest = { messages: { id: string; text: string }[] };
 export type GroupResponse = { skills: { name: string; messageIds: string[] }[] };
 export type RepRequest = {
   skill: string;
