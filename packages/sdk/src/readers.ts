@@ -272,7 +272,10 @@ async function directory(zip: Blob): Promise<Entry[]> {
       if (d.getUint16(e, true) !== 0x0001) continue;
       let p = e + 4;
       if (uncompressed === 0xffffffff) p += 8;
-      if (entry.size === 0xffffffff) (entry.size = Number(d.getBigUint64(p, true))), (p += 8);
+      if (entry.size === 0xffffffff) {
+        entry.size = Number(d.getBigUint64(p, true));
+        p += 8;
+      }
       if (entry.offset === 0xffffffff) entry.offset = Number(d.getBigUint64(p, true));
     }
     entries.push(entry);
