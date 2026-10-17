@@ -28,7 +28,13 @@ export const MAX_SKILL_NAME = 60;
 const MAX_TEXT = 300;
 /** A batch's first request, and the two asked again when its answer fails a check. */
 const TRIES = 3;
-/** Tuned on the demo export with `bun run check:sort` (m1kuorg/basics#44). */
+/**
+ * Tuned with `bun run check:sort` (m1kuorg/basics#44): low, medium, and
+ * high all matched the demo export's answer key in 30 of 30 runs, so a
+ * larger labeled history decided it. There, low found clearly fewer of the
+ * phrasings that ask the same thing, and high found no more than medium in
+ * twice the time and tokens. Captures (m1kuorg/basics#50) go lower.
+ */
 export const SORT_EFFORT: Effort = "medium";
 
 const Answer = z.object({
