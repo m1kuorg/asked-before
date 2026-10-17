@@ -6,8 +6,9 @@
 // ends every other session. Then, in a real browser at 1920×1080, the
 // settings page: a key made there and used by the SDK, then revoked there;
 // the name; the password, logging out another browser; and the setup
-// snippets carrying this server's address. It prints each step's checks,
-// never a key, saves screenshots, and exits 1 if any fails, naming the step.
+// snippets carrying this server's address, the Claude Code plugin first. It
+// prints each step's checks, never a key, saves screenshots, and exits 1 if
+// any fails, naming the step.
 // Run: bun run check:settings [screenshot dir]
 
 import { ApiError, createClient } from "@asked-before/sdk";
@@ -330,9 +331,10 @@ try {
     await agents.waitFor();
     const blocks = agents.locator(".code-block");
     const captions = (await blocks.locator("figcaption > span").allTextContents()).map((text) => text.trim());
-    check(JSON.stringify(captions) === JSON.stringify(["Claude Code", "Claude Desktop", "Cursor"]), `a snippet for each agent: ${captions.join(", ")}`);
-    const [claudeCode, desktop, cursor] = (await blocks.locator("code").allTextContents()).map((text) => text.trim());
-    check((claudeCode ?? "").startsWith("claude mcp add") && (claudeCode ?? "").includes(`ASKED_BEFORE_URL=${app.url}`), "Claude Code's command names this server");
+    check(JSON.stringify(captions) === JSON.stringify(["Claude Code plugin", "Claude Code without the plugin", "Claude Desktop", "Cursor"]), `a snippet for each agent, the plugin first: ${captions.join(", ")}`);
+    const [plugin, claudeCode, desktop, cursor] = (await blocks.locator("code").allTextContents()).map((text) => text.trim());
+    check((plugin ?? "").startsWith("claude plugin marketplace add") && (plugin ?? "").includes(`server_url=${app.url}`), "the plugin's install names this server");
+    check((claudeCode ?? "").startsWith("claude mcp add") && (claudeCode ?? "").includes(`ASKED_BEFORE_URL=${app.url}`), "Claude Code's command from a copy names this server");
     for (const [what, snippet] of [["Claude Desktop", desktop], ["Cursor", cursor]] as const) {
       const server = (JSON.parse(snippet ?? "{}") as { mcpServers?: Record<string, { env?: Record<string, string> }> }).mcpServers?.["asked-before"];
       check(server?.env?.ASKED_BEFORE_URL === app.url, `${what}'s config is JSON naming this server: ${server?.env?.ASKED_BEFORE_URL}`);
