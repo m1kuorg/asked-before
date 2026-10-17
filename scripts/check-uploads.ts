@@ -7,7 +7,7 @@
 // so no sort reaches the real model. Uploading the same export again into
 // the project stores nothing new; into another project it stores it all. A
 // phrasing over 2,000 characters, or a chunk over 2,000 phrasings, gets 413;
-// one dated more than a day ahead gets 400, as does anything but
+// one dated more than 5 minutes after the server's clock gets 400, as does anything but
 // { sourceId, text, time }. Another account's upload is a 404, an API key
 // can upload as a session can, an upload left unfinished strands none of
 // its phrasings when the export is uploaded again, and the logs never hold
@@ -58,7 +58,7 @@ const counts = (u: Upload) => `${u.status}, ${u.messages} messages, ${u.phrasing
 const ada = app.browser();
 const bea = app.browser();
 const demo = await readExport(Bun.file(join(import.meta.dir, "..", "demo", "export.json")));
-const HOUR = 60 * 60 * 1000;
+const MINUTE = 60 * 1000;
 const at = (ms: number) => new Date(ms).toISOString();
 const phrasing = (sourceId: string, text = "how do i undo my last git commit", time = "2026-01-02T03:04:05.000Z"): Phrasing => ({ sourceId, text, time });
 
@@ -132,12 +132,12 @@ try {
     check(full.phrasings === 2001, `a chunk of 2,000 is stored: ${counts(full)}`);
   });
 
-  await step("6. A phrasing dated more than a day ahead, or shaped otherwise, gets 400", async () => {
+  await step("6. A phrasing dated more than 5 minutes after the server's clock, or shaped otherwise, gets 400", async () => {
     const open = await ada.client.uploads.create(work.id, { source: "chatgpt", fileName: "conversations.json" });
-    const ahead = await failure(ada.client.uploads.append(open.id, [phrasing("ahead-1", "a question", at(Date.now() + 25 * HOUR))]));
-    check(ahead?.status === 400, `25 hours ahead: ${say(ahead)}`);
-    const soon = await ada.client.uploads.append(open.id, [phrasing("ahead-2", "a question", at(Date.now() + 23 * HOUR))]);
-    check(soon.phrasings === 1, `23 hours ahead is stored (a clock can run fast): ${counts(soon)}`);
+    const ahead = await failure(ada.client.uploads.append(open.id, [phrasing("ahead-1", "a question", at(Date.now() + 6 * MINUTE))]));
+    check(ahead?.status === 400, `6 minutes ahead: ${say(ahead)}`);
+    const soon = await ada.client.uploads.append(open.id, [phrasing("ahead-2", "a question", at(Date.now() + 4 * MINUTE))]);
+    check(soon.phrasings === 1, `4 minutes ahead is stored (a clock can run a little fast): ${counts(soon)}`);
     const send = (body: unknown) => fetch(`${app.url}/api/v1/uploads/${open.id}/phrasings`, {
       method: "POST",
       headers: { "content-type": "application/json", origin: app.url, cookie: ada.cookie() },

@@ -246,7 +246,7 @@ function api(): Section {
       p(
         "A phrasing is sent as { sourceId, text, time } and nothing else: the export's own message id, your words, and when you sent them. It has at most ",
         n(MAX_PHRASING_LENGTH),
-        " characters, and a time more than a day ahead is a 400. A card's status is ",
+        " characters, and a time more than 5 minutes after the server's clock is a 400. A card's status is ",
         code("borrowed"),
         ", ",
         code("returned"),
