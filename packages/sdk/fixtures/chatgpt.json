@@ -1,0 +1,487 @@
+[
+  {
+    "title": "Rerun failed jest tests",
+    "create_time": 1760000000.5,
+    "update_time": 1760000300,
+    "mapping": {
+      "g1-root": {
+        "id": "g1-root",
+        "message": null,
+        "parent": null,
+        "children": [
+          "g1-system"
+        ]
+      },
+      "g1-system": {
+        "id": "g1-system",
+        "message": {
+          "id": "g1-system",
+          "author": {
+            "role": "system",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              ""
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true
+          },
+          "recipient": "all"
+        },
+        "parent": "g1-root",
+        "children": [
+          "g1-instructions"
+        ]
+      },
+      "g1-instructions": {
+        "id": "g1-instructions",
+        "message": {
+          "id": "g1-instructions",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "user_editable_context",
+            "user_profile": "I'm learning to code.",
+            "user_instructions": "Be brief."
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {
+            "is_visually_hidden_from_conversation": true,
+            "is_user_system_message": true
+          },
+          "recipient": "all"
+        },
+        "parent": "g1-system",
+        "children": [
+          "g1-ask"
+        ]
+      },
+      "g1-ask": {
+        "id": "g1-ask",
+        "message": {
+          "id": "g1-ask",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760000010.25,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "how do i rerun only the failed tests in jest"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g1-instructions",
+        "children": [
+          "g1-answer"
+        ]
+      },
+      "g1-answer": {
+        "id": "g1-answer",
+        "message": {
+          "id": "g1-answer",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760000012,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Run `jest --onlyFailures`."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g1-ask",
+        "children": [
+          "g1-edited-away",
+          "g1-follow-up"
+        ]
+      },
+      "g1-edited-away": {
+        "id": "g1-edited-away",
+        "message": {
+          "id": "g1-edited-away",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760000100,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "the abandoned branch's question"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g1-answer",
+        "children": [
+          "g1-edited-answer"
+        ]
+      },
+      "g1-edited-answer": {
+        "id": "g1-edited-answer",
+        "message": {
+          "id": "g1-edited-answer",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760000101,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "An answer on the abandoned branch."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g1-edited-away",
+        "children": []
+      },
+      "g1-follow-up": {
+        "id": "g1-follow-up",
+        "message": {
+          "id": "g1-follow-up",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760000200,
+          "update_time": null,
+          "content": {
+            "content_type": "multimodal_text",
+            "parts": [
+              {
+                "content_type": "image_asset_pointer",
+                "asset_pointer": "sediment://file_screenshot"
+              },
+              "why does this screenshot show a timeout"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g1-answer",
+        "children": [
+          "g1-code"
+        ]
+      },
+      "g1-code": {
+        "id": "g1-code",
+        "message": {
+          "id": "g1-code",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760000201,
+          "update_time": null,
+          "content": {
+            "content_type": "code",
+            "text": "print(open('log').read())"
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "python"
+        },
+        "parent": "g1-follow-up",
+        "children": [
+          "g1-tool"
+        ]
+      },
+      "g1-tool": {
+        "id": "g1-tool",
+        "message": {
+          "id": "g1-tool",
+          "author": {
+            "role": "tool",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760000202,
+          "update_time": null,
+          "content": {
+            "content_type": "execution_output",
+            "text": "Timeout after 5000 ms"
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g1-code",
+        "children": [
+          "g1-final"
+        ]
+      },
+      "g1-final": {
+        "id": "g1-final",
+        "message": {
+          "id": "g1-final",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760000203,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "The test waits on a promise that never settles."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g1-tool",
+        "children": []
+      }
+    },
+    "moderation_results": [],
+    "current_node": "g1-final",
+    "conversation_id": "g1",
+    "id": "g1",
+    "default_model_slug": "gpt-5"
+  },
+  {
+    "title": "A pasted log",
+    "create_time": 1760100000,
+    "update_time": 1760100400,
+    "mapping": {
+      "g2-root": {
+        "id": "g2-root",
+        "message": null,
+        "parent": null,
+        "children": [
+          "g2-paste"
+        ]
+      },
+      "g2-paste": {
+        "id": "g2-paste",
+        "message": {
+          "id": "g2-paste",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760100005,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "FAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nFAIL src/cart.test.ts\nxxxxxxxxxxxxxxxxxxxxx"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g2-root",
+        "children": [
+          "g2-paste-answer"
+        ]
+      },
+      "g2-paste-answer": {
+        "id": "g2-paste-answer",
+        "message": {
+          "id": "g2-paste-answer",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760100006,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Three tests time out."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g2-paste",
+        "children": [
+          "g2-ask"
+        ]
+      },
+      "g2-ask": {
+        "id": "g2-ask",
+        "message": {
+          "id": "g2-ask",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": null,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "how do I re-run just the failing jest tests"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g2-paste-answer",
+        "children": [
+          "g2-ask-answer"
+        ]
+      },
+      "g2-ask-answer": {
+        "id": "g2-ask-answer",
+        "message": {
+          "id": "g2-ask-answer",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760100010,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "`jest --onlyFailures` again."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g2-ask",
+        "children": [
+          "g2-long"
+        ]
+      },
+      "g2-long": {
+        "id": "g2-long",
+        "message": {
+          "id": "g2-long",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760100300,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "how do i read this stack trace aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g2-ask-answer",
+        "children": [
+          "g2-long-answer"
+        ]
+      },
+      "g2-long-answer": {
+        "id": "g2-long-answer",
+        "message": {
+          "id": "g2-long-answer",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760100301,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Read it from the top frame down."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g2-long",
+        "children": []
+      }
+    },
+    "current_node": "g2-long-answer",
+    "conversation_id": "g2",
+    "id": "g2"
+  }
+]
