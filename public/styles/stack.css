@@ -268,6 +268,29 @@
     font: 800 var(--body-size) / 1.2 var(--face);
   }
 
+  /* The way to the project's views, as margin notes; the view on screen is set heavier, without its underline. */
+  .project-views {
+    display: grid;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
+    font-weight: 600;
+  }
+
+  .project-views [aria-current="page"] {
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  /* A list's phrasings are set in the italic, as on the rail. */
+  .rows .phrasing {
+    font-style: italic;
+  }
+
+  .rows col.is-date {
+    width: 10rem;
+  }
+
   /* A key borrowed again says so under its skill, in the margin's note type, never struck. */
   .margin-key .key-status {
     display: block;

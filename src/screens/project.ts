@@ -11,17 +11,29 @@
 // margin key is struck through, and its rail closes with an end rule dated
 // the day it was stamped returned, its keys already seated; a card borrowed
 // again says so under its key and its rail, and its keys drop again.
+//
+// The project's other views live in the query, and the margin leads to
+// them: ?view=unsorted lists the phrasings nothing else asks yet, newest
+// first, a page at a time.
 
-import type { Card, CardDetail, CardStatus, Project } from "@asked-before/sdk";
+import type { Card, CardDetail, CardStatus, Project, UnsortedPhrasing } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
 import { button, el, link, type Child } from "../parts/dom";
 import { emptyState } from "../parts/empty";
-import { failure, frame, load, plate } from "../parts/frame";
+import { failure, frame, load, plate, waiting } from "../parts/frame";
 import { demoLabel, privacyLine, stamp } from "../parts/library";
+import { rows } from "../parts/rows";
 
 const projectPath = (projectId: string) => `/app/projects/${encodeURIComponent(projectId)}`;
 const uploadPath = (projectId: string) => `${projectPath(projectId)}/upload`;
 const cardPath = (cardId: string) => `/app/cards/${encodeURIComponent(cardId)}`;
+
+type View = "cards" | "unsorted";
+/** How many rows of a list one page brings. */
+const PAGE = 50;
+
+/** A page of a list, and the cursor for the page after, or null on the last. */
+type Paged<T> = { items: T[]; next: string | null };
 
 /** What the plate's count is, after the card's status. */
 const PLATE_CAPTION: Record<CardStatus, string> = {
@@ -67,32 +79,148 @@ function rails(borrows: CardDetail["borrows"]): HTMLElement[] {
   });
 }
 
-export function mountProject(root: HTMLElement, { client, params, query, signal }: ScreenProps<"projectId">) {
+export function mountProject(root: HTMLElement, { client, params, query, navigate, signal }: ScreenProps<"projectId">) {
   const { margin, block } = frame(root);
+  const projectId = params.projectId;
+  const view: View = query.get("view") === "unsorted" ? "unsorted" : "cards";
   const yearCut = el("p", undefined, "A cut in the rail marks a new year of asking.");
   const privacy = privacyLine();
+  const base = () => Promise.all([client.projects.get(projectId), client.cards.list(projectId)]);
+  const named = (project: Project) => (document.title = `${project.name} · Asked Before`);
+
+  if (view === "unsorted") {
+    const heading = el("h1", undefined, "Unsorted phrasings");
+    load(block, {
+      keep: [heading],
+      line: "Finding the unsorted phrasings…",
+      request: () => Promise.all([base(), client.cards.unsorted(projectId, { limit: PAGE })]),
+      signal,
+      show: ([[project, cards], first]) => {
+        named(project);
+        drawMargin(project, cards);
+        unsorted(project, heading, { items: first.phrasings, next: first.next });
+      },
+    });
+    return;
+  }
 
   load(block, {
     keep: [el("h1", undefined, "Project")],
     line: "Finding the project's cards…",
     request: async () => {
-      const [project, cards] = await Promise.all([client.projects.get(params.projectId), client.cards.list(params.projectId)]);
+      const [project, cards] = await base();
       const chosen = cards.find((card) => card.id === query.get("card")) ?? cards[0];
       return { project, cards, chosen: chosen && (await client.cards.get(chosen.id)) };
     },
     signal,
     show: ({ project, cards, chosen }) => {
-      document.title = `${project.name} · Asked Before`;
+      named(project);
       if (!chosen) return noCards(project);
       stack(project, cards, chosen);
     },
   });
 
+  /**
+   * The margin every view shares: the project's name and demo-data label
+   * (unless the block's heading carries them), the way to its views, its
+   * keys, most borrowed first, and the privacy line. A key chooses its card;
+   * outside the stack it goes there.
+   */
+  function drawMargin(project: Project, cards: Card[], choose?: (card: Card, index: number) => void, { named = true } = {}): HTMLButtonElement[] {
+    const keys = cards.map((card, index) => {
+      const key = button("", () => (choose ? choose(card, index) : navigate(`${projectPath(project.id)}?card=${encodeURIComponent(card.id)}`)), card.status === "returned" ? "margin-key is-returned" : "margin-key");
+      const skill = el("span", undefined, card.skill);
+      // The strike is read by no one, so a returned key also says so in words; a key borrowed again says it under its skill.
+      if (card.status === "returned") skill.append(el("span", "visually-hidden", ", returned"));
+      if (card.status === "borrowed_again") skill.append(" ", el("span", "key-status", "Borrowed again"));
+      key.append(el("b", undefined, keyLetter(index)), " ", skill, " ", el("span", undefined, String(card.count)));
+      return key;
+    });
+    const views: [string, string, boolean][] = [
+      ["Cards", projectPath(project.id), view === "cards"],
+      ["Unsorted phrasings", `${projectPath(project.id)}?view=unsorted`, view === "unsorted"],
+      ["Upload a chat export", uploadPath(project.id), false],
+    ];
+    const ways = el(
+      "ul",
+      "project-views",
+      ...views.map(([text, href, here]) => {
+        const way = link(text, href);
+        if (here) way.setAttribute("aria-current", "page");
+        return el("li", undefined, way);
+      }),
+    );
+    ways.setAttribute("aria-label", `In ${project.name}`);
+    const name = el("p", "project-name", project.name);
+    if (project.demo) name.append(demoLabel());
+    margin.replaceChildren(
+      ...(named ? [name] : []),
+      ways,
+      ...(keys.length ? [el("h2", undefined, "Keys, most borrowed first"), el("ol", undefined, ...keys.map((key) => el("li", undefined, key)))] : []),
+      privacy,
+    );
+    return keys;
+  }
+
+  /** The plate outside the stack: the project's count of cards. */
+  function cardsPlate(project: Project) {
+    return plate(project.counts.cards, project.counts.cards === 1 ? "card" : "cards");
+  }
+
+  /**
+   * A list a page at a time: `draw` sets the items so far, then `tail`,
+   * which is "Show more" while there's a page after. Show more fetches it
+   * with `after`; a failure shows its error and a retry in its place.
+   */
+  function paged<T>(first: Paged<T>, after: (cursor: string) => Promise<Paged<T>>, draw: (items: T[], tail: Node[]) => void): void {
+    const items = [...first.items];
+    let next = first.next;
+    const redraw = (tail: Node[]) => !signal.aborted && draw(items, tail);
+    const more = () => (next ? [button("Show more", () => void fetchMore(), "secondary")] : []);
+    async function fetchMore() {
+      redraw([waiting("Finding more…")]);
+      try {
+        const page = await after(next!);
+        items.push(...page.items);
+        next = page.next;
+        const tail = more();
+        redraw(tail);
+        tail[0]?.focus();
+      } catch (error) {
+        redraw(failure(error, () => void fetchMore()));
+      }
+    }
+    redraw(more());
+  }
+
+  /** The project's unsorted phrasings, newest first: each word for word, with its stamp. */
+  function unsorted(project: Project, heading: HTMLElement, first: Paged<UnsortedPhrasing>) {
+    const lede = el("p", undefined, `Your phrasings in ${project.name} that nothing else asks yet. Each waits here until a later one asks the same thing, and then they become a card.`);
+    const count = cardsPlate(project);
+    paged(
+      first,
+      (cursor) => client.cards.unsorted(project.id, { limit: PAGE, cursor }).then((page) => ({ items: page.phrasings, next: page.next })),
+      (items, tail) => {
+        const list = items.length
+          ? rows({
+              caption: `Unsorted phrasings in ${project.name}, newest first`,
+              items,
+              columns: [
+                { label: "Phrasing", cell: (p) => phrasing(p.text) },
+                { label: "Sent", numeric: true, className: "is-date", cell: (p) => stamp(p.time) },
+              ],
+            })
+          : emptyState("Nothing is unsorted", `Every phrasing sorted into ${project.name} so far is on a card.`);
+        block.replaceChildren(heading, lede, count, list, ...tail);
+      },
+    );
+  }
+
   /** A project with no cards yet: its name heads the block, over a plate of none. */
   function noCards(project: Project) {
     const heading = el("div", "heading", el("h1", undefined, project.name));
     if (project.demo) heading.append(demoLabel());
-    margin.replaceChildren(privacy);
+    drawMargin(project, [], undefined, { named: false });
     block.replaceChildren(
       heading,
       plate(0, "cards"),
@@ -108,20 +236,7 @@ export function mountProject(root: HTMLElement, { client, params, query, signal 
   function stack(project: Project, cards: Card[], first: CardDetail) {
     const details = new Map<string, CardDetail>([[first.id, first]]);
     let chosen = first.id;
-
-    const keys = cards.map((card, index) => {
-      const key = button("", () => void choose(card, index), card.status === "returned" ? "margin-key is-returned" : "margin-key");
-      const skill = el("span", undefined, card.skill);
-      // The strike is read by no one, so a returned key also says so in words; a key borrowed again says it under its skill.
-      if (card.status === "returned") skill.append(el("span", "visually-hidden", ", returned"));
-      if (card.status === "borrowed_again") skill.append(" ", el("span", "key-status", "Borrowed again"));
-      key.append(el("b", undefined, keyLetter(index)), " ", skill, " ", el("span", undefined, String(card.count)));
-      return key;
-    });
-    const name = el("p", "project-name", project.name);
-    if (project.demo) name.append(demoLabel());
-    margin.replaceChildren(name, el("h2", undefined, "Keys, most borrowed first"), el("ol", undefined, ...keys.map((key) => el("li", undefined, key))), privacy);
-
+    const keys = drawMargin(project, cards, (card, index) => void choose(card, index));
     const index = cards.findIndex((card) => card.id === first.id);
     mark(index);
     showCard(first, keyLetter(index));
