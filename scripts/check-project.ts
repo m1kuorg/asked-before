@@ -9,12 +9,12 @@
 // if any check fails, naming the step.
 // Run: bun run check:project [screenshot dir]
 
-import type { Card, CardDetail, Project } from "@asked-before/sdk";
+import { ApiError, createClient, type Card, type CardDetail, type Project, type Upload } from "@asked-before/sdk";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, type Page } from "playwright";
-import { key, keySorter, phrasings, sortEnds, upload } from "./lib/answer-key";
+import { allUnsorted, idList, key, keySorter, named, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
 import { reply, startModelStub } from "./lib/model-stub";
 
@@ -95,6 +95,26 @@ const unsortedRows = (on: Page = page) =>
   on.locator(".block table.rows tbody tr").evaluateAll((rows) =>
     rows.map((row) => ({ text: row.querySelector(".phrasing")?.textContent ?? "", shown: row.querySelector("time")?.textContent ?? "" })),
   );
+
+/** The upload history's rows: the date and where it leads, the source, your messages, and the new ones. */
+const uploadRows = (on: Page = page) =>
+  on.locator(".block table.rows tbody tr:not(.row-detail)").evaluateAll((rows) =>
+    rows.map((row) => {
+      const cells = [...row.querySelectorAll("td")].map((td) => td.textContent ?? "");
+      return { date: cells[0] ?? "", href: row.querySelector("td a")?.getAttribute("href") ?? "", source: cells[1] ?? "", messages: cells[2] ?? "", added: cells[3] ?? "" };
+    }),
+  );
+
+async function failure(call: Promise<unknown>): Promise<ApiError | null> {
+  try {
+    await call;
+    return null;
+  } catch (error) {
+    if (error instanceof ApiError) return error;
+    throw error;
+  }
+}
+const say = (error: ApiError | null) => (error ? `${error.status} "${error.message}"` : "no error");
 
 let demo: Project;
 
@@ -224,6 +244,93 @@ try {
     const all = await unsortedRows();
     check(all.length === 60 && all.every((r, i) => r.text === loose[59 - i]!.text), `Show more adds the rest: ${all.length}`);
     check((await page.locator(".block").getByRole("button", { name: "Show more" }).count()) === 0, "and goes once there's no more");
+  });
+
+  await step("5. The upload history: the date, the source, your messages, and the new ones", async () => {
+    await page.goto(`${app.url}/app/projects/${demo.id}`);
+    await page.locator(".margin").getByRole("link", { name: "Upload history" }).click();
+    await page.locator(".block table.rows").waitFor();
+    check((await text(".block h1")) === "Upload history" && new URL(page.url()).searchParams.get("view") === "uploads", `headed "${await text(".block h1")}", at ${new URL(page.url()).search}`);
+    const [only] = (await ada.client.uploads.list(demo.id)).uploads;
+    const rows = await uploadRows();
+    check(rows.length === 1, `${rows.length} upload listed`);
+    const row = rows[0];
+    check(row?.date === utcDate(only!.createdAt) && row.source === "ChatGPT" && row.messages === "27" && row.added === "27", `it reads ${JSON.stringify(row)}`);
+    check(row?.href === `/app/projects/${demo.id}/upload?upload=${only!.id}`, `its date leads to the upload's own page (${row?.href})`);
+  });
+
+  // The demo export in two halves, as two uploads: the second brings the rest of every card's borrows.
+  const half = 13;
+  const firstHalf = phrasings.slice(0, half);
+  let work: Project;
+  let second: Upload;
+  await step("6. Delete the second of two uploads, after its confirmation: its borrows go, and any card left under two", async () => {
+    work = await ada.client.projects.create({ name: "Work" });
+    const first = await upload(ada.client, work.id, firstHalf, "march.json");
+    await sortEnds(ada.client, first.id);
+    second = await upload(ada.client, work.id, phrasings.slice(half), "september.json");
+    await sortEnds(ada.client, second.id);
+    const before = await ada.client.cards.list(work.id);
+    check(before.length === key.skills.length, `with both uploads, Work has ${before.length} cards`);
+
+    await page.goto(`${app.url}/app/projects/${work.id}?view=uploads`);
+    await page.locator(".block table.rows").waitFor();
+    const rows = await uploadRows();
+    check(rows.map((r) => r.added).join(", ") === `${phrasings.length - half}, ${half}`, `newest first: ${rows.map((r) => `${r.messages} messages, ${r.added} new`).join("; ")}`);
+    check((await text(".block .plate b")) === String(key.skills.length), `the plate counts ${await text(".block .plate b")} cards`);
+
+    const remove = page.getByRole("button", { name: /^Delete the upload of / }).first();
+    await remove.click();
+    const confirm = page.locator(".block .confirm");
+    await confirm.waitFor();
+    const asked = (await confirm.textContent()) ?? "";
+    check(asked.includes(`${phrasings.length - half} phrasings`) && asked.includes("fewer than two borrows") && asked.includes("can't be undone"), `the confirmation names what goes: "${asked}"`);
+    check((await page.evaluate(() => document.activeElement?.textContent)) === "Keep it", "Keep it takes focus first");
+    await page.getByRole("button", { name: "Keep it" }).click();
+    await confirm.waitFor({ state: "detached" });
+    check((await ada.client.uploads.list(work.id)).uploads.length === 2, "Keep it keeps the upload");
+
+    await remove.click();
+    await page.locator(".block .confirm").getByRole("button", { name: "Delete the upload" }).click();
+    await page.locator(".block table.rows tbody tr").nth(1).waitFor({ state: "detached" });
+    const left = await uploadRows();
+    check(left.length === 1 && left[0]?.added === String(half), `the history lists only the first upload: ${JSON.stringify(left)}`);
+
+    // The answer key says what stays: a card keeps the borrows of the first half, if it still has two.
+    const inFirst = (ids: string[]) => ids.filter((id) => Number(id.slice(1)) <= half);
+    const kept = key.skills.filter((skill) => inFirst(skill.messageIds).length >= 2);
+    const lone = key.skills.flatMap((skill) => (inFirst(skill.messageIds).length === 1 ? inFirst(skill.messageIds) : []));
+    check((await text(".block .plate b")) === String(kept.length), `the plate now counts ${await text(".block .plate b")} cards`);
+    const keys = await marginKeys();
+    check(keys.map((k) => `${k.skill} ${k.count}`).join(" | ") === kept.map((s) => `${s.name} ${inFirst(s.messageIds).length}`).join(" | "), `the margin's keys: ${keys.map((k) => `${k.letter} ${k.skill} ${k.count}`).join(" | ")}`);
+
+    const gone = await failure(ada.client.uploads.get(second.id));
+    check(gone?.status === 404, `the API has no second upload: ${say(gone)}`);
+    const cards = await Promise.all((await ada.client.cards.list(work.id)).map((card) => ada.client.cards.get(card.id)));
+    const got = cards.map((card) => `${card.skill}: ${idList(card.borrows.map((b) => named(b.sourceId)))}`);
+    const want = kept.map((skill) => `${skill.name}: ${idList(inFirst(skill.messageIds))}`);
+    check(got.join(" | ") === want.join(" | "), `the API's cards keep only the first half's borrows: ${got.join(" | ")}`);
+    const unsorted = (await allUnsorted(ada.client, work.id)).map((p) => named(p.sourceId));
+    const wantUnsorted = [...inFirst(key.oneOffs), ...lone];
+    check(idList(unsorted) === idList(wantUnsorted), `a card left with one borrow is gone, its phrasing unsorted: [${idList(unsorted)}], the key says [${idList(wantUnsorted)}]`);
+    const secondIds = new Set(phrasings.slice(half).map((p) => p.sourceId));
+    const strays = [...cards.flatMap((card) => card.borrows.map((b) => b.sourceId)), ...(await allUnsorted(ada.client, work.id)).map((p) => p.sourceId)].filter((id) => secondIds.has(id));
+    check(strays.length === 0, `none of the second upload's phrasings is left (${strays.length})`);
+  });
+
+  await step("7. Deleting an upload needs its owner's session: another account gets 404, an API key 403", async () => {
+    const [first] = (await ada.client.uploads.list(work.id)).uploads;
+    const bea = app.browser();
+    await bea.client.auth.signUp({ name: "Bea Example", email: "bea@example.com", password: "difference engine" });
+    const theirs = await failure(bea.client.uploads.delete(first!.id));
+    check(theirs?.status === 404, `Bea deleting Ada's upload: ${say(theirs)}`);
+    const { key: apiKey } = await ada.client.keys.create({ name: "Script" });
+    const script = createClient({ baseUrl: app.url, apiKey });
+    const keyed = await failure(script.uploads.delete(first!.id));
+    check(keyed?.status === 403, `an API key deleting it: ${say(keyed)}`);
+    const again = await failure(ada.client.uploads.delete(second.id));
+    check(again?.status === 404, `deleting the deleted one again: ${say(again)}`);
+    check((await ada.client.uploads.list(work.id)).uploads.length === 1, "the first upload is still there");
   });
 } finally {
   await browser.close();

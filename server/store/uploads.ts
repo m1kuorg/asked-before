@@ -120,3 +120,18 @@ export function retryUpload(userId: string, uploadId: string): Upload | null | "
   const changed = db.query("UPDATE uploads SET status = 'waiting', error = NULL WHERE id = $uploadId AND status = 'failed'").run({ uploadId }).changes;
   return changed ? getUpload(userId, uploadId) : "not failed";
 }
+
+/**
+ * Deletes an upload and its phrasings. A card of its project left with
+ * fewer than two borrows goes too, with its reps, and its remaining
+ * phrasing becomes unsorted. False when the account has no such upload.
+ */
+export function deleteUpload(userId: string, uploadId: string): boolean {
+  return db.transaction(() => {
+    const upload = getUpload(userId, uploadId);
+    if (!upload) return false;
+    db.query("DELETE FROM uploads WHERE id = $uploadId").run({ uploadId });
+    db.query("DELETE FROM cards WHERE project_id = $projectId AND (SELECT count(*) FROM phrasings f WHERE f.card_id = cards.id) < 2").run({ projectId: upload.projectId });
+    return true;
+  })();
+}

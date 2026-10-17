@@ -14,10 +14,13 @@
 //
 // The project's other views live in the query, and the margin leads to
 // them: ?view=unsorted lists the phrasings nothing else asks yet, newest
-// first, a page at a time.
+// first, a page at a time, and ?view=uploads the upload history: each
+// upload's date, source, your messages, and the new ones, with its delete,
+// after a confirmation that names everything that goes.
 
-import type { Card, CardDetail, CardStatus, Project, UnsortedPhrasing } from "@asked-before/sdk";
+import type { Card, CardDetail, CardStatus, Project, UnsortedPhrasing, Upload } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
+import { confirmDelete } from "../parts/confirm";
 import { button, el, link, type Child } from "../parts/dom";
 import { emptyState } from "../parts/empty";
 import { failure, frame, load, plate, waiting } from "../parts/frame";
@@ -28,7 +31,10 @@ const projectPath = (projectId: string) => `/app/projects/${encodeURIComponent(p
 const uploadPath = (projectId: string) => `${projectPath(projectId)}/upload`;
 const cardPath = (cardId: string) => `/app/cards/${encodeURIComponent(cardId)}`;
 
-type View = "cards" | "unsorted";
+type View = "cards" | "unsorted" | "uploads";
+const VIEWS: Record<string, View> = { unsorted: "unsorted", uploads: "uploads" };
+const SOURCES = { chatgpt: "ChatGPT", claude: "Claude" } as const;
+const count = (n: number) => n.toLocaleString("en-US");
 /** How many rows of a list one page brings. */
 const PAGE = 50;
 
@@ -82,7 +88,7 @@ function rails(borrows: CardDetail["borrows"]): HTMLElement[] {
 export function mountProject(root: HTMLElement, { client, params, query, navigate, signal }: ScreenProps<"projectId">) {
   const { margin, block } = frame(root);
   const projectId = params.projectId;
-  const view: View = query.get("view") === "unsorted" ? "unsorted" : "cards";
+  const view: View = VIEWS[query.get("view") ?? ""] ?? "cards";
   const yearCut = el("p", undefined, "A cut in the rail marks a new year of asking.");
   const privacy = privacyLine();
   const base = () => Promise.all([client.projects.get(projectId), client.cards.list(projectId)]);
@@ -101,6 +107,25 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
         unsorted(project, heading, { items: first.phrasings, next: first.next });
       },
     });
+    return;
+  }
+
+  if (view === "uploads") {
+    const heading = el("h1", undefined, "Upload history");
+    heading.tabIndex = -1;
+    const show = () =>
+      load(block, {
+        keep: [heading],
+        line: "Finding the uploads…",
+        request: () => Promise.all([base(), client.uploads.list(projectId, { limit: PAGE })]),
+        signal,
+        show: ([[project, cards], first]) => {
+          named(project);
+          drawMargin(project, cards);
+          uploads(project, heading, { items: first.uploads, next: first.next }, show);
+        },
+      });
+    void show();
     return;
   }
 
@@ -139,6 +164,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
     const views: [string, string, boolean][] = [
       ["Cards", projectPath(project.id), view === "cards"],
       ["Unsorted phrasings", `${projectPath(project.id)}?view=unsorted`, view === "unsorted"],
+      ["Upload history", `${projectPath(project.id)}?view=uploads`, view === "uploads"],
       ["Upload a chat export", uploadPath(project.id), false],
     ];
     const ways = el(
@@ -172,10 +198,14 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
    * which is "Show more" while there's a page after. Show more fetches it
    * with `after`; a failure shows its error and a retry in its place.
    */
-  function paged<T>(first: Paged<T>, after: (cursor: string) => Promise<Paged<T>>, draw: (items: T[], tail: Node[]) => void): void {
+  function paged<T>(first: Paged<T>, after: (cursor: string) => Promise<Paged<T>>, draw: (items: T[], tail: Node[]) => void): { redraw: () => void } {
     const items = [...first.items];
     let next = first.next;
-    const redraw = (tail: Node[]) => !signal.aborted && draw(items, tail);
+    let shown: Node[] = [];
+    const redraw = (tail: Node[]) => {
+      shown = tail;
+      if (!signal.aborted) draw(items, tail);
+    };
     const more = () => (next ? [button("Show more", () => void fetchMore(), "secondary")] : []);
     async function fetchMore() {
       redraw([waiting("Finding more…")]);
@@ -191,6 +221,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
       }
     }
     redraw(more());
+    return { redraw: () => redraw(shown) };
   }
 
   /** The project's unsorted phrasings, newest first: each word for word, with its stamp. */
@@ -214,6 +245,86 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
         block.replaceChildren(heading, lede, count, list, ...tail);
       },
     );
+  }
+
+  /**
+   * The upload history, newest first: each upload's date, which leads to
+   * its own page and its sort, its source, your messages, and the new ones.
+   * Deleting one asks first, in place under its row, then shows the
+   * project as it's left, with `reload`.
+   */
+  function uploads(project: Project, heading: HTMLElement, first: Paged<Upload>, reload: () => Promise<void>) {
+    const lede = el("p", undefined, `Each chat export uploaded into ${project.name}, newest first, with how many of your messages it held and how many of them were new.`);
+    const plateOf = cardsPlate(project);
+    let deleting: string | null = null;
+    const dateOf = (upload: Upload) => stamp(upload.createdAt).textContent!;
+    const list = paged(
+      first,
+      (cursor) => client.uploads.list(project.id, { limit: PAGE, cursor }).then((page) => ({ items: page.uploads, next: page.next })),
+      (items, tail) => {
+        const shown = items.length
+          ? rows({
+              caption: `Uploads into ${project.name}, newest first`,
+              items,
+              columns: [
+                { label: "Uploaded", cell: uploaded },
+                { label: "Source", cell: (u) => SOURCES[u.source] },
+                { label: "Your messages", numeric: true, className: "is-count", cell: (u) => count(u.messages) },
+                { label: "New", numeric: true, className: "is-count", cell: (u) => count(u.phrasings) },
+                { label: "Actions", hiddenLabel: true, className: "is-actions", cell: deleteButton },
+              ],
+              detail: (u) => (u.id === deleting ? confirmation(u) : null),
+            })
+          : emptyState(
+              "No uploads yet",
+              "Upload a chat export into this project, and every question you asked more than once becomes a card.",
+              link("Upload a chat export", uploadPath(project.id), "button"),
+            );
+        block.replaceChildren(heading, lede, plateOf, shown, ...tail);
+      },
+    );
+
+    /** The upload's date, leading to its own page. */
+    function uploaded(upload: Upload) {
+      const date = link("", `${uploadPath(project.id)}?upload=${encodeURIComponent(upload.id)}`);
+      date.replaceChildren(stamp(upload.createdAt));
+      return el("span", "row-title", date);
+    }
+
+    function deleteButton(upload: Upload) {
+      const remove = button("Delete", () => {
+        deleting = deleting === upload.id ? null : upload.id;
+        list.redraw();
+        if (!deleting) deleteOf(upload)?.focus();
+      }, "quiet");
+      remove.setAttribute("aria-label", `Delete the upload of ${dateOf(upload)}, ${upload.fileName}`);
+      remove.setAttribute("aria-expanded", String(deleting === upload.id));
+      remove.dataset.upload = upload.id;
+      return remove;
+    }
+
+    const deleteOf = (upload: Upload) => block.querySelector<HTMLElement>(`button[data-upload="${CSS.escape(upload.id)}"]`);
+
+    function confirmation(upload: Upload) {
+      const n = upload.phrasings;
+      return confirmDelete({
+        title: `Delete the upload of ${dateOf(upload)}?`,
+        body: n
+          ? `This deletes the ${count(n)} ${n === 1 ? "phrasing" : "phrasings"} ${upload.fileName} brought into ${project.name}, and any card left with fewer than two borrows, with its cold reps; a card's last phrasing goes back to unsorted. It can't be undone.`
+          : `${upload.fileName} brought nothing new into ${project.name}, so only the upload goes. It can't be undone.`,
+        action: "Delete the upload",
+        onConfirm: async () => {
+          await client.uploads.delete(upload.id);
+          await reload();
+          heading.focus();
+        },
+        onCancel: () => {
+          deleting = null;
+          list.redraw();
+          deleteOf(upload)?.focus();
+        },
+      });
+    }
   }
 
   /** A project with no cards yet: its name heads the block, over a plate of none. */

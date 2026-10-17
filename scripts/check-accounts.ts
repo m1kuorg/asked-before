@@ -84,7 +84,6 @@ await step("2. Every stub area answers 501 with { error }", async () => {
   const stubs: [string, string][] = [
     ["GET", "/api/v1/account/export"],
     ["DELETE", "/api/v1/account"],
-    ["DELETE", "/api/v1/uploads/u1"],
     ["POST", "/api/v1/projects/p1/captures"],
     ["POST", "/api/v1/cards/c1/reps"],
     ["POST", "/api/v1/reps/r1/check"],

@@ -7,6 +7,8 @@
 // twice stores nothing new. Get the upload again to follow its sort: it
 // waits behind the project's other uploads, then sorts, and ends sorted or
 // failed with an error, which retry picks up from where it stopped.
+// Deleting an upload, which needs a session rather than an API key, deletes
+// its phrasings, and any card left with fewer than two borrows.
 
 import { path, type Requester } from "./http";
 import type { Phrasing, Source } from "./readers";
@@ -62,4 +64,6 @@ export const uploads = (request: Requester) => ({
   finish: (uploadId: string) => request<Upload>("POST", path`/uploads/${uploadId}/finish`),
   /** Sorts a failed upload again, from its first phrasing no sort has seen. Anything but a failed upload is a 409. */
   retry: (uploadId: string) => request<Upload>("POST", path`/uploads/${uploadId}/retry`),
+  /** Deletes the upload and its phrasings; a card left with fewer than two borrows goes too, with its reps, and its remaining phrasing becomes unsorted. Needs a session: an API key gets 403. */
+  delete: (uploadId: string) => request<void>("DELETE", path`/uploads/${uploadId}`),
 });
