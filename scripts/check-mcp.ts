@@ -71,6 +71,13 @@ async function call(client: Client, name: string, args: Record<string, unknown> 
   said.push([data?.problem, data?.lesson, data?.reason].reduce((rest: string, model?: string) => (model ? rest.replace(model, "") : rest), text));
   return { isError: result.isError === true, text, data };
 }
+/** A JSON Schema's property names, at any depth, as words: alreadyCaptured and not_returned read "already captured" and "not returned". */
+const fieldNames = (schema: unknown): string => {
+  if (!schema || typeof schema !== "object") return "";
+  const { properties, ...rest } = schema as { properties?: Record<string, unknown> };
+  const own = Object.keys(properties ?? {}).map((name) => name.replace(/_/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase());
+  return [...own, ...Object.values(properties ?? {}).map(fieldNames), ...Object.values(rest).map(fieldNames)].filter(Boolean).join(" ");
+};
 const indent = (text: string) => text.replace(/^/gm, "       ");
 
 // The demo export's upload is sorted as the answer key says (the sort has its own check); every capture, rep, and check goes to the real model.
@@ -96,7 +103,7 @@ try {
     const names = tools.map((t) => t.name).sort();
     check(names.join() === "check_answer,list_cards,list_projects,record_question,start_cold_rep", `tools: ${names.join(", ")}, on protocol ${mcp.getNegotiatedProtocolVersion()}`);
     const instructions = mcp.getInstructions() ?? "";
-    said.push(instructions, ...tools.flatMap((t) => [t.title ?? "", t.description ?? ""]));
+    said.push(instructions, ...tools.flatMap((t) => [t.title ?? "", t.description ?? "", fieldNames(t.inputSchema), fieldNames(t.outputSchema)]));
     const terms = [...glossary.matchAll(/^\*\*(.+)\*\*:$/gm)].map((m) => m[1]!.toLowerCase());
     const bare = tools.filter((t) => !terms.some((term) => (t.description ?? "").toLowerCase().includes(term)));
     check(bare.length === 0, `each description names the glossary's ${terms.filter((term) => tools.some((t) => (t.description ?? "").toLowerCase().includes(term))).join(", ")}${bare.length ? `; not ${bare.map((t) => t.name).join(", ")}` : ""}`);
@@ -138,7 +145,7 @@ try {
     console.log(indent(text));
     const sent = model.requests.slice(before);
     check(sent.length === 1 && kindOf(sent[0]!) === "sort" && sent[0]!.body.output_config?.effort === "low", `${sent.length} model request, a sort at effort ${sent[0]?.body.output_config?.effort}, sent to the real model`);
-    check(!isError && data.card?.id === cardA && data.card.count === key.skills[0]!.count + 1 && !data.repeat, `card A, now ${data?.card?.count} borrows, repeat ${data?.repeat}`);
+    check(!isError && data.card?.id === cardA && data.card.count === key.skills[0]!.count + 1 && !data.alreadyCaptured, `card A, now ${data?.card?.count} borrows, already captured ${data?.alreadyCaptured}`);
     check(data.phrasing?.text === rephrasing && /borrowed 10 times/.test(text) && /start_cold_rep/.test(text), "it kept the words as sent, and its text gives the count and offers a cold rep");
   });
 
@@ -146,7 +153,7 @@ try {
     const before = model.requests.length;
     const { isError, text, data } = await call(mcp, "record_question", { question: rephrasing, project: "Demo" });
     console.log(indent(text));
-    check(!isError && data.repeat && data.card?.count === 10 && model.requests.length === before, `repeat ${data?.repeat}, card A still ${data?.card?.count}, ${model.requests.length - before} model requests`);
+    check(!isError && data.alreadyCaptured && data.card?.count === 10 && model.requests.length === before, `already captured ${data?.alreadyCaptured}, card A still ${data?.card?.count}, ${model.requests.length - before} model requests`);
     check(/no borrow was added/.test(text), "its text says no borrow was added");
     const cards = await call(mcp, "list_cards", { project: "Demo" });
     check(cards.data?.cards?.[0]?.count === 10, `list_cards gives card A ${cards.data?.cards?.[0]?.count} borrows`);
@@ -201,7 +208,7 @@ try {
     const projects = await call(withDefault, "list_projects");
     check(projects.data?.defaultProject?.id === demo.id && /The default project is "Demo"/.test(projects.text), `list_projects names the default: ${projects.data?.defaultProject?.name}`);
     const recorded = await call(withDefault, "record_question", { question: rephrasing });
-    check(!recorded.isError && recorded.data.project.id === demo.id && recorded.data.repeat, `record_question with no project went to ${recorded.data?.project?.name}, repeat ${recorded.data?.repeat}`);
+    check(!recorded.isError && recorded.data.project.id === demo.id && recorded.data.alreadyCaptured, `record_question with no project went to ${recorded.data?.project?.name}, already captured ${recorded.data?.alreadyCaptured}`);
 
     const badKey = await connect({ [MCP_ENV.url]: app.url, [MCP_ENV.apiKey]: "ab_0000000000000000_00000000000000000000000000000000" });
     mcps.push(badKey);
@@ -217,10 +224,10 @@ try {
     check(code === 1 && stderr.includes(MCP_ENV.url) && stderr.includes(MCP_ENV.apiKey), `with no settings it exits ${code}: ${stderr.trim()}`);
   });
 
-  await step("11. Nothing the server says uses a word the glossary says to avoid", async () => {
+  await step("11. Nothing the server says, field names included, uses a word the glossary says to avoid", async () => {
     const avoid = [...glossary.matchAll(/^_Avoid_: (.+)$/gm)].flatMap((m) => m[1]!.replace(/\([^)]*\)/g, "").split(",").map((w) => w.trim().toLowerCase()));
     const found = avoid.filter((word) => said.some((text) => new RegExp(`\\b${word}\\b`, "i").test(text)));
-    check(found.length === 0, `${avoid.length} avoided words, in ${said.length} descriptions and answers: ${found.length ? found.join(", ") : "none used"}`);
+    check(found.length === 0, `${avoid.length} avoided words, in ${said.length} descriptions, field names, and answers: ${found.length ? found.join(", ") : "none used"}`);
   });
 } finally {
   await Promise.all(mcps.map((client) => client.close()));
