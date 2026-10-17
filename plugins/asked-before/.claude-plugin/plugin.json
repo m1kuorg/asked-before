@@ -1,0 +1,31 @@
+{
+  "name": "asked-before",
+  "displayName": "Asked Before",
+  "version": "0.1.0",
+  "description": "Records the how-to questions you ask Claude Code onto your Asked Before library cards, and runs cold reps on them in the chat. Needs Node.js 20 or later.",
+  "author": { "name": "kymil4", "url": "https://github.com/kymil4" },
+  "repository": "https://github.com/m1kuorg/asked-before",
+  "license": "MIT",
+  "keywords": ["mcp", "learning", "cold-rep", "library-cards"],
+  "userConfig": {
+    "server_url": {
+      "type": "string",
+      "title": "Asked Before server",
+      "description": "Your Asked Before server's address, such as https://asked-before.example",
+      "required": true
+    },
+    "api_key": {
+      "type": "string",
+      "title": "API key",
+      "description": "A key from your Asked Before Settings page, ab_<id>_<secret>",
+      "sensitive": true,
+      "required": true
+    },
+    "project": {
+      "type": "string",
+      "title": "Default project",
+      "description": "Optional: the project, by name or id, that questions go to when the agent names none",
+      "default": ""
+    }
+  }
+}

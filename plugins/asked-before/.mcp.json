@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "asked-before": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/dist/server.js"],
+      "env": {
+        "ASKED_BEFORE_URL": "${user_config.server_url}",
+        "ASKED_BEFORE_API_KEY": "${user_config.api_key}",
+        "ASKED_BEFORE_PROJECT": "${user_config.project}"
+      }
+    }
+  }
+}

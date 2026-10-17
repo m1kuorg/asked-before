@@ -27,7 +27,10 @@
     "check:capture-sort": "bun run scripts/check-capture-sort.ts",
     "check:mcp": "bun run scripts/check-mcp.ts",
     "check:data": "bun run scripts/check-data.ts",
-    "check:dashboard": "bun run scripts/check-dashboard.ts"
+    "check:dashboard": "bun run scripts/check-dashboard.ts",
+    "check:plugin": "bun run scripts/check-plugin.ts",
+    "check:docs": "bun run scripts/check-docs.ts",
+    "build:plugin": "bun run scripts/build-plugin.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",

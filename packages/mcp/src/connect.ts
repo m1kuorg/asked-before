@@ -1,11 +1,12 @@
 // How an agent launches the Asked Before MCP server, kept in this one place:
 // the command, the environment it reads, and the setup snippets for Claude
 // Code, Claude Desktop, and Cursor built from them. The server reads its
-// environment names from here, and the settings page shows the snippets
-// with its own server's address filled in. It runs from a clone of the
-// repo, with bun, configured by an API key, the server URL, and an
-// optional default project (app-notes/mcp-sdk.md). m1kuorg/basics#51
-// corrects the snippets once the plugin carries its build.
+// environment names from here, and the settings and docs pages show the
+// snippets with their own server's address filled in. It's configured by
+// an API key, the server URL, and an optional default project
+// (app-notes/mcp-sdk.md). It runs from a clone of the repo, with bun, or
+// from the Claude Code plugin, which carries a single-file build of it and
+// launches it with node (app-notes/claude-code-plugin.md).
 // No imports, so the page can bundle it.
 
 /** The settings the MCP server reads from its environment. */
@@ -32,14 +33,40 @@ export const SERVER_NAME = "asked-before";
 /** The server's entry, from the root of a clone of the repo. */
 export const ENTRY_IN_CLONE = "packages/mcp/src/server.ts";
 
+/**
+ * The Claude Code plugin. A marketplace install copies only the plugin's
+ * directory, so it carries a single-file build of this server
+ * (`bun run build:plugin`), which its .mcp.json launches with node.
+ */
+export const PLUGIN = {
+  /** Its directory, from the root of a clone. */
+  dir: "plugins/asked-before",
+  /** The marketplace that lists it: this repo on GitHub, whose root holds .claude-plugin/marketplace.json. */
+  marketplace: "m1kuorg/asked-before",
+  /** Its id, <plugin>@<marketplace>, once the marketplace is added. */
+  id: "asked-before@asked-before",
+  /** What launches the build: Node.js 20 or later, as the MCP SDK needs. */
+  command: "node",
+  /** The build, from the plugin's directory. */
+  bundle: "dist/server.js",
+  /** The options the plugin asks for (its userConfig), each passed on to the server as the MCP_ENV setting of the same key. */
+  options: { url: "server_url", apiKey: "api_key", project: "project" },
+} as const;
+
 const ENTRY = `${PLACEHOLDERS.clone}/${ENTRY_IN_CLONE}`;
 
 // The default project is optional, so the snippets leave it out.
 const env = (serverUrl: string) => ({ [MCP_ENV.url]: serverUrl, [MCP_ENV.apiKey]: PLACEHOLDERS.apiKey });
 
-/** The setup snippet for each agent, for the server at `serverUrl`. */
-export function connectSnippets(serverUrl: string): { claudeCode: string; claudeDesktop: string; cursor: string } {
+/** The setup snippet for each agent, for the server at `serverUrl`: the Claude Code plugin, and the command from a clone for Claude Code, Claude Desktop, and Cursor. */
+export function connectSnippets(serverUrl: string): { claudeCodePlugin: string; claudeCode: string; claudeDesktop: string; cursor: string } {
   const vars = env(serverUrl);
+  const claudeCodePlugin = [
+    `claude plugin marketplace add ${PLUGIN.marketplace}`,
+    `claude plugin install ${PLUGIN.id} \\`,
+    `  --config ${PLUGIN.options.url}=${serverUrl} \\`,
+    `  --config ${PLUGIN.options.apiKey}=${PLACEHOLDERS.apiKey}`,
+  ].join("\n");
   // `-e` takes several values, so another option sits between the last one and the server's name.
   const claudeCode = [
     "claude mcp add \\",
@@ -51,5 +78,5 @@ export function connectSnippets(serverUrl: string): { claudeCode: string; claude
     JSON.stringify({ mcpServers: { [SERVER_NAME]: { ...extra, command: PLACEHOLDERS.bun, args: [ENTRY], env: vars } } }, null, 2)
       // A one-item list stays on one line.
       .replace(/\[\s+("[^"]*")\s+\]/g, "[$1]");
-  return { claudeCode, claudeDesktop: config({}), cursor: config({ type: "stdio" }) };
+  return { claudeCodePlugin, claudeCode, claudeDesktop: config({}), cursor: config({ type: "stdio" }) };
 }
