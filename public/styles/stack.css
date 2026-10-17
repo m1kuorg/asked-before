@@ -1,0 +1,257 @@
+/*
+  The card stack (m1kuorg/basics#45 owns this file): the margin keys, the
+  rail, the keys' drop, and the end rule, with the look the proof of concept
+  shipped. The landing page's card and the card page use the rail too.
+
+  Markup shapes it reads: a block holds one `ol.rail` per year of `li` rows,
+  each `.phrasing` / `.rail-key` / `.stamp`; a command flag in a phrasing is a
+  bare span; `.margin-key` holds the letter, the skill, and the count, and the
+  card in the block has aria-current="true".
+*/
+
+.margin-key {
+  display: grid;
+  grid-template-columns: 1.5em minmax(0, 1fr) auto;
+  column-gap: var(--space-3);
+  align-items: baseline;
+  width: 100%;
+  padding: var(--space-3) var(--space-2);
+  border: 0;
+  border-top: var(--hairline);
+  color: var(--iron-black);
+  background: transparent;
+  font: 600 var(--label-size) / 1.3 var(--face);
+  text-align: left;
+}
+
+.margin li:last-child > .margin-key {
+  border-bottom: var(--hairline);
+}
+
+.margin-key > :first-child {
+  color: var(--rubric);
+  font-weight: 800;
+}
+
+.margin-key > :last-child {
+  text-align: right;
+}
+
+.margin-key[aria-current="true"] {
+  background: var(--block-white);
+  font-weight: 800;
+}
+
+.margin-key.is-returned {
+  text-decoration: line-through 2px var(--iron-black);
+}
+
+@media (hover: hover) {
+  .margin-key:not([aria-current="true"]):hover {
+    background: var(--gray-200);
+  }
+}
+
+.margin-key:active {
+  border-color: var(--iron-black);
+  background: var(--gray-300);
+}
+
+/* The rail: your words left, their dates right, one key per borrow down the middle. */
+
+.rail {
+  position: relative;
+  list-style: none;
+  padding: 0;
+  border-top: var(--hairline);
+}
+
+/* The channel the keys sit in: one continuous recessed bar between two hairlines, closed at the foot. One rail per year, so the gap between rails is the cut where the year turns. */
+.rail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - var(--rail-width) / 2);
+  width: var(--rail-width);
+  border: var(--hairline);
+  border-top: 0;
+  background: var(--proof-gray);
+  pointer-events: none;
+}
+
+.block > .rail + .rail {
+  margin-top: var(--space-3);
+}
+
+.rail > * {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rail-width) minmax(0, 1fr);
+}
+
+.rail .phrasing,
+.rail .stamp {
+  grid-row: 1;
+  padding: var(--row-pad) var(--space-4);
+  border-bottom: var(--row-rule);
+  line-height: var(--row-leading);
+}
+
+.rail .phrasing {
+  grid-column: 1;
+  font-style: italic;
+  text-align: right;
+  text-wrap: pretty;
+}
+
+.rail .stamp {
+  grid-column: 3;
+  font-weight: 500;
+}
+
+/* A command flag stays whole: the line never breaks after its dashes. */
+.phrasing span {
+  white-space: nowrap;
+}
+
+/* A square detent in the bar, drawn by nothing but the key it holds; the key is its ::before, and drops in from the detent's mouth. */
+.rail-key {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: center;
+  align-self: start;
+  position: relative;
+  overflow: hidden;
+  width: var(--detent);
+  height: var(--detent);
+  margin-top: calc(var(--row-pad) + var(--body-size) * var(--row-leading) / 2 - var(--detent) / 2);
+}
+
+.rail-key::before {
+  content: "";
+  position: absolute;
+  inset: calc((var(--detent) - var(--key)) / 2);
+  background: var(--rubric);
+  animation: key-drop var(--drop-duration) var(--drop-ease) backwards;
+  animation-delay: calc((var(--before, 0) + var(--row, 0)) * var(--drop-step));
+}
+
+@keyframes key-drop {
+  from {
+    translate: 0 -120%;
+  }
+}
+
+/* A returned card's rail is closed: its keys are already seated. */
+.block:has(> .end-rule) .rail-key::before {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-key::before {
+    animation: none;
+  }
+}
+
+/* Keys drop in date order: each row's place in its rail, after every row in the rails above it.
+   Exact for up to 16 rows a rail and 3 rails (the demo spans two years); past that, keys share the last delay. */
+.rail > :nth-child(2) { --row: 1; }
+.rail > :nth-child(3) { --row: 2; }
+.rail > :nth-child(4) { --row: 3; }
+.rail > :nth-child(5) { --row: 4; }
+.rail > :nth-child(6) { --row: 5; }
+.rail > :nth-child(7) { --row: 6; }
+.rail > :nth-child(8) { --row: 7; }
+.rail > :nth-child(9) { --row: 8; }
+.rail > :nth-child(10) { --row: 9; }
+.rail > :nth-child(11) { --row: 10; }
+.rail > :nth-child(12) { --row: 11; }
+.rail > :nth-child(13) { --row: 12; }
+.rail > :nth-child(14) { --row: 13; }
+.rail > :nth-child(15) { --row: 14; }
+.rail > :nth-child(n + 16) { --row: 15; }
+
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(1):last-child) { --rows-1: 1; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(2):last-child) { --rows-1: 2; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(3):last-child) { --rows-1: 3; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(4):last-child) { --rows-1: 4; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(5):last-child) { --rows-1: 5; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(6):last-child) { --rows-1: 6; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(7):last-child) { --rows-1: 7; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(8):last-child) { --rows-1: 8; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(9):last-child) { --rows-1: 9; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(10):last-child) { --rows-1: 10; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(11):last-child) { --rows-1: 11; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(12):last-child) { --rows-1: 12; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(13):last-child) { --rows-1: 13; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(14):last-child) { --rows-1: 14; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(15):last-child) { --rows-1: 15; }
+.block:has(> .rail:nth-child(1 of .rail) > :nth-child(n + 16):last-child) { --rows-1: 16; }
+
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(1):last-child) { --rows-2: 1; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(2):last-child) { --rows-2: 2; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(3):last-child) { --rows-2: 3; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(4):last-child) { --rows-2: 4; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(5):last-child) { --rows-2: 5; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(6):last-child) { --rows-2: 6; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(7):last-child) { --rows-2: 7; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(8):last-child) { --rows-2: 8; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(9):last-child) { --rows-2: 9; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(10):last-child) { --rows-2: 10; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(11):last-child) { --rows-2: 11; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(12):last-child) { --rows-2: 12; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(13):last-child) { --rows-2: 13; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(14):last-child) { --rows-2: 14; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(15):last-child) { --rows-2: 15; }
+.block:has(> .rail:nth-child(2 of .rail) > :nth-child(n + 16):last-child) { --rows-2: 16; }
+
+.rail:nth-child(2 of .rail) {
+  --before: var(--rows-1, 0);
+}
+
+.rail:nth-child(n + 3 of .rail) {
+  --before: calc(var(--rows-1, 0) + var(--rows-2, 0));
+}
+
+/* The end rule closes a returned card's rail. */
+.end-rule {
+  padding-top: var(--space-3);
+  border-top: 3px solid var(--iron-black);
+  font: 700 var(--small-label-size) / 1.3 var(--face);
+  text-align: center;
+}
+
+.block > .rail + .end-rule {
+  margin-top: 0;
+}
+
+/* Narrow screens: the rail moves outboard of the text, still a ruled channel of keys. */
+
+@media (max-width: 67.5rem) {
+  .rail::before {
+    left: 0;
+  }
+
+  .rail > * {
+    grid-template-columns: var(--rail-width) minmax(0, 1fr);
+  }
+
+  .rail .phrasing {
+    grid-column: 2;
+    grid-row: 1;
+    padding-bottom: 0;
+    border-bottom: 0;
+    text-align: left;
+  }
+
+  .rail .stamp {
+    grid-column: 2;
+    grid-row: 2;
+    padding-top: var(--space-1);
+  }
+
+  .rail-key {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+}

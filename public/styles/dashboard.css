@@ -1,0 +1,5 @@
+/*
+  The dashboard (m1kuorg/basics#47 owns this file). Scope every rule under
+  #app[data-screen="dashboard"], and compose the shared parts (parts.css) before
+  adding a look of its own.
+*/
