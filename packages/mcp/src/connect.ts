@@ -1,11 +1,11 @@
 // How an agent launches the Asked Before MCP server, kept in this one place:
 // the command, the environment it reads, and the setup snippets for Claude
-// Code, Claude Desktop, and Cursor built from them. The settings page shows
-// the snippets with its own server's address filled in. Until
-// m1kuorg/basics#50 builds the server, this says how it will be launched:
-// from a clone of the repo, with bun, configured by an API key and the server
-// URL (app-notes/mcp-sdk.md). #50 corrects the environment names here if the
-// server reads others, and #51 the snippets once the plugin carries its build.
+// Code, Claude Desktop, and Cursor built from them. The server reads its
+// environment names from here, and the settings page shows the snippets
+// with its own server's address filled in. It runs from a clone of the
+// repo, with bun, configured by an API key, the server URL, and an
+// optional default project (app-notes/mcp-sdk.md). m1kuorg/basics#51
+// corrects the snippets once the plugin carries its build.
 // No imports, so the page can bundle it.
 
 /** The settings the MCP server reads from its environment. */
@@ -14,6 +14,8 @@ export const MCP_ENV = {
   apiKey: "ASKED_BEFORE_API_KEY",
   /** The Asked Before server, such as https://asked-before.example. */
   url: "ASKED_BEFORE_URL",
+  /** Optional: the project, by name or id, that the tools use when a call names none. */
+  project: "ASKED_BEFORE_PROJECT",
 } as const;
 
 /** What a snippet holds for the learner to replace: their clone of the repo, their key, and where bun is. */
@@ -27,9 +29,12 @@ export const PLACEHOLDERS = {
 /** The server's name in every agent's config. */
 export const SERVER_NAME = "asked-before";
 
-/** The server's entry, in a clone of the repo. */
-const ENTRY = `${PLACEHOLDERS.clone}/packages/mcp/src/server.ts`;
+/** The server's entry, from the root of a clone of the repo. */
+export const ENTRY_IN_CLONE = "packages/mcp/src/server.ts";
 
+const ENTRY = `${PLACEHOLDERS.clone}/${ENTRY_IN_CLONE}`;
+
+// The default project is optional, so the snippets leave it out.
 const env = (serverUrl: string) => ({ [MCP_ENV.url]: serverUrl, [MCP_ENV.apiKey]: PLACEHOLDERS.apiKey });
 
 /** The setup snippet for each agent, for the server at `serverUrl`. */
