@@ -1,9 +1,11 @@
 // Settings' states (public/styles/settings.css; m1kuorg/basics#48), on the
 // real page: the profile and password, a refused profile and a refused
 // password, API keys empty, waiting, failed, a new key shown once under its
-// row, a revoke being confirmed, the setup snippets, and the page on a narrow
-// screen. It makes keys for the check's learner, and changes nothing else
-// about the account, so the other surfaces' modules find it as it was.
+// row, a revoke being confirmed, the setup snippets, your data downloaded,
+// deleting the account being confirmed and then refused for a wrong
+// password (m1kuorg/basics#49), and the page on a narrow screen. It makes
+// keys for the check's learner, and changes nothing else about the
+// account, so the other surfaces' modules find it as it was.
 
 import type { Route } from "playwright";
 import { type Kit } from "../lib/styles";
@@ -70,6 +72,25 @@ export default async function settings(kit: Kit) {
   await kit.shoot(page, "settings-agents");
   await agents.locator(".code-block").last().scrollIntoViewIfNeeded();
   await kit.shoot(page, "settings-agents-end");
+
+  const data = section("Your data");
+  const remove = section("Delete your account");
+  const toFoot = () => remove.evaluate((node) => node.scrollIntoView({ block: "end" }));
+  await data.getByRole("button", { name: "Download your data" }).click();
+  await data.locator("[role=status]").waitFor();
+  await toFoot();
+  await kit.shoot(page, "settings-data");
+
+  // Only ever a wrong password: the learner's account stays for the modules after this one.
+  await remove.getByLabel("Your password").fill("the wrong password");
+  await remove.getByRole("button", { name: "Delete your account" }).click();
+  await remove.locator(".confirm").waitFor();
+  await toFoot();
+  await kit.shoot(page, "settings-delete-confirm");
+  await remove.locator(".confirm").getByRole("button", { name: "Delete everything" }).click();
+  await remove.locator(".error").waitFor();
+  await toFoot();
+  await kit.shoot(page, "settings-delete-refused");
 
   await page.setViewportSize({ width: 390, height: 844 });
   await kit.open(page, "/app/settings", "table.rows");
