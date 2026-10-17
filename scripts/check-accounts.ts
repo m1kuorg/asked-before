@@ -1,16 +1,31 @@
 // Checks accounts and projects (m1kuorg/basics#41) end to end, through the
 // SDK, on a fresh copy of the app: the health check and the security
-// headers, sign-up, log-in and its `next`, log-out, projects
-// and their counts, another account's 404, deletes, the Origin and JSON
-// rule, the logs, and, last, the per-IP throttle. It prints each step's
-// checks and exits 1 if any fails, naming the step.
+// headers, sign-up, log-in and its `next`, log-out, projects and their
+// counts, another account's 404, deletes, the Origin and JSON rule, the
+// logs, and, last, the per-IP throttle. The counts come from cards made and
+// returned through the API, with the app's model a stand-in in this script,
+// never in the app: it sorts as the answer key does, writes a stand-in's
+// problem, and passes the answer "right" and fails any other. It prints
+// each step's checks and exits 1 if any fails, naming the step.
 // Run: bun run check:accounts
 
-import { ApiError, type Project } from "@asked-before/sdk";
+import { ApiError, type Card, type Project } from "@asked-before/sdk";
 import { Database } from "bun:sqlite";
+import { allUnsorted, key, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
+import { startModelStub } from "./lib/model-stub";
+import { checkRequest, kindOf, repReply, sortsByKey, verdictReply } from "./lib/reps";
 
-const app = await startApp();
+/** Words of phrasings the demo export doesn't hold, mapped to the key's skill each asks, for the stand-in's sort. */
+const newer = new Map<string, string>();
+const model = await startModelStub(
+  sortsByKey(
+    (request, raw, body) =>
+      (kindOf(request) === "rep" ? repReply("A problem.") : verdictReply(checkRequest(request).answer === "right" ? "pass" : "fail", "A reason."))(request, raw, body),
+    newer,
+  ),
+);
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
 const failures: string[] = [];
 let current = "";
 
@@ -153,8 +168,6 @@ await step("6. Log in, following `next` only when it's a path inside the app", a
 
 let work: Project | undefined;
 let bootcamp: Project | undefined;
-/** The rows step 10 writes under the demo project, by table. */
-const seeded: Record<"uploads" | "cards" | "phrasings" | "reps", string[]> = { uploads: ["u1"], cards: [], phrasings: [], reps: [] };
 
 await step("7. Create, rename, list, and get projects, with every count zero", async () => {
   work = await ada.client.projects.create({ name: "  Work  " });
@@ -197,73 +210,64 @@ await step("8. A second account gets 404 on the first's project", async () => {
 });
 
 await step("9. A project's counts come from its cards' status", async () => {
-  // No endpoint can make uploads, cards, or reps until m1kuorg/basics#43 to
-  // #46 land, so this step writes them into the app's database as those
-  // endpoints would. Everything it checks, it checks through the API.
-  const day = (d: number, h = 0) => Date.UTC(2026, 0, d, h);
-  const seed = new Database(app.databasePath, { strict: true });
   const projectId = bootcamp!.id;
-  seed.run("PRAGMA foreign_keys = ON");
-  seed.query("INSERT INTO uploads (id, project_id, source, file_name, status, created_at) VALUES ('u1', $projectId, 'chatgpt', 'conversations.json', 'sorted', $at)").run({ projectId, at: day(10) });
-  const cards: [string, number[], ("pass" | "fail")[], number][] = [
-    // card, its borrows, its reps' verdicts, when they were checked
-    ["Borrowed", [day(1), day(2)], ["fail"], day(3)],
-    ["Returned", [day(1), day(2)], ["fail", "pass"], day(3)],
-    ["Borrowed again", [day(1), day(5)], ["pass"], day(3)],
-    ["Returned on the dot", [day(1), day(3)], ["pass"], day(3)],
+  const sorted = await sortEnds(ada.client, (await upload(ada.client, projectId, phrasings, "demo-export.json")).id);
+  const [a, b, c, d, e] = (await ada.client.cards.list(projectId)) as Card[];
+  check(sorted.status === "sorted" && e !== undefined, `the demo export is sorted into ${(await ada.client.cards.list(projectId)).length} cards`);
+  /** A cold rep on the card, answered "right" to pass or anything else to fail. */
+  const rep = async (card: Card, answer: string) => (await ada.client.reps.check((await ada.client.reps.start(card.id)).rep.id, { answer })).rep;
+  await rep(a!, "wrong");
+  await rep(b!, "wrong");
+  await rep(b!, "right");
+  const cPassed = await rep(c!, "right");
+  const dPassed = await rep(d!, "right");
+  // A borrow on C a millisecond after its pass, and one on D at the very millisecond of its pass.
+  const after = [
+    { sourceId: "after-c", text: "a newer question on card C", time: new Date(Date.parse(cPassed.checkedAt!) + 1).toISOString(), skill: c!.skill },
+    { sourceId: "on-the-dot-d", text: "a newer question on card D", time: dPassed.checkedAt!, skill: d!.skill },
   ];
-  let n = 0;
-  for (const [skill, borrows, verdicts, checkedAt] of cards) {
-    const cardId = `c${++n}`;
-    seeded.cards.push(cardId);
-    seed.query("INSERT INTO cards (id, project_id, skill, created_at) VALUES ($cardId, $projectId, $skill, $at)").run({ cardId, projectId, skill, at: day(10) });
-    for (const time of borrows) {
-      const id = `p${++n}`;
-      seeded.phrasings.push(id);
-      seed
-        .query("INSERT INTO phrasings (id, project_id, origin, upload_id, source_id, text, time, card_id, created_at) VALUES ($id, $projectId, 'export', 'u1', $id, 'a phrasing', $time, $cardId, $at)")
-        .run({ id, projectId, time, cardId, at: day(10) });
-    }
-    for (const verdict of verdicts) {
-      const id = `r${++n}`;
-      seeded.reps.push(id);
-      seed
-        .query("INSERT INTO reps (id, card_id, problem, answer, verdict, reason, created_at, checked_at) VALUES ($id, $cardId, 'a problem', 'an answer', $verdict, 'a reason', $at, $at)")
-        .run({ id, cardId, verdict, at: checkedAt });
-    }
-  }
-  seeded.phrasings.push("unsorted");
-  seed.query("INSERT INTO phrasings (id, project_id, origin, upload_id, source_id, text, time, created_at) VALUES ('unsorted', $projectId, 'export', 'u1', 'unsorted', 'a phrasing', $time, $time)").run({ projectId, time: day(4) });
-  seed.close();
+  for (const { text, skill } of after) newer.set(text, skill);
+  const latest = await upload(ada.client, projectId, after.map(({ skill, ...phrasing }) => phrasing), "newer.json");
+  await sortEnds(ada.client, latest.id);
 
   const got = await ada.client.projects.get(projectId);
-  const want = { cards: 4, borrowed: 1, returned: 2, borrowedAgain: 1 };
+  const want = { cards: key.skills.length, borrowed: 2, returned: 2, borrowedAgain: 1 };
   check(JSON.stringify(got.counts) === JSON.stringify(want), `counts ${JSON.stringify(got.counts)}, want ${JSON.stringify(want)}`);
-  check(got.lastUploadAt === new Date(day(10)).toISOString(), `last upload ${got.lastUploadAt}`);
+  const statuses = (await ada.client.cards.list(projectId)).map((card) => `${card.skill}: ${card.status}`);
+  console.log(`     ${statuses.join("; ")}`);
+  check(got.lastUploadAt === latest.createdAt, `last upload ${got.lastUploadAt}`);
   const listed = (await ada.client.projects.list()).find((p) => p.id === projectId);
   check(JSON.stringify(listed?.counts) === JSON.stringify(want), "the list shows the same counts");
 });
 
 await step("10. Deleting a project deletes it and everything in it", async () => {
-  // The project holds an upload, phrasings, cards, and reps (step 10).
-  await ada.client.projects.delete(bootcamp!.id);
-  const got = await failure(ada.client.projects.get(bootcamp!.id));
+  // The project holds uploads, phrasings, cards, and reps (step 9).
+  const projectId = bootcamp!.id;
+  const cards = await Promise.all((await ada.client.cards.list(projectId)).map((card) => ada.client.cards.get(card.id)));
+  const held: Record<"uploads" | "cards" | "phrasings" | "reps", string[]> = {
+    uploads: (await ada.client.uploads.list(projectId)).uploads.map((u) => u.id),
+    cards: cards.map((card) => card.id),
+    phrasings: [...cards.flatMap((card) => card.borrows.map((p) => p.id)), ...(await allUnsorted(ada.client, projectId)).map((p) => p.id)],
+    reps: cards.flatMap((card) => card.reps.map((r) => r.id)),
+  };
+  await ada.client.projects.delete(projectId);
+  const got = await failure(ada.client.projects.get(projectId));
   check(got?.status === 404, `getting it afterwards: ${say(got)}`);
-  const again = await failure(ada.client.projects.delete(bootcamp!.id));
+  const again = await failure(ada.client.projects.delete(projectId));
   check(again?.status === 404, `deleting it again: ${say(again)}`);
   const list = await ada.client.projects.list();
   check(list.length === 1 && list[0]!.id === work!.id, `the other project stays: ${list.map((p) => p.name).join(", ")}`);
 
-  // Until m1kuorg/basics#43 to #46 give endpoints that can reach a deleted
-  // project's uploads, phrasings, cards, and reps, only the database can show
-  // they went with it. Without cascades, or with foreign keys off, they stay.
+  // No endpoint reaches a deleted project's uploads, phrasings, cards, and
+  // reps, so only the database can show they went with it. Without
+  // cascades, or with foreign keys off, they stay.
   const store = new Database(app.databasePath, { readonly: true, strict: true });
-  const left = Object.entries(seeded).map(([table, ids]) => {
+  const left = Object.entries(held).map(([table, ids]) => {
     const { n } = store.query(`SELECT count(*) AS n FROM ${table} WHERE id IN (SELECT value FROM json_each($ids))`).get({ ids: JSON.stringify(ids) }) as { n: number };
     return [table, n, ids.length] as const;
   });
   store.close();
-  check(left.every(([, n]) => n === 0), `rows left of those step 10 made: ${left.map(([table, n, of]) => `${table} ${n} of ${of}`).join(", ")}`);
+  check(left.every(([, n, of]) => of > 0 && n === 0), `rows left of those it held: ${left.map(([table, n, of]) => `${table} ${n} of ${of}`).join(", ")}`);
 });
 
 await step("11. A cookie request that changes something needs the page's Origin and JSON", async () => {
@@ -321,6 +325,7 @@ await step("13. Signing up and logging in are throttled per IP address", async (
 });
 
 await app.stop();
+model.stop();
 if (failures.length) {
   console.log(`\n${failures.length} check(s) failed:\n${failures.map((f) => `  ${f}`).join("\n")}`);
   process.exit(1);
