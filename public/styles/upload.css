@@ -3,3 +3,10 @@
   #app[data-screen="upload"], and compose the shared parts (parts.css) before
   adding a look of its own.
 */
+
+#app[data-screen="upload"] {
+  /* A finished upload: what it held, then where it stands. */
+  .upload-done > * + * {
+    margin-top: var(--space-3);
+  }
+}

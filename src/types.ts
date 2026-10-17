@@ -1,6 +1,6 @@
 // The proof of concept's shapes, shared by its model routes (server/routes/)
-// and the checks that still read the demo export with its parser. Request
-// and response shapes follow m1kuorg/basics#25's Requests table.
+// and the checks that still read the demo export through scripts/lib/demo.ts.
+// Request and response shapes follow m1kuorg/basics#25's Requests table.
 
 /** One of your own messages. `time` is Unix seconds. */
 export type Message = { id: string; conversationId: string; text: string; time: number };

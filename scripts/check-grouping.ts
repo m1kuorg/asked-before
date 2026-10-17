@@ -5,14 +5,14 @@
 
 import { toGroupRequest } from "../src/api";
 import { buildCards } from "../src/cards";
-import { parseExport } from "../src/parser";
 import type { GroupResponse } from "../src/types";
+import { demoMessages } from "./lib/demo";
 
 const runs = Number(process.argv[2] ?? 3);
 const url = `http://localhost:${process.env.PORT ?? 3000}/api/group`;
 
 const read = (path: string) => Bun.file(new URL(path, import.meta.url)).text();
-const messages = parseExport(await read("../demo/export.json"));
+const messages = await demoMessages("export.json");
 const key: { skills: { name: string; messageIds: string[]; count: number; firstMonth: string; lastMonth: string }[]; oneOffs: string[] } =
   JSON.parse(await read("../demo/answer-key.json"));
 const demoSkill = key.skills[0]!;

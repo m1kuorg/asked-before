@@ -6,11 +6,11 @@
 
 import { join } from "node:path";
 import { buildCards } from "../../src/cards";
-import { parseExport } from "../../src/parser";
+import { demoMessages } from "../lib/demo";
 import { SAMPLE_PATH, type Kit } from "../lib/styles";
 
 const ROOT = join(import.meta.dir, "..", "..");
-const messages = parseExport(await Bun.file(join(ROOT, "demo/export.json")).text());
+const messages = await demoMessages("export.json");
 const answerKey: { skills: { name: string; messageIds: string[] }[] } = await Bun.file(join(ROOT, "demo/answer-key.json")).json();
 const A = buildCards({ skills: answerKey.skills }, messages)[0]!;
 
