@@ -35,6 +35,11 @@
     font-weight: 800;
   }
 
+  /* A returned card's skill is struck with the 2px iron line its margin key carries, under the link's own underline. */
+  .rows .is-struck {
+    text-decoration: line-through 2px var(--iron-black);
+  }
+
   /* A card's status under its skill, in words, never in a new ink. */
   .rows .card-status {
     display: block;
@@ -64,6 +69,11 @@
     margin-top: var(--space-7);
   }
 
+  .block > p,
+  .block > section > p {
+    text-wrap: pretty;
+  }
+
   .block > section > p {
     max-width: var(--measure);
     margin-bottom: var(--space-4);
@@ -89,6 +99,13 @@
   .latest-borrows .stamp > a {
     font-weight: 400;
     text-wrap: pretty;
+  }
+
+  /* On a narrow screen the card goes under its stamp, so its skill keeps the text's whole width. */
+  @media (max-width: 67.5rem) {
+    .latest-borrows .stamp {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   /* The first upload: one field and its button, under the demo's empty state. */

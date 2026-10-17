@@ -93,7 +93,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
     return [
       emptyState(
         "No cards yet",
-        "A card appears once a project's uploads hold the same question twice. Upload a chat export into one of your projects, or see where its sort stands.",
+        "A card appears once a project's uploads hold the same question twice. Open one of your projects to upload a chat export into it, or to see its upload history.",
         link("Go to your projects", "/app/projects", "button"),
       ),
     ];
@@ -128,8 +128,8 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
     }
     const lede =
       mostBorrowed.length < out
-        ? `The ${count(mostBorrowed.length)} most borrowed of the ${count(out)} cards no cold rep has returned yet, across your projects. Each project's page has the rest.`
-        : "The cards no cold rep has returned yet, across your projects, most borrowed first.";
+        ? `The ${count(mostBorrowed.length)} most borrowed of the ${count(out)} cards no cold rep has returned yet. Each project's page has the rest.`
+        : "Cards no cold rep has returned yet, most borrowed first.";
     const top = mostBorrowed[0]!;
     return [
       el("p", undefined, lede),
@@ -138,7 +138,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
         caption: "Cards not returned, most borrowed first",
         items: mostBorrowed,
         columns: [
-          { label: "Card", cell: (card) => cardTitle(card, card.status === "borrowed_again" ? "Borrowed again" : null) },
+          { label: "Card", cell: (card) => cardTitle(card, card.status === "borrowed_again" ? ["Borrowed again"] : null) },
           { label: "Project", className: "is-project", cell: projectTitle },
           { label: "Borrows", numeric: true, className: "is-count", cell: (card) => count(card.count) },
           { label: "Last borrow", numeric: true, className: "is-date", cell: (card) => stamp(card.lastBorrowAt) },
@@ -179,7 +179,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
         caption: "Cards returned, latest stamp first",
         items: returns,
         columns: [
-          { label: "Card", cell: (card) => cardTitle(card, card.status === "borrowed_again" ? "Borrowed again since" : null) },
+          { label: "Card", cell: (card) => cardTitle(card, card.status === "borrowed_again" ? ["Borrowed again ", stamp(card.lastBorrowAt)] : null, { struck: card.status === "returned" }) },
           { label: "Project", className: "is-project", cell: projectTitle },
           { label: "Returned", numeric: true, className: "is-date", cell: (card) => stamp(card.returnedAt!) },
         ],
@@ -191,10 +191,16 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
     return el("section", className, el("h2", undefined, title), ...children);
   }
 
-  /** A card's skill, leading to the card and its cold rep, with its status under it when it needs saying. */
-  function cardTitle(card: DashboardCard, status: string | null): Child[] {
-    const title = el("span", "row-title", link(card.skill, cardPath(card.id)));
-    return status ? [title, el("span", "card-status", status)] : [title];
+  /**
+   * A card's skill, leading to the card and its cold rep, with its status
+   * under it when it needs saying. A returned card's skill is struck, as its
+   * margin key is on its project's page.
+   */
+  function cardTitle(card: DashboardCard, status: Child[] | null, { struck = false } = {}): Child[] {
+    const skill = link("", cardPath(card.id));
+    skill.append(struck ? el("span", "is-struck", card.skill) : card.skill);
+    const title = el("span", "row-title", skill);
+    return status ? [title, el("span", "card-status", ...status)] : [title];
   }
 
   function projectTitle({ project }: { project: DashboardProject }): HTMLElement {
