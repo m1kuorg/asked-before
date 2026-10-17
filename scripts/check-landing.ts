@@ -108,8 +108,11 @@ try {
     check(await page.locator(".landing-agents a[href='/docs']").isVisible(), "and leads to the docs");
   });
 
-  await step("3. Sign up in the landing page's close: a weak password is refused, then the dashboard", async () => {
+  await step("3. Sign up from the landing page's head, in its close: a weak password is refused, then the dashboard", async () => {
     const close = page.locator(".landing-close");
+    await page.locator(".landing-lede").getByRole("link", { name: "Sign up", exact: true }).click();
+    const ready = await close.getByLabel("Name").evaluate((input) => input === document.activeElement && input.getBoundingClientRect().top < window.innerHeight);
+    check(ready && new URL(page.url()).hash === "#sign-up", `the head's Sign up goes to the close's form, its Name field ready (${page.url()})`);
     await close.getByLabel("Name").fill(ADA.name);
     await close.getByLabel("Email").fill(ADA.email);
     await close.getByLabel("Password").fill("too short");
@@ -128,10 +131,10 @@ try {
     check(session.account.name === ADA.name, `the SDK logs in as the new account, ${session.account.name}`);
   });
 
-  await step("4. Log in from the landing page's head, on a fresh browser", async () => {
+  await step("4. Log in from the landing page, on a fresh browser", async () => {
     await page.context().clearCookies();
     await page.goto(app.url);
-    await page.locator(".block .landing-lede").getByRole("link", { name: "Log in", exact: true }).click();
+    await page.locator(".landing-close").getByRole("link", { name: "Log in", exact: true }).click();
     await page.waitForURL(/\/login$/);
     await page.getByLabel("Email").fill(ADA.email);
     await page.getByLabel("Password").fill(ADA.password);
@@ -142,13 +145,13 @@ try {
     check((await page.locator("body > nav").textContent())?.includes(ADA.name) ?? false, "the navigation names the account");
     await page.context().clearCookies();
     await page.goto(app.url);
-    for (const [where, locator] of [
-      ["head", page.locator(".landing-lede")],
-      ["close", page.locator(".landing-close")],
-      ["navigation", page.locator("body > nav")],
+    for (const [where, locator, expected] of [
+      ["navigation", page.locator("body > nav"), ["/signup", "/login"]],
+      ["head", page.locator(".landing-lede"), ["#sign-up"]],
+      ["close", page.locator(".landing-close"), ["/login"]],
     ] as const) {
       const hrefs = await locator.getByRole("link").evaluateAll((links) => links.map((a) => a.getAttribute("href")));
-      check(where === "close" ? hrefs.includes("/login") : hrefs.includes("/signup") && hrefs.includes("/login"), `the ${where} leads to ${hrefs.join(" and ")}`);
+      check(expected.every((href) => hrefs.includes(href)), `the ${where} leads to ${hrefs.join(" and ")}`);
     }
   });
 
