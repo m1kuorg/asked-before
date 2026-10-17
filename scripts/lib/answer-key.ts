@@ -6,7 +6,7 @@
 // sort request the way the key sorts the export, for the checks that stub
 // the model. It prints ids and skill names, never phrasing text.
 
-import { MAX_CHUNK, readExport, type Client, type Phrasing, type UnsortedPhrasing, type Upload } from "@asked-before/sdk";
+import { MAX_CHUNK, readExport, type Client, type Phrasing, type StoredPhrasing, type Upload } from "@asked-before/sdk";
 import { join } from "node:path";
 import { sortRequest, type ModelRequest } from "./model-stub";
 
@@ -49,8 +49,8 @@ export async function sortEnds(client: Client, uploadId: string, timeoutMs = 240
 }
 
 /** Every unsorted phrasing in a project, a page at a time, newest first. */
-export async function allUnsorted(client: Client, projectId: string, limit = 100): Promise<UnsortedPhrasing[]> {
-  const all: UnsortedPhrasing[] = [];
+export async function allUnsorted(client: Client, projectId: string, limit = 100): Promise<StoredPhrasing[]> {
+  const all: StoredPhrasing[] = [];
   let cursor: string | undefined;
   do {
     const page = await client.cards.unsorted(projectId, { limit, cursor });

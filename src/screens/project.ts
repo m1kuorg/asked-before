@@ -18,7 +18,7 @@
 // upload's date, source, your messages, and the new ones, with its delete,
 // after a confirmation that names everything that goes.
 
-import type { Card, CardDetail, Project, UnsortedPhrasing, Upload } from "@asked-before/sdk";
+import type { Card, CardDetail, Project, StoredPhrasing, Upload } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
 import { months, PLATE_CAPTION, phrasing, rails } from "../parts/card";
 import { confirmDelete } from "../parts/confirm";
@@ -191,7 +191,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
   }
 
   /** The project's unsorted phrasings, newest first: each word for word, with its stamp. */
-  function unsorted(project: Project, heading: HTMLElement, first: Paged<UnsortedPhrasing>) {
+  function unsorted(project: Project, heading: HTMLElement, first: Paged<StoredPhrasing>) {
     const lede = el("p", undefined, `Your phrasings in ${project.name} that nothing else asks yet. Each waits here until a later one asks the same thing, and then they become a card.`);
     const plateOf = cardsPlate(project);
     paged(

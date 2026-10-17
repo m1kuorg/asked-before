@@ -5,8 +5,8 @@
 // reads as missing.
 
 import type { Capture } from "@asked-before/sdk";
-import { findCard } from "./cards";
-import { db, iso, newId } from "./db";
+import { findCard, toPhrasing, type PhrasingRow } from "./cards";
+import { db, newId } from "./db";
 import { placeBatch, type Placement } from "./sorts";
 
 /** A capture before it's stored: its id, your words, and the server's clock. */
@@ -75,10 +75,10 @@ export function storeCapture(userId: string, projectId: string, capture: Draft, 
 export function captureOf(userId: string, phrasingId: string, alreadyCaptured: boolean): Capture | null {
   const row = db
     .query("SELECT f.id, f.source_id, f.text, f.time, f.card_id FROM phrasings f JOIN projects p ON p.id = f.project_id WHERE f.id = $phrasingId AND p.user_id = $userId")
-    .get({ userId, phrasingId }) as { id: string; source_id: string; text: string; time: number; card_id: string | null } | null;
+    .get({ userId, phrasingId }) as (PhrasingRow & { card_id: string | null }) | null;
   if (!row) return null;
   return {
-    phrasing: { id: row.id, sourceId: row.source_id, text: row.text, time: iso(row.time) },
+    phrasing: toPhrasing(row),
     card: row.card_id === null ? null : findCard(userId, row.card_id),
     alreadyCaptured,
   };
