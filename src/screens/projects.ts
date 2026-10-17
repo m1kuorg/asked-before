@@ -14,8 +14,9 @@ import { frame, load, notice } from "../parts/frame";
 import { demoLabel, stamp } from "../parts/library";
 import { messageOf } from "../parts/messages";
 import { rows } from "../parts/rows";
+import { startDemoProject } from "./upload";
 
-export function mountProjects(root: HTMLElement, { client, signal }: ScreenProps) {
+export function mountProjects(root: HTMLElement, { client, navigate, signal }: ScreenProps) {
   const { block } = frame(root, [
     el("p", undefined, "A project keeps one part of your history apart, such as Work or Bootcamp."),
     el("p", undefined, "Its cards come only from its own uploads, so a question from one never lands on a card in another."),
@@ -68,9 +69,28 @@ export function mountProjects(root: HTMLElement, { client, signal }: ScreenProps
           ],
           detail: (p) => (p.id === deleting ? confirmation(p) : null),
         })
-      : emptyState("No projects yet", "Make one for each part of your life you ask a chatbot about. Then upload a chat export into it, and every question you asked more than once becomes a card.");
+      : emptyState(
+          "No projects yet",
+          "Make one for each part of your life you ask a chatbot about. Then upload a chat export into it, and every question you asked more than once becomes a card.",
+          demoButton(),
+        );
     block.replaceChildren(heading, list, create);
     focus?.()?.focus();
+  }
+
+  /** The demo action (m1kuorg/basics#43): a project flagged demo, with the demo export uploaded into it. */
+  function demoButton() {
+    const demo = button("Try the demo project", async () => {
+      demo.disabled = true;
+      demo.parentElement?.querySelector(".error")?.remove();
+      try {
+        await startDemoProject(client, navigate);
+      } catch (error) {
+        demo.disabled = false;
+        demo.after(notice(messageOf(error)));
+      }
+    }, "secondary");
+    return demo;
   }
 
   function nameCell(project: Project) {

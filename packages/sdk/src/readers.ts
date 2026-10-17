@@ -35,10 +35,10 @@ export class ExportError extends Error {
 
 /** Reads an export: a zip or a conversations.json, as a File or Blob, its bytes, or its text. */
 export async function readExport(input: Blob | ArrayBuffer | Uint8Array | string): Promise<ReadExport> {
-  if (typeof input === "string") return readConversations(parse(input, "The export"));
+  if (typeof input === "string") return readConversations(parse(input, "The export", "The export isn't valid JSON."));
   const file = input instanceof Blob ? input : new Blob([input as BlobPart]);
   const head = await bytes(file, 0, 2);
-  if (head[0] !== 0x50 || head[1] !== 0x4b) return readConversations(parse(await file.text(), "The file"));
+  if (head[0] !== 0x50 || head[1] !== 0x4b) return readConversations(parse(await file.text(), "The file", "The file is neither a zip nor JSON."));
   const conversations = await fromZip(file, true);
   if (!conversations) {
     throw new ExportError("There's no conversations.json in this zip. Choose the zip your chatbot emailed you, or the conversations.json inside it.");
@@ -53,12 +53,12 @@ type JsonObject = Record<string, unknown>;
 const isObject = (value: unknown): value is JsonObject => typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** The conversations in a file's text: a list, or now and then an object holding one. */
-function parse(text: string, what: string): unknown[] {
+function parse(text: string, what: string, notJson = `${what} isn't valid JSON.`): unknown[] {
   let data: unknown;
   try {
     data = JSON.parse(text.replace(/^\uFEFF/, ""));
   } catch {
-    throw new ExportError(`${what} isn't valid JSON, or a zip.`);
+    throw new ExportError(notJson);
   }
   if (Array.isArray(data)) return data;
   if (isObject(data) && Array.isArray(data.conversations)) return data.conversations;
