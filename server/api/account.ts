@@ -1,15 +1,18 @@
 // Account: update the name and email, change the password
-// (m1kuorg/basics#48), export all data, and delete the account
+// (m1kuorg/basics#48), download all your data, and delete the account
 // (m1kuorg/basics#49). All of them need a session: authed(..., { sessionOnly: true }).
 // Changing the password needs the current one, and ends every other session.
-// Stubs answer 501 until their ticket lands.
+// The download is the account and everything in it, as the API shows it.
+// Deleting the account needs its password, deletes everything in it, and
+// ends every session, this one included.
 
-import type { Account } from "@asked-before/sdk";
+import type { Account, AccountData } from "@asked-before/sdk";
 import { z } from "zod";
-import { authed } from "../auth";
-import { defineRoutes, HttpError, notBuilt, readJson } from "../http";
+import { authed, clearSessionCookie } from "../auth";
+import { defineRoutes, HttpError, readJson } from "../http";
+import { accountData } from "../store/account-data";
 import { deleteOtherSessions } from "../store/sessions";
-import { passwordHashOf, setPasswordHash, updateAccount } from "../store/users";
+import { deleteUser, passwordHashOf, setPasswordHash, updateAccount } from "../store/users";
 import { Email, Name } from "./auth";
 
 const Change = z
@@ -24,6 +27,10 @@ const NewPassword = z.strictObject({
     .max(200, "A new password can have at most 200 characters."),
 });
 
+const Deletion = z.strictObject({
+  password: z.string({ error: "Your password is needed." }).min(1, "Your password is needed.").max(200, "That isn't your password."),
+});
+
 const sessionOnly = { sessionOnly: true };
 
 export const account = defineRoutes({
@@ -34,7 +41,14 @@ export const account = defineRoutes({
       if (!updated) throw new HttpError(409, "That email already has an account.");
       return Response.json(updated satisfies Account);
     }, sessionOnly),
-    DELETE: notBuilt("m1kuorg/basics#49"),
+    DELETE: authed(async (req, auth) => {
+      const { password } = await readJson(req, Deletion);
+      const hash = passwordHashOf(auth.userId);
+      if (!hash || !(await Bun.password.verify(password, hash))) throw new HttpError(403, "That isn't your password.");
+      deleteUser(auth.userId);
+      clearSessionCookie(req);
+      return new Response(null, { status: 204 });
+    }, sessionOnly),
   },
   "/api/v1/account/password": {
     POST: authed(async (req, auth) => {
@@ -46,5 +60,11 @@ export const account = defineRoutes({
       return new Response(null, { status: 204 });
     }, sessionOnly),
   },
-  "/api/v1/account/export": { GET: notBuilt("m1kuorg/basics#49") },
+  "/api/v1/account/export": {
+    GET: authed((_req, auth) => {
+      const data = accountData(auth.userId);
+      if (!data) throw new HttpError(401, "Log in first.");
+      return Response.json(data satisfies AccountData);
+    }, sessionOnly),
+  },
 });

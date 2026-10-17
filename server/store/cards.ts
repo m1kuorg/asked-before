@@ -7,7 +7,7 @@ import type { Borrow, Card, CardDetail, UnsortedPage } from "@asked-before/sdk";
 import { db, iso } from "./db";
 import { REP_COLUMNS, toRep, type RepRow } from "./reps";
 
-type CardRow = {
+export type CardRow = {
   id: string;
   project_id: string;
   skill: string;
@@ -25,7 +25,7 @@ const SELECT = `
   JOIN card_status s ON s.card_id = c.id
   JOIN projects p ON p.id = c.project_id`;
 
-const toCard = (row: CardRow): Card => ({
+export const toCard = (row: CardRow): Card => ({
   id: row.id,
   projectId: row.project_id,
   skill: row.skill,
