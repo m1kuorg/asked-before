@@ -378,9 +378,11 @@ Standard controls, set in the world's type and printed marks. Hover fills are in
 - **Primary:** iron-black fill, white label at 18px weight 800, padded 14px by 24px. Pressed fills Pressed Iron.
 - **Retry and secondary:** the same shape outlined, white fill and iron label; it fills Hover Gray on hover and Rule Gray when pressed. The secondary is the safe choice beside a primary one, such as "Keep it" beside a delete.
 - **Quiet:** a row's or the navigation's action, such as Rename or Delete in a list: no frame, an underlined label at 18px weight 700, filled Hover Gray on hover and Rule Gray with an iron frame when pressed.
-- **Links styled as buttons** take the primary or secondary look, for an action that goes somewhere, such as "Upload a chat export".
+- **Links styled as buttons** take the primary or secondary look, for an action that goes somewhere, such as "Upload a chat export" or "Open key A".
 - **Focus:** printed square brackets, 2px iron, standing 8px outside each side and 6px above and below; anything that isn't a button gets a 2px iron outline offset 3px.
 - **Disabled:** the frame drops to a dotted Disabled Gray rule, the fill lifts, and the label goes Disabled Gray.
+
+**The Pressed Link Rule.** A link drawn as the primary button fills Pressed Iron when pressed, as a button does. "Open key A" as a link that stayed iron black under the pointer while pressed, because its hover rule outranked the press, was the mistake.
 
 ### Navigation
 
@@ -396,7 +398,9 @@ Underlined iron, 1px, offset 0.2em, filled Hover Gray on hover, instantly.
 
 ### Margin keys
 
-Full-width rows between iron hairlines: the vermilion key letter, the skill, and its count right-aligned in tabular figures. The current key fills Block White and goes to weight 800; others fill Hover Gray on hover and Rule Gray when pressed. A returned key is struck through with a 2px iron line. The margin heading above them is in apparatus capitals, and when a card's borrows span more than one year the margin carries the note "A cut in the rail marks a new year of asking."
+Full-width rows between iron hairlines: the vermilion key letter, the skill, and its count right-aligned in tabular figures. The current key fills Block White and goes to weight 800; others fill Hover Gray on hover and Rule Gray when pressed. A returned key is struck through with a 2px iron line; a key borrowed again isn't struck, and says "Borrowed again" under its skill at weight 500. The margin heading above them is in apparatus capitals, and when a card's borrows span more than one year the margin carries the note "A cut in the rail marks a new year of asking."
+
+On a project's page the margin opens with the project's name at 20px weight 800, beside its demo-data label, then the way to its views (Cards, Unsorted phrasings, Upload history, and Upload a chat export) as underlined notes, the view on screen at weight 800 without its underline, then the keys. The block holds the chosen card, or one view's list in rows under the project's plate of cards. A card borrowed again closes its rail with the line "Returned <date>, then borrowed again." and its keys drop again.
 
 ### The rail
 
