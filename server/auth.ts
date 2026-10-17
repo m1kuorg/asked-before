@@ -7,6 +7,7 @@
 import type { BunRequest, CookieMap } from "bun";
 import { config } from "./config";
 import { HttpError, type Handler } from "./http";
+import { useKey } from "./store/keys";
 import { createSession, deleteSession, findSession, SESSION_DAYS } from "./store/sessions";
 
 export type Auth =
@@ -41,9 +42,11 @@ function authenticate(req: WithCookies): Auth {
   return { via: "session", userId: session.userId, sessionId: session.id };
 }
 
-/** A stub until m1kuorg/basics#48 builds API keys: every key is refused. */
+/** An API key, ab_<id>_<secret>: a revoked or made-up one is a 401. */
 function authenticateKey(token: string): Auth {
-  throw new HttpError(401, "That API key isn't valid.");
+  const key = useKey(token);
+  if (!key) throw new HttpError(401, "That API key isn't valid.");
+  return { via: "key", userId: key.userId, keyId: key.keyId };
 }
 
 /**
