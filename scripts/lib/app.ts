@@ -79,7 +79,8 @@ export async function startApp(env: Record<string, string> = {}): Promise<App> {
   };
 }
 
-function browser(url: string): Browser {
+/** A client for one browser on the app at `url`; check:container uses it on a container's app. */
+export function browser(url: string): Browser {
   const jar = new Map<string, string>();
   const cookie = () => [...jar].map(([name, value]) => `${name}=${value}`).join("; ");
   const send = async (input: string, init: RequestInit) => {

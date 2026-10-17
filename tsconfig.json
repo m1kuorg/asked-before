@@ -14,7 +14,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    "types": ["bun"]
+    "types": ["bun"],
+    // The repo runs the SDK from its sources, so nothing in it waits on the SDK's build (packages/sdk/dist).
+    "paths": { "@asked-before/sdk": ["./packages/sdk/src/index.ts"] }
   },
-  "exclude": ["node_modules", ".worktrees", ".claude", ".agents", "agent", "plugins/*/dist"]
+  "exclude": ["node_modules", ".worktrees", ".claude", ".agents", "agent", "plugins/*/dist", "packages/*/dist"]
 }

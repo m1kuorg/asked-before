@@ -2,7 +2,7 @@
 // (m1kuorg/basics#41). Signing up or logging in sets the session cookie, so
 // these are for the page; scripts and agents use an API key instead.
 
-import type { Requester } from "./http";
+import type { Requester } from "./http.ts";
 
 export type Account = { id: string; name: string; email: string; createdAt: string };
 

@@ -23,12 +23,12 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 
 | Path | What it holds | Owner |
 | --- | --- | --- |
-| `server.ts` | The one process: composes the pages, the API, and the proof of concept's routes, all through `serve()`; its fallback is the 404, as `{ error }` under `/api/` | m1kuorg/basics#41 |
+| `server.ts` | The one process: composes the pages and the API, all through `serve()`, and resumes sorts; its fallback is the 404, as `{ error }` under `/api/` | m1kuorg/basics#41 |
 | `server/config.ts` | Settings from the environment, with defaults: `PORT`, `DATABASE_PATH`, `PUBLIC_URL`, `DAILY_MODEL_REQUESTS`, and `SORT_BATCH_SIZE` | m1kuorg/basics#41; `SORT_BATCH_SIZE` is m1kuorg/basics#44's |
 | `server/http.ts` | `HttpError`, `readJson`, `defineRoutes`, and `serve()`, which answers errors, adds the security headers, and logs | m1kuorg/basics#41 |
 | `server/auth.ts` | `authed()`, `sameOrigin()`, and the session cookie; `authenticateKey()` takes a Bearer key through `store/keys.ts` | m1kuorg/basics#41; the key lookup is m1kuorg/basics#48's |
 | `server/throttle.ts` | The per-IP throttle on signing up and logging in | m1kuorg/basics#41 |
-| `server/model.ts` | The model client. Its `userId` argument is the daily cap's hook: it spends one of the account's daily requests, or throws 429. Requests stream, with room for 64,000 output tokens, since a sort batch can outgrow an unstreamed request's 16,000. The Anthropic SDK reads `ANTHROPIC_BASE_URL`, which is how a check points the app at its model stand-in | Proof of concept; the sort (m1kuorg/basics#44) and cold reps (m1kuorg/basics#46) pass `userId` with every request |
+| `server/model.ts` | The model client. Every caller passes its own effort, and its `userId` argument is the daily cap's hook: it spends one of the account's daily requests, or throws 429. Requests stream, with room for 64,000 output tokens, since a sort batch can outgrow an unstreamed request's 16,000. The Anthropic SDK reads `ANTHROPIC_BASE_URL`, which is how a check points the app at its model stand-in | Proof of concept; the sort (m1kuorg/basics#44) and cold reps (m1kuorg/basics#46) pass `userId` with every request |
 | `server/api/index.ts` | The API's route table, composed from the areas here and only here | m1kuorg/basics#41 |
 | `server/api/<area>.ts` | One module per area of the spec's API table | See [the route table](#the-apis-route-table) |
 | `server/store/db.ts` | The SQLite connection: foreign keys, WAL, busy timeout, and the schema | m1kuorg/basics#41 |
@@ -37,7 +37,7 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `server/store/account-data.ts` | `accountData()`: an account's download, read in one transaction. Projects, uploads, and cards come through the same functions the API answers with, so the download matches the API; every phrasing is read here, on a card, unsorted, or still waiting for its sort | m1kuorg/basics#49 |
 | `server/store/<area>.ts` | A new store module per area, such as `uploads.ts`, `cards.ts`, `reps.ts`, and `keys.ts` | The area's ticket |
 | `server/store/uploads.ts` | Uploads, and appending their phrasings, skipping any whose source id the project holds already; deleting one, with any card it leaves under two borrows | m1kuorg/basics#43; deleting is m1kuorg/basics#45's |
-| `server/pages.ts` | The page table, built at startup; `/assets/*`, the demo exports, and `notFound`, which serves `public/not-found.html` with a 404 | m1kuorg/basics#42 |
+| `server/pages.ts` | The page table, built at startup; `/assets/*`, the demo export, and `notFound`, which serves `public/not-found.html` with a 404 | m1kuorg/basics#42 |
 | `server/sort.ts` | The sort (ADR 0002): `sortProject()` runs a project's waiting uploads one at a time in the background, batch by batch, recording progress and failures on the upload; `resumeSorts()` carries them on at startup; `askPlacement()` is the one model request and its code checks, at `SORT_EFFORT`, which captures call too, at `CAPTURE_EFFORT` with `CAPTURE_WINDOW` unsorted phrasings (`server/api/captures.ts`) | m1kuorg/basics#44; captures are m1kuorg/basics#50's |
 | `server/store/sorts.ts` | The sort's SQL: the next upload and batch, `unsortedWindow()`, the cards with their samples, `placeBatch()`, which applies a checked answer inside its caller's transaction, and the upload's status | m1kuorg/basics#44; captures share the window and `placeBatch()` (m1kuorg/basics#50) |
 | `server/store/captures.ts` | A capture's lookup before any model is asked, comparing words ignoring case and spacing: the same words captured in the last ten minutes, or else the card holding them; storing it in one transaction and placing it through `placeBatch()`, unless the same words were captured meanwhile; and reading it back with its card. Every query is scoped by the project's owner | m1kuorg/basics#50 |
@@ -55,6 +55,7 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `packages/sdk/src/http.ts` | The request function, `ApiError`, and the `path` tag | m1kuorg/basics#41 |
 | `packages/sdk/src/<area>.ts` | Each area's types and methods | See [the route table](#the-apis-route-table) |
 | `packages/sdk/src/index.ts` | The SDK's exports. Every area's types are exported already | m1kuorg/basics#41; m1kuorg/basics#43 added the export readers and `MAX_CHUNK` |
+| `packages/sdk/tsconfig.build.json` | The SDK's build, `bun run build:sdk`: JavaScript and type declarations in `packages/sdk/dist` (gitignored), one pair per module, checked as Node checks an ES module, without Bun's types. The package's `exports` and `types` point at the build, for projects outside the repo; see [the SDK's build](#the-sdks-build) | m1kuorg/basics#53 |
 | `packages/sdk/src/readers.ts` | `readExport()`, `ExportError`, and `MAX_PHRASING_LENGTH`: a ChatGPT or Claude export, zip or JSON, read into phrasings in Bun, Node, or a browser. A zip is read from its directory, inflating only its conversations files | m1kuorg/basics#43 |
 | `packages/sdk/fixtures/` | Small exports in each format for the readers' check, written by `make.ts` there | m1kuorg/basics#43 |
 | `packages/sdk/examples/quickstart.ts` | The SDK's quickstart: read an export, upload it into a new project, wait for the sort, and list the cards. The SDK's README and the docs page show it as it is, and `check:docs` runs it | m1kuorg/basics#51 |
@@ -64,7 +65,11 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `.claude-plugin/marketplace.json` | The marketplace at the repo's root, listing the plugin from `./plugins/asked-before` | m1kuorg/basics#51 |
 | `plugins/asked-before/` | The Claude Code plugin: `.claude-plugin/plugin.json` (its options: `server_url`, `api_key`, and `project`), `.mcp.json`, which launches `node ${CLAUDE_PLUGIN_ROOT}/dist/server.js` with the options as the server's environment, `skills/asked-before/SKILL.md`, the skill that tells the agent when to record a question and how to run a cold rep, and `dist/server.js`, the MCP server built into one file. A marketplace install copies only this folder, so nothing in it reaches outside it | m1kuorg/basics#51 |
 | `scripts/build-plugin.ts` | `bun run build:plugin`: builds `packages/mcp/src/server.ts`, with the SDK, the MCP SDK, and zod, into the plugin's `dist/server.js` for Node.js 20 or later. Rebuild it after any change to the server or the SDK; `check:plugin` fails while it's stale | m1kuorg/basics#51 |
-| `scripts/lib/app.ts` | `startApp()`, the one helper that starts the app for a check | m1kuorg/basics#41 |
+| `scripts/lib/app.ts` | `startApp()`, the one helper that starts the app for a check, and `browser()`, a client that keeps one browser's session cookie, which `check:container` uses on a container's app | m1kuorg/basics#41 |
+| `scripts/journey.ts` | `bun run journey`: the whole product with the real model, nothing stubbed, in a real browser, then the SDK and the MCP server; see [check scripts](#check-scripts) | m1kuorg/basics#53 |
+| `scripts/check-sdk.ts` | `bun run check:sdk`: the SDK's build, added to a project outside the repo, typechecking the quickstart under bundler and Node resolution, and running it in Bun and in Node against the app (the sort stubbed as the answer key sorts) | m1kuorg/basics#53 |
+| `scripts/check-container.ts` | `bun run check:container`: the image built, a container on a fresh volume serving the app, Docker's health check, and the data kept across a restart and a new container on the same volume. Needs Docker, and no key | m1kuorg/basics#53 |
+| `Dockerfile`, `.dockerignore` | The container image, on the official Bun image (`oven/bun`), running as its `bun` user, with the database on a volume at `/data` and a health check that Bun runs against `/api/v1/health`. `.dockerignore` lets in only what the server runs and builds its pages from | m1kuorg/basics#53 |
 | `scripts/check-accounts.ts` | `bun run check:accounts` | m1kuorg/basics#41 |
 | `scripts/check-shell.ts` | `bun run check:shell`: the shell's journey in a real browser | m1kuorg/basics#42 |
 | `scripts/check-readers.ts` | `bun run check:readers`: the export readers on every fixture and on broken exports | m1kuorg/basics#43 |
@@ -94,6 +99,10 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `scripts/styles/<surface>.ts` | One styles-check module per surface | Each surface's ticket; see [check scripts](#check-scripts) |
 
 Installed up front: `fflate` in `packages/sdk` for the export readers, `@modelcontextprotocol/server` in `packages/mcp`, and `@modelcontextprotocol/client` at the root for check scripts.
+
+### The SDK's build
+
+The repo runs the SDK from its sources: the root `tsconfig.json` maps `@asked-before/sdk` to `packages/sdk/src/index.ts`, and Bun follows that mapping at runtime and in its bundler, so the server, the pages, the MCP server, the plugin's build, and the checks never wait on a build. The package's own `exports` point at `packages/sdk/dist`, which only a project outside the repo uses, after `bun run build:sdk`. The SDK's modules import each other with `.ts` extensions, which the build rewrites to `.js`, so the built package also loads in Node; a new module does the same.
 
 ## The API's route table
 
@@ -252,6 +261,7 @@ Each uses the shared parts and `PRIVACY_LINE` as they are. A change a part needs
 ## Check scripts
 
 - `startApp(env?)` from `scripts/lib/app.ts` starts `bun server.ts` on a free port with a temporary database, and returns `{ url, databasePath, log, browser, stop }`. `env` overrides settings, such as `DAILY_MODEL_REQUESTS`.
+- `bun run journey` walks the whole product with nothing stubbed, in the browser, then through the SDK and the MCP server, as the README describes; change it when a screen it walks changes. `check:container` is the one check that doesn't use `startApp()`: it runs the app in Docker, on a free port and a fresh volume.
 - Finishing an upload starts a sort, which asks the model. A check that doesn't prove the sort's quality starts a model stand-in, `startModelStub(reply(keySorter))` from `scripts/lib/`, and passes its `url` as `ANTHROPIC_BASE_URL` to `startApp()`, so it needs no key and its sorts end as the answer key says. The stand-in also holds, refuses, or reads requests, for a check of waiting and failure states or of what the model is sent.
 - `app.browser()` is one browser: an SDK client that keeps its own session cookie and sends the app's `Origin`. `cookie()` gives its Cookie header for requests made without the SDK. A script can also make a key with `keys.create` and reach the API as a script or agent would, with `createClient({ baseUrl: app.url, apiKey })`.
 - Each copy of the app allows 20 sign-up and log-in tries per address in 15 minutes, so a script making many accounts should start its own copy.
@@ -272,5 +282,7 @@ Each uses the shared parts and `PRIVACY_LINE` as they are. A change a part needs
 | `check:grouping` | Replaced by m1kuorg/basics#44's `check:sort`, the incremental sort check |
 | `check:key`, `check:cards` | `check:cards` went with the card builder (m1kuorg/basics#46); `check:key` stays, since every check leans on the answer key it checks |
 | `check:rep-routes` | Retargeted by m1kuorg/basics#46 as `check:reps`, on the reps endpoints |
-| `check:rep` and `journey`, which walked the single page | Deleted by m1kuorg/basics#42; m1kuorg/basics#46 added the card page's browser check, `check:card-page`, and m1kuorg/basics#53 adds the app journey as `bun run journey` |
+| `check:rep` and `journey`, which walked the single page | Deleted by m1kuorg/basics#42; m1kuorg/basics#46 added the card page's browser check, `check:card-page`, and m1kuorg/basics#53 the app journey, `bun run journey` |
+| `demo/no-repeats.json`, the export where nothing is asked twice, served at `/demo/no-repeats.json` | Deleted by m1kuorg/basics#53: no page fetched it, and only `check:key` read it, to check itself |
+| `server/model.ts`'s default effort and optional `userId`, for routes with no account | Removed by m1kuorg/basics#53: every caller passes both |
 | `scripts/styles/stack.ts` and `rep.ts`, sample markup | `stack.ts` drives the real project page (m1kuorg/basics#45), and `rep.ts` the real card page (m1kuorg/basics#46) |
