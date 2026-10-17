@@ -82,8 +82,6 @@ await step("1. The health check answers, and every kind of answer carries the se
 
 await step("2. Every stub area answers 501 with { error }", async () => {
   const stubs: [string, string][] = [
-    ["GET", "/api/v1/account/export"],
-    ["DELETE", "/api/v1/account"],
     ["POST", "/api/v1/projects/p1/captures"],
     ["GET", "/api/v1/dashboard"],
   ];
