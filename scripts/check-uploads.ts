@@ -1,7 +1,10 @@
 // Checks the uploads endpoints (m1kuorg/basics#43) end to end, through the
 // SDK, on a fresh copy of the app: create an upload, append its phrasings
 // in chunks, finish it so it waits to be sorted, get it, and list a
-// project's uploads a page at a time. Uploading the same export again into
+// project's uploads a page at a time. Finishing starts the sort
+// (m1kuorg/basics#44, checked by check:sort-rules); here the app's model is
+// a stand-in in this script, answering as the demo export's answer key does,
+// so no sort reaches the real model. Uploading the same export again into
 // the project stores nothing new; into another project it stores it all. A
 // phrasing over 2,000 characters, or a chunk over 2,000 phrasings, gets 413;
 // one dated more than a day ahead gets 400, as does anything but
@@ -12,9 +15,12 @@
 
 import { ApiError, createClient, readExport, type Phrasing, type Project, type Upload } from "@asked-before/sdk";
 import { join } from "node:path";
+import { keySorter } from "./lib/answer-key";
 import { startApp } from "./lib/app";
+import { reply, startModelStub } from "./lib/model-stub";
 
-const app = await startApp();
+const model = await startModelStub(reply(keySorter));
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
 const failures: string[] = [];
 let current = "";
 
@@ -92,7 +98,8 @@ try {
     const finished = await ada.client.uploads.finish(first.id);
     check(finished.status === "waiting" && finished.finishedAt !== null && finished.phrasings === 27, `finished: ${counts(finished)}, at ${finished.finishedAt}`);
     const got = await ada.client.uploads.get(first.id);
-    check(JSON.stringify(got) === JSON.stringify(finished), "getting it says the same");
+    const sortFields = ({ status, offered, error, ...rest }: Upload) => JSON.stringify(rest);
+    check(sortFields(got) === sortFields(finished) && got.status !== "receiving", `getting it says the same, with its sort under way: ${got.status}`);
     const late = await failure(ada.client.uploads.append(first.id, [phrasing("late")]));
     check(late?.status === 409, `appending after finishing: ${say(late)}`);
     const twice = await failure(ada.client.uploads.finish(first.id));
@@ -204,6 +211,7 @@ try {
   });
 } finally {
   await app.stop();
+  model.stop();
 }
 
 console.log(failures.length ? `\n${failures.length} check(s) failed:\n${failures.join("\n")}` : "\nevery check passed");
