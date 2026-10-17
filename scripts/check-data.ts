@@ -6,8 +6,15 @@
 // and every project, upload, phrasing (on a card, unsorted, or waiting for
 // its sort), card, and cold rep, matching the API and the phrasings sent,
 // and nothing of another account's, no key, and no password; only a session
-// may download it. It prints ids, counts, and the app's messages, never a
-// phrasing, and exits 1 if any check fails, naming the step.
+// may download it. Deleting the account needs the password, deletes
+// everything in it (read in the database too), ends every session, and
+// leaves logging in failing, with another account's data untouched. Then,
+// in a real browser at 1920×1080, the settings page: the download saved as
+// one JSON file, the same as the SDK's; deleting, which asks for the
+// password and a confirmation, refuses a wrong password, keeps everything
+// on Escape or Keep it, and then deletes and logs out to the landing page.
+// It prints ids, counts, and the app's messages, never a phrasing, saves
+// screenshots, and exits 1 if any check fails, naming the step.
 // Run: bun run check:data [screenshot dir]
 
 import { ApiError, createClient, type AccountData, type Client, type Phrasing, type Upload } from "@asked-before/sdk";
@@ -15,6 +22,7 @@ import { Database } from "bun:sqlite";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { chromium } from "playwright";
 import { phrasings as demoPhrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
 import { refuse, startModelStub } from "./lib/model-stub";
@@ -285,8 +293,129 @@ await step("5. The app logged none of the phrasings, and no password", async () 
   check(/DELETE \/api\/v1\/account 204/.test(log) && /GET \/api\/v1\/account\/export 200/.test(log), "the log has the download and the delete, by method, path, and status");
 });
 
+// The settings page, in a real browser at 1920×1080, on Cy's session: Cy has one project with one upload.
+const CY = { name: "Cy Example", email: "cy@example.com", password: "a third long password" };
+const cy = app.browser();
+await cy.client.auth.signUp(CY);
+const cyNotes = await cy.client.projects.create({ name: "Notes" });
+const cyAsks = (await smallExport([{ text: "How do I split a PDF?", time: new Date("2026-07-01T08:00:00Z") }])).phrasings;
+await sorted(cy.client, cyNotes.id, cyAsks, "cy.json");
+
+const browser = await chromium.launch();
+const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1, acceptDownloads: true });
+await context.addCookies(cy.cookie().split("; ").map((pair) => {
+  const [name, value] = pair.split("=");
+  return { name: name!, value: value!, url: app.url };
+}));
+const page = await context.newPage();
+page.setDefaultTimeout(10_000);
+let shot = 0;
+const screenshot = (name: string) => page.screenshot({ path: join(OUT, `${++shot}-${name}.png`) });
+
+/** Every request the page sent to the server's API, and every console error, CSP violations included. */
+const apiCalls: string[] = [];
+const consoleErrors: string[] = [];
+page.on("request", (request) => {
+  const { origin, pathname } = new URL(request.url());
+  if (origin === app.url && pathname.startsWith("/api/")) apiCalls.push(`${request.method()} ${pathname}`);
+});
+page.on("console", (message) => {
+  // Chrome reports every non-2xx answer as a failed resource; the steps check those answers themselves.
+  if (message.type() === "error" && !message.text().startsWith("Failed to load resource")) consoleErrors.push(message.text());
+});
+page.on("pageerror", (error) => consoleErrors.push(error.message));
+
+const section = (name: string) => page.locator("section", { has: page.getByRole("heading", { name, exact: true, level: 2 }) });
+const stillThere = async () => (await cy.client.auth.me()).email === CY.email && (await cy.client.projects.list()).length === 1;
+
+try {
+  await step("6. In settings, Download your data saves one JSON file, the same as the SDK's", async () => {
+    await page.goto(`${app.url}/app/settings`);
+    const data = section("Your data");
+    await data.waitFor();
+    const [download] = await Promise.all([page.waitForEvent("download"), data.getByRole("button", { name: "Download your data" }).click()]);
+    const today = await page.evaluate(() => new Date().toLocaleDateString("en-CA"));
+    const name = download.suggestedFilename();
+    check(name === `asked-before-${today}.json`, `the file is named for today, in the learner's own time zone: ${name}`);
+    const file = JSON.parse(await Bun.file((await download.path())!).text()) as AccountData;
+    check(same(withoutTime(file), withoutTime(await cy.client.account.export())), `it holds what the SDK downloads: ${file.projects.map((p) => `${p.name}, ${p.phrasings.length} phrasings`).join("; ")}`);
+    const said = await data.locator("[role=status]").textContent();
+    check(said?.includes(name) ?? false, `the section says so: "${said}"`);
+    await screenshot("data-downloaded");
+  });
+
+  await step("7. Deleting in the page needs the password and a confirmation; a wrong one, Escape, and Keep it delete nothing", async () => {
+    const del = section("Delete your account");
+    await del.scrollIntoViewIfNeeded();
+    const password = del.getByLabel("Your password");
+    await password.fill("the wrong password");
+    await del.getByRole("button", { name: "Delete your account" }).click();
+    const confirm = del.locator(".confirm");
+    await confirm.waitFor();
+    const asks = await confirm.locator("h2").textContent();
+    const focused = await page.evaluate(() => document.activeElement?.textContent);
+    check(asks === "Delete your account and everything in it?" && focused === "Keep it", `it asks first, "${asks}", with Keep it focused: ${focused}`);
+    check((await del.getByRole("button", { name: "Delete your account" }).isDisabled()) === true, "the form's button is locked while it asks");
+    await screenshot("delete-confirm");
+    await confirm.getByRole("button", { name: "Delete everything" }).click();
+    const refusal = del.locator(".error");
+    await refusal.waitFor();
+    const field = await password.evaluate((input) => ({ invalid: input.getAttribute("aria-invalid"), focused: input === document.activeElement }));
+    check((await refusal.textContent()) === "That isn't your password." && field.invalid === "true" && field.focused, `a wrong password says "${await refusal.textContent()}", marking that field: ${JSON.stringify(field)}`);
+    check((await confirm.count()) === 0, "the confirmation is gone");
+    await screenshot("delete-refused");
+    check(await stillThere(), "Cy's account and project are still there");
+
+    await password.fill(CY.password);
+    await del.getByRole("button", { name: "Delete your account" }).click();
+    await confirm.waitFor();
+    await page.keyboard.press("Escape");
+    await confirm.waitFor({ state: "detached" });
+    check(await password.evaluate((input) => input === document.activeElement), "Escape keeps it, and goes back to the password");
+    await del.getByRole("button", { name: "Delete your account" }).click();
+    await confirm.getByRole("button", { name: "Keep it" }).click();
+    await confirm.waitFor({ state: "detached" });
+    check((await del.getByRole("button", { name: "Delete your account" }).isEnabled()) && (await stillThere()), "Keep it keeps it too, and the form takes another try");
+  });
+
+  await step("8. Deleted in the page, Cy is logged out to the landing page, and logging in fails", async () => {
+    const del = section("Delete your account");
+    await del.getByRole("button", { name: "Delete your account" }).click();
+    await del.locator(".confirm").getByRole("button", { name: "Delete everything" }).click();
+    await page.waitForURL(`${app.url}/`);
+    check(true, `the page goes to the landing page: ${new URL(page.url()).pathname}`);
+    await page.locator("body > nav").getByRole("link", { name: "Log in" }).waitFor();
+    check(true, "its navigation offers Log in");
+    await screenshot("deleted");
+    const gone = await failure(cy.client.auth.me());
+    check(gone?.status === 401, `the session is over: ${say(gone)}`);
+
+    await page.goto(`${app.url}/app/settings`);
+    await page.waitForURL(/\/login\?next=/);
+    check(true, `settings now sends the browser to log in: ${new URL(page.url()).pathname}`);
+    await page.getByLabel("Email").fill(CY.email);
+    await page.getByLabel("Password").fill(CY.password);
+    await page.getByRole("button", { name: "Log in" }).click();
+    const refused = page.locator(".error");
+    await refused.waitFor();
+    check((await refused.textContent()) === "Wrong email or password.", `logging in with the right password says "${await refused.textContent()}"`);
+    const beaAfter = await bea.client.account.export();
+    check(beaBefore !== null && same(withoutTime(beaAfter), withoutTime(beaBefore)), "Bea's data is still untouched");
+  });
+
+  await step("9. The page reached the server only through /api/v1, within its security policy", async () => {
+    const outside = apiCalls.filter((call) => !call.split(" ")[1]!.startsWith("/api/v1/"));
+    check(apiCalls.includes("GET /api/v1/account/export") && apiCalls.includes("DELETE /api/v1/account"), "it downloaded and deleted through the API");
+    check(outside.length === 0, `${apiCalls.length} API calls, ${outside.length} outside /api/v1`);
+    check(consoleErrors.length === 0, `no console errors or policy violations${consoleErrors.length ? `: ${consoleErrors.slice(0, 3).join(" | ")}` : ""}`);
+  });
+} finally {
+  await browser.close();
+}
+
 await app.stop();
 model.stop();
+console.log(`\nscreenshots in ${OUT}`);
 
 if (failures.length) {
   console.log(`\n${failures.length} check(s) failed:\n${failures.map((f) => `  ${f}`).join("\n")}`);
