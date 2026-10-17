@@ -11,7 +11,9 @@
 // Opening a card takes its rep up where it stands: an open rep (the latest,
 // unchecked) is shown again, after the reason of a failed one before it;
 // otherwise the card shows with Take a cold rep, which starts a fresh one,
-// so opening a card to look at it spends no model request. The card's
+// so opening a card to look at it spends no model request. The dashboard's
+// "Take a cold rep on <skill>" comes with ?rep=start instead, and starts the
+// fresh one at once. The card's
 // first rep brings the lesson; a failed rep shows its reason and the lesson
 // again, then a different problem; a pass stamps the card returned on the
 // day it passed, and leads back to the stack. Every model wait has its
@@ -44,8 +46,12 @@ function told(failed: Rep | null, lesson: string | null): HTMLElement[] {
   ];
 }
 
-export function mountCard(root: HTMLElement, { client, params, navigate, signal }: ScreenProps<"cardId">) {
+export function mountCard(root: HTMLElement, { client, params, query, navigate, signal }: ScreenProps<"cardId">) {
   const { margin, block } = frame(root);
+  // The dashboard's "Take a cold rep on <skill>" asks for the rep with ?rep=start. The address drops it at once,
+  // so going back, forward, or reloading opens the card as any visit does, spending no model request.
+  const startRep = query.get("rep") === "start";
+  if (startRep) history.replaceState(history.state, "", location.pathname);
 
   load(block, {
     keep: [el("h1", undefined, "Card")],
@@ -85,6 +91,7 @@ export function mountCard(root: HTMLElement, { client, params, navigate, signal 
     const failedBefore = lastChecked?.verdict === "fail" ? lastChecked : null;
     const open = card.reps.at(-1)?.checkedAt === null ? card.reps.at(-1)! : null;
     if (open) answer(told(failedBefore, lastChecked?.verdict === "pass" ? null : card.lesson), open);
+    else if (startRep) start(failedBefore);
     else offer(failedBefore);
 
     /** The card's status wherever it shows: the margin, the plate, the end of its rail, and its earlier reps. */

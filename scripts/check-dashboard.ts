@@ -10,8 +10,11 @@
 // key reads it, and another account sees none of it. In the browser: a new
 // account sees the empty state, whose demo action leads to a sorted demo
 // project, and whose first-upload field makes a project and goes to its
-// upload page; then a cold rep passed on the top card, from the dashboard's
-// own link, shows on the dashboard as a return, with totals that match the
+// upload page; then the top card's skill opens its page asking the model
+// nothing, while the dashboard's own cold rep link shows the rep's problem
+// in one click and leaves no start in the address, so going back and forward
+// asks nothing either; that rep, passed, shows on the dashboard as a
+// return, with totals that match the
 // projects' counts, the rows and the rail as the API lists them, stamps in
 // the learner's own time zone, and one request to /api/v1/dashboard.
 // It prints ids, counts, and skill names, never phrasing text, and exits 1
@@ -26,7 +29,7 @@ import { chromium, type Page } from "playwright";
 import { compareWithKey, key, named, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp, type Browser as Learner } from "./lib/app";
 import { refuse, startModelStub } from "./lib/model-stub";
-import { repReply, smallExport, sortsByKey, verdictReply } from "./lib/reps";
+import { kindOf, repReply, smallExport, sortsByKey, verdictReply } from "./lib/reps";
 
 const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-dashboard");
 const FRAME = { width: 1920, height: 1080 };
@@ -86,6 +89,8 @@ async function learnerPage(name: string, email: string): Promise<Watched> {
 }
 
 const text = async (page: Page, selector: string) => ((await page.locator(selector).first().textContent()) ?? "").replace(/\s+/g, " ").trim();
+/** A section's words without its heading. */
+const body = async (page: Page, selector: string) => (await page.locator(`${selector} p`).allTextContents()).join(" ");
 const utcDate = (iso: string) => new Date(iso).toISOString().slice(0, 10);
 
 const zero = (totals: Dashboard["totals"]) => totals.cards === 0 && totals.borrowed === 0 && totals.returned === 0 && totals.borrowedAgain === 0;
@@ -243,15 +248,41 @@ try {
     "8. After one returned card, the dashboard page lists that return, and its totals match the projects' counts",
     async () => {
       const { page, learner, apiCalls, errors } = cy!;
+      const [cardA] = await learner.client.cards.list((await learner.client.projects.list())[0]!.id);
+      const cardAt = `${app.url}/app/cards/${cardA!.id}`;
+      const takeOffered = page.locator(".block").getByRole("button", { name: "Take a cold rep" });
       await page.goto(`${app.url}/app`);
       const take = page.locator(".block").getByRole("link", { name: `Take a cold rep on ${key.skills[0]!.name}` });
       await take.waitFor();
+
+      // A plain visit, by the card's skill in the rows, opens the card and asks the model nothing.
+      let before = model.requests.length;
+      await page.locator(".block table.rows").first().getByRole("link", { name: key.skills[0]!.name, exact: true }).click();
+      await takeOffered.waitFor();
+      check(page.url() === cardAt && model.requests.length === before && (await learner.client.cards.get(cardA!.id)).reps.length === 0, `the skill's link opens the card, offering a cold rep, with ${model.requests.length - before} model requests and no rep`);
+
+      // The dashboard's action starts the rep in one click: the card page, with its problem showing.
+      await page.goBack();
+      await take.waitFor();
       model.queue(repReply("A problem of the card's skill.", "The card's lesson."), verdictReply("pass", "You did it."));
+      before = model.requests.length;
       await take.click();
-      await page.locator(".block").getByRole("button", { name: "Take a cold rep" }).click();
+      await page.locator(".block .problem").waitFor();
+      const started = model.requests.slice(before).map(kindOf);
+      check(started.join() === "rep" && (await learner.client.cards.get(cardA!.id)).reps.length === 1, `one click on "Take a cold rep on ${key.skills[0]!.name}" shows the rep's problem, after one model request (${started.join(", ")})`);
+      check((await body(page, ".block .problem")) === "A problem of the card's skill." && (await takeOffered.count()) === 0, "the problem is the rep's, with no second Take a cold rep to click");
+      check(page.url() === cardAt, `the address keeps no start, so going back or reloading starts nothing (${new URL(page.url()).pathname}${new URL(page.url()).search})`);
       await page.locator(".answer-box textarea").fill("My own answer.");
       await page.getByRole("button", { name: "Check my answer" }).click();
       await page.getByRole("button", { name: "Back to the stack" }).waitFor();
+
+      // Back to the dashboard and forward again opens the returned card, and asks the model nothing.
+      before = model.requests.length;
+      await page.goBack();
+      await page.locator(".block .latest-returns table.rows").waitFor();
+      await page.goForward();
+      await takeOffered.waitFor();
+      check(page.url() === cardAt && model.requests.length === before && (await learner.client.cards.get(cardA!.id)).reps.length === 1, `back, then forward, opens the card with ${model.requests.length - before} model requests, still one rep`);
 
       apiCalls.length = 0;
       await page.goto(`${app.url}/app`);
