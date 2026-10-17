@@ -9,13 +9,13 @@
 import { join } from "node:path";
 import type { Page } from "playwright";
 import { buildCards } from "../../src/cards";
-import { parseExport } from "../../src/parser";
 import type { Card } from "../../src/types";
 import { PRIVACY_LINE } from "../../src/parts/library";
+import { demoMessages } from "../lib/demo";
 import { FRAME, GRAY_800, SAMPLE_PATH, VERMILION, type Kit } from "../lib/styles";
 
 const ROOT = join(import.meta.dir, "..", "..");
-const messages = parseExport(await Bun.file(join(ROOT, "demo/export.json")).text());
+const messages = await demoMessages("export.json");
 const answerKey: { skills: { name: string; messageIds: string[] }[] } = await Bun.file(join(ROOT, "demo/answer-key.json")).json();
 const cards = buildCards({ skills: answerKey.skills }, messages);
 const A = cards[0]!;
