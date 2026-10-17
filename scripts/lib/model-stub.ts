@@ -50,7 +50,7 @@ export const forward: Answer = async (_request, raw, body) => {
 
 /** A finished message whose text is `result` as JSON: the structured output the app asked for. */
 export const reply =
-  (result: unknown | ((request: ModelRequest) => unknown)): Answer =>
+  (result: object | ((request: ModelRequest) => object)): Answer =>
   (request) =>
     Response.json({
       id: "msg_stub",

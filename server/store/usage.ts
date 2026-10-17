@@ -18,6 +18,6 @@ export function spendModelRequest(userId: string): void {
   const cap = config.dailyModelRequests;
   const day = new Date().toISOString().slice(0, 10);
   if (cap < 1 || !spend.get({ userId, day, cap })) {
-    throw new HttpError(429, `You've used today's ${cap} model requests. More open at midnight UTC.`);
+    throw new HttpError(429, `You've used today's ${cap} model ${cap === 1 ? "request" : "requests"}. More open at midnight UTC.`);
   }
 }

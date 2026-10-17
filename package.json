@@ -17,7 +17,8 @@
     "check:cards": "bun run scripts/check-cards.ts",
     "check:styles": "bun run scripts/check-styles.ts",
     "check:rep-routes": "bun run scripts/check-rep-routes.ts",
-    "check:sort": "bun run scripts/check-sort.ts"
+    "check:sort": "bun run scripts/check-sort.ts",
+    "check:sort-rules": "bun run scripts/check-sort-rules.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
