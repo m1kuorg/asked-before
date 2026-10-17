@@ -150,7 +150,7 @@ function privacy(): HTMLElement {
   return section(
     "landing-privacy",
     "What leaves this computer",
-    ["System and tool messages stay on this computer too.", "The server's logs keep each request's method, path, status, and duration, never your words."],
+    ["System and tool messages stay too. The server logs requests, never your words."],
     el("p", "landing-statement", PRIVACY_LINE),
   );
 }
