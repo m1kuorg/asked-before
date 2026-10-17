@@ -3,7 +3,7 @@
 // them need a session, not an API key.
 
 import type { Account } from "./auth.ts";
-import type { Borrow, Card } from "./cards.ts";
+import type { Card, StoredPhrasing } from "./cards.ts";
 import type { Requester } from "./http.ts";
 import type { Project } from "./projects.ts";
 import type { Rep } from "./reps.ts";
@@ -18,8 +18,8 @@ export type PasswordChange = {
   newPassword: string;
 };
 
-/** One of your phrasings, as a borrow shows it, with where it came from and the card it's on. */
-export type PhrasingData = Borrow & {
+/** One of your phrasings, with where it came from and the card it's on. */
+export type PhrasingData = StoredPhrasing & {
   /** Read from a chat export, or recorded by an agent as a capture. */
   origin: "export" | "capture";
   /** The upload that brought it, or null for a capture. */

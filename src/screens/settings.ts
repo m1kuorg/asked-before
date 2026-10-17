@@ -143,7 +143,7 @@ function apiKeys({ client, signal }: ScreenProps) {
         { label: "Prefix", className: "is-prefix", cell: (key) => key.prefix },
         { label: "Made", numeric: true, className: "is-date", cell: (key) => stamp(key.createdAt) },
         { label: "Last used", numeric: true, className: "is-date", cell: (key) => (key.lastUsedAt ? stamp(key.lastUsedAt) : "Never") },
-        { label: "Actions", hiddenLabel: true, className: "is-actions", cell: revokeButton },
+        { label: "Actions", actions: true, className: "is-actions", cell: revokeButton },
       ],
       detail: (key) => (key.id === revoking ? confirmation(key) : key.id === made?.id ? shown(made) : null),
     });
@@ -189,7 +189,7 @@ function apiKeys({ client, signal }: ScreenProps) {
 
   return section(
     "API keys",
-    el("p", undefined, "A key can read your projects and add to them, but it can't delete anything, export your data, manage keys, or change your account."),
+    el("p", undefined, "A key can read your projects and add to them, but it can't rename or delete anything, download your data, manage keys, or change your account."),
     list,
     create,
   );

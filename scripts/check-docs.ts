@@ -49,7 +49,7 @@ process.env.DATABASE_PATH = join(scratch, "routes.sqlite");
 delete process.env.SORT_BATCH_SIZE;
 const { apiRoutes } = await import("../server/api");
 const { config } = await import("../server/config");
-const { CAPTURE_WINDOW } = await import("../server/api/captures");
+const { CAPTURE_WINDOW } = await import("../server/sort");
 const routes = Object.entries(apiRoutes)
   .flatMap(([path, methods]) => Object.keys(methods).map((method) => `${method} ${path.replace(/^\/api\/v1/, "")}`))
   .sort();

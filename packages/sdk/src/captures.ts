@@ -5,7 +5,7 @@
 // unsorted. The same words in the same project within ten minutes return
 // that earlier capture instead of adding a borrow.
 
-import type { Borrow, Card } from "./cards.ts";
+import type { Card, StoredPhrasing } from "./cards.ts";
 import { path, type Requester } from "./http.ts";
 
 /** Your own question, word for word, of at most 2,000 characters. Its time is the server's clock. */
@@ -13,7 +13,7 @@ export type NewCapture = { text: string };
 
 export type Capture = {
   /** The phrasing recorded, with its generated source id and the time the server stamped. */
-  phrasing: Borrow;
+  phrasing: StoredPhrasing;
   /** The card it landed on, as it stands now, or null while it's unsorted. */
   card: Card | null;
   /** True when the same words were captured in this project in the last ten minutes: this is that capture, and no borrow was added. */

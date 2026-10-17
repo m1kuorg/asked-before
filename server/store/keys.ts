@@ -5,15 +5,13 @@
 
 import type { ApiKey, CreatedApiKey } from "@asked-before/sdk";
 import { timingSafeEqual } from "node:crypto";
-import { db, iso } from "./db";
+import { db, iso, randomToken, sha256 } from "./db";
 
 const KEY = /^ab_([0-9a-f]{16})_([0-9a-f]{32})$/;
 const LAST_USED_EVERY_MS = 60_000;
 
 type Row = { id: string; name: string; created_at: number; last_used_at: number | null };
 
-const hash = (secret: string) => new Bun.CryptoHasher("sha256").update(secret).digest("hex");
-const hex = (bytes: number) => Buffer.from(crypto.getRandomValues(new Uint8Array(bytes))).toString("hex");
 
 const toKey = (row: Row): ApiKey => ({
   id: row.id,
@@ -33,14 +31,14 @@ export function listKeys(userId: string): ApiKey[] {
 
 /** Makes a key and returns it whole, the one time it's ever seen. */
 export function createKey(userId: string, name: string): CreatedApiKey {
-  const id = hex(8);
-  const secret = hex(16);
+  const id = randomToken(8, "hex");
+  const secret = randomToken(16, "hex");
   const row = db
     .query(
       `INSERT INTO api_keys (id, user_id, name, secret_hash, created_at) VALUES ($id, $userId, $name, $secretHash, $now)
        RETURNING id, name, created_at, last_used_at`,
     )
-    .get({ id, userId, name, secretHash: hash(secret), now: Date.now() }) as Row;
+    .get({ id, userId, name, secretHash: sha256(secret), now: Date.now() }) as Row;
   return { ...toKey(row), key: `ab_${id}_${secret}` };
 }
 
@@ -58,7 +56,7 @@ export function useKey(token: string): { keyId: string; userId: string } | null 
     userId: string;
     secretHash: string;
   } | null;
-  if (!row || !timingSafeEqual(Buffer.from(hash(secret)), Buffer.from(row.secretHash))) return null;
+  if (!row || !timingSafeEqual(Buffer.from(sha256(secret)), Buffer.from(row.secretHash))) return null;
   const now = Date.now();
   db.query("UPDATE api_keys SET last_used_at = $now WHERE id = $id AND (last_used_at IS NULL OR last_used_at <= $stale)").run({
     id,

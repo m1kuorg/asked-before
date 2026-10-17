@@ -8,21 +8,13 @@
 // appear. API keys, sessions, and the password hash are never in it.
 
 import type { AccountData, CardData, PhrasingData, Upload } from "@asked-before/sdk";
-import { getCard, listCards } from "./cards";
+import { getCard, listCards, toPhrasing, type PhrasingRow } from "./cards";
 import { db, iso } from "./db";
 import { listProjects } from "./projects";
 import { listUploads } from "./uploads";
 import { getAccount } from "./users";
 
-type PhrasingRow = {
-  id: string;
-  source_id: string;
-  text: string;
-  time: number;
-  origin: PhrasingData["origin"];
-  upload_id: string | null;
-  card_id: string | null;
-};
+type DataRow = PhrasingRow & { origin: PhrasingData["origin"]; upload_id: string | null; card_id: string | null };
 
 const phrasingsOf = db.query(`
   SELECT f.id, f.source_id, f.text, f.time, f.origin, f.upload_id, f.card_id
@@ -31,15 +23,7 @@ const phrasingsOf = db.query(`
   ORDER BY f.time, f.id
 `);
 
-const toPhrasing = (row: PhrasingRow): PhrasingData => ({
-  id: row.id,
-  sourceId: row.source_id,
-  text: row.text,
-  time: iso(row.time),
-  origin: row.origin,
-  uploadId: row.upload_id,
-  cardId: row.card_id,
-});
+const toPhrasingData = (row: DataRow): PhrasingData => ({ ...toPhrasing(row), origin: row.origin, uploadId: row.upload_id, cardId: row.card_id });
 
 /** Every one of the project's uploads, oldest first, a page at a time as the API reads them. */
 function allUploads(userId: string, projectId: string): Upload[] {
@@ -61,7 +45,7 @@ export function accountData(userId: string): AccountData | null {
     const projects = listProjects(userId).map((project) => ({
       ...project,
       uploads: allUploads(userId, project.id),
-      phrasings: (phrasingsOf.all({ userId, projectId: project.id }) as PhrasingRow[]).map(toPhrasing),
+      phrasings: (phrasingsOf.all({ userId, projectId: project.id }) as DataRow[]).map(toPhrasingData),
       cards: listCards(userId, project.id)!.map((card): CardData => {
         const { lesson, reps } = getCard(userId, card.id)!;
         return { ...card, lesson, reps };

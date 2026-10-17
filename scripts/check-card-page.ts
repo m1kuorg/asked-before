@@ -5,13 +5,15 @@
 // requests go on to the real model, except where a step queues the
 // stand-in's own answer to show a waiting or failure state, never in the
 // app. On card A, opened from the stack: the page shows its skill, count,
-// months, phrasings with stamps, and status, and the first rep brings the
-// lesson and a problem; the known wrong answer fails, showing the reason,
-// the lesson again, and a different problem; the known right answer passes,
-// and the card and the stack show it returned with today's date. On card
-// B, with the model held and refused: starting and checking a rep show the
-// library's waiting words, then an error with a retry, which works; a
-// reload takes the open rep up again without asking the model. It prints
+// months, phrasings with stamps, and status without asking the model, and
+// Take a cold rep starts the first rep, which brings the lesson and a
+// problem; the known wrong answer fails, showing the reason, the lesson
+// again, and a different problem; the known right answer passes, and the
+// card and the stack show it returned with today's date, and opening it
+// again asks the model nothing. On card B, with the model held and
+// refused: starting and checking a rep show the library's waiting words,
+// then an error with a retry, which works; a reload takes the open rep up
+// again without asking the model. It prints
 // ids, counts, and the page's words, never phrasing text, and exits 1 if
 // any check fails, naming the step.
 // It needs ANTHROPIC_API_KEY, and makes 4 model calls.
@@ -90,6 +92,7 @@ const same = (a: string | null | undefined, b: string | null | undefined) => (a 
 /** A section's words without its heading. */
 const body = async (selector: string) => (await page.locator(`${selector} p`).allTextContents()).join(" ");
 const textarea = () => page.locator(".answer-box textarea");
+const take = () => page.getByRole("button", { name: "Take a cold rep" });
 const locked = () => textarea().evaluate((t: HTMLTextAreaElement) => t.readOnly);
 const focused = () => page.evaluate(() => document.activeElement?.tagName.toLowerCase() + (document.activeElement?.textContent ? ` "${document.activeElement.textContent}"` : ""));
 const earlierRows = () => page.locator(".earlier-reps tbody tr").evaluateAll((rows) => rows.map((row) => [...row.querySelectorAll("td")].map((td) => td.textContent ?? "")));
@@ -97,13 +100,16 @@ const today = new Date().toISOString().slice(0, 10);
 const cardAt = (card: Card) => `${app.url}/app/cards/${card.id}`;
 
 try {
-  await step("1. Open key A from the stack: its skill, count, months, phrasings, and status, then the lesson and a problem", async () => {
+  await step("1. Open key A from the stack: its skill, count, months, phrasings, and status, and no model request until Take a cold rep, which brings the lesson and a problem", async () => {
     const want = key.skills[0]!;
+    const before = model.requests.length;
     await page.goto(`${app.url}/app/projects/${demo.id}`);
     await page.locator(".block").getByRole("link", { name: "Open key A" }).click();
     await page.waitForURL(cardAt(A));
     await page.locator(".block h1.skill").waitFor();
-    check((await text(".block .is-waiting")) === "Writing the lesson and pulling a problem…", `while the first rep is written: "${await text(".block .is-waiting")}"`);
+    await take().waitFor();
+    check(model.requests.length === before && (await ada.client.cards.get(A.id)).reps.length === 0, `opening it asks the model nothing (${model.requests.length - before} requests) and starts no rep`);
+    check((await count(".block .is-waiting, .block .problem, .block .lesson")) === 0 && (await focused()) === 'button "Take a cold rep"', `no waiting line, problem, or lesson, and ${await focused()} has focus`);
     check((await text(".block h1.skill")) === want.name && (await text(".block .plate b")) === String(want.count) && (await text(".block .plate span")) === "times borrowed, not returned", `headed "${await text(".block h1.skill")}", its plate ${await text(".block .plate b")} ${await text(".block .plate span")}`);
     const notes = await page.locator(".margin p").allTextContents();
     check(notes.includes(`Borrowed ${want.count} times, ${want.firstMonth} to ${want.lastMonth}.`) && notes.includes("Not returned yet."), `the margin: ${notes.slice(1, 4).map((n) => `"${n}"`).join(", ")}`);
@@ -112,6 +118,8 @@ try {
     const borrows = (await ada.client.cards.get(A.id)).borrows;
     check(rows.length === want.count && rows.every((r, i) => r.text === borrows[i]?.text && r.date === borrows[i]?.time.slice(0, 10)), `its ${rows.length} phrasings word for word, oldest first, each with its stamp (${rows.map((r) => r.date).join(", ")})`);
 
+    await take().click();
+    check((await text(".block .is-waiting")) === "Writing the lesson and pulling a problem…" && (await take().count()) === 0, `while the first rep is written: "${await text(".block .is-waiting")}"`);
     await page.locator(".block .problem").waitFor({ timeout: MODEL_WAIT });
     const card = await ada.client.cards.get(A.id);
     check(card.reps.length === 1 && same(await body(".block .problem"), card.reps[0]!.problem), "the problem is the card's first rep's");
@@ -168,10 +176,19 @@ try {
     check(listed.status === "returned", `the API lists card A ${listed.status}`);
   });
 
-  await step("5. With the model held, then refused: starting a rep waits in the library's words, then shows the error and a retry", async () => {
+  await step("5. Opened again, returned card A asks the model nothing, and offers a cold rep", async () => {
+    const before = model.requests.length;
+    await page.goto(cardAt(A));
+    await take().waitFor();
+    check(model.requests.length === before && (await ada.client.cards.get(A.id)).reps.length === 2, `${model.requests.length - before} model requests, and still 2 reps`);
+    check((await text(".block .plate span")) === "times borrowed, returned" && (await count(".block .is-waiting, .block .problem, .block .verdict")) === 0, `its plate says "${await text(".block .plate span")}", with no rep started`);
+  });
+
+  await step("6. With the model held, then refused: starting a rep waits in the library's words, then shows the error and a retry", async () => {
     const held = hold();
     model.queue(held.answer);
     await page.goto(cardAt(B));
+    await take().click();
     await held.reached;
     await page.locator(".block .is-waiting").waitFor();
     check((await text(".block .is-waiting")) === "Writing the lesson and pulling a problem…", `waiting: "${await text(".block .is-waiting")}"`);
@@ -186,15 +203,16 @@ try {
     check((await body(".block .lesson")) === "Card B's lesson, from the stand-in." && (await body(".block .problem")).startsWith("You committed to the wrong branch"), "the retry brings the lesson and the problem");
   });
 
-  await step("6. A reload takes the open rep up again, without asking the model", async () => {
+  await step("7. A reload takes the open rep up again, without asking the model", async () => {
     const before = model.requests.length;
     await page.reload();
     await page.locator(".block .problem").waitFor();
+    check((await take().count()) === 0, "no Take a cold rep while a rep is open");
     check((await body(".block .problem")).startsWith("You committed to the wrong branch") && (await body(".block .lesson")) === "Card B's lesson, from the stand-in.", "the same problem and lesson");
     check(model.requests.length === before && (await ada.client.cards.get(B.id)).reps.length === 1, `no model request (${model.requests.length - before}), and still one rep`);
   });
 
-  await step("7. Checking waits with the answer locked; a failed check, and a failed next rep, each show the error and a retry", async () => {
+  await step("8. Checking waits with the answer locked; a failed check, and a failed next rep, each show the error and a retry", async () => {
     const answer = "git commit --amend, then push";
     await textarea().fill(answer);
     const checking = hold();
@@ -224,7 +242,7 @@ try {
     check(reps.length === 2 && reps[0]?.verdict === "fail" && reps[0].answer === answer, `the API has ${reps.length} reps on card B, the first failed with the answer on screen`);
   });
 
-  await step("8. The page reached the server only through /api/v1, within its security policy", async () => {
+  await step("9. The page reached the server only through /api/v1, within its security policy", async () => {
     const outside = apiCalls.filter((call) => !call.split(" ")[1]!.startsWith("/api/v1/"));
     check(apiCalls.length > 0 && outside.length === 0, `${apiCalls.length} API calls, ${outside.length} outside /api/v1`);
     check(consoleErrors.length === 0, `no console errors or policy violations${consoleErrors.length ? `: ${consoleErrors.slice(0, 3).join(" | ")}` : ""}`);

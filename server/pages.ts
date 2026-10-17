@@ -48,12 +48,12 @@ const asset: Handler = (req) => {
   return new Response(output, { headers: { "cache-control": "public, max-age=31536000, immutable" } });
 };
 
-const demoFile = (name: string) => () => new Response(Bun.file(join(ROOT, "demo", name)));
+const demoExport: Handler = () => new Response(Bun.file(join(ROOT, "demo", "export.json")));
 
 export const pageRoutes: RouteTable = {
   ...Object.fromEntries(Object.entries(PAGES).map(([path, file]) => [path, { GET: page(file) }])),
   "/assets/*": { GET: asset },
-  "/demo/export.json": { GET: demoFile("export.json") },
+  "/demo/export.json": { GET: demoExport },
 };
 
 /** The answer for a path nothing else routes. */

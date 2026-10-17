@@ -15,6 +15,10 @@
 // and failures are recorded on the upload, and a failed sort is retried
 // from the first phrasing not yet offered. Every request spends one of the
 // account's daily model requests (server/model.ts).
+//
+// A capture (m1kuorg/basics#50) is placed by the same request and checks,
+// at a lower effort, against the cards and a shorter window, and keeps
+// only where the capture goes (sortCapture).
 
 import { z } from "zod";
 import { config } from "./config";
@@ -37,7 +41,8 @@ const TRIES = 3;
  */
 export const SORT_EFFORT: Effort = "medium";
 
-const Answer = z.object({
+/** The model's reply to a sort request, before code checks it. */
+const Reply = z.object({
   joins: z.array(z.object({ cardId: z.string(), phrasingIds: z.array(z.string()) })),
   newSkills: z.array(z.object({ name: z.string(), phrasingIds: z.array(z.string()) })),
 });
@@ -57,10 +62,11 @@ Use only the ids you were given, and put each phrasing in at most one place. Nev
 
 Name each new skill the way a reference book would title its entry on the task: a verb and what it acts on, in sentence case, such as "Undo a git commit". Name the task in general, never one instance of it: use "a" or "an", never "the", "last", "my", or "this", and leave out details such as a specific value. Keep names to ${MAX_SKILL_NAME} characters or fewer, on one line.`;
 
-/** An answer that breaks a rule. Its message names ids only, never a phrasing's words or a skill's name. */
-class AnswerError extends Error {}
+/** A reply that breaks a rule. Its message names ids only, never a phrasing's words or a skill's name. */
+class ReplyError extends Error {}
 
-const cut = (text: string) => text.slice(0, MAX_TEXT);
+/** A phrasing as the model sees it, in a sort or a rep: its first 300 characters. */
+export const cut = (text: string) => text.slice(0, MAX_TEXT);
 
 /**
  * Asks the model where a batch's phrasings go, against the project's cards,
@@ -74,11 +80,11 @@ export async function askPlacement(userId: string, cards: SortCard[], phrasings:
   });
   let note = "";
   for (let attempt = 1; ; attempt++) {
-    const answer = await askStructured(SYSTEM, request + note, Answer, effort, userId);
+    const reply = await askStructured(SYSTEM, request + note, Reply, effort, userId);
     try {
-      return check(answer, cards, phrasings);
+      return check(reply, cards, phrasings);
     } catch (error) {
-      if (!(error instanceof AnswerError)) throw error;
+      if (!(error instanceof ReplyError)) throw error;
       if (attempt === TRIES) throw new ModelError(`The model's sort broke a rule ${TRIES} times running. The last time, ${error.message}`);
       note = `\n\nYour last answer broke a rule: ${error.message} Answer again, in full, following every rule.`;
     }
@@ -92,7 +98,7 @@ export async function askPlacement(userId: string, cards: SortCard[], phrasings:
  * phrasings makes no card, and its phrasings stay unsorted; one that makes
  * a card needs a name of one line of 1 to 60 characters.
  */
-function check(answer: z.infer<typeof Answer>, cards: SortCard[], phrasings: SortPhrasing[]): Placement {
+function check(reply: z.infer<typeof Reply>, cards: SortCard[], phrasings: SortPhrasing[]): Placement {
   const phrasingOf = new Map(phrasings.map((p, i) => [`p${i + 1}`, p.id]));
   const cardOf = new Map(cards.map((c, i) => [`c${i + 1}`, c.id]));
   const cardNamed = new Map(cards.map((c) => [c.skill.toLowerCase(), c.id]));
@@ -100,22 +106,22 @@ function check(answer: z.infer<typeof Answer>, cards: SortCard[], phrasings: Sor
   const take = (ids: string[], where: string) =>
     ids.map((id) => {
       const phrasingId = phrasingOf.get(id);
-      if (!phrasingId) throw new AnswerError(`${where} named phrasing ${id}, which isn't one of the phrasings sent.`);
-      if (placed.has(id)) throw new AnswerError(`it placed phrasing ${id} twice.`);
+      if (!phrasingId) throw new ReplyError(`${where} named phrasing ${id}, which isn't one of the phrasings sent.`);
+      if (placed.has(id)) throw new ReplyError(`it placed phrasing ${id} twice.`);
       placed.add(id);
       return phrasingId;
     });
 
   const joins = new Map<string, string[]>();
   const join = (cardId: string, phrasingIds: string[]) => joins.set(cardId, [...(joins.get(cardId) ?? []), ...phrasingIds]);
-  for (const { cardId, phrasingIds } of answer.joins) {
+  for (const { cardId, phrasingIds } of reply.joins) {
     const card = cardOf.get(cardId);
-    if (!card) throw new AnswerError(`it named card ${cardId}, which isn't one of the cards sent.`);
+    if (!card) throw new ReplyError(`it named card ${cardId}, which isn't one of the cards sent.`);
     join(card, take(phrasingIds, `card ${cardId}`));
   }
 
   const skills = new Map<string, { skill: string; at: number; phrasingIds: string[] }>();
-  answer.newSkills.forEach(({ name, phrasingIds }, i) => {
+  reply.newSkills.forEach(({ name, phrasingIds }, i) => {
     const ids = take(phrasingIds, `new skill ${i + 1}`);
     const skill = name.trim();
     const card = cardNamed.get(skill.toLowerCase());
@@ -128,15 +134,46 @@ function check(answer: z.infer<typeof Answer>, cards: SortCard[], phrasings: Sor
   const newCards = [...skills.values()]
     .filter((entry) => entry.phrasingIds.length >= 2)
     .map(({ skill, at, phrasingIds }) => {
-      if (skill === "") throw new AnswerError(`new skill ${at} has no name.`);
-      if (/[\r\n]/.test(skill)) throw new AnswerError(`new skill ${at}'s name runs over more than one line.`);
-      if (skill.length > MAX_SKILL_NAME) throw new AnswerError(`new skill ${at}'s name is longer than ${MAX_SKILL_NAME} characters.`);
+      if (skill === "") throw new ReplyError(`new skill ${at} has no name.`);
+      if (/[\r\n]/.test(skill)) throw new ReplyError(`new skill ${at}'s name runs over more than one line.`);
+      if (skill.length > MAX_SKILL_NAME) throw new ReplyError(`new skill ${at}'s name is longer than ${MAX_SKILL_NAME} characters.`);
       return { skill, phrasingIds };
     });
   return { joins: [...joins].map(([cardId, phrasingIds]) => ({ cardId, phrasingIds })), newCards };
 }
 
 const NOTHING: Placement = { joins: [], newCards: [] };
+
+/**
+ * Lower than the upload sort's medium (SORT_EFFORT), since the agent waits
+ * on a capture in the same turn. Tuned with `bun run check:capture-sort 3`
+ * (m1kuorg/basics#50): low and medium both placed 60 of 60 captures, fresh
+ * rephrasings of the demo export's five skills and questions none of them
+ * ask, with medians of 1.7s and 1.8s. The slowest low capture took 2.7s in
+ * one set of runs and 5.0s in another; the slowest medium one, 3.3s.
+ */
+export const CAPTURE_EFFORT: Effort = "low";
+
+/**
+ * How many of the project's most recent unsorted phrasings a capture is
+ * compared with. With the sort's 300, a capture behind a long unsorted
+ * history took up to 12s, the model's answer busy placing the others.
+ */
+export const CAPTURE_WINDOW = 50;
+
+/** Asks the sort where a capture goes, and keeps only that: the card it joins, or the new card it makes. */
+export async function sortCapture(userId: string, projectId: string, capture: SortPhrasing): Promise<Placement> {
+  const cards = store.sortCards(projectId);
+  const batch = [capture, ...store.unsortedWindow(projectId, CAPTURE_WINDOW)];
+  // With no card to join and nothing unsorted, it can only wait unsorted, so the model isn't asked.
+  if (!cards.length && batch.length === 1) return NOTHING;
+  const { joins, newCards } = await askPlacement(userId, cards, batch, CAPTURE_EFFORT);
+  const holds = (ids: string[]) => ids.includes(capture.id);
+  return {
+    joins: joins.filter((join) => holds(join.phrasingIds)).map((join) => ({ cardId: join.cardId, phrasingIds: [capture.id] })),
+    newCards: newCards.filter((card) => holds(card.phrasingIds)),
+  };
+}
 
 /** Sorts one upload, batch by batch, until no phrasing of it is left unoffered or it's gone. */
 async function sortUpload(upload: store.SortUpload): Promise<void> {
@@ -170,9 +207,8 @@ export function sortProject(projectId: string): void {
           await sortUpload(upload);
           store.markSorted(upload.id);
         } catch (error) {
-          // A model failure, the daily cap's 429, or a check that failed three times: its message is safe to show.
+          // A model failure, the daily cap's 429, or a check that failed three times: its message is safe to show. The upload records it; the logs carry requests only.
           store.markFailed(upload.id, error instanceof HttpError ? error.message : "The sort failed on the server.");
-          if (!(error instanceof HttpError)) console.error(`A sort failed: ${error instanceof Error ? error.name : "unknown error"}`);
         }
       }
     } finally {

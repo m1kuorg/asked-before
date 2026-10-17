@@ -3,10 +3,13 @@
 // stores only the phrasings whose source id the project doesn't hold yet,
 // which is what keeps a re-uploaded export from counting a borrow twice,
 // and counts each of the upload's messages once, by its source id, so a
-// chunk sent twice doesn't count twice either.
+// chunk sent twice doesn't count twice either. A phrasing held by an upload
+// still receiving (one whose tab closed before it finished, say) moves to
+// the upload sending it again, so that upload's sort places it.
 
 import type { Phrasing, Source, Upload, UploadPage } from "@asked-before/sdk";
 import { db, iso, newId } from "./db";
+import { ownsProject } from "./projects";
 
 type Row = {
   id: string;
@@ -31,6 +34,11 @@ const SELECT = `
   FROM uploads u
   JOIN projects p ON p.id = u.project_id`;
 
+/** An upload after a change to it, or why there was none: the account has no such upload, or its status doesn't allow the change. */
+export type UploadChange = { upload: Upload } | { refused: "missing" | "status" };
+
+const changed = (userId: string, uploadId: string): UploadChange => ({ upload: getUpload(userId, uploadId)! });
+
 const toUpload = (row: Row): Upload => ({
   id: row.id,
   projectId: row.project_id,
@@ -44,9 +52,6 @@ const toUpload = (row: Row): Upload => ({
   createdAt: iso(row.created_at),
   finishedAt: row.finished_at === null ? null : iso(row.finished_at),
 });
-
-const ownsProject = (userId: string, projectId: string) =>
-  db.query("SELECT 1 FROM projects WHERE id = $projectId AND user_id = $userId").get({ userId, projectId }) !== null;
 
 export function getUpload(userId: string, uploadId: string): Upload | null {
   const row = db.query(`${SELECT} WHERE u.id = $uploadId AND p.user_id = $userId`).get({ userId, uploadId }) as Row | null;
@@ -77,22 +82,25 @@ export function listUploads(userId: string, projectId: string, limit: number, cu
   return { uploads, next: rows.length > limit ? uploads.at(-1)!.id : null };
 }
 
+// A phrasing the project holds already stays where it is, unless its upload is still receiving: no sort has seen it, so it moves to this upload.
 const insertPhrasing = db.query(`
   INSERT INTO phrasings (id, project_id, origin, upload_id, source_id, text, time, created_at)
   VALUES ($id, $projectId, 'export', $uploadId, $sourceId, $text, $time, $now)
-  ON CONFLICT (project_id, source_id) DO NOTHING
+  ON CONFLICT (project_id, source_id) DO UPDATE SET upload_id = excluded.upload_id
+  WHERE (SELECT status FROM uploads WHERE id = phrasings.upload_id) = 'receiving'
 `);
 const countMessage = db.query("INSERT INTO upload_messages (upload_id, source_id) VALUES ($uploadId, $sourceId) ON CONFLICT DO NOTHING");
 
 /**
  * Adds a chunk to an upload that's still receiving: each phrasing counts
- * once toward its messages, and those new to the project are stored. Null
- * when the account has no such upload; "finished" when it takes no more.
+ * once toward its messages, and those new to the project, or held by an
+ * upload still receiving, become its own. Refused for its status once it's
+ * finished, and so takes no more.
  */
-export function appendPhrasings(userId: string, uploadId: string, phrasings: Phrasing[]): Upload | null | "finished" {
+export function appendPhrasings(userId: string, uploadId: string, phrasings: Phrasing[]): UploadChange {
   const upload = getUpload(userId, uploadId);
-  if (!upload) return null;
-  if (upload.status !== "receiving") return "finished";
+  if (!upload) return { refused: "missing" };
+  if (upload.status !== "receiving") return { refused: "status" };
   const now = Date.now();
   db.transaction(() => {
     for (const { sourceId, text, time } of phrasings) {
@@ -100,25 +108,23 @@ export function appendPhrasings(userId: string, uploadId: string, phrasings: Phr
       countMessage.run({ uploadId, sourceId });
     }
   })();
-  return getUpload(userId, uploadId);
+  return changed(userId, uploadId);
 }
 
-/** Ends an upload's receiving, leaving it waiting to be sorted (server/sort.ts). Null when there's no such upload; "finished" when it was already. */
-export function finishUpload(userId: string, uploadId: string): Upload | null | "finished" {
-  const upload = getUpload(userId, uploadId);
-  if (!upload) return null;
-  const changed = db
+/** Ends an upload's receiving, leaving it waiting to be sorted (server/sort.ts). Refused for its status when it was finished already. */
+export function finishUpload(userId: string, uploadId: string): UploadChange {
+  if (!getUpload(userId, uploadId)) return { refused: "missing" };
+  const done = db
     .query("UPDATE uploads SET status = 'waiting', finished_at = $now WHERE id = $uploadId AND status = 'receiving'")
     .run({ uploadId, now: Date.now() }).changes;
-  return changed ? getUpload(userId, uploadId) : "finished";
+  return done ? changed(userId, uploadId) : { refused: "status" };
 }
 
-/** Sets a failed upload waiting to be sorted again, from its first phrasing not yet offered. Null when there's no such upload; "not failed" when it didn't fail. */
-export function retryUpload(userId: string, uploadId: string): Upload | null | "not failed" {
-  const upload = getUpload(userId, uploadId);
-  if (!upload) return null;
-  const changed = db.query("UPDATE uploads SET status = 'waiting', error = NULL WHERE id = $uploadId AND status = 'failed'").run({ uploadId }).changes;
-  return changed ? getUpload(userId, uploadId) : "not failed";
+/** Sets a failed upload waiting to be sorted again, from its first phrasing not yet offered. Refused for its status when it didn't fail. */
+export function retryUpload(userId: string, uploadId: string): UploadChange {
+  if (!getUpload(userId, uploadId)) return { refused: "missing" };
+  const done = db.query("UPDATE uploads SET status = 'waiting', error = NULL WHERE id = $uploadId AND status = 'failed'").run({ uploadId }).changes;
+  return done ? changed(userId, uploadId) : { refused: "status" };
 }
 
 /**

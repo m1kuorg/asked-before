@@ -1,7 +1,8 @@
 // Writes the export readers' fixtures, here beside it: small exports in
 // each format the readers take: a ChatGPT and a Claude conversations.json, a
-// ChatGPT zip sharded into numbered files, a ChatGPT zip inside a zip, a
-// Claude zip, and a zip with no conversations in it. They hold made-up
+// ChatGPT conversation with no current_node, a ChatGPT zip sharded into
+// numbered files, a ChatGPT zip inside a zip, a Claude zip, and a zip with
+// no conversations in it. They hold made-up
 // messages only. The readers' check (scripts/check-readers.ts) knows what
 // each should yield; run this again only to change them, and update that
 // check to match.
@@ -101,6 +102,30 @@ const chatgpt = [
     current_node: "g2-long-answer",
     conversation_id: "g2",
     id: "g2",
+  },
+];
+
+// No current_node, as some exports leave it out: the branch shown ends at the latest leaf. The two
+// branches the learner left are older, one before it in the mapping and one after, so neither the
+// first nor the last leaf is the one shown.
+const noCurrentNode = [
+  {
+    title: "Squash before merging",
+    create_time: 1760200000,
+    update_time: 1760200301,
+    mapping: mapping([
+      ["g3-root", null, null],
+      ["g3-ask", "g3-root", said("user", ["how do i squash my commits before merging"], 1760200010)],
+      ["g3-answer", "g3-ask", said("assistant", ["Run `git rebase -i main`."], 1760200011)],
+      ["g3-first-try", "g3-answer", said("user", ["a question on a branch left behind"], 1760200100)],
+      ["g3-first-try-answer", "g3-first-try", said("assistant", ["An answer on a branch left behind."], 1760200101)],
+      ["g3-follow-up", "g3-answer", said("user", ["and how do i push the squashed branch"], 1760200300)],
+      ["g3-final", "g3-follow-up", said("assistant", ["Push it with `--force-with-lease`."], 1760200301)],
+      ["g3-second-try", "g3-answer", said("user", ["another question on a branch left behind"], 1760200200)],
+      ["g3-second-try-answer", "g3-second-try", said("assistant", ["Another answer on a branch left behind."], 1760200201)],
+    ]),
+    conversation_id: "g3",
+    id: "g3",
   },
 ];
 
@@ -211,6 +236,7 @@ const IMAGE = new Uint8Array(4096).map((_, i) => (i * 37) % 256);
 const MTIME = new Date("2026-10-17T00:00:00Z");
 
 await write("chatgpt.json", json(chatgpt));
+await write("chatgpt-no-current-node.json", json(noCurrentNode));
 await write("claude.json", json(claude));
 // The shards are stored out of order, beside the trap, an image, and the other files a ChatGPT zip holds.
 await write(

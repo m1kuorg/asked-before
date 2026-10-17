@@ -1,5 +1,6 @@
 // Small pieces of the library's voice shared across screens: the privacy
-// line, the demo-data label, and a stamp's date.
+// line, the demo-data label, a stamp's date, a count, and an export's
+// chatbot by name.
 
 import { el } from "./dom";
 
@@ -8,6 +9,12 @@ export const PRIVACY_LINE =
   "Only your own messages, with when you sent them, leave this computer. The chatbot's answers and your titles never do, and the model sees your words only, never your dates.";
 
 export const privacyLine = () => el("p", "privacy-line", PRIVACY_LINE);
+
+/** A count as the page writes it, such as "2,000". */
+export const count = (n: number) => n.toLocaleString("en-US");
+
+/** Each export's chatbot, by name. */
+export const SOURCES = { chatgpt: "ChatGPT", claude: "Claude" } as const;
 
 /** The label beside a demo project's name, wherever it shows. */
 export const demoLabel = () => el("span", "demo-label", "Demo data");

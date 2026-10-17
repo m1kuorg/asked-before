@@ -11,8 +11,8 @@ The conversations file a chatbot gives you when you request your data.
 _Avoid_: Dump, backup, history file
 
 **Phrasing**:
-One of your own messages to a chatbot, in your words, with the time you sent it.
-_Avoid_: Prompt, query, message (on screen)
+One of your own messages to a chatbot, in your words, with the time you sent it. On screen, a count of what an export holds may say "messages", as in "your own messages", the privacy line's words.
+_Avoid_: Prompt, query
 
 **Upload**:
 One export loaded into a project. Only its phrasings leave your computer.
