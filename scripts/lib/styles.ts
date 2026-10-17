@@ -10,6 +10,7 @@ import type { Client } from "@asked-before/sdk";
 import { join } from "node:path";
 import type { Browser, BrowserContext, Page } from "playwright";
 import type { App } from "./app";
+import type { ModelStub } from "./model-stub";
 
 export const FRAME = { width: 1920, height: 1080 };
 /** An app path no screen claims, logged in: the app's page and stylesheets, ready for sample markup. */
@@ -40,6 +41,8 @@ export type PageOptions = {
 
 export type Kit = {
   app: App;
+  /** The app's model stand-in: it sorts as the answer key does, and a module queues its own answers to anything else. */
+  model: ModelStub;
   browser: Browser;
   /** The learner every logged-in page belongs to, and an SDK client on their session. */
   learner: { name: string; email: string; password: string; client: Client; cookie: () => string };
@@ -47,8 +50,6 @@ export type Kit = {
   page: (options?: PageOptions) => Promise<Page>;
   /** Goes to an app path and waits for the fonts and for the selector, when given. */
   open: (page: Page, path: string, selector?: string) => Promise<void>;
-  /** Swaps #app's markup for a sample state, and lets any key drop settle. Open SAMPLE_PATH first. */
-  render: (page: Page, html: string) => Promise<void>;
   /** Saves `<name>.png`, measures the page as it stands, and checks it against the rules. */
   shoot: (page: Page, name: string, options?: { fullPage?: boolean }) => Promise<void>;
   check: (ok: boolean, what: string) => void;
@@ -63,6 +64,7 @@ export type Result = { name: string; body: number; label: number };
 
 export function makeKit({
   app,
+  model,
   browser,
   learner,
   out,
@@ -70,6 +72,7 @@ export function makeKit({
   results,
 }: {
   app: App;
+  model: ModelStub;
   browser: Browser;
   learner: Kit["learner"];
   out: string;
@@ -96,16 +99,6 @@ export function makeKit({
     await target.evaluate(() => document.fonts.ready.then(() => undefined));
   };
 
-  const render = async (target: Page, html: string) => {
-    await target.evaluate((markup) => {
-      const root = document.querySelector<HTMLElement>("#app")!;
-      // A sample isn't any screen, so no screen's scoped rules reach it.
-      root.dataset.screen = "sample";
-      root.innerHTML = markup;
-    }, html);
-    await target.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)).then(() => undefined));
-  };
-
   const shoot = async (target: Page, name: string, { fullPage = false } = {}) => {
     scratch ??= await (await browser.newContext()).newPage();
     const png = await target.screenshot({ path: join(out, `${name}.png`), fullPage });
@@ -114,7 +107,7 @@ export function makeKit({
     results.push(report(check, name, measured, pixels));
   };
 
-  return { app, browser, learner, page, open, render, shoot, check, out };
+  return { app, model, browser, learner, page, open, shoot, check, out };
 }
 
 // Measurements, run in the page. Self-contained, because Playwright sends the function's source.

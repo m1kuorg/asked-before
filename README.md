@@ -16,7 +16,7 @@ bun run start
 
 Then open <http://localhost:3000>. Set `PORT` to use another port, as in `PORT=3101 bun run start`. Only the local server reads the key, and `.env` is gitignored.
 
-The app is mid-build on this branch (m1kuorg/basics#40): sign up from the start page, make, rename, and delete projects, and upload a chat export into one, which is sorted into cards. The card stack and cold reps come back with their tickets.
+The app is mid-build on this branch (m1kuorg/basics#40): sign up from the start page, make, rename, and delete projects, upload a chat export into one, which is sorted into cards, see the project's card stack, and take cold reps on its cards. The rest comes back with its tickets.
 
 ## Check it
 
@@ -38,17 +38,18 @@ The other checks:
 
 ```sh
 bun run check:key          # the demo export's answer key against the export
-bun run check:cards        # the card builder against the answer key
 bun run check:accounts     # accounts and projects through the SDK
 bun run check:styles       # the stylesheets at 1080p, surface by surface (scripts/styles/)
-bun run check:rep-routes   # lessons, problems, and verdicts on the demo skill
+bun run check:reps         # cold reps on the demo skill, with the real model: lessons, problems, and verdicts
+bun run check:rep-rules    # the cold reps' rules through the SDK, with the model stubbed
+bun run check:card-page    # a card's page and its cold rep in a browser: card A with the real model, then waits and failures stubbed
 bun run check:sort         # sorts the demo export three ways and compares the cards with the answer key
 bun run check:sort-rules   # the sort's rules and the cards endpoints, with the model stubbed
 bun run check:sort-page    # the upload page's sort progress, failure, retry, and daily cap, with the model stubbed
 ```
 
 - `check:accounts`, `check:shell`, and `check:styles` start their own copy of the app on a free port, and need no key. `check:styles` needs Chromium.
-- `check:rep-routes` starts its own copy of the app too. It makes about 20 model calls in a minute or two.
+- `check:reps` and `check:card-page` start their own copy of the app too, and need the key: `check:reps` makes 10 model calls in a minute or two, and `check:card-page` 4. `check:rep-rules` stubs the model in the script, so it needs no key.
 - `check:sort` starts its own copies of the app too, and needs the key: each run makes 6 model calls in about 10 seconds. Add a number, as in `bun run check:sort 10`, for that many runs (1 if you don't). `check:sort-rules` and `check:sort-page` stub the model in the script, so they need no key.
 
 ## Disclosures

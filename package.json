@@ -15,13 +15,14 @@
     "check:settings": "bun run scripts/check-settings.ts",
     "check:landing": "bun run scripts/check-landing.ts",
     "check:key": "bun run scripts/check-answer-key.ts",
-    "check:cards": "bun run scripts/check-cards.ts",
     "check:styles": "bun run scripts/check-styles.ts",
-    "check:rep-routes": "bun run scripts/check-rep-routes.ts",
     "check:sort": "bun run scripts/check-sort.ts",
     "check:sort-rules": "bun run scripts/check-sort-rules.ts",
     "check:sort-page": "bun run scripts/check-sort-page.ts",
-    "check:project": "bun run scripts/check-project.ts"
+    "check:project": "bun run scripts/check-project.ts",
+    "check:reps": "bun run scripts/check-reps.ts",
+    "check:rep-rules": "bun run scripts/check-rep-rules.ts",
+    "check:card-page": "bun run scripts/check-card-page.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
