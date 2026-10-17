@@ -291,6 +291,14 @@
     width: 10rem;
   }
 
+  .rows col.is-count {
+    width: 11rem;
+  }
+
+  .rows col.is-actions {
+    width: 7rem;
+  }
+
   /* A key borrowed again says so under its skill, in the margin's note type, never struck. */
   .margin-key .key-status {
     display: block;
