@@ -9,20 +9,22 @@ const ROOT = join(import.meta.dir, "..");
 const publicUrl = process.env.PUBLIC_URL ? new URL(process.env.PUBLIC_URL) : undefined;
 
 export const config = {
-  port: Number(process.env.PORT ?? 3000),
+  /** 0 takes any free port, as the checks do. */
+  port: wholeNumber("PORT", 3000, 0),
   /** The SQLite file. Its folder is made if it's missing. */
   databasePath: process.env.DATABASE_PATH ?? join(ROOT, "data", "asked-before.sqlite"),
   publicUrl,
   /** An https public URL makes the session cookie Secure and __Host- prefixed. */
   https: publicUrl?.protocol === "https:",
   /** Model requests one account may make per UTC day. */
-  dailyModelRequests: Number(process.env.DAILY_MODEL_REQUESTS ?? 300),
+  dailyModelRequests: wholeNumber("DAILY_MODEL_REQUESTS", 300),
   /** Phrasings a sort sends the model at once, beside as many of the project's most recent unsorted ones (server/sort.ts). */
   sortBatchSize: wholeNumber("SORT_BATCH_SIZE", 300),
 };
 
-function wholeNumber(name: string, fallback: number): number {
+/** A setting that's a whole number of `least` or more, or `fallback` when it's unset. */
+function wholeNumber(name: string, fallback: number, least = 1): number {
   const value = Number(process.env[name] || fallback);
-  if (!Number.isInteger(value) || value < 1) throw new Error(`${name} must be a whole number of 1 or more.`);
+  if (!Number.isInteger(value) || value < least) throw new Error(`${name} must be a whole number of ${least} or more.`);
   return value;
 }

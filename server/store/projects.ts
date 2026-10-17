@@ -10,20 +10,19 @@ type Row = {
   name: string;
   demo: 0 | 1;
   created_at: number;
-  cards: number;
-  borrowed: number;
-  returned: number;
-  borrowed_again: number;
   last_upload_at: number | null;
-};
+} & Project["counts"];
 
-const SELECT = `
-  SELECT
-    p.id, p.name, p.demo, p.created_at,
+/** Cards' counts by status, from card_status as s, in a project's counts' shape; the dashboard's totals add them up the same way. */
+export const STATUS_COUNTS = `
     count(s.card_id) AS cards,
     coalesce(sum(s.status = 'borrowed'), 0) AS borrowed,
     coalesce(sum(s.status = 'returned'), 0) AS returned,
-    coalesce(sum(s.status = 'borrowed_again'), 0) AS borrowed_again,
+    coalesce(sum(s.status = 'borrowed_again'), 0) AS borrowedAgain`;
+
+const SELECT = `
+  SELECT
+    p.id, p.name, p.demo, p.created_at, ${STATUS_COUNTS},
     (SELECT max(u.created_at) FROM uploads u WHERE u.project_id = p.id) AS last_upload_at
   FROM projects p
   LEFT JOIN card_status s ON s.project_id = p.id`;
@@ -33,9 +32,13 @@ const toProject = (row: Row): Project => ({
   name: row.name,
   demo: row.demo === 1,
   createdAt: iso(row.created_at),
-  counts: { cards: row.cards, borrowed: row.borrowed, returned: row.returned, borrowedAgain: row.borrowed_again },
+  counts: { cards: row.cards, borrowed: row.borrowed, returned: row.returned, borrowedAgain: row.borrowedAgain },
   lastUploadAt: row.last_upload_at === null ? null : iso(row.last_upload_at),
 });
+
+/** Whether the account has the project. */
+export const ownsProject = (userId: string, projectId: string) =>
+  db.query("SELECT 1 FROM projects WHERE id = $projectId AND user_id = $userId").get({ userId, projectId }) !== null;
 
 /** The account's projects, oldest first. */
 export function listProjects(userId: string): Project[] {

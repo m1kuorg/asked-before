@@ -19,9 +19,9 @@
 import { MAX_CHUNK, MAX_PHRASING_LENGTH, type Upload } from "@asked-before/sdk";
 import { z } from "zod";
 import { authed } from "../auth";
-import { defineRoutes, HttpError, readJson } from "../http";
+import { defineRoutes, HttpError, readJson, readPage } from "../http";
 import { sortProject } from "../sort";
-import { appendPhrasings, createUpload, deleteUpload, finishUpload, getUpload, listUploads, retryUpload } from "../store/uploads";
+import { appendPhrasings, createUpload, deleteUpload, finishUpload, getUpload, listUploads, retryUpload, type UploadChange } from "../store/uploads";
 
 /** How far past the server's clock a phrasing may be dated, for a clock that runs a little fast. */
 const AHEAD_MS = 5 * 60 * 1000;
@@ -51,27 +51,24 @@ const Chunk = z.strictObject(
   { error: "A chunk is { phrasings } and nothing else." },
 );
 
-const Page = z.object({
-  limit: z.coerce.number({ error: "limit is a number from 1 to 100." }).int("limit is a number from 1 to 100.").min(1, "limit is a number from 1 to 100.").max(100, "limit is a number from 1 to 100.").default(50),
-  cursor: z.string().min(1, "cursor is the next value of the page before.").optional(),
-});
+const NO_UPLOAD = "There's no such upload.";
 
 const found = (upload: Upload | null): Upload => {
-  if (!upload) throw new HttpError(404, "There's no such upload.");
+  if (!upload) throw new HttpError(404, NO_UPLOAD);
   return upload;
 };
 
-const open = (upload: Upload | null | "finished"): Upload => {
-  if (upload === "finished") throw new HttpError(409, "This upload is finished, so it takes no more phrasings. Start a new upload to add more.");
-  return found(upload);
+/** The changed upload; or a 404, or a 409 saying `conflict` when its status refused the change. */
+const changed = (change: UploadChange, conflict: string): Upload => {
+  if ("upload" in change) return change.upload;
+  throw change.refused === "missing" ? new HttpError(404, NO_UPLOAD) : new HttpError(409, conflict);
 };
 
 export const uploads = defineRoutes({
   "/api/v1/projects/:projectId/uploads": {
     GET: authed((req, auth) => {
-      const query = Page.safeParse(Object.fromEntries(new URL(req.url).searchParams));
-      if (!query.success) throw new HttpError(400, query.error.issues[0]?.message ?? "The query isn't valid.");
-      const page = listUploads(auth.userId, req.params.projectId, query.data.limit, query.data.cursor);
+      const { limit, cursor } = readPage(req);
+      const page = listUploads(auth.userId, req.params.projectId, limit, cursor);
       if (!page) throw new HttpError(404, "There's no such project.");
       return Response.json(page);
     }),
@@ -86,7 +83,7 @@ export const uploads = defineRoutes({
     GET: authed((req, auth) => Response.json(found(getUpload(auth.userId, req.params.uploadId)))),
     DELETE: authed(
       (req, auth) => {
-        if (!deleteUpload(auth.userId, req.params.uploadId)) throw new HttpError(404, "There's no such upload.");
+        if (!deleteUpload(auth.userId, req.params.uploadId)) throw new HttpError(404, NO_UPLOAD);
         return new Response(null, { status: 204 });
       },
       { sessionOnly: true },
@@ -104,22 +101,21 @@ export const uploads = defineRoutes({
         }
         if (Date.parse(time) > latest) throw new HttpError(400, `Phrasing ${i + 1} is dated more than 5 minutes after the server's clock.`);
       });
-      return Response.json(open(appendPhrasings(auth.userId, req.params.uploadId, phrasings)));
+      const appended = appendPhrasings(auth.userId, req.params.uploadId, phrasings);
+      return Response.json(changed(appended, "This upload is finished, so it takes no more phrasings. Start a new upload to add more."));
     }),
   },
   "/api/v1/uploads/:uploadId/finish": {
     POST: authed((req, auth) => {
-      const upload = finishUpload(auth.userId, req.params.uploadId);
-      if (upload === "finished") throw new HttpError(409, "This upload is finished already.");
-      sortProject(found(upload).projectId);
+      const upload = changed(finishUpload(auth.userId, req.params.uploadId), "This upload is finished already.");
+      sortProject(upload.projectId);
       return Response.json(upload);
     }),
   },
   "/api/v1/uploads/:uploadId/retry": {
     POST: authed((req, auth) => {
-      const upload = retryUpload(auth.userId, req.params.uploadId);
-      if (upload === "not failed") throw new HttpError(409, "Only a sort that failed can be tried again.");
-      sortProject(found(upload).projectId);
+      const upload = changed(retryUpload(auth.userId, req.params.uploadId), "Only a sort that failed can be tried again.");
+      sortProject(upload.projectId);
       return Response.json(upload);
     }),
   },

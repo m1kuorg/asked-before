@@ -5,6 +5,7 @@
 
 import type { Card, CardDetail, StoredPhrasing, UnsortedPage } from "@asked-before/sdk";
 import { db, iso } from "./db";
+import { ownsProject } from "./projects";
 import { REP_COLUMNS, toRep, type RepRow } from "./reps";
 
 export type CardRow = {
@@ -19,11 +20,16 @@ export type CardRow = {
   returned_at: number | null;
 };
 
-const SELECT = `
-  SELECT c.id, c.project_id, c.skill, c.lesson, s.status, s.borrows, s.first_borrow_at, s.last_borrow_at, s.returned_at
+/** A card's columns as a CardRow, from cards as c and card_status as s. */
+export const CARD_COLUMNS = "c.id, c.project_id, c.skill, c.lesson, s.status, s.borrows, s.first_borrow_at, s.last_borrow_at, s.returned_at";
+
+/** Cards with their status, joined up to their project as p, for its owner. */
+export const CARD_TABLES = `
   FROM cards c
   JOIN card_status s ON s.card_id = c.id
   JOIN projects p ON p.id = c.project_id`;
+
+const SELECT = `SELECT ${CARD_COLUMNS} ${CARD_TABLES}`;
 
 export const toCard = (row: CardRow): Card => ({
   id: row.id,
@@ -38,9 +44,6 @@ export const toCard = (row: CardRow): Card => ({
 
 export type PhrasingRow = { id: string; source_id: string; text: string; time: number };
 export const toPhrasing = (row: PhrasingRow): StoredPhrasing => ({ id: row.id, sourceId: row.source_id, text: row.text, time: iso(row.time) });
-
-const ownsProject = (userId: string, projectId: string) =>
-  db.query("SELECT 1 FROM projects WHERE id = $projectId AND user_id = $userId").get({ userId, projectId }) !== null;
 
 /** The project's cards, most borrowed first, ties to the later last borrow; or null when the account has no such project. */
 export function listCards(userId: string, projectId: string): Card[] | null {
