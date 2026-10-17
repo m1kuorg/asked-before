@@ -18,8 +18,9 @@
 // upload's date, source, your messages, and the new ones, with its delete,
 // after a confirmation that names everything that goes.
 
-import type { Card, CardDetail, CardStatus, Project, UnsortedPhrasing, Upload } from "@asked-before/sdk";
+import type { Card, CardDetail, Project, UnsortedPhrasing, Upload } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
+import { months, PLATE_CAPTION, phrasing, rails } from "../parts/card";
 import { confirmDelete } from "../parts/confirm";
 import { button, el, link, type Child } from "../parts/dom";
 import { emptyState } from "../parts/empty";
@@ -41,48 +42,11 @@ const PAGE = 50;
 /** A page of a list, and the cursor for the page after, or null on the last. */
 type Paged<T> = { items: T[]; next: string | null };
 
-/** What the plate's count is, after the card's status. */
-const PLATE_CAPTION: Record<CardStatus, string> = {
-  borrowed: "times borrowed, not returned",
-  returned: "times borrowed, returned",
-  borrowed_again: "times borrowed, borrowed again",
-};
-
-const monthYear = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" });
-const month = (iso: string) => monthYear.format(new Date(iso));
-
 /** A card's key: A to Z, then AA, AB, and so on. */
 function keyLetter(index: number): string {
   let letters = "";
   for (let n = index + 1; n > 0; n = Math.floor((n - 1) / 26)) letters = String.fromCharCode(65 + ((n - 1) % 26)) + letters;
   return letters;
-}
-
-/**
- * A phrasing's words, with each command flag (`-m`, `--soft`) in a bare
- * span, so the stylesheet keeps the flag on one line. The split's capture
- * group puts the flags at the odd indexes.
- */
-function phrasing(text: string): HTMLElement {
-  return el("span", "phrasing", ...text.split(/((?<![\w-])--?\w[\w-]*)/).map((part, i) => (i % 2 ? el("span", undefined, part) : part)));
-}
-
-/** The rail, cut where the year turns: one `.rail` per year of borrows, oldest first, a key for each. */
-function rails(borrows: CardDetail["borrows"]): HTMLElement[] {
-  const years = Map.groupBy(borrows, (borrow) => new Date(borrow.time).getFullYear());
-  return [...years].map(([year, inYear]) => {
-    const rail = el(
-      "ol",
-      "rail",
-      ...inYear.map((borrow) => {
-        const key = el("span", "rail-key");
-        key.setAttribute("aria-hidden", "true");
-        return el("li", undefined, phrasing(borrow.text), key, el("span", "stamp", stamp(borrow.time)));
-      }),
-    );
-    rail.setAttribute("aria-label", `Borrowed in ${year}`);
-    return rail;
-  });
 }
 
 export function mountProject(root: HTMLElement, { client, params, query, navigate, signal }: ScreenProps<"projectId">) {
@@ -385,10 +349,9 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
     // The margin explains the cut whenever the card's borrows span more than one year.
     if (cardRails.length > 1) privacy.before(yearCut);
     else yearCut.remove();
-    const [from, to] = [month(card.firstBorrowAt), month(card.lastBorrowAt)];
     const children: Child[] = [
       el("h1", "skill", card.skill),
-      el("p", undefined, `Key ${letter}: borrowed ${card.count} times, ${from === to ? `in ${from}` : `${from} to ${to}`}`),
+      el("p", undefined, `Key ${letter}: borrowed ${card.count} times, ${months(card)}`),
       plate(card.count, PLATE_CAPTION[card.status]),
       ...cardRails,
     ];

@@ -119,16 +119,20 @@ export async function compareWithKey(client: Client, projectId: string): Promise
  * its phrasings as a sample, or else, two or more of them, make it a new
  * skill under the key's name; one-offs are left out.
  */
-export function keySorter(request: ModelRequest) {
+export const keySorter = (request: ModelRequest) => keySorterWith(new Map())(request);
+
+/** keySorter, with phrasings the demo export doesn't hold placed too: `also` maps a phrasing's words to the key's skill name it asks. */
+export const keySorterWith = (also: Map<string, string>) => (request: ModelRequest) => {
   const sent = sortRequest(request);
+  const skillOfText = (text: string) => skillOf.get(text) ?? key.skills.find((skill) => skill.name === also.get(text));
   const joins: { cardId: string; phrasingIds: string[] }[] = [];
   const newSkills: { name: string; phrasingIds: string[] }[] = [];
   for (const skill of key.skills) {
-    const ids = sent.phrasings.filter((p) => skillOf.get(p.text) === skill).map((p) => p.id);
+    const ids = sent.phrasings.filter((p) => skillOfText(p.text) === skill).map((p) => p.id);
     if (!ids.length) continue;
     const card = sent.cards.find((c) => c.skill === skill.name || c.samples.some((s) => skillOf.get(s) === skill));
     if (card) joins.push({ cardId: card.id, phrasingIds: ids });
     else if (ids.length >= 2) newSkills.push({ name: skill.name, phrasingIds: ids });
   }
   return { joins, newSkills };
-}
+};
