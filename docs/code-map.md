@@ -10,6 +10,10 @@ Contents:
 1. [Wire conventions](#wire-conventions)
 1. [The store](#the-store)
 1. [Pages](#pages)
+1. [The app page](#the-app-page)
+1. [Shared parts](#shared-parts)
+1. [Stylesheets](#stylesheets)
+1. [Who owns which page files](#who-owns-which-page-files)
 1. [Check scripts](#check-scripts)
 1. [Proof-of-concept leftovers](#proof-of-concept-leftovers)
 
@@ -31,9 +35,15 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `server/store/schema.sql` | The spec's whole schema, and the `card_status` view | m1kuorg/basics#41; changed in place by whoever needs to |
 | `server/store/users.ts`, `sessions.ts`, `projects.ts`, `usage.ts` | Accounts, sessions, projects with their counts, and the daily model-request counters | m1kuorg/basics#41; m1kuorg/basics#48 and #49 add to `users.ts` and `sessions.ts` |
 | `server/store/<area>.ts` | A new store module per area, such as `uploads.ts`, `cards.ts`, `reps.ts`, and `keys.ts` | The area's ticket |
-| `server/pages.ts` | The page table, built at startup; `/assets/*`, the demo exports, and `notFound` | m1kuorg/basics#42; the landing page is m1kuorg/basics#52's |
+| `server/pages.ts` | The page table, built at startup; `/assets/*`, the demo exports, and `notFound`, which serves `public/not-found.html` with a 404 | m1kuorg/basics#42 |
 | `server/routes/` | The proof of concept's three model routes | Retired by m1kuorg/basics#44 and #46 |
-| `public/`, `src/` | The page | m1kuorg/basics#42, then each screen's ticket |
+| `public/*.html` | One HTML file per page | See [who owns which page files](#who-owns-which-page-files) |
+| `public/styles/` | One stylesheet per surface | See [stylesheets](#stylesheets) |
+| `src/app/` | The app page: its entry, its SDK client, the router, the route table, and the top navigation | m1kuorg/basics#42 |
+| `src/screens/<screen>.ts` | One module per app screen | See [the app page](#the-app-page) |
+| `src/parts/` | The shared parts every screen composes | m1kuorg/basics#42; see [shared parts](#shared-parts) |
+| `src/pages/` | The public pages' scripts: log in and sign up | m1kuorg/basics#42; a landing page script would be m1kuorg/basics#52's |
+| `src/parser.ts`, `src/cards.ts`, `src/types.ts`, `src/api.ts` | The proof of concept's export parser, card builder, and request shapes, which its model routes and some checks still use | See [proof-of-concept leftovers](#proof-of-concept-leftovers) |
 | `packages/sdk/src/client.ts` | `createClient()`, which composes the areas | m1kuorg/basics#41 |
 | `packages/sdk/src/http.ts` | The request function, `ApiError`, and the `path` tag | m1kuorg/basics#41 |
 | `packages/sdk/src/<area>.ts` | Each area's types and methods; stub areas have none yet | See [the route table](#the-apis-route-table) |
@@ -41,6 +51,9 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `packages/mcp/src/server.ts` | A placeholder; `@modelcontextprotocol/server` and `zod` are installed | m1kuorg/basics#50 |
 | `scripts/lib/app.ts` | `startApp()`, the one helper that starts the app for a check | m1kuorg/basics#41 |
 | `scripts/check-accounts.ts` | `bun run check:accounts` | m1kuorg/basics#41 |
+| `scripts/check-shell.ts` | `bun run check:shell`: the shell's journey in a real browser | m1kuorg/basics#42 |
+| `scripts/check-styles.ts`, `scripts/lib/styles.ts` | `bun run check:styles` and its kit | m1kuorg/basics#42 |
+| `scripts/styles/<surface>.ts` | One styles-check module per surface | Each surface's ticket; see [check scripts](#check-scripts) |
 
 Installed up front: `fflate` in `packages/sdk` for the export readers, `@modelcontextprotocol/server` in `packages/mcp`, and `@modelcontextprotocol/client` at the root for check scripts.
 
@@ -107,22 +120,104 @@ Don't edit `server/api/index.ts` or `packages/sdk/src/client.ts` to add an endpo
 
 - `PAGES` in `server/pages.ts` maps each page's path to its HTML file, named as under `public/`. At startup, `Bun.build` bundles them with their scripts, styles, and fonts into memory. Pages are served with `no-cache` and the hashed assets under `/assets/` as immutable.
 - Bun's HTML-import routes are deliberately not used: their answers can't carry headers, and every answer must carry the security headers. The cost is no hot reload; restart the server to see a change to the page.
-- To add a page, add its HTML file under `public/` and a line for it in `PAGES`, such as `"/login": "login.html"`. The app's single page needs both `/app` and `/app/*`. m1kuorg/basics#42 and #52 both add lines there.
-- The content security policy allows only the app's own origin, plus `blob:` workers for fflate. Inline scripts, `<style>` elements, and `style="..."` attributes in markup are blocked, so style through class names and the stylesheet, as the proof of concept's screens do.
+- The pages: `/` (`index.html`, the landing page), `/docs` (`docs.html`), `/login` (`login.html`), `/signup` (`signup.html`), and the app at `/app` and `/app/*` (`app.html`). Any other path gets `not-found.html` with a 404, and anything under `/api/` gets `{ error }`. A new page adds its HTML file under `public/` and a line in `PAGES`; the landing page and docs already have theirs.
+- A public page's navigation is static markup in its HTML: the product name, Docs, then Log in and Sign up. Copy it from `login.html`, marking the current page with `aria-current="page"`.
+- The content security policy allows only the app's own origin, plus `blob:` workers for fflate. Inline scripts, `<style>` elements, and `style="..."` attributes in markup are blocked, so style through class names and the stylesheets.
+
+## The app page
+
+`app.html` loads `src/app/main.ts`, which asks `auth.me()` who is logged in, draws the top navigation (`src/app/nav.ts`), and starts the router (`src/app/router.ts`). The page reaches the server only through the SDK client in `src/app/client.ts`, which sends any 401 to `/login?next=<where you were>`; logging in goes back there. Log in and sign up (`src/pages/`) follow the server's `next`.
+
+The route table is `src/app/routes.ts`. Every screen in the spec already has its route and a module, so a screen's ticket edits only its own module:
+
+| Path | Screen module | Owner |
+| --- | --- | --- |
+| `/app` | `src/screens/dashboard.ts`, a placeholder | m1kuorg/basics#47 |
+| `/app/projects` | `src/screens/projects.ts`: list, create, rename, delete | m1kuorg/basics#42 |
+| `/app/projects/:projectId` | `src/screens/project.ts`, a placeholder: the card stack, unsorted, and uploads go here | m1kuorg/basics#45 |
+| `/app/projects/:projectId/upload` | `src/screens/upload.ts`, a placeholder | m1kuorg/basics#43 |
+| `/app/cards/:cardId` | `src/screens/card.ts`, a placeholder: the card and its cold rep | m1kuorg/basics#46 |
+| `/app/settings` | `src/screens/settings.ts`, a placeholder | m1kuorg/basics#48, then #49 |
+| anything else under `/app` | `src/screens/not-found.ts` | m1kuorg/basics#42 |
+
+A screen is `(root: HTMLElement, props: ScreenProps<"param">) => void | Promise<void>`. The router empties `#app`, sets `#app[data-screen="<name>"]` and the page title, marks the navigation's section, and mounts the screen with:
+
+- `params` (decoded `:params`, typed from the path) and `query`;
+- `client` (the SDK), `account` (who is logged in), and `setAccount`, which a screen calls after changing the name or email so the navigation shows it;
+- `navigate(path)`, though plain `<a href="/app/...">` links are followed without a reload anyway;
+- `signal`, aborted when the learner leaves, so nothing a screen was still fetching draws over the next one. `load()` from `src/parts/frame.ts` checks it for you.
+
+A screen's own views (such as a project's unsorted phrasings, or one upload's progress) can live in its `query` rather than in a new route.
+
+## Shared parts
+
+Each part is a function that returns elements, in `src/parts/`, styled by `public/styles/parts.css` (and `shell.css` for the frame). Strings are always set as text, never as HTML.
+
+| Module | Parts |
+| --- | --- |
+| `dom.ts` | `el(tag, className, ...children)`, `button(text, onClick, className)`, `link(text, href, className)`, `uniqueId()`. Button classes: none for the primary, `secondary` for the safe choice, `retry`, `quiet` for row and navigation actions; `link(..., "button")` looks like a button |
+| `frame.ts` | `frame(root, marginNotes)` mounts `aside.margin` and `main.block`; `plate(count, caption)`, the one reversed plate; `waiting(line)`; `notice(message)`; `failure(error, onRetry)`; `load(block, { keep, line, request, show, signal })`, which shows the waiting line, then the result or the error and a retry |
+| `fields.ts` | `field({ label, name, type, hint, ... })`, a label over a box with an optional hint; `form({ fields, submit, onSubmit, layout })`, which locks its button while `onSubmit` runs and shows a thrown error as its notice. `layout: "row"` sets one field and its button on one line |
+| `rows.ts` | `rows({ caption, columns, items, detail })`, a table between hairlines with right-aligned numeric columns, a hidden-label actions column, and an optional full-width detail row under an item. Put a title and its labels in `span.row-title` |
+| `empty.ts` | `emptyState(title, body, ...actions)` |
+| `confirm.ts` | `confirmDelete({ title, body, action, onConfirm, onCancel })`, the delete confirmation, in place (a `rows` detail row, say), never a modal |
+| `drop-zone.ts` | `dropZone({ title, hint, accept, onFile })` |
+| `code-block.ts` | `codeBlock(caption, code)`, with its copy button |
+| `library.ts` | `PRIVACY_LINE` and `privacyLine()`, the spec's privacy line; `demoLabel()`; `stamp(iso)`, a date in the learner's time zone |
+| `messages.ts` | `messageOf(error)`: the API's message, or a connection failure |
+
+A new part that more than one screen needs goes here, with its rules in `parts.css` and a sample in `scripts/lib/parts-sample.ts`; record it in `docs/DESIGN.md` under Components.
+
+## Stylesheets
+
+Each page links the stylesheets it needs, in this order: `base.css` (faces, tokens, links, buttons), `shell.css` (navigation, margin, block, plate), `parts.css`, then its surfaces. `app.html` links every app surface's file already, so a ticket never edits it to add styles.
+
+| File | What it styles | Owner |
+| --- | --- | --- |
+| `base.css`, `shell.css`, `parts.css` | Everything shared | m1kuorg/basics#42 |
+| `account.css` | Log in, sign up, and the not-found page | m1kuorg/basics#42 |
+| `projects.css` | The projects list | m1kuorg/basics#42 |
+| `stack.css` | The card stack: margin keys, the rail, the key drop, the end rule, as the proof of concept shipped them | m1kuorg/basics#45 |
+| `rep.css` | The cold rep, as the proof of concept shipped it | m1kuorg/basics#46 |
+| `dashboard.css` | The dashboard | m1kuorg/basics#47 |
+| `upload.css` | The upload page | m1kuorg/basics#43 |
+| `settings.css` | Settings | m1kuorg/basics#48, then #49 |
+| `landing.css` | The landing page | m1kuorg/basics#52 |
+| `docs.css` | The docs page | m1kuorg/basics#51 |
+
+A surface's rules go under `#app[data-screen="<name>"]` (the router sets it; public pages set it in their HTML), so no surface restyles another. Use only the tokens in `base.css`, which match `docs/DESIGN.md`.
+
+## Who owns which page files
+
+The three tickets that run in parallel after m1kuorg/basics#42 touch none of the same files:
+
+| Ticket | Files it owns |
+| --- | --- |
+| m1kuorg/basics#43, upload | `src/screens/upload.ts`, `public/styles/upload.css`, `scripts/styles/upload.ts` if it checks styles, its check script, and its own SDK and server files |
+| m1kuorg/basics#48, settings | `src/screens/settings.ts`, `public/styles/settings.css`, `scripts/styles/settings.ts`, its check script, and its own SDK and server files |
+| m1kuorg/basics#52, landing | `public/index.html`, `public/styles/landing.css`, a new `src/pages/landing.ts` if the page needs a script, `scripts/styles/landing.ts` |
+
+Each uses the shared parts and `PRIVACY_LINE` as they are. A change a part needs is a small edit to that part's own module; say so in the PR, since another ticket may use it too. The landing page links `stack.css` to set a real card on the rail.
 
 ## Check scripts
 
 - `startApp(env?)` from `scripts/lib/app.ts` starts `bun server.ts` on a free port with a temporary database, and returns `{ url, databasePath, log, browser, stop }`. `env` overrides settings, such as `DAILY_MODEL_REQUESTS`.
 - `app.browser()` is one browser: an SDK client that keeps its own session cookie and sends the app's `Origin`. `cookie()` gives its Cookie header for requests made without the SDK. Until API keys land (m1kuorg/basics#48), scripts reach the API this way.
 - Each copy of the app allows 20 sign-up and log-in tries per address in 15 minutes, so a script making many accounts should start its own copy.
+- A browser check stubs a request only inside the script, with Playwright's `page.route`, never in the app.
+- `check:styles` signs up one learner on a fresh copy of the app, then runs every module in `scripts/styles/`, in name order. A module's default export is `(kit: Kit) => Promise<void>` (`scripts/lib/styles.ts`): it opens pages with `kit.page({ loggedIn })` and `kit.open()`, drives them into each state, and calls `kit.shoot(page, name)`, which saves the screenshot and checks the type floor, vermilion, radius and shadow, the inks, contrast, the plate count, and sideways scroll. A surface's ticket adds its own module rather than editing another's. `shell.ts` and `parts.ts` are m1kuorg/basics#42's; `stack.ts` and `rep.ts` set the proof of concept's sample markup into the app page until m1kuorg/basics#45 and #46 retarget them to their real screens.
 
 ## Proof-of-concept leftovers
 
 | Piece | Retired or retargeted by |
 | --- | --- |
-| The page at `/`: `public/index.html`, `src/main.ts`, `src/screens/`, `src/parser.ts`, `src/api.ts`, `src/types.ts`, `src/cards.ts` | m1kuorg/basics#42 moves the screens under the router; m1kuorg/basics#43 replaces the parser with the SDK's readers |
+| The single page at `/` and its screens | Retired by m1kuorg/basics#42: the load, stack, and rep screens became the upload, project, and card placeholders |
+| `src/parser.ts`, used by the model routes' checks and the styles samples | m1kuorg/basics#43 replaces it with the SDK's readers |
+| `src/cards.ts`, `src/api.ts`, `src/types.ts`, used by the model routes and their checks | m1kuorg/basics#44 and #46, with the routes |
 | `POST /api/group`, `/api/rep`, `/api/check` in `server/routes/`, with no account and no cap | m1kuorg/basics#44 (group) and m1kuorg/basics#46 (rep and check) |
 | `check:key`, `check:cards`, `check:grouping` | m1kuorg/basics#44 replaces the grouping check with the incremental sort check |
-| `check:styles`, `check:rep`, `check:rep-routes`, `journey` | m1kuorg/basics#42, #45, and #46 retarget them; m1kuorg/basics#53 replaces the journey |
+| `check:rep-routes` | m1kuorg/basics#46 |
+| `check:rep` and `journey`, which walked the single page | Deleted by m1kuorg/basics#42; m1kuorg/basics#46 adds the card page's browser check, and m1kuorg/basics#53 the app journey as `bun run journey` |
+| `scripts/styles/stack.ts` and `rep.ts`, sample markup | m1kuorg/basics#45 and #46 retarget them to the real project and card pages |
 
 The proof of concept's checks that start `bun server.ts` themselves use the default database, `data/asked-before.sqlite`, which is gitignored.
