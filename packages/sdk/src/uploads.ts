@@ -3,6 +3,6 @@
 // (m1kuorg/basics#45).
 // A stub until that lands: it has no methods yet, and the server answers 501.
 
-import type { Request } from "./http";
+import type { Requester } from "./http";
 
-export const uploads = (request: Request) => ({});
+export const uploads = (request: Requester) => ({});

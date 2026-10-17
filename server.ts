@@ -5,7 +5,7 @@
 
 import { apiRoutes } from "./server/api";
 import { config } from "./server/config";
-import { answerError, secure, serve, serveAll } from "./server/http";
+import { answerError, HttpError, secure, serve, serveAll } from "./server/http";
 import { notFound, pageRoutes } from "./server/pages";
 import { check } from "./server/routes/check";
 import { group } from "./server/routes/group";
@@ -20,7 +20,11 @@ const server = Bun.serve({
     "/api/rep": { POST: rep },
     "/api/check": { POST: check },
   }),
-  fetch: serve(notFound),
+  // Whatever no route answers, including a method a path doesn't have.
+  fetch: serve((req) => {
+    if (!new URL(req.url).pathname.startsWith("/api/")) return notFound(req);
+    throw new HttpError(404, "There's no such endpoint.");
+  }),
   error: () => secure(answerError(undefined), "/"),
 });
 

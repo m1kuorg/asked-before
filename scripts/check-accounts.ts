@@ -62,14 +62,19 @@ await step("1. The health check answers, and every kind of answer carries the se
     ["a page asset", assetPath ?? "/assets/missing", 200],
     ["a missing page", "/no-such-page", 404],
     ["a missing endpoint", "/api/v1/no-such-endpoint", 404],
+    ["a method an endpoint doesn't have", "/api/v1/health?method=PUT", 404],
     ["an endpoint that needs a session", "/api/v1/projects", 401],
     ["a stub endpoint", "/api/v1/dashboard", 501],
   ];
   for (const [what, path, status] of answers) {
-    const response = await fetch(new URL(path, app.url));
+    const url = new URL(path, app.url);
+    const response = await fetch(url, { method: url.searchParams.get("method") ?? "GET" });
     const missing = missingHeaders(response);
     check(response.status === status && missing.length === 0, `${what} (${path}): ${response.status}, ${missing.length ? `missing ${missing.join(", ")}` : "all security headers"}`);
-    if (path.startsWith("/api/")) check(response.headers.get("cache-control") === "no-store", `${what} isn't cached: ${response.headers.get("cache-control")}`);
+    if (path.startsWith("/api/")) {
+      const body = (await response.json().catch(() => null)) as { error?: unknown } | null;
+      check(response.headers.get("cache-control") === "no-store" && (status === 200 || typeof body?.error === "string"), `${what} isn't cached, and a failure says { error }`);
+    }
   }
   const csp = page.headers.get("content-security-policy") ?? "";
   check(/default-src 'self'/.test(csp) && /frame-ancestors 'none'/.test(csp), `the content security policy allows only the app's own origin: ${csp}`);
@@ -159,10 +164,29 @@ await step("7. Log in, following `next` only when it's a path inside the app", a
   }
   const me = await ada.client.auth.me();
   check(me.email === ADA.email, `logged in as ${me.email}`);
+
+  const before = ada.cookie();
+  await ada.client.auth.logIn({ email: ADA.email, password: ADA.password });
+  const earlier = await fetch(new URL("/api/v1/auth/me", app.url), { headers: { cookie: before } });
+  check(earlier.status === 401 && ada.cookie() !== before, `logging in again ends the earlier session: ${earlier.status}`);
+
+  for (const [what, call] of [
+    ["sign-up", "/api/v1/auth/signup"],
+    ["log-in", "/api/v1/auth/login"],
+  ] as const) {
+    const forged = await fetch(new URL(call, app.url), {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "https://evil.example" },
+      body: JSON.stringify(what === "log-in" ? { email: BEA.email, password: BEA.password } : BEA),
+    });
+    check(forged.status === 403, `${what} from another site's Origin: ${forged.status}`);
+  }
 });
 
 let work: Project | undefined;
 let bootcamp: Project | undefined;
+/** The rows step 10 writes under the demo project, by table. */
+const seeded: Record<"uploads" | "cards" | "phrasings" | "reps", string[]> = { uploads: ["u1"], cards: [], phrasings: [], reps: [] };
 
 await step("8. Create, rename, list, and get projects, with every count zero", async () => {
   work = await ada.client.projects.create({ name: "  Work  " });
@@ -222,19 +246,24 @@ await step("10. A project's counts come from its cards' status", async () => {
   let n = 0;
   for (const [skill, borrows, verdicts, checkedAt] of cards) {
     const cardId = `c${++n}`;
+    seeded.cards.push(cardId);
     seed.query("INSERT INTO cards (id, project_id, skill, created_at) VALUES ($cardId, $projectId, $skill, $at)").run({ cardId, projectId, skill, at: day(10) });
     for (const time of borrows) {
       const id = `p${++n}`;
+      seeded.phrasings.push(id);
       seed
         .query("INSERT INTO phrasings (id, project_id, origin, upload_id, source_id, text, time, card_id, created_at) VALUES ($id, $projectId, 'export', 'u1', $id, 'a phrasing', $time, $cardId, $at)")
         .run({ id, projectId, time, cardId, at: day(10) });
     }
     for (const verdict of verdicts) {
+      const id = `r${++n}`;
+      seeded.reps.push(id);
       seed
         .query("INSERT INTO reps (id, card_id, problem, answer, verdict, reason, created_at, checked_at) VALUES ($id, $cardId, 'a problem', 'an answer', $verdict, 'a reason', $at, $at)")
-        .run({ id: `r${++n}`, cardId, verdict, at: checkedAt });
+        .run({ id, cardId, verdict, at: checkedAt });
     }
   }
+  seeded.phrasings.push("unsorted");
   seed.query("INSERT INTO phrasings (id, project_id, origin, upload_id, source_id, text, time, created_at) VALUES ('unsorted', $projectId, 'export', 'u1', 'unsorted', 'a phrasing', $time, $time)").run({ projectId, time: day(4) });
   seed.close();
 
@@ -247,8 +276,7 @@ await step("10. A project's counts come from its cards' status", async () => {
 });
 
 await step("11. Deleting a project deletes it and everything in it", async () => {
-  // The project holds an upload, phrasings, cards, and reps (step 10), and
-  // foreign keys are on, so the delete succeeds only by cascading.
+  // The project holds an upload, phrasings, cards, and reps (step 10).
   await ada.client.projects.delete(bootcamp!.id);
   const got = await failure(ada.client.projects.get(bootcamp!.id));
   check(got?.status === 404, `getting it afterwards: ${say(got)}`);
@@ -256,6 +284,17 @@ await step("11. Deleting a project deletes it and everything in it", async () =>
   check(again?.status === 404, `deleting it again: ${say(again)}`);
   const list = await ada.client.projects.list();
   check(list.length === 1 && list[0]!.id === work!.id, `the other project stays: ${list.map((p) => p.name).join(", ")}`);
+
+  // Until m1kuorg/basics#43 to #46 give endpoints that can reach a deleted
+  // project's uploads, phrasings, cards, and reps, only the database can show
+  // they went with it. Without cascades, or with foreign keys off, they stay.
+  const store = new Database(app.databasePath, { readonly: true, strict: true });
+  const left = Object.entries(seeded).map(([table, ids]) => {
+    const { n } = store.query(`SELECT count(*) AS n FROM ${table} WHERE id IN (SELECT value FROM json_each($ids))`).get({ ids: JSON.stringify(ids) }) as { n: number };
+    return [table, n, ids.length] as const;
+  });
+  store.close();
+  check(left.every(([, n]) => n === 0), `rows left of those step 10 made: ${left.map(([table, n, of]) => `${table} ${n} of ${of}`).join(", ")}`);
 });
 
 await step("12. A cookie request that changes something needs the page's Origin and JSON", async () => {
@@ -282,13 +321,15 @@ await step("12. A cookie request that changes something needs the page's Origin 
   const made = await post({ "content-type": "application/json", origin: app.url });
   check(made.status === 201, `with the page's Origin and JSON, it's made: ${made.status}`);
 
-  const bearer = await fetch(new URL("/api/v1/projects", app.url), { headers: { cookie, authorization: "Bearer ab_nope_nope" } });
-  check(bearer.status === 401, `with a Bearer key, the cookie is ignored: ${bearer.status}`);
+  for (const scheme of ["Bearer", "bearer"]) {
+    const bearer = await fetch(new URL("/api/v1/projects", app.url), { headers: { cookie, authorization: `${scheme} ab_nope_nope` } });
+    check(bearer.status === 401, `with a "${scheme}" key, the cookie is ignored: ${bearer.status}`);
+  }
 });
 
 await step("13. The app logs only the method, path, status, and duration", async () => {
   const lines = app.log().trim().split("\n").slice(1);
-  const odd = lines.filter((line) => !/^(GET|HEAD|POST|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));
+  const odd = lines.filter((line) => !/^(GET|HEAD|POST|PUT|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));
   check(lines.length > 50 && odd.length === 0, `${lines.length} request lines${odd.length ? `, and these others: ${odd.slice(0, 3).join(" | ")}` : ""}`);
   const secrets = [ADA.email, ADA.name, ADA.password, BEA.email, BEA.password, "Day job", "Sneaky"];
   const leaked = secrets.filter((text) => app.log().toLowerCase().includes(text.toLowerCase()));

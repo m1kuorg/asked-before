@@ -1,6 +1,7 @@
 // Auth: sign up, log in, log out, and the current account
-// (m1kuorg/basics#41). Signing up and logging in are throttled per IP
-// address and must come from the page's own origin. A wrong email and a
+// (m1kuorg/basics#41). Signing up and logging in must come from the page's
+// own origin, and are then throttled per IP address, so another site's
+// forged request can't use up a visitor's tries. A wrong email and a
 // wrong password get the same answer, in about the same time, so neither
 // says whether an account exists.
 
@@ -55,8 +56,8 @@ function appPath(next: string | undefined): string {
 export const auth = defineRoutes({
   "/api/v1/auth/signup": {
     async POST(req, server) {
-      throttle(server.requestIP(req)?.address ?? "unknown");
       sameOrigin(req);
+      throttle(server.requestIP(req)?.address ?? "unknown");
       const { name, email, password, next } = await readJson(req, SignUp);
       const account = createUser({ name, email, passwordHash: await Bun.password.hash(password) });
       if (!account) throw new HttpError(409, "That email already has an account. Log in instead.");
@@ -67,8 +68,8 @@ export const auth = defineRoutes({
 
   "/api/v1/auth/login": {
     async POST(req, server) {
-      throttle(server.requestIP(req)?.address ?? "unknown");
       sameOrigin(req);
+      throttle(server.requestIP(req)?.address ?? "unknown");
       const { email, password, next } = await readJson(req, LogIn);
       const login = findLogin(email);
       const matches = await Bun.password.verify(password, login?.passwordHash ?? NO_ACCOUNT_HASH);

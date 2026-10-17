@@ -2,6 +2,6 @@
 // borrows and reps, and list a project's unsorted phrasings (m1kuorg/basics#44).
 // A stub until that lands: it has no methods yet, and the server answers 501.
 
-import type { Request } from "./http";
+import type { Requester } from "./http";
 
-export const cards = (request: Request) => ({});
+export const cards = (request: Requester) => ({});
