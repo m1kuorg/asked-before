@@ -1,8 +1,8 @@
 ---
 version: 1
 slug: 'apps-src-index-tsx'
-primary_target: 'src/screens/stack.ts'
-related_targets: ['public/styles.css']
+primary_target: 'src/screens/project.ts'
+related_targets: ['public/styles/stack.css']
 ---
 
 # Card stack

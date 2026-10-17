@@ -1,0 +1,141 @@
+/*
+  The cold rep (m1kuorg/basics#46 owns this file), with the look the proof of
+  concept shipped: what you were told on the left, what you do on the right,
+  either side of a centre hairline. The answer box's textarea is a form field
+  (parts.css).
+
+  Markup shapes it reads: the block's step is a bare div holding `.verdict`,
+  `.lesson`, `.problem`, and `form.answer-box`; a command flag in a section's
+  paragraph is a bare span.
+*/
+
+/* A command flag stays whole: the line never breaks after its dashes. */
+.lesson span,
+.problem span,
+.verdict span {
+  white-space: nowrap;
+}
+
+/* The cold rep: what you were told on the left, what you do on the right, either side of a centre hairline. */
+
+.block > div:not([class]):has(> .verdict, > .lesson, > .problem) {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--rail-width) minmax(0, 1fr);
+  row-gap: var(--space-5);
+  align-items: start;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    border-left: var(--hairline);
+  }
+
+  & > * {
+    grid-column: 3;
+    max-width: none;
+    margin-top: 0;
+  }
+
+  & > button {
+    justify-self: start;
+  }
+
+  & > .error + .retry {
+    margin-top: 0;
+  }
+
+  & > .verdict {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  & > .lesson {
+    grid-column: 1;
+    grid-row: 2 / span 3;
+  }
+
+  &:not(:has(> .verdict)) > .lesson {
+    grid-row: 1 / span 4;
+  }
+
+  /* After a pass, the way back sits under the Returned verdict, so it stays in the frame however long the locked answer runs. */
+  & > .verdict:not(.is-failed) ~ button {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  @media (max-width: 67.5rem) {
+    grid-template-columns: minmax(0, 1fr);
+
+    &::before {
+      content: none;
+    }
+
+    & > *,
+    & > :is(.verdict, .lesson),
+    &:not(:has(> .verdict)) > .lesson,
+    & > .verdict:not(.is-failed) ~ button {
+      grid-column: 1;
+      grid-row: auto;
+    }
+  }
+}
+
+.lesson,
+.problem,
+.verdict,
+.answer-box {
+  max-width: var(--measure);
+}
+
+.lesson,
+.problem {
+  padding-top: var(--space-4);
+  border-top: var(--hairline);
+}
+
+.lesson p + p {
+  margin-top: var(--space-2);
+}
+
+.problem {
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.verdict {
+  padding: var(--space-4) var(--space-5);
+  border: var(--hairline);
+}
+
+/* A failed rep stays within the two inks: the verdict's frame is set heavy, never in vermilion. */
+.verdict.is-failed {
+  padding: calc(var(--space-4) - 2px) calc(var(--space-5) - 2px);
+  border-width: 3px;
+}
+
+.verdict .stamp {
+  display: inline-block;
+  margin-top: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  border: var(--hairline);
+  font: 700 var(--small-label-size) / 1.3 var(--face);
+}
+
+.answer-box {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+}
+
+.answer-box label {
+  display: grid;
+  gap: var(--space-2);
+  justify-self: stretch;
+  font: 700 var(--label-size) / 1.3 var(--face);
+}
