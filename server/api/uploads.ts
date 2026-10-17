@@ -7,13 +7,17 @@
 // no answer, title, or other part of an export can reach the server (ADR
 // 0001). A phrasing over 2,000 characters, or a chunk over 2,000 phrasings,
 // is a 413; a phrasing dated more than a day ahead is a 400. Finishing an
-// upload leaves it waiting to be sorted.
+// upload answers with it waiting to be sorted, and starts the project's sort
+// (server/sort.ts), which records its progress and any failure on the
+// upload. Retrying a failed sort carries on from the first phrasing it
+// hadn't offered; anything but a failed upload is a 409.
 
 import { MAX_CHUNK, MAX_PHRASING_LENGTH, type Upload } from "@asked-before/sdk";
 import { z } from "zod";
 import { authed } from "../auth";
 import { defineRoutes, HttpError, notBuilt, readJson } from "../http";
-import { appendPhrasings, createUpload, finishUpload, getUpload, listUploads } from "../store/uploads";
+import { sortProject } from "../sort";
+import { appendPhrasings, createUpload, finishUpload, getUpload, listUploads, retryUpload } from "../store/uploads";
 
 const DAY = 24 * 60 * 60 * 1000;
 /** The largest chunk body: MAX_CHUNK phrasings of MAX_PHRASING_LENGTH characters, every one escaped, with room to spare. */
@@ -96,8 +100,16 @@ export const uploads = defineRoutes({
     POST: authed((req, auth) => {
       const upload = finishUpload(auth.userId, req.params.uploadId);
       if (upload === "finished") throw new HttpError(409, "This upload is finished already.");
-      return Response.json(found(upload));
+      sortProject(found(upload).projectId);
+      return Response.json(upload);
     }),
   },
-  "/api/v1/uploads/:uploadId/retry": { POST: notBuilt("m1kuorg/basics#44") },
+  "/api/v1/uploads/:uploadId/retry": {
+    POST: authed((req, auth) => {
+      const upload = retryUpload(auth.userId, req.params.uploadId);
+      if (upload === "not failed") throw new HttpError(409, "Only a sort that failed can be tried again.");
+      sortProject(found(upload).projectId);
+      return Response.json(upload);
+    }),
+  },
 });
