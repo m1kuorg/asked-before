@@ -57,7 +57,7 @@ async function states(kit: Kit, made: string[]) {
   const work = await learner.client.projects.create({ name: "Work" });
   made.push(work.id);
   await block.getByRole("button", { name: "Try again" }).click();
-  await block.locator(".empty", { hasText: "Upload a chat export into one of your projects" }).waitFor();
+  await block.locator(".empty", { hasText: "Open one of your projects" }).waitFor();
   await kit.shoot(page, "dashboard-no-cards");
 
   // The demo export, sorted as the key sorts it; card A passes a cold rep, and card B passes one, then a newer borrow of its skill makes it borrowed again.

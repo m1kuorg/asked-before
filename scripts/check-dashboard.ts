@@ -262,6 +262,8 @@ try {
       const returned = await page.locator(".block .latest-returns tbody tr").evaluateAll((all) => all.map((row) => [...row.querySelectorAll("td")].map((td) => (td.textContent ?? "").trim())));
       const stampedOn = utcDate(dashboard.latestReturns[0]!.returnedAt!);
       check(returned.length === 1 && returned[0]![0] === key.skills[0]!.name && returned[0]![1] === "DemoDemo data" && returned[0]![2] === stampedOn, `the page lists that return: ${JSON.stringify(returned)}, stamped ${stampedOn}`);
+      const strike = await page.locator(".block .latest-returns tbody .is-struck").evaluateAll((all) => all.map((skill) => getComputedStyle(skill).textDecoration));
+      check(strike.length === 1 && strike[0]!.includes("line-through") && strike[0]!.includes("2px"), `its skill is struck with the 2px line, as its margin key is (${strike.join(", ")})`);
 
       const ledger = await page.locator(".margin .ledger > div").evaluateAll((all) => all.map((line) => `${line.querySelector("dt")?.textContent} ${line.querySelector("dd")?.textContent}`));
       const want = [`Borrowed ${sums.borrowed}`, `Borrowed again ${sums.borrowedAgain}`, `Returned ${sums.returned}`, `All cards ${sums.cards}`];
