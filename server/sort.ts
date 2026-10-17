@@ -170,9 +170,8 @@ export function sortProject(projectId: string): void {
           await sortUpload(upload);
           store.markSorted(upload.id);
         } catch (error) {
-          // A model failure, the daily cap's 429, or a check that failed three times: its message is safe to show.
+          // A model failure, the daily cap's 429, or a check that failed three times: its message is safe to show. The upload records it; the logs carry requests only.
           store.markFailed(upload.id, error instanceof HttpError ? error.message : "The sort failed on the server.");
-          if (!(error instanceof HttpError)) console.error(`A sort failed: ${error instanceof Error ? error.name : "unknown error"}`);
         }
       }
     } finally {

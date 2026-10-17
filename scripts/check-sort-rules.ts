@@ -277,7 +277,8 @@ try {
     await Bun.sleep(1000);
     check(small.model.requests.length === asked, `after its first batch's answer came back, no more were asked (${small.model.requests.length - asked} more)`);
     const gone = await failure(small.client.uploads.get(sorting.id));
-    check(gone?.status === 404 && !small.app.log().includes("A sort failed"), `its upload is ${say(gone)}, and the app logged no failure`);
+    const odd = small.app.log().trim().split("\n").slice(1).filter((line) => !/^(GET|POST|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));
+    check(gone?.status === 404 && odd.length === 0, `its upload is ${say(gone)}, and the app logged its requests and nothing else${odd.length ? `: ${odd.slice(0, 3).join(" | ")}` : ""}`);
   });
 
   await step("12. A sort a restart cuts off carries on when the app starts again", async () => {
