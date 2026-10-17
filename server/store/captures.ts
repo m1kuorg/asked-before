@@ -7,6 +7,7 @@
 import type { Capture } from "@asked-before/sdk";
 import { findCard, toPhrasing, type PhrasingRow } from "./cards";
 import { db, newId } from "./db";
+import { ownsProject } from "./projects";
 import { placeBatch, type Placement } from "./sorts";
 
 /** A capture before it's stored: its id, your words, and the server's clock. */
@@ -19,9 +20,6 @@ const comparable = (text: string) => text.trim().replace(/\s+/g, " ").toLowerCas
 
 /** How long the same words captured again return the earlier capture rather than add a borrow. */
 const REPEAT_WINDOW = 10 * 60 * 1000;
-
-const ownsProject = (userId: string, projectId: string) =>
-  db.query("SELECT 1 FROM projects WHERE id = $projectId AND user_id = $userId").get({ userId, projectId }) !== null;
 
 /** The project's capture of the same words in the ten minutes before this one, or null. */
 function earlierCapture(projectId: string, capture: Draft): string | null {

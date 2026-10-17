@@ -8,14 +8,14 @@ import { authed } from "../auth";
 import { defineRoutes, HttpError, readJson } from "../http";
 import { createProject, deleteProject, getProject, listProjects, renameProject } from "../store/projects";
 
-const Name = z
+const ProjectName = z
   .string({ error: "A project needs a name." })
   .trim()
   .min(1, "A project needs a name.")
   .max(80, "A project name can have at most 80 characters.");
 
-const NewProject = z.strictObject({ name: Name, demo: z.boolean({ error: "demo is true or false." }).optional() });
-const Rename = z.strictObject({ name: Name });
+const NewProject = z.strictObject({ name: ProjectName, demo: z.boolean({ error: "demo is true or false." }).optional() });
+const Rename = z.strictObject({ name: ProjectName });
 
 const found = (project: Project | null): Project => {
   if (!project) throw new HttpError(404, "There's no such project.");

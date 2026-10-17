@@ -13,22 +13,19 @@ import { defineRoutes, HttpError, readJson } from "../http";
 import { accountData } from "../store/account-data";
 import { deleteOtherSessions } from "../store/sessions";
 import { deleteUser, passwordHashOf, setPasswordHash, updateAccount } from "../store/users";
-import { Email, Name } from "./auth";
+import { AccountName, Email, MAX_PASSWORD, NewPassword } from "./auth";
 
 const Change = z
-  .strictObject({ name: Name.optional(), email: Email.optional() })
+  .strictObject({ name: AccountName.optional(), email: Email.optional() })
   .refine((change) => change.name !== undefined || change.email !== undefined, "Send a new name or email.");
 
-const NewPassword = z.strictObject({
-  currentPassword: z.string({ error: "Your current password is needed." }).max(200, "That isn't your current password."),
-  newPassword: z
-    .string({ error: "A new password is needed." })
-    .min(10, "A new password needs at least 10 characters.")
-    .max(200, "A new password can have at most 200 characters."),
+const PasswordChange = z.strictObject({
+  currentPassword: z.string({ error: "Your current password is needed." }).max(MAX_PASSWORD, "That isn't your current password."),
+  newPassword: NewPassword("A new password"),
 });
 
 const Deletion = z.strictObject({
-  password: z.string({ error: "Your password is needed." }).min(1, "Your password is needed.").max(200, "That isn't your password."),
+  password: z.string({ error: "Your password is needed." }).min(1, "Your password is needed.").max(MAX_PASSWORD, "That isn't your password."),
 });
 
 const sessionOnly = { sessionOnly: true };
@@ -52,7 +49,7 @@ export const account = defineRoutes({
   },
   "/api/v1/account/password": {
     POST: authed(async (req, auth) => {
-      const { currentPassword, newPassword } = await readJson(req, NewPassword);
+      const { currentPassword, newPassword } = await readJson(req, PasswordChange);
       const hash = passwordHashOf(auth.userId);
       if (!hash || !(await Bun.password.verify(currentPassword, hash))) throw new HttpError(403, "That isn't your current password.");
       setPasswordHash(auth.userId, await Bun.password.hash(newPassword));

@@ -24,21 +24,29 @@ export const Email = z
   .max(254, "That email is too long.")
   .regex(/^[^\s@]+@[^\s@]+$/, "That doesn't look like an email address.");
 
-export const Name = z.string({ error: "A name is needed." }).trim().min(1, "A name is needed.").max(100, "A name can have at most 100 characters.");
+export const AccountName = z.string({ error: "A name is needed." }).trim().min(1, "A name is needed.").max(100, "A name can have at most 100 characters.");
+
+/** A password's length: at least this many characters for a new one, and at most MAX_PASSWORD for any. */
+const MIN_PASSWORD = 10;
+export const MAX_PASSWORD = 200;
+
+/** A new password, of MIN_PASSWORD to MAX_PASSWORD characters; `what` names it in its messages, such as "A new password". */
+export const NewPassword = (what: string) =>
+  z
+    .string({ error: `${what} is needed.` })
+    .min(MIN_PASSWORD, `${what} needs at least ${MIN_PASSWORD} characters.`)
+    .max(MAX_PASSWORD, `${what} can have at most ${MAX_PASSWORD} characters.`);
 
 const SignUp = z.strictObject({
-  name: Name,
+  name: AccountName,
   email: Email,
-  password: z
-    .string({ error: "A password is needed." })
-    .min(10, "A password needs at least 10 characters.")
-    .max(200, "A password can have at most 200 characters."),
+  password: NewPassword("A password"),
   next: z.string().optional(),
 });
 
 const LogIn = z.strictObject({
   email: z.string({ error: "An email is needed." }).trim().toLowerCase(),
-  password: z.string({ error: "A password is needed." }).max(200, "A password can have at most 200 characters."),
+  password: z.string({ error: "A password is needed." }).max(MAX_PASSWORD, `A password can have at most ${MAX_PASSWORD} characters.`),
   next: z.string().optional(),
 });
 
