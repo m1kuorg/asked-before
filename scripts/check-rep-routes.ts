@@ -10,12 +10,12 @@
 import { join } from "node:path";
 import { CHECK_EFFORT } from "../server/routes/check";
 import { REP_EFFORT } from "../server/routes/rep";
-import { parseExport } from "../src/parser";
 import type { CheckRequest, CheckResponse, RepRequest, RepResponse } from "../src/types";
+import { demoMessages } from "./lib/demo";
 
 const ROOT = join(import.meta.dir, "..");
 const read = (path: string) => Bun.file(join(ROOT, path)).text();
-const messages = parseExport(await read("demo/export.json"));
+const messages = await demoMessages("export.json");
 const key: { skills: { name: string; messageIds: string[] }[] } = JSON.parse(await read("demo/answer-key.json"));
 const known: { skill: string; wrong: string; right: string } = JSON.parse(await read("demo/known-answers.json"));
 const skill = known.skill;

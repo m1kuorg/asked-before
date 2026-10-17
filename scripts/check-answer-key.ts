@@ -1,7 +1,8 @@
 // Checks demo/answer-key.json against demo/export.json, and the export against
 // what #7 asks of it. Run: bun run check:key
 
-import { ExportError, parseExport } from "../src/parser";
+import { ExportError, readExport } from "@asked-before/sdk";
+import { demoMessages } from "./lib/demo";
 
 const read = (path: string) => Bun.file(new URL(path, import.meta.url)).text();
 const exportText = await read("../demo/export.json");
@@ -14,7 +15,7 @@ const check = (ok: boolean, label: string) => {
   if (!ok) failed++;
 };
 
-// The raw export, read here without the parser.
+// The raw export, read here without the reader.
 type RawMessage = { author: { role: string }; create_time?: number | null; content: { parts?: unknown[] } };
 type RawNode = { message: RawMessage | null; children: string[] };
 type RawConversation = { conversation_id: string; create_time: number; update_time: number; mapping: Record<string, RawNode> };
@@ -30,8 +31,8 @@ const otherTexts = new Set(
   withMessage.filter(({ node }) => node.message!.author.role !== "user").flatMap(({ node }) => stringParts(node.message!)),
 );
 
-console.log("The parser on the demo export");
-const messages = parseExport(exportText);
+console.log("The SDK's reader on the demo export");
+const messages = await demoMessages("export.json");
 const byId = new Map(messages.map((m) => [m.id, m]));
 check(messages.length === rawUserTexts.length, `${messages.length} messages, one per user message with text (${rawUserTexts.length})`);
 check(messages.every((m, i) => m.text === rawUserTexts[i]), "each text is the user's own, word for word, in export order");
@@ -43,7 +44,7 @@ for (const { c } of undated) {
   check(parsed?.time === c.create_time, `  it's dated by its conversation's create_time, not its update_time`);
 }
 
-console.log("\nThe parser on broken exports fails loudly, naming the field");
+console.log("\nThe reader on broken exports fails loudly, naming the field");
 // Each breakage edits a copy of the export in place, or returns replacement text.
 type Loose = Record<string, unknown>;
 const firstUser = (c: RawConversation) =>
@@ -61,7 +62,7 @@ for (const [label, breakIt] of breakages) {
   const data = structuredClone(raw);
   const replaced = breakIt(data);
   try {
-    parseExport(replaced ?? JSON.stringify(data));
+    await readExport(replaced ?? JSON.stringify(data));
     check(false, `${label}: parsed anyway`);
   } catch (error) {
     check(error instanceof ExportError, `${label}: ${error instanceof Error ? error.message : String(error)}`);
@@ -124,7 +125,7 @@ console.log(`     the tie rule is ${tie ? "exercised" : "not exercised; every co
 check(key.oneOffs.length >= 6, `${key.oneOffs.length} one-off questions`);
 
 console.log("\nThe no-repeats export");
-const single = parseExport(await read("../demo/no-repeats.json"));
+const single = await demoMessages("no-repeats.json");
 check(single.length >= 3 && new Set(single.map((m) => m.text)).size === single.length, `${single.length} messages, no text asked twice`);
 
 if (failed) {
