@@ -55,17 +55,20 @@ export function markFailed(uploadId: string, error: string): void {
 
 /**
  * The next batch: up to `size` of the upload's phrasings that no sort has
- * seen, oldest first, and the window, up to `size` of the project's most
- * recent unsorted phrasings, which a sort has seen but nothing yet matched.
+ * seen, oldest first, and the window (unsortedWindow).
  */
 export function nextBatch(uploadId: string, projectId: string, size: number): { fresh: SortPhrasing[]; window: SortPhrasing[] } {
   const fresh = db
     .query("SELECT id, text FROM phrasings WHERE upload_id = $uploadId AND offered_at IS NULL ORDER BY time, id LIMIT $size")
     .all({ uploadId, size }) as SortPhrasing[];
-  const window = db
+  return { fresh, window: unsortedWindow(projectId, size) };
+}
+
+/** The window: up to `size` of the project's most recent unsorted phrasings, which a sort has seen but nothing yet matched. */
+export function unsortedWindow(projectId: string, size: number): SortPhrasing[] {
+  return db
     .query("SELECT id, text FROM phrasings WHERE project_id = $projectId AND card_id IS NULL AND offered_at IS NOT NULL ORDER BY time DESC, id DESC LIMIT $size")
     .all({ projectId, size }) as SortPhrasing[];
-  return { fresh, window };
 }
 
 /** The project's cards, oldest first, each with up to three of its earliest borrows' words. */
@@ -99,25 +102,34 @@ const dropThin = db.query("DELETE FROM cards WHERE id = $cardId AND (SELECT coun
 
 /**
  * Applies a checked answer to a batch in one transaction, and marks every
- * phrasing in the batch offered. A new card named like one the project has
- * (ignoring case) joins it. False when the upload is gone, its project
- * deleted, so its sort stops.
+ * phrasing in the batch offered (placeBatch). False when the upload is
+ * gone, its project deleted, so its sort stops.
  */
 export function applyPlacement(uploadId: string, projectId: string, placement: Placement, batch: string[]): boolean {
   return db.transaction(() => {
     if (!exists.get({ uploadId })) return false;
-    const now = Date.now();
-    const place = (cardId: string, phrasingIds: string[]) => {
-      for (const phrasingId of phrasingIds) placeOne.run({ cardId, phrasingId, projectId });
-    };
-    for (const { cardId, phrasingIds } of placement.joins) place(cardId, phrasingIds);
-    for (const { skill, phrasingIds } of placement.newCards) {
-      const made = insertCard.run({ id: newId(), projectId, skill, now }).changes > 0;
-      const cardId = (cardNamed.get({ projectId, skill }) as { id: string }).id;
-      place(cardId, phrasingIds);
-      if (made) dropThin.run({ cardId });
-    }
-    for (const phrasingId of batch) offerOne.run({ phrasingId, now });
+    placeBatch(projectId, placement, batch);
     return true;
   })();
+}
+
+/**
+ * Applies a checked answer to a batch, inside the caller's transaction, and
+ * marks every phrasing in the batch offered. A new card named like one the
+ * project has (ignoring case) joins it. A capture (store/captures.ts) is
+ * placed through here too.
+ */
+export function placeBatch(projectId: string, placement: Placement, batch: string[]): void {
+  const now = Date.now();
+  const place = (cardId: string, phrasingIds: string[]) => {
+    for (const phrasingId of phrasingIds) placeOne.run({ cardId, phrasingId, projectId });
+  };
+  for (const { cardId, phrasingIds } of placement.joins) place(cardId, phrasingIds);
+  for (const { skill, phrasingIds } of placement.newCards) {
+    const made = insertCard.run({ id: newId(), projectId, skill, now }).changes > 0;
+    const cardId = (cardNamed.get({ projectId, skill }) as { id: string }).id;
+    place(cardId, phrasingIds);
+    if (made) dropThin.run({ cardId });
+  }
+  for (const phrasingId of batch) offerOne.run({ phrasingId, now });
 }
