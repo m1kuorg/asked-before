@@ -31,6 +31,7 @@
     "check:plugin": "bun run scripts/check-plugin.ts",
     "check:docs": "bun run scripts/check-docs.ts",
     "check:sdk": "bun run scripts/check-sdk.ts",
+    "check:container": "bun run scripts/check-container.ts",
     "build:plugin": "bun run scripts/build-plugin.ts",
     "build:sdk": "bun run --cwd packages/sdk build"
   },
