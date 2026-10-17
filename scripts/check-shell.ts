@@ -115,7 +115,7 @@ try {
     await page.getByRole("button", { name: "Sign up" }).click();
     await page.waitForURL(/\/app$/);
     await page.locator(".block h1").waitFor();
-    check((await heading(page)) === "Dashboard", `signing up lands on the dashboard: "${await heading(page)}" at ${path(page)}`);
+    check((await heading(page)) === "Still borrowed", `signing up lands on the dashboard: "${await heading(page)}" at ${path(page)}`);
     const nav = page.locator("body > nav");
     check((await nav.locator('[aria-current="page"]').textContent()) === "Dashboard", "the navigation marks Dashboard as the current page");
     check((await nav.textContent())?.includes(ADA.name) ?? false, "the navigation names the account");
