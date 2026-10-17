@@ -17,4 +17,12 @@ export const config = {
   https: publicUrl?.protocol === "https:",
   /** Model requests one account may make per UTC day. */
   dailyModelRequests: Number(process.env.DAILY_MODEL_REQUESTS ?? 300),
+  /** Phrasings a sort sends the model at once, beside as many of the project's most recent unsorted ones (server/sort.ts). */
+  sortBatchSize: wholeNumber("SORT_BATCH_SIZE", 300),
 };
+
+function wholeNumber(name: string, fallback: number): number {
+  const value = Number(process.env[name] || fallback);
+  if (!Number.isInteger(value) || value < 1) throw new Error(`${name} must be a whole number of 1 or more.`);
+  return value;
+}

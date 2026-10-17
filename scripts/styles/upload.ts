@@ -2,10 +2,13 @@
 // the real page: the drop zone with the instructions in the margin; a
 // Claude export's preview, with a message skipped for length; sending, and
 // a failed chunk with its retry (the chunk held and answered here, never in
-// the app); the finished upload; a file that can't be read; and the preview
-// on a narrow screen.
+// the app); the finished upload, and its sort under way, failed with a
+// retry, and done (the upload's own answer rewritten here, never in the
+// app; m1kuorg/basics#44); a file that can't be read; and the preview on a
+// narrow screen.
 
 import { join } from "node:path";
+import type { Upload } from "@asked-before/sdk";
 import type { Route } from "playwright";
 import type { Kit } from "../lib/styles";
 
@@ -47,6 +50,18 @@ export default async function upload(kit: Kit) {
   await kit.shoot(page, "upload-done");
   const [sent] = (await learner.client.uploads.list(project.id)).uploads;
   check(sent?.phrasings === 3, `the retried upload holds ${sent?.phrasings} phrasings`);
+
+  // The sort's states: the page reads the upload as each one, whatever the real sort is doing.
+  const as = async (state: Partial<Upload>, name: string, selector: string) => {
+    const pattern = `**/api/v1/uploads/${sent!.id}`;
+    await page.route(pattern, async (route) => route.fulfill({ json: { ...(await (await route.fetch()).json()), ...state } }));
+    await kit.open(page, `${at}?upload=${sent!.id}`, selector);
+    await kit.shoot(page, name);
+    await page.unroute(pattern);
+  };
+  await as({ status: "sorting", offered: 1 }, "upload-sorting", ".block .is-waiting");
+  await as({ status: "failed", offered: 1, error: "The model request failed (502)." }, "upload-sort-failed", ".block .error");
+  await as({ status: "sorted", offered: 3, error: null }, "upload-sorted", ".block .upload-done p + p");
 
   await kit.open(page, at, ".drop-zone");
   await page.locator(".drop-zone input[type=file]").setInputFiles({ name: "photo.png", mimeType: "image/png", buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47]) });

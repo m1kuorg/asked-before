@@ -163,7 +163,8 @@ for (const [path, label, body] of bad) {
 console.log("\n4. A cut-off or refused model reply comes back as an error, not a result");
 // A debug-only proxy that lives in this script: the second app instance reaches
 // the API through it. In "cut" mode it forwards the real request with a tiny
-// max_tokens; in "refuse" mode it answers with a stubbed refusal.
+// max_tokens; in "refuse" mode it answers with a stubbed refusal. The app's
+// model client streams (m1kuorg/basics#44), so both come back as events.
 const CUT_MAX_TOKENS = 16;
 let mode: "cut" | "refuse" = "cut";
 let upstreamStop = "";
@@ -173,17 +174,14 @@ const proxy = Bun.serve({
     const body = (await request.json()) as Record<string, unknown>;
     if (mode === "refuse") {
       upstreamStop = "refusal (stubbed)";
-      return Response.json({
-        id: "msg_stub",
-        type: "message",
-        role: "assistant",
-        model: body.model,
-        content: [],
-        stop_reason: "refusal",
-        stop_sequence: null,
-        stop_details: { type: "refusal", category: null, explanation: null },
-        usage: { input_tokens: 0, output_tokens: 0 },
-      });
+      const usage = { input_tokens: 0, output_tokens: 0 };
+      const events = [
+        { type: "message_start", message: { id: "msg_stub", type: "message", role: "assistant", model: body.model, content: [], stop_reason: null, stop_sequence: null, usage } },
+        { type: "message_delta", delta: { stop_reason: "refusal", stop_sequence: null, stop_details: { type: "refusal", category: null, explanation: null } }, usage: { output_tokens: 0 } },
+        { type: "message_stop" },
+      ];
+      const stream = events.map((event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`).join("");
+      return new Response(stream, { headers: { "content-type": "text/event-stream" } });
     }
     const headers = new Headers(request.headers);
     for (const name of ["host", "content-length", "accept-encoding"]) headers.delete(name);
@@ -194,9 +192,10 @@ const proxy = Bun.serve({
       body: JSON.stringify({ ...body, max_tokens: CUT_MAX_TOKENS }),
     });
     const text = await upstream.text();
-    const reply = JSON.parse(text);
-    upstreamStop = `${upstream.status} ${reply.stop_reason ?? reply.error?.type}`;
-    return new Response(text, { status: upstream.status, headers: { "content-type": "application/json" } });
+    const type = upstream.headers.get("content-type") ?? "application/json";
+    const stops = [...text.matchAll(/"stop_reason":"(\w+)"/g)].map((match) => match[1]);
+    upstreamStop = `${upstream.status} ${type.includes("event-stream") ? stops.at(-1) : JSON.parse(text).error?.type}`;
+    return new Response(text, { status: upstream.status, headers: { "content-type": type } });
   },
 });
 const forced = await startApp({ PORT: "0", ANTHROPIC_BASE_URL: proxy.url.href.replace(/\/$/, "") });

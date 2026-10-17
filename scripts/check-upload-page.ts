@@ -2,15 +2,17 @@
 // on a fresh copy of the app. It shows how to request each export; a file
 // chosen through its input is read on the page, and its preview counts your
 // own messages and the ones skipped, with the privacy line, before anything
-// is sent. Uploading the demo export stores 27 phrasings, and uploading it
-// again stores none; a Claude export and a sharded zip upload too, and a
+// is sent. Uploading the demo export stores 27 phrasings, which the page
+// watches being sorted, and uploading it again stores none; a Claude export and a sharded zip upload too, and a
 // file that can't be read says what's wrong with it, naming the field, and
 // sends nothing. Every request the page makes is intercepted: the phrasings
 // it sends are only { sourceId, text, time }, with no assistant words and no
 // titles. Sending shows its progress, and a failed chunk (stubbed in this
 // script, never in the app) shows the error and a retry that finishes the
 // same upload. A new learner's demo action makes a project flagged demo and
-// uploads the demo export into it. Each step is checked again through the
+// uploads the demo export into it. The app's model is a stand-in in this
+// script, answering as the demo export's answer key does (the sort's own
+// states are check:sort-page's). Each step is checked again through the
 // SDK, saves a screenshot, and prints its checks; it exits 1 if any fails,
 // naming the step.
 // Run: bun run check:upload-page [screenshot dir]
@@ -21,7 +23,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, type BrowserContext, type Page, type Request } from "playwright";
 import { PRIVACY_LINE } from "../src/parts/library";
+import { keySorter } from "./lib/answer-key";
 import { startApp, type Browser as Learner } from "./lib/app";
+import { reply, startModelStub } from "./lib/model-stub";
 
 const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-upload-page");
 const ROOT = join(import.meta.dir, "..");
@@ -38,7 +42,8 @@ const check = (ok: boolean, what: string) => {
 };
 
 await mkdir(OUT, { recursive: true });
-const app = await startApp();
+const model = await startModelStub(reply(keySorter));
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
 const browser = await chromium.launch();
 
 /** A logged-in page for a new learner, watching every request it sends to the API and every console error. */
@@ -117,14 +122,15 @@ try {
     check(uploadsSent(ada.sent).length === 0, `nothing was sent to the uploads endpoints yet (${uploadsSent(ada.sent).length} requests)`);
   });
 
-  await step("3. Upload it: 27 phrasings, waiting to be sorted", async () => {
+  await step("3. Upload it: 27 phrasings, which the page watches being sorted", async () => {
     await uploadButton().click();
     await page.locator(".block .upload-done").waitFor();
     const upload = await latest(ada.learner, work);
-    check(upload.phrasings === 27 && upload.messages === 27 && upload.status === "waiting" && upload.source === "chatgpt", `the API has ${upload.phrasings} new phrasings of ${upload.messages}, ${upload.status}, from ${upload.source}`);
+    check(upload.phrasings === 27 && upload.messages === 27 && upload.status !== "receiving" && upload.source === "chatgpt", `the API has ${upload.phrasings} new phrasings of ${upload.messages}, ${upload.status}, from ${upload.source}`);
     check(new URL(page.url()).searchParams.get("upload") === upload.id, `the page now shows that upload (${new URL(page.url()).search})`);
     check((await plate()) === "27" && (await text(".block .plate span")) === "new phrasings", `the plate says ${await plate()} ${await text(".block .plate span")}`);
-    check(/wait to be sorted/.test(await text(".block")), "and says they wait to be sorted");
+    await page.locator(".block .upload-done p", { hasText: /^They're sorted into Work's cards\.$/ }).waitFor();
+    check(true, "and says they're sorted into Work's cards once the sort ends");
     await page.reload();
     await page.locator(".block .upload-done").waitFor();
     check((await plate()) === "27" && (await ada.learner.client.uploads.list(work.id)).uploads.length === 1, "reloading shows the same upload and sends nothing again");
@@ -201,7 +207,7 @@ try {
     await page.locator(".block .upload-done").waitFor();
     await page.unrouteAll();
     const { uploads } = await ada.learner.client.uploads.list(bootcamp.id);
-    check(uploads.length === 1 && uploads[0]!.phrasings === 27 && uploads[0]!.status === "waiting", `Bootcamp has ${uploads.length} upload, ${uploads[0]?.phrasings} new, ${uploads[0]?.status}`);
+    check(uploads.length === 1 && uploads[0]!.phrasings === 27 && uploads[0]!.status !== "receiving", `Bootcamp has ${uploads.length} upload, ${uploads[0]?.phrasings} new, ${uploads[0]?.status}`);
   });
 
   await step("9. The page sent only { sourceId, text, time } phrasings: no assistant words, no titles", async () => {
@@ -238,7 +244,7 @@ try {
       check(new URL(bea.page.url()).pathname === `/app/projects/${demoProject!.id}/upload`, `and went to its upload page: ${new URL(bea.page.url()).pathname}`);
       check(await bea.page.locator(".block .demo-label").isVisible(), "labeled as demo data");
       const upload = await latest(bea.learner, demoProject!);
-      check(upload.phrasings === 27 && upload.source === "chatgpt" && upload.status === "waiting", `its upload has ${upload.phrasings} new phrasings, ${upload.status}`);
+      check(upload.phrasings === 27 && upload.source === "chatgpt" && upload.status !== "receiving", `its upload has ${upload.phrasings} new phrasings, ${upload.status}`);
       const appends = uploadsSent(bea.sent).filter((r) => r.url().endsWith("/phrasings"));
       check(appends.every((r) => (r.postDataJSON() as { phrasings: object[] }).phrasings.every((p) => Object.keys(p).sort().join() === "sourceId,text,time")), "through the same endpoints, with the same shape");
       check(bea.errors.length === 0, `no console errors${bea.errors.length ? `: ${bea.errors.slice(0, 3).join(" | ")}` : ""}`);
@@ -248,6 +254,7 @@ try {
 } finally {
   await browser.close();
   await app.stop();
+  model.stop();
 }
 
 console.log(`\nscreenshots in ${OUT}`);
