@@ -7,7 +7,10 @@ import { defineRoutes, notBuilt } from "../http";
 
 export const uploads = defineRoutes({
   "/api/v1/projects/:projectId/uploads": { GET: notBuilt("m1kuorg/basics#43"), POST: notBuilt("m1kuorg/basics#43") },
-  "/api/v1/uploads/:uploadId": { GET: notBuilt("m1kuorg/basics#43"), DELETE: notBuilt("m1kuorg/basics#45") },
+  "/api/v1/uploads/:uploadId": {
+    GET: notBuilt("m1kuorg/basics#43"),
+    DELETE: notBuilt("m1kuorg/basics#45"),
+  },
   "/api/v1/uploads/:uploadId/phrasings": { POST: notBuilt("m1kuorg/basics#43") },
   "/api/v1/uploads/:uploadId/finish": { POST: notBuilt("m1kuorg/basics#43") },
   "/api/v1/uploads/:uploadId/retry": { POST: notBuilt("m1kuorg/basics#44") },

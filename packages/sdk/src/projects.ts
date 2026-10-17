@@ -2,7 +2,7 @@
 // Deleting a project deletes everything in it, and needs a session, not an
 // API key.
 
-import { path, type Request } from "./http";
+import { path, type Requester } from "./http";
 
 export type Project = {
   id: string;
@@ -18,7 +18,7 @@ export type Project = {
 
 export type NewProject = { name: string; demo?: boolean };
 
-export const projects = (request: Request) => ({
+export const projects = (request: Requester) => ({
   list: () => request<{ projects: Project[] }>("GET", "/projects").then((body) => body.projects),
   create: (input: NewProject) => request<Project>("POST", "/projects", input),
   get: (projectId: string) => request<Project>("GET", path`/projects/${projectId}`),

@@ -7,7 +7,7 @@
 import type { BunRequest, CookieMap } from "bun";
 import { config } from "./config";
 import { HttpError, type Handler } from "./http";
-import { createSession, findSession, SESSION_DAYS } from "./store/sessions";
+import { createSession, deleteSession, findSession, SESSION_DAYS } from "./store/sessions";
 
 export type Auth =
   | { via: "session"; userId: string; sessionId: string }
@@ -33,8 +33,8 @@ export function authed<P extends string>(
 }
 
 function authenticate(req: WithCookies): Auth {
-  const header = req.headers.get("authorization");
-  if (header?.startsWith("Bearer ")) return authenticateKey(header.slice("Bearer ".length).trim());
+  const bearer = req.headers.get("authorization")?.match(/^Bearer\s+(\S+)/i);
+  if (bearer) return authenticateKey(bearer[1]!);
   const session = findSession(req.cookies.get(SESSION_COOKIE));
   if (!session) throw new HttpError(401, "Log in first.");
   if (!SAFE_METHODS.has(req.method)) sameOrigin(req);
@@ -62,8 +62,10 @@ export function sameOrigin(req: Request): void {
 const cookieOptions = (maxAge: number) =>
   ({ httpOnly: true, sameSite: "lax", secure: config.https, path: "/", maxAge }) as const;
 
-/** Starts a session for the account and sets its cookie on the answer. */
+/** Starts a session for the account and sets its cookie on the answer, ending the one the browser had. */
 export function startSession(req: WithCookies, userId: string): void {
+  const earlier = findSession(req.cookies.get(SESSION_COOKIE));
+  if (earlier) deleteSession(earlier.id);
   req.cookies.set(SESSION_COOKIE, createSession(userId), cookieOptions(SESSION_DAYS * 24 * 60 * 60));
 }
 

@@ -8,22 +8,27 @@ import { join } from "node:path";
 import type { Handler, RouteTable } from "./http";
 
 const ROOT = join(import.meta.dir, "..");
+const PUBLIC = join(ROOT, "public");
 
-/** Each page's path, and its HTML file. */
+/** Each page's path, and its HTML file under public/. */
 const PAGES: Record<string, string> = {
-  "/": "public/index.html",
+  "/": "index.html",
 };
 
-const build = await Bun.build({ entrypoints: Object.values(PAGES).map((file) => join(ROOT, file)), publicPath: "/assets/" });
+const build = await Bun.build({
+  entrypoints: Object.values(PAGES).map((file) => join(PUBLIC, file)),
+  root: PUBLIC,
+  publicPath: "/assets/",
+});
 if (!build.success) throw new AggregateError(build.logs, "The pages didn't build.");
 
-/** Every built file by name: the pages' HTML, and the hashed assets they link under /assets/. */
+/** Every built file by its path: the pages' HTML as under public/, and the hashed assets they link under /assets/. */
 const built = new Map(build.outputs.map((output) => [output.path.replace(/^\.\//, ""), output]));
 
 const page =
   (file: string): Handler =>
   () =>
-    new Response(built.get(file.split("/").pop()!), { headers: { "cache-control": "no-cache" } });
+    new Response(built.get(file), { headers: { "cache-control": "no-cache" } });
 
 const asset: Handler = (req) => {
   const output = built.get(new URL(req.url).pathname.slice("/assets/".length));

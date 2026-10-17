@@ -19,7 +19,7 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 
 | Path | What it holds | Owner |
 | --- | --- | --- |
-| `server.ts` | The one process: composes the pages, the API, and the proof of concept's routes, all through `serve()` | m1kuorg/basics#41 |
+| `server.ts` | The one process: composes the pages, the API, and the proof of concept's routes, all through `serve()`; its fallback is the 404, as `{ error }` under `/api/` | m1kuorg/basics#41 |
 | `server/config.ts` | Settings from the environment, with defaults: `PORT`, `DATABASE_PATH`, `PUBLIC_URL`, `DAILY_MODEL_REQUESTS` | m1kuorg/basics#41; `SORT_BATCH_SIZE` joins with m1kuorg/basics#44 |
 | `server/http.ts` | `HttpError`, `readJson`, `notBuilt`, `defineRoutes`, and `serve()`, which answers errors, adds the security headers, and logs | m1kuorg/basics#41 |
 | `server/auth.ts` | `authed()`, `sameOrigin()`, and the session cookie; `authenticateKey()` is a stub that refuses every key | m1kuorg/basics#41; the key lookup is m1kuorg/basics#48's |
@@ -92,7 +92,7 @@ Don't edit `server/api/index.ts` or `packages/sdk/src/client.ts` to add an endpo
 - Card status is `"borrowed"`, `"returned"`, or `"borrowed_again"`, from the `card_status` view. A project's counts are `{ cards, borrowed, returned, borrowedAgain }`.
 - A model failure is a `ModelError`, an `HttpError` with status 502. Past the daily cap, the model client throws 429.
 - Signing up and logging in return `{ account, next }`. `next` echoes the request's `next` only when it's a path inside the app, and is otherwise `/app`, the app's home. The page goes there; m1kuorg/basics#42 serves the app at `/app` and its client routes under `/app/`.
-- A cookie-authenticated request that changes something must carry an `Origin` matching the app's origin, and a JSON content type unless it's a bodiless DELETE. The SDK sends JSON on every POST and PATCH, and the browser adds the `Origin`. Signing up and logging in follow the same rule, against forged log-ins.
+- A cookie-authenticated request that changes something must carry an `Origin` matching the app's origin, and a JSON content type unless it's a bodiless DELETE. The SDK sends JSON on every POST and PATCH, and the browser adds the `Origin`. Signing up and logging in follow the same rule, against forged log-ins, before the throttle counts the try. Either one ends the session the browser already had.
 - A Bearer key, when sent, is the only credential considered; the cookie is ignored.
 
 ## The store
@@ -105,9 +105,9 @@ Don't edit `server/api/index.ts` or `packages/sdk/src/client.ts` to add an endpo
 
 ## Pages
 
-- `PAGES` in `server/pages.ts` maps each page's path to its HTML file. At startup, `Bun.build` bundles them with their scripts, styles, and fonts into memory. Pages are served with `no-cache` and the hashed assets under `/assets/` as immutable.
+- `PAGES` in `server/pages.ts` maps each page's path to its HTML file, named as under `public/`. At startup, `Bun.build` bundles them with their scripts, styles, and fonts into memory. Pages are served with `no-cache` and the hashed assets under `/assets/` as immutable.
 - Bun's HTML-import routes are deliberately not used: their answers can't carry headers, and every answer must carry the security headers. The cost is no hot reload; restart the server to see a change to the page.
-- To add a page, add its HTML file under `public/` and its path to `PAGES`. The app's single page needs both `/app` and `/app/*`.
+- To add a page, add its HTML file under `public/` and a line for it in `PAGES`, such as `"/login": "login.html"`. The app's single page needs both `/app` and `/app/*`. m1kuorg/basics#42 and #52 both add lines there.
 - The content security policy allows only the app's own origin, plus `blob:` workers for fflate. Inline scripts, `<style>` elements, and `style="..."` attributes in markup are blocked, so style through class names and the stylesheet, as the proof of concept's screens do.
 
 ## Check scripts

@@ -25,9 +25,9 @@ export class ApiError extends Error {
 export type Method = "GET" | "POST" | "PATCH" | "DELETE";
 
 /** Calls one endpoint, given its path under /api/v1. A 204 resolves to undefined. */
-export type Request = <T>(method: Method, path: string, body?: unknown) => Promise<T>;
+export type Requester = <T>(method: Method, path: string, body?: unknown) => Promise<T>;
 
-export function requester({ baseUrl = "", apiKey, fetch: send = globalThis.fetch.bind(globalThis) }: ClientOptions): Request {
+export function requester({ baseUrl = "", apiKey, fetch: send = globalThis.fetch.bind(globalThis) }: ClientOptions): Requester {
   const root = `${baseUrl.replace(/\/+$/, "")}/api/v1`;
   return async <T>(method: Method, path: string, body?: unknown) => {
     const headers: Record<string, string> = {};

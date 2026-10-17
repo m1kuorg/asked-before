@@ -2,6 +2,6 @@
 // export all data, and delete the account (m1kuorg/basics#49).
 // A stub until that lands: it has no methods yet, and the server answers 501.
 
-import type { Request } from "./http";
+import type { Requester } from "./http";
 
-export const account = (request: Request) => ({});
+export const account = (request: Requester) => ({});
