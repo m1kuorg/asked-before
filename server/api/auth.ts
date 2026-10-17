@@ -16,15 +16,18 @@ import { throttle } from "../throttle";
 /** The app's home, where signing up or logging in goes when `next` is missing or outside the app. */
 const APP_HOME = "/app";
 
-const Email = z
+/** An email, trimmed and lowercased; changing it in settings checks it the same way. */
+export const Email = z
   .string({ error: "An email is needed." })
   .trim()
   .toLowerCase()
   .max(254, "That email is too long.")
   .regex(/^[^\s@]+@[^\s@]+$/, "That doesn't look like an email address.");
 
+export const Name = z.string({ error: "A name is needed." }).trim().min(1, "A name is needed.").max(100, "A name can have at most 100 characters.");
+
 const SignUp = z.strictObject({
-  name: z.string({ error: "A name is needed." }).trim().min(1, "A name is needed.").max(100, "A name can have at most 100 characters."),
+  name: Name,
   email: Email,
   password: z
     .string({ error: "A password is needed." })
