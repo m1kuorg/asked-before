@@ -265,6 +265,7 @@ Contents:
     1.  [Wells: the drop zone and code blocks](#wells-the-drop-zone-and-code-blocks)
     1.  [The landing page](#the-landing-page)
     1.  [The dashboard](#the-dashboard)
+    1.  [The docs page](#the-docs-page)
 1.  [Do's and Don'ts](#dos-and-donts)
     1.  [Design do's](#design-dos)
     1.  [Design don'ts](#design-donts)
@@ -469,6 +470,15 @@ The dashboard sets what's still borrowed in the block, the latest borrows on the
 **The Narrow Stamp Rule.** On a narrow screen a rail row's stamp and skill stack in one column, so the skill keeps the text's whole width. A right cell that kept its two columns on a narrow screen and squeezed a skill to four lines was the mistake.
 
 **The Whole Status Rule.** A status line under a skill finishes its thought, with its date. A returned card borrowed again that said only "Borrowed again since", ending mid-thought, was the mistake.
+
+### The docs page
+
+The docs page is a reference set in one block, with no plate, since it counts nothing from the library.
+
+- **The margin:** "Contents" in apparatus capitals over the sections as links, then a note naming this server's API. It stays in view while the block scrolls by; on a narrow screen it goes above the block, in flow.
+- **Sections:** each opens on an iron hairline 40px below the last, with 24px of padding, under a 40px weight 900 heading, as the landing page's do. Its parts open 32px below under 20px weight 800 headings. Prose keeps the 60ch measure; rows and code blocks run the block's width.
+- **Rows:** the endpoints, by area, then the error statuses, the tools, and the settings, as the shared rows set them, with cells aligned to their top and prose leading in the words. An endpoint's method sits at weight 800 before its path, over its SDK method.
+- **Code in prose:** a path, a setting, or a tool's name inside a sentence is set in the text family at weight 600, never in a monospace, and breaks anywhere rather than push the line past the measure.
 
 ## Do's and Don'ts
 
