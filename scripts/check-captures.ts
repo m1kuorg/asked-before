@@ -12,14 +12,15 @@
 // a card of the two. Then the sort's checks (an answer breaking a rule is
 // asked again), a model failure or a deleted project storing nothing, a
 // capture after a return stamp making the card borrowed again, an API key,
-// 404, 401, 400 and 413, the daily cap's 429, and logs without the words.
+// 404, 401, 400 and 413, an answer moving only the capture, the 50 most
+// recent unsorted, the daily cap's 429, and logs without the words.
 // It prints ids, counts, statuses, and the app's messages, and exits 1 if
 // any check fails, naming the step.
 // Run: bun run check:captures
 
 import { ApiError, createClient, MAX_PHRASING_LENGTH, type Capture } from "@asked-before/sdk";
 import { Database } from "bun:sqlite";
-import { key, named, phrasings, sortEnds, upload } from "./lib/answer-key";
+import { allUnsorted, key, named, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
 import { hold, refuse, reply, sortRequest, startModelStub, type ModelRequest } from "./lib/model-stub";
 import { kindOf, repReply, sortsByKey, verdictReply } from "./lib/reps";
@@ -83,7 +84,7 @@ try {
   await step("1. A capture with a card's phrasing word for word, ignoring case and spacing, joins that card without the model", async () => {
     const before = model.requests.length;
     first = await ada.client.captures.create(demo.id, { text: "  How do I UNDO my last\tgit   commit " });
-    check(first.card?.id === cardA!.id && first.card.count === 10 && !first.repeat, `it landed on card A, now ${first.card?.count} borrows, repeat ${first.repeat}`);
+    check(first.card?.id === cardA!.id && first.card.count === 10 && !first.alreadyCaptured, `it landed on card A, now ${first.card?.count} borrows, already captured ${first.alreadyCaptured}`);
     check(model.requests.length === before, `${model.requests.length - before} model requests`);
     const age = Date.now() - Date.parse(first.phrasing.time);
     check(age >= 0 && age < 5_000 && first.phrasing.sourceId !== "" && first.phrasing.text === "How do I UNDO my last\tgit   commit", `stamped by the server's clock ${age}ms ago, with source id ${first.phrasing.sourceId}, its words trimmed`);
@@ -97,7 +98,7 @@ try {
       body: JSON.stringify({ text: "how do i undo my last git commit" }),
     });
     const again = (await response.json()) as Capture;
-    check(response.status === 200 && again.repeat && again.phrasing.id === first.phrasing.id, `${response.status}, repeat ${again.repeat}, the earlier capture: ${again.phrasing.id === first.phrasing.id}`);
+    check(response.status === 200 && again.alreadyCaptured && again.phrasing.id === first.phrasing.id, `${response.status}, already captured ${again.alreadyCaptured}, the earlier capture: ${again.phrasing.id === first.phrasing.id}`);
     check(again.card?.id === cardA!.id && again.card.count === 10, `card A still has ${again.card?.count} borrows`);
     check(model.requests.length === before, `${model.requests.length - before} model requests`);
 
@@ -105,7 +106,7 @@ try {
     db.query("UPDATE phrasings SET time = time - 11 * 60 * 1000 WHERE id = $id").run({ id: first.phrasing.id });
     db.close();
     const later = await ada.client.captures.create(demo.id, { text: "how do i undo my last git commit" });
-    check(!later.repeat && later.phrasing.id !== first.phrasing.id && later.card?.count === 11, `once the first is 11 minutes old: repeat ${later.repeat}, card A now ${later.card?.count}`);
+    check(!later.alreadyCaptured && later.phrasing.id !== first.phrasing.id && later.card?.count === 11, `once the first is 11 minutes old: already captured ${later.alreadyCaptured}, card A now ${later.card?.count}`);
   });
 
   await step("3. A rephrasing is sorted at once, at low effort, against the cards and the recent unsorted, and joins its card", async () => {
@@ -130,7 +131,7 @@ try {
     const before = model.requests.length;
     model.queue(reply({ joins: [], newSkills: [] }));
     const captured = await ada.client.captures.create(demo.id, { text });
-    check(model.requests.length === before + 1 && captured.card === null && !captured.repeat, `${model.requests.length - before} model request; card ${captured.card?.skill ?? null}`);
+    check(model.requests.length === before + 1 && captured.card === null && !captured.alreadyCaptured, `${model.requests.length - before} model request; card ${captured.card?.skill ?? null}`);
     const unsorted = await ada.client.cards.unsorted(demo.id);
     check(unsorted.phrasings[0]?.id === captured.phrasing.id && unsorted.phrasings[0]?.text === text, "it's the newest unsorted phrasing, word for word");
     check((await ada.client.cards.list(demo.id)).length === 5, "the project still has 5 cards");
@@ -179,7 +180,7 @@ try {
     before = model.requests.length;
     model.queue(reply({ joins: [], newSkills: [] }));
     const sent = await ada.client.captures.create(demo.id, { text: lost });
-    check(!sent.repeat && sent.card === null && model.requests.length === before + 1, `sent again, it's sorted afresh: repeat ${sent.repeat}, unsorted`);
+    check(!sent.alreadyCaptured && sent.card === null && model.requests.length === before + 1, `sent again, it's sorted afresh: already captured ${sent.alreadyCaptured}, unsorted`);
   });
 
   await step("7. A project deleted while its capture is with the model is a 404, and keeps nothing", async () => {
@@ -211,7 +212,7 @@ try {
     const agent = createClient({ baseUrl: app.url, apiKey });
     model.queue(reply({ joins: [], newSkills: [] }));
     const byKey = await agent.captures.create(demo.id, { text: "how do I write a haiku" });
-    check(byKey.card === null && !byKey.repeat, "an API key's capture is recorded");
+    check(byKey.card === null && !byKey.alreadyCaptured, "an API key's capture is recorded");
 
     const bea = app.browser().client;
     await bea.auth.signUp({ name: "Bea Example", email: "bea@example.com", password: "difference engine" });
@@ -231,9 +232,41 @@ try {
     }
     const long = await failure(agent.captures.create(demo.id, { text: "x".repeat(MAX_PHRASING_LENGTH + 1) }));
     check(long?.status === 413, `${MAX_PHRASING_LENGTH + 1} characters: ${say(long)}`);
+    const trimmed = await agent.captures.create(demo.id, { text: `${"y".repeat(MAX_PHRASING_LENGTH)}\n` });
+    check(trimmed.phrasing.text.length === MAX_PHRASING_LENGTH, `${MAX_PHRASING_LENGTH} characters and a newline are kept, trimmed`);
   });
 
-  await step("10. Past the daily cap, a capture the model must sort is a 429 and keeps nothing; a repeat needs no model", async () => {
+  await step("10. A capture's sort moves only the capture: other phrasings its answer places wait for the next upload's sort", async () => {
+    const text = "how do i back out a commit i made by accident";
+    const id = (request: ModelRequest, name: string) => sortRequest(request).phrasings.find((p) => textOf.get(p.text) === name)!.id;
+    model.queue(
+      reply((request) => {
+        const sent = sortRequest(request);
+        const capture = sent.phrasings.find((p) => p.text === text)!.id;
+        const undoCard = sent.cards.find((c) => c.skill === key.skills[0]!.name)!.id;
+        return { joins: [{ cardId: undoCard, phrasingIds: [capture, id(request, "m7")] }], newSkills: [{ name: "Explain a concept simply", phrasingIds: [id(request, "m9"), id(request, "m25")] }] };
+      }),
+    );
+    const before = (await ada.client.cards.get(cardA!.id)).count;
+    const captured = await ada.client.captures.create(demo.id, { text });
+    check(captured.card?.id === cardA!.id && captured.card.count === before + 1, `the capture joined card A, now ${captured.card?.count}`);
+    const unsorted = (await allUnsorted(ada.client, demo.id)).map((p) => named(p.sourceId));
+    const cards = await ada.client.cards.list(demo.id);
+    check(["m7", "m9", "m25"].every((m) => unsorted.includes(m)) && cards.length === 5, `m7, m9, and m25 still wait unsorted, and the project still has ${cards.length} cards`);
+  });
+
+  await step("11. A capture is compared with the 50 most recent unsorted phrasings", async () => {
+    const backlog = Array.from({ length: 60 }, (_, i) => ({ sourceId: `backlog-${i}`, text: `a one-off question, number ${i}`, time: new Date(Date.UTC(2026, 9, 1, 9, i)).toISOString() }));
+    await sortEnds(ada.client, (await upload(ada.client, demo.id, backlog, "backlog.json")).id);
+    // The model sees each text cut to 300 characters.
+    const newest = (await allUnsorted(ada.client, demo.id)).slice(0, 50).map((p) => p.text.slice(0, 300));
+    model.queue(reply({ joins: [], newSkills: [] }));
+    await ada.client.captures.create(demo.id, { text: "how do I juggle three balls" });
+    const sent = sortRequest(model.requests.at(-1)!).phrasings.map((p) => p.text);
+    check(sent.length === 51 && sent[0] === "how do I juggle three balls" && sent.slice(1).join("|") === newest.join("|"), `it sent the capture and ${sent.length - 1} unsorted, the newest 50 of ${(await allUnsorted(ada.client, demo.id)).length - 1}`);
+  });
+
+  await step("12. Past the daily cap, a capture the model must sort is a 429 and keeps nothing; the same words again need no model", async () => {
     const capped = await startApp({ ANTHROPIC_BASE_URL: model.url, DAILY_MODEL_REQUESTS: "1" });
     try {
       const { client } = capped.browser();
@@ -247,8 +280,8 @@ try {
       check(over?.status === 429 && model.requests.length === before, `the third, past a cap of 1: ${say(over)}, ${model.requests.length - before} model requests`);
       const unsorted = await client.cards.unsorted(work.id);
       check(unsorted.phrasings.length === 2, `${unsorted.phrasings.length} unsorted kept`);
-      const repeat = await client.captures.create(work.id, { text: "what does chmod 755 mean" });
-      check(repeat.repeat, `the first again: repeat ${repeat.repeat}`);
+      const again = await client.captures.create(work.id, { text: "what does chmod 755 mean" });
+      check(again.alreadyCaptured, `the first again: already captured ${again.alreadyCaptured}`);
     } finally {
       await capped.stop();
     }
@@ -258,7 +291,7 @@ try {
   model.stop();
 }
 
-current = "11. The app's logs hold none of the captures' words";
+current = "13. The app's logs hold none of the captures' words";
 console.log(`\n${current}`);
 const words = ["git   commit", "take back the commit", "tune a ukulele", "change a branch's name", "minute ago", "introduced a bug", "docker containers", "write a haiku"];
 const leaked = words.filter((text) => app.log().includes(text));

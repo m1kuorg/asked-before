@@ -17,7 +17,7 @@ export type Capture = {
   /** The card it landed on, as it stands now, or null while it's unsorted. */
   card: Card | null;
   /** True when the same words were captured in this project in the last ten minutes: this is that capture, and no borrow was added. */
-  repeat: boolean;
+  alreadyCaptured: boolean;
 };
 
 export const captures = (request: Requester) => ({

@@ -8,7 +8,7 @@
 // is a tool error carrying Asked Before's message. Nothing goes to stdout
 // but the protocol.
 
-import { ApiError, createClient, type Card, type Project } from "@asked-before/sdk";
+import { ApiError, createClient, MAX_PHRASING_LENGTH, type Card, type Project } from "@asked-before/sdk";
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { z } from "zod";
@@ -49,13 +49,13 @@ const times = (n: number) => (n === 1 ? "once" : `${n} times`);
 const status = (card: Card) => (card.status === "returned" ? `returned ${day(card.returnedAt!)}` : STATUS[card.status]);
 const cardLine = (card: Card) => `"${card.skill}": borrowed ${times(card.count)}, first ${day(card.firstBorrowAt)}, last ${day(card.lastBorrowAt)}; ${status(card)}. Card id ${card.id}.`;
 const cardOut = ({ id, skill, status, count, firstBorrowAt, lastBorrowAt, returnedAt }: Card) => ({ id, skill, status, count, firstBorrowAt, lastBorrowAt, returnedAt });
-const ref = ({ id, name }: Project) => ({ id, name });
+const projectRef = ({ id, name }: Project) => ({ id, name });
 
 /** A tool's answer: a text for the agent, and the same facts as structured content. */
-const answer = <T extends Record<string, unknown>>(text: string, structuredContent: T) => ({ content: [{ type: "text" as const, text }], structuredContent });
+const toolResult = <T extends Record<string, unknown>>(text: string, structuredContent: T) => ({ content: [{ type: "text" as const, text }], structuredContent });
 
 /** Calls Asked Before; a failure becomes a tool error with its message. */
-async function ask<T>(call: () => Promise<T>): Promise<T> {
+async function callApi<T>(call: () => Promise<T>): Promise<T> {
   try {
     return await call();
   } catch (error) {
@@ -67,14 +67,14 @@ async function ask<T>(call: () => Promise<T>): Promise<T> {
 
 const listNames = (projects: Project[]) => (projects.length ? projects.map((p) => `"${p.name}"`).join(", ") : "none yet");
 /** The project with the id `wanted`, or else with that name, ignoring case. */
-const named = (projects: Project[], wanted: string) => projects.find((p) => p.id === wanted) ?? projects.find((p) => p.name.toLowerCase() === wanted.toLowerCase());
+const projectNamed = (projects: Project[], wanted: string) => projects.find((p) => p.id === wanted) ?? projects.find((p) => p.name.toLowerCase() === wanted.toLowerCase());
 
 /** The project a call names, by id or name, or else the default one. */
 async function projectFor(given: string | undefined): Promise<Project> {
-  const projects = await ask(() => api.projects.list());
+  const projects = await callApi(() => api.projects.list());
   const wanted = given?.trim() || defaultProject;
   if (!wanted) throw new Error(`Say which project: the learner's projects are ${listNames(projects)}. Or set ${MCP_ENV.project} to pick a default.`);
-  const found = named(projects, wanted);
+  const found = projectNamed(projects, wanted);
   if (!found) throw new Error(`The learner has no project "${wanted}". Their projects are ${listNames(projects)}.`);
   return found;
 }
@@ -96,16 +96,16 @@ function build(): McpServer {
       annotations: { readOnlyHint: true },
     },
     async () => {
-      const projects = await ask(() => api.projects.list());
-      const fallback = defaultProject ? named(projects, defaultProject) : undefined;
+      const projects = await callApi(() => api.projects.list());
+      const fallback = defaultProject ? projectNamed(projects, defaultProject) : undefined;
       const lines = projects.map(
         (p) =>
           `- "${p.name}"${p.demo ? " (demo data)" : ""}: ${p.counts.cards} cards, ${p.counts.borrowed} borrowed, ${p.counts.returned} returned, ${p.counts.borrowedAgain} borrowed again. Project id ${p.id}.`,
       );
       const which = fallback ? `The default project is "${fallback.name}".` : "No default project is set, so name one in each call.";
-      return answer(projects.length ? `The learner's projects:\n${lines.join("\n")}\n${which}` : "The learner has no projects yet. They make one in Asked Before.", {
-        projects: projects.map((p) => ({ ...ref(p), demo: p.demo, ...p.counts })),
-        defaultProject: fallback ? ref(fallback) : null,
+      return toolResult(projects.length ? `The learner's projects:\n${lines.join("\n")}\n${which}` : "The learner has no projects yet. They make one in Asked Before.", {
+        projects: projects.map((p) => ({ ...projectRef(p), demo: p.demo, ...p.counts })),
+        defaultProject: fallback ? projectRef(fallback) : null,
       });
     },
   );
@@ -125,12 +125,12 @@ function build(): McpServer {
     },
     async ({ project, not_returned }) => {
       const found = await projectFor(project);
-      const cards = (await ask(() => api.cards.list(found.id))).filter((card) => !not_returned || card.status !== "returned");
+      const cards = (await callApi(() => api.cards.list(found.id))).filter((card) => !not_returned || card.status !== "returned");
       const which = not_returned ? "cards not returned" : "cards";
       const text = cards.length
         ? `"${found.name}" has ${cards.length} ${which}, most borrowed first:\n${cards.map((card) => `- ${cardLine(card)}`).join("\n")}`
         : `"${found.name}" has no ${which}.`;
-      return answer(text, { project: ref(found), cards: cards.map(cardOut) });
+      return toolResult(text, { project: projectRef(found), cards: cards.map(cardOut) });
     },
   );
 
@@ -141,22 +141,22 @@ function build(): McpServer {
       description:
         "Record the learner's how-to question as a capture in one of their projects, and sort it onto their cards at once. Send only the learner's own words, exactly as they asked: never your answer, their code, file contents, or secrets. Says whether it landed on a card they asked before, with how many times they've borrowed it and its status, so you can tell them and offer a cold rep; or that it's new, and waits unsorted until they ask the same thing again. The same words again within ten minutes add no borrow.",
       inputSchema: z.object({
-        question: z.string().min(1).max(2000).describe("The learner's question, in their own words, word for word."),
+        question: z.string().min(1).max(MAX_PHRASING_LENGTH).describe("The learner's question, in their own words, word for word."),
         project: ProjectArg,
       }),
       outputSchema: z.object({
         project: ProjectRef,
         phrasing: z.object({ id: z.string(), text: z.string(), time: z.string() }),
         card: CardOut.nullable(),
-        repeat: z.boolean(),
+        alreadyCaptured: z.boolean(),
       }),
       annotations: { readOnlyHint: false, destructiveHint: false },
     },
     async ({ question, project }) => {
       const found = await projectFor(project);
-      const capture = await ask(() => api.captures.create(found.id, { text: question }));
+      const capture = await callApi(() => api.captures.create(found.id, { text: question }));
       const lines = [
-        capture.repeat
+        capture.alreadyCaptured
           ? `These words were recorded in "${found.name}" less than ten minutes ago, so no borrow was added.`
           : `Recorded in "${found.name}".`,
         capture.card
@@ -164,7 +164,7 @@ function build(): McpServer {
           : "No card asks this yet, so it waits unsorted until the learner asks the same thing again.",
       ];
       const { id, text, time } = capture.phrasing;
-      return answer(lines.join(" "), { project: ref(found), phrasing: { id, text, time }, card: capture.card && cardOut(capture.card), repeat: capture.repeat });
+      return toolResult(lines.join(" "), { project: projectRef(found), phrasing: { id, text, time }, card: capture.card && cardOut(capture.card), alreadyCaptured: capture.alreadyCaptured });
     },
   );
 
@@ -179,13 +179,13 @@ function build(): McpServer {
       annotations: { readOnlyHint: false, destructiveHint: false },
     },
     async ({ card_id }) => {
-      const { rep, lesson } = await ask(() => api.reps.start(card_id));
+      const { rep, lesson } = await callApi(() => api.reps.start(card_id));
       const text = [
         lesson ? `Lesson:\n${lesson}` : "",
         `Problem:\n${rep.problem}`,
         `Show the learner ${lesson ? "the lesson and " : ""}the problem as written, with no hints. When they answer, pass their answer as they wrote it to check_answer, with rep id ${rep.id}.`,
       ];
-      return answer(text.filter(Boolean).join("\n\n"), { repId: rep.id, problem: rep.problem, lesson });
+      return toolResult(text.filter(Boolean).join("\n\n"), { repId: rep.id, problem: rep.problem, lesson });
     },
   );
 
@@ -197,19 +197,19 @@ function build(): McpServer {
         "Check the learner's answer to a cold rep; each cold rep is checked once. Send only the learner's own answer, exactly as they wrote it: never your own, a corrected one, or added hints. Gives the verdict, pass or fail, with the reason, and the card's status: a pass stamps the card returned. After a fail, a new cold rep on the card brings a different problem and the lesson again.",
       inputSchema: z.object({
         rep_id: z.string().min(1).describe("The cold rep's id, from start_cold_rep."),
-        answer: z.string().min(1).max(4000).describe("The learner's own answer, word for word."),
+        answer: z.string().min(1).describe("The learner's own answer, word for word."),
       }),
       outputSchema: z.object({ verdict: z.enum(["pass", "fail"]), reason: z.string(), card: CardOut }),
       annotations: { readOnlyHint: false, destructiveHint: false },
     },
-    async ({ rep_id, answer: given }) => {
-      const { rep, card } = await ask(() => api.reps.check(rep_id, { answer: given }));
-      const verdict = rep.verdict ?? "fail";
+    async ({ rep_id, answer }) => {
+      const { rep, card } = await callApi(() => api.reps.check(rep_id, { answer }));
+      const verdict = rep.verdict!;
       const text =
         verdict === "pass"
           ? `Passed. ${rep.reason} The card "${card.skill}" is returned, stamped ${day(card.returnedAt!)}.`
           : `Not passed. ${rep.reason} The card "${card.skill}" is still ${STATUS[card.status]}. Another cold rep on it brings a different problem and the lesson again.`;
-      return answer(text, { verdict, reason: rep.reason ?? "", card: cardOut(card) });
+      return toolResult(text, { verdict, reason: rep.reason!, card: cardOut(card) });
     },
   );
 
