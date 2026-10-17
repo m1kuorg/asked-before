@@ -91,5 +91,7 @@ export default async function landing(kit: Kit) {
     return { rail: Math.max(...rails), note: document.querySelector(".landing-card > .margin")!.getBoundingClientRect().top };
   });
   check(order.note > order.rail, "on a narrow screen the phrasings come before the card's side-note");
+  const aligned = await page.evaluate(() => [...document.querySelectorAll(".landing-section > h2, .landing-items > * > :first-child")].map((node) => getComputedStyle(node).textAlign));
+  check(aligned.every((align) => align === "left" || align === "start"), `on a narrow screen every heading and title sits flush left with its words (${[...new Set(aligned)].join(", ")})`);
   await page.setViewportSize(FRAME);
 }
