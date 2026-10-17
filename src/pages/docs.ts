@@ -120,7 +120,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/uploads/:uploadId/phrasings",
         sdk: "uploads.append",
         who: KEY,
-        does: `Appends { phrasings }, up to ${n(MAX_CHUNK)} at a time: the upload. A phrasing whose sourceId the project holds already is skipped, so the same export uploaded twice stores nothing new. A finished upload is a 409.`,
+        does: `Appends { phrasings }, up to ${n(MAX_CHUNK)} at a time: the upload. A phrasing whose sourceId the project holds already is skipped, so the same export uploaded twice stores nothing new, unless an upload that never finished holds it: then it joins this upload, to be sorted with it. A finished upload is a 409.`,
       },
       {
         method: "POST",
