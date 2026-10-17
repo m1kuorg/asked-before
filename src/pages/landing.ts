@@ -68,7 +68,7 @@ function head(): Child[] {
       el(
         "p",
         undefined,
-        "Upload a chat export, and Asked Before sorts your own messages into library cards, one for each skill you've asked about more than once. A card is stamped returned only once you pass a cold rep on it by yourself.",
+        "Upload a chat export, and Asked Before sorts what you asked into library cards, one for each skill you asked about more than once. A card is stamped returned only once you pass a cold rep on it by yourself.",
       ),
       el("div", "actions", link("Sign up", "/signup", "button"), link("Log in", "/login", "button secondary")),
     ),
@@ -98,7 +98,7 @@ function steps(): HTMLElement {
     "From an export to a returned card",
     [
       "A question you've asked only once waits as unsorted, and becomes a card when you ask it again.",
-      "Upload next month's export into the same project, and the messages already there are skipped.",
+      "Upload next month's export into the same project, and the phrasings already there are skipped.",
     ],
     pairs("ol", "landing-steps", [
       [
@@ -107,7 +107,7 @@ function steps(): HTMLElement {
       ],
       [
         "See your cards",
-        "Asked Before sorts your messages into cards, one for each skill you've asked about more than once, stacked most borrowed first. Every phrasing is there word for word, stamped with the date you sent it.",
+        "Asked Before sorts them into cards, one for each skill you've asked about more than once, stacked most borrowed first. Every phrasing is there word for word, stamped with the date you sent it.",
       ],
       [
         "Pass a cold rep",

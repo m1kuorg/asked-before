@@ -57,7 +57,7 @@ export default async function landing(kit: Kit) {
   await close.getByLabel("Password").fill("too short");
   await close.getByRole("button", { name: "Sign up" }).click();
   await close.locator(".error").waitFor();
-  await close.scrollIntoViewIfNeeded();
+  await close.evaluate((node) => node.scrollIntoView({ block: "center" }));
   await kit.shoot(page, "landing-refused");
 
   // Common desktop widths keep the margin and the plate, and nothing scrolls sideways.
