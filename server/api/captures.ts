@@ -24,7 +24,13 @@ import { askPlacement } from "../sort";
 import { cardHolding, captureOf, draft, ownsProject, recentCapture, storeCapture, type Destination } from "../store/captures";
 import { sortCards, unsortedWindow } from "../store/sorts";
 
-/** Lower than the upload sort's medium (SORT_EFFORT): a capture is one phrasing, and the agent is waiting for it. */
+/**
+ * Lower than the upload sort's medium (SORT_EFFORT), since the agent waits
+ * on a capture in the same turn. Tuned with `bun run check:capture-sort 3`
+ * (m1kuorg/basics#50): low and medium both placed 60 of 60 captures, fresh
+ * rephrasings of the demo export's five skills and questions none of them
+ * ask, with medians of 1.7s and 1.8s, and slowest of 2.7s and 3.3s.
+ */
 export const CAPTURE_EFFORT: Effort = "low";
 
 const NewCapture = z.strictObject(
