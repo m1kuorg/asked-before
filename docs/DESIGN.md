@@ -233,7 +233,7 @@ components:
 
 # Asked Before design
 
-The visual world for Asked Before, chosen in [impeccable](/.claude/skills/impeccable/SKILL.md)'s direction workshop on October 16, 2026, with rules grounded in a search of X the same day, and recorded from the shipped stylesheets, now split per surface under `public/styles/`. The frontmatter's tokens are normative and match the custom properties in `public/styles/base.css`. [The scope](/devpost/scope.md) owns what the product is, the [card stack surface brief](/.impeccable/surfaces/apps-src-index-tsx.md) owns that screen's composition, and the [app shell surface brief](/.impeccable/surfaces/src-app-main-ts.md) owns the shell's and the shared parts'; this file is strictly visual. When a review catches a visual mistake, add a one-line Named Rule here.
+The visual world for Asked Before, chosen in [impeccable](/.claude/skills/impeccable/SKILL.md)'s direction workshop on October 16, 2026, with rules grounded in a search of X the same day, and recorded from the shipped stylesheets, now split per surface under `public/styles/`. The frontmatter's tokens are normative and match the custom properties in `public/styles/base.css`. [The scope](/devpost/scope.md) owns what the product is, the [card stack surface brief](/.impeccable/surfaces/apps-src-index-tsx.md) owns that screen's composition, the [app shell surface brief](/.impeccable/surfaces/src-app-main-ts.md) owns the shell's and the shared parts', and the [landing page surface brief](/.impeccable/surfaces/src-pages-landing-ts.md) owns the landing page's; this file is strictly visual. When a review catches a visual mistake, add a one-line Named Rule here.
 
 Contents:
 
@@ -263,6 +263,7 @@ Contents:
     1.  [Empty states](#empty-states)
     1.  [The delete confirmation](#the-delete-confirmation)
     1.  [Wells: the drop zone and code blocks](#wells-the-drop-zone-and-code-blocks)
+    1.  [The landing page](#the-landing-page)
 1.  [Do's and Don'ts](#dos-and-donts)
     1.  [Design do's](#design-dos)
     1.  [Design don'ts](#design-donts)
@@ -346,6 +347,10 @@ The cold rep keeps the same two columns either side of a centre hairline: the ve
 At 67.5rem (1080px) and below there's one column, with the margin above the block, 16px of page padding, and 16px of block padding. The rail moves outboard to the text's left edge as the same gray bar, each key spanning its phrasing and the date under it; it never becomes a colored edge stripe. The plate goes in flow with 24px above it, hanging 12px past the block's right edge.
 
 **The Rows Stack Rule.** A row's actions and its notice never scroll out of a narrow screen; a wide list stacks its cells. A projects table that scrolled sideways inside its hairlines, hiding Rename and Delete and clipping its delete confirmation at 390px, was the mistake.
+
+**The Rail's Columns Rule.** Every section below a card sits on the rail's columns: its heading and each item's title on the left, set against the centre, and their words on the right. Landing sections with headings across the block and prose running across the centre, out of the rail's columns, were the mistake.
+
+**The Narrow Wins Rule.** On a narrow screen every heading and title sits flush left with its words, and the narrow rule must outrank the desktop one. Section headings stuck right-aligned on a narrow screen, because the desktop rule's selector outranked the narrow one, were the mistake.
 
 ## Elevation & Depth
 
@@ -433,6 +438,19 @@ A notice in place, never a modal: the error's frame with its 3px head rule, on w
 
 A well is recessed proof gray inside the white block, framed by a 1px iron rule, like the rail's bar. The drop zone is a 240px well with its title at 20px weight 800, a line on what it takes, and a "Choose a file" control drawn as an outlined button; a file held over it fills it Hover Gray, and it takes the focus rule from the keyboard. A code block is a well holding a setup snippet in Hanken Grotesk at 20px (the world has no monospace), scrolling sideways inside itself, under a 18px weight 700 caption with an outlined Copy button that says "Copied" for two seconds.
 
+### The landing page
+
+The landing page sets one real card and the sections after it in the block, with their apparatus in the margin.
+
+- **The head:** the pitch at display size across the block, then the lede at weight 500 in the left column and Sign up in the right, seated on the lede's first line.
+- **The card:** card A of the demo export, with the card stack's rail markup. It opens on an iron hairline 24px below the pitch, with 16px of padding, so its whole rail closes inside the 1080 frame. Its name is 40px weight 900 beside the demo-data label, over its borrow line at weight 500; the rails start 16px below, 12px apart at the year cut. The plate hangs over the block's right edge level with the card's name, overlapping only the padding. On a narrow screen the plate goes in flow with 24px above it, hanging 12px past the block's right edge.
+- **Sections:** each opens on an iron hairline, 40px below the last, with 24px of padding, set on the rail's columns. The heading (40px weight 900) and each item's title (20px weight 800) sit right-aligned against the centre on the left, facing their words on the right; items are padded 16px, with Rule Gray between rows. What leaves the computer is said once, at the headline size. On a narrow screen there's one column, with everything flush left.
+- **Side-notes:** margin notes in sentence case, as the margin sets them. Each hangs into the margin column level with the section it annotates, starting at the section's padding. On a narrow screen it goes in flow under its section: 16px under the card's rail, and one 24px row gap under a section.
+
+**The Clear Notes Rule.** A side-note is placed absolutely and pushes nothing, so each must end above the next one at every desktop width, down to the 16rem margin at 1440. Side-notes about to collide where the margin narrows to 16rem at 1440 were the mistake.
+
+**The Phrasings First Rule.** On a narrow screen the card's phrasings come before its side-note. A narrow card that put its explanation before its phrasings was the mistake.
+
 ## Do's and Don'ts
 
 These hold for every screen. The ones from X cite the post they came from; the rest come from the user's answers in the direction workshop, [the scope's voice](/devpost/scope.md#inspiration--identity), and [the PRD's look and feel](/devpost/prd.md#look-and-feel).
@@ -466,6 +484,7 @@ These hold for every screen. The ones from X cite the post they came from; the r
 
 - [Card stack surface brief](/.impeccable/surfaces/apps-src-index-tsx.md), with the direction contract
 - [App shell surface brief](/.impeccable/surfaces/src-app-main-ts.md), with the shell's direction contract
+- [Landing page surface brief](/.impeccable/surfaces/src-pages-landing-ts.md), with the landing page's direction contract
 - [Chosen card stack sketch](/.impeccable/mocks/decision/r2-lead.html) and its [Centre Rail figure](/.impeccable/mocks/decision/r2-lead.png)
 - [Asked Before scope](/devpost/scope.md)
 - [Asked Before product requirements](/devpost/prd.md)
