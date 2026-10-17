@@ -65,7 +65,7 @@ export function mountProjects(root: HTMLElement, { client, navigate, signal }: S
             { label: "Borrowed", numeric: true, className: "is-count", cell: (p) => String(p.counts.borrowed + p.counts.borrowedAgain) },
             { label: "Returned", numeric: true, className: "is-count", cell: (p) => String(p.counts.returned) },
             { label: "Last upload", numeric: true, className: "is-date", cell: (p) => (p.lastUploadAt ? stamp(p.lastUploadAt) : "None yet") },
-            { label: "Actions", hiddenLabel: true, className: "is-actions", cell: actionsCell },
+            { label: "Actions", actions: true, className: "is-actions", cell: actionsCell },
           ],
           detail: (p) => (p.id === deleting ? confirmation(p) : null),
         })

@@ -19,14 +19,12 @@ import type { ScreenProps } from "../app/router";
 import { button, el, link } from "../parts/dom";
 import { dropZone } from "../parts/drop-zone";
 import { failure, frame, load, notice, plate, waiting } from "../parts/frame";
-import { demoLabel, privacyLine } from "../parts/library";
+import { count, demoLabel, privacyLine, SOURCES } from "../parts/library";
 
-const SOURCES = { chatgpt: "ChatGPT", claude: "Claude" } as const;
 const DEMO_EXPORT = "/demo/export.json";
 /** How often a sort's progress is asked for while it runs. */
 const WATCH_MS = 1000;
 
-const count = (n: number) => n.toLocaleString("en-US");
 const plural = (n: number, one: string, many: string) => `${count(n)} ${n === 1 ? one : many}`;
 
 /** The demo action: a project flagged demo, then its upload page, which uploads the demo export into it. */
