@@ -1,9 +1,8 @@
 // What every route shares. A handler throws HttpError to answer with a
-// status and { error }; readJson checks a body against a zod schema;
-// notBuilt answers 501 for an endpoint whose ticket hasn't landed. serve()
-// wraps every handler the server has: it turns a thrown error into its
-// answer, adds the security headers, and logs the method, path, status, and
-// duration, never anything from a body.
+// status and { error }; readJson checks a body against a zod schema.
+// serve() wraps every handler the server has: it turns a thrown error into
+// its answer, adds the security headers, and logs the method, path,
+// status, and duration, never anything from a body.
 
 import type { BunRequest, Server } from "bun";
 import type { z } from "zod";
@@ -44,12 +43,6 @@ export async function readJson<S extends z.ZodType>(req: Request, schema: S): Pr
   if (!result.success) throw new HttpError(400, result.error.issues[0]?.message ?? "The body isn't valid.");
   return result.data;
 }
-
-/** The answer of an endpoint until its ticket builds it. */
-export const notBuilt =
-  (ticket: string): Handler =>
-  () =>
-    Response.json({ error: `This endpoint isn't built yet (${ticket}).` }, { status: 501 });
 
 // Only the app's own origin, for every kind of content. fflate inflates a
 // large zip entry in a worker made from a blob: URL, which the page itself

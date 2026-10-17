@@ -23,6 +23,9 @@
     "check:reps": "bun run scripts/check-reps.ts",
     "check:rep-rules": "bun run scripts/check-rep-rules.ts",
     "check:card-page": "bun run scripts/check-card-page.ts",
+    "check:captures": "bun run scripts/check-captures.ts",
+    "check:capture-sort": "bun run scripts/check-capture-sort.ts",
+    "check:mcp": "bun run scripts/check-mcp.ts",
     "check:data": "bun run scripts/check-data.ts",
     "check:dashboard": "bun run scripts/check-dashboard.ts"
   },
