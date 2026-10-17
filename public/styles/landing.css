@@ -2,9 +2,11 @@
   The landing page (m1kuorg/basics#52 owns this file, public/index.html, and
   src/pages/landing.ts). The block opens on the pitch, then sets card A of
   the demo export on stack.css's rail, its plate hanging over the block's
-  right edge. Each section after it opens on an iron hairline and sets its
-  pairs on the rail's own columns, and its side-note (an aside.margin) hangs
-  into the wide margin, level with it, as the edition's apparatus.
+  right edge. Each section after it opens on an iron hairline and is set on
+  the rail's own columns: its heading on the left, set against the centre as
+  a phrasing sits against the rail, and its words on the right. Each side-note
+  (an aside.margin) hangs into the wide margin, level with its section, as
+  the edition's apparatus.
 */
 
 #app[data-screen="landing"] {
@@ -14,17 +16,17 @@
   --landing-margin: max(16rem, min((100cqi - var(--block-width)) * 5 / 8, 100cqi - var(--block-width) - 13rem));
 }
 
-/* The head: the pitch across the block, then the lede on the left and its actions on the right. */
-
-#app[data-screen="landing"] .landing-lede,
-#app[data-screen="landing"] .landing-pairs > *,
-#app[data-screen="landing"] .landing-columns {
+/* The rail's columns: two of equal measure either side of the rail's width. */
+#app[data-screen="landing"] :is(.landing-lede, .landing-section) {
   display: grid;
   grid-template-columns: minmax(0, 1fr) var(--rail-width) minmax(0, 1fr);
 }
 
+/* The head: the pitch across the block, then the lede on the left and its action on the right. */
+
 #app[data-screen="landing"] .landing-lede {
   align-items: end;
+  margin-top: var(--space-3);
 }
 
 .landing-lede > p {
@@ -75,7 +77,19 @@
   margin: 0;
 }
 
-#app[data-screen="landing"] .landing-section > :not(.margin) + :not(.margin) {
+/* A section: its heading set against the centre on the left, its words on the right. */
+
+#app[data-screen="landing"] .landing-section > h2 {
+  grid-column: 1;
+  text-align: right;
+}
+
+.landing-body {
+  grid-column: 3;
+  min-width: 0;
+}
+
+.landing-body > * + * {
   margin-top: var(--space-5);
 }
 
@@ -90,110 +104,52 @@
   padding-bottom: 0;
 }
 
-/* Pairs: a term set against the centre, as a phrasing sits against the rail, and its words across it, with Rule Gray between. */
+/* Items: a title over its words, with Rule Gray between them. */
 
-.landing-pairs {
+.landing-items {
   padding: 0;
   list-style: none;
 }
 
-#app[data-screen="landing"] .landing-pairs > * {
-  align-items: baseline;
+.landing-items > * {
   padding-block: var(--space-4);
   border-top: var(--row-rule);
 }
 
-#app[data-screen="landing"] .landing-pairs > :first-child {
+.landing-items > :first-child {
   padding-top: 0;
   border-top: 0;
 }
 
-.landing-pairs > * > :first-child {
-  grid-column: 1;
-  margin: 0;
-  font: 800 var(--body-size) / 1.2 var(--face);
-  text-align: right;
-  text-wrap: balance;
+.landing-items > :last-child {
+  padding-bottom: 0;
 }
 
-.landing-pairs > * > :last-child {
-  grid-column: 3;
-  margin: 0;
+.landing-items > * > :first-child {
+  margin: 0 0 var(--space-2);
+  font: 800 var(--body-size) / 1.2 var(--face);
 }
 
 /* What leaves this computer, said once, at the headline size. */
 .landing-statement {
-  max-width: var(--measure);
   font: 500 1.5rem / 1.4 var(--face);
   text-wrap: pretty;
 }
 
-.landing-agents > p:not([class]) {
-  max-width: var(--measure);
-}
-
-/* The close: the other way in on the left, the sign-up form on the right, either side of a centre hairline. */
-
-#app[data-screen="landing"] .landing-columns {
-  position: relative;
-  align-items: start;
-}
-
-.landing-columns::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  border-left: var(--hairline);
-}
-
-.landing-columns > :first-child {
-  grid-column: 1;
-}
-
-.landing-columns > :first-child > * + * {
-  margin-top: var(--space-3);
-}
-
-.landing-columns > :first-child > .button {
-  margin-top: var(--space-5);
-}
-
-.landing-columns > :last-child {
-  grid-column: 3;
-}
-
-/* Narrow screens: one column; the plate and the side-notes go in flow. */
+/* Narrow screens: one column; the headings, the plate, and the side-notes go in flow. */
 
 @media (max-width: 67.5rem) {
-  #app[data-screen="landing"] .landing-lede,
-  #app[data-screen="landing"] .landing-pairs > *,
-  #app[data-screen="landing"] .landing-columns {
+  #app[data-screen="landing"] :is(.landing-lede, .landing-section) {
     grid-template-columns: minmax(0, 1fr);
-    row-gap: var(--space-3);
-  }
-
-  #app[data-screen="landing"] .landing-lede {
     row-gap: var(--space-5);
   }
 
-  #app[data-screen="landing"] :is(.landing-lede, .landing-pairs > *, .landing-columns) > * {
+  #app[data-screen="landing"] :is(.landing-lede, .landing-section) > * {
     grid-column: 1;
+  }
+
+  #app[data-screen="landing"] .landing-section > h2 {
     text-align: left;
-  }
-
-  .landing-columns::before {
-    content: none;
-  }
-
-  #app[data-screen="landing"] .landing-columns {
-    row-gap: var(--space-6);
-  }
-
-  #app[data-screen="landing"] .landing-columns > :last-child {
-    padding-top: var(--space-4);
-    border-top: var(--hairline);
   }
 
   #app[data-screen="landing"] .landing-card > .plate {
@@ -208,5 +164,9 @@
     width: auto;
     margin-top: var(--space-4);
     padding: 0;
+  }
+
+  #app[data-screen="landing"] .landing-section > .margin {
+    margin-top: 0;
   }
 }
