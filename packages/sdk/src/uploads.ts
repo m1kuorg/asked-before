@@ -23,7 +23,7 @@ export type Upload = {
   source: Source;
   fileName: string;
   status: UploadStatus;
-  /** Your messages it was sent. */
+  /** Your messages it was sent, each counted once, even when a chunk was sent twice. */
   messages: number;
   /** The new ones among them, stored as its phrasings: the rest were in the project already. */
   phrasings: number;
