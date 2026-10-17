@@ -10,8 +10,8 @@
 // Deleting an upload, which needs a session rather than an API key, deletes
 // its phrasings, and any card left with fewer than two borrows.
 
-import { path, type Requester } from "./http";
-import type { Phrasing, Source } from "./readers";
+import { path, type Requester } from "./http.ts";
+import type { Phrasing, Source } from "./readers.ts";
 
 /** The most phrasings one append may carry. */
 export const MAX_CHUNK = 2000;

@@ -5,7 +5,7 @@
 // landing page, the docs, log in, and sign up; the app is one page at /app
 // that routes every path under it on the client (src/app/router.ts), and
 // sends a logged-out visitor to log in and back. A path nothing routes gets
-// the not-found page. The demo exports are served as files; the answer key
+// the not-found page. The demo export is served as a file; the answer key
 // and the known answers never are.
 
 import { join } from "node:path";
@@ -54,7 +54,6 @@ export const pageRoutes: RouteTable = {
   ...Object.fromEntries(Object.entries(PAGES).map(([path, file]) => [path, { GET: page(file) }])),
   "/assets/*": { GET: asset },
   "/demo/export.json": { GET: demoFile("export.json") },
-  "/demo/no-repeats.json": { GET: demoFile("no-repeats.json") },
 };
 
 /** The answer for a path nothing else routes. */

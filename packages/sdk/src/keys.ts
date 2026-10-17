@@ -3,7 +3,7 @@
 // pass it to createClient({ baseUrl, apiKey }). Managing keys needs a session,
 // so a key can't make, list, or revoke keys.
 
-import { path, type Requester } from "./http";
+import { path, type Requester } from "./http.ts";
 
 export type ApiKey = {
   id: string;

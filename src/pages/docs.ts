@@ -311,10 +311,11 @@ function sdk(): Section {
     title: "The SDK",
     body: [
       p("The TypeScript SDK has one method per endpoint, with typed inputs and results. It also has the export readers the upload page uses: they read a ChatGPT or Claude export on your computer, in Bun, Node, or a browser, so a script sends only your own words, as the page does."),
-      p("It isn't on npm yet. Use it in a copy of Asked Before, where it's the workspace package ", code("@asked-before/sdk"), ", or add it to a Bun project from your copy: ", code("bun add /path/to/asked-before/packages/sdk"), "."),
+      p("It isn't on npm yet. In a copy of Asked Before it's the workspace package ", code("@asked-before/sdk"), ". To use it in another project, build it in your copy with ", code("bun run build:sdk"), ", which writes JavaScript and type declarations to ", code("packages/sdk/dist"), " for Bun, Node, or a bundler, then add it from there: ", code("bun add /path/to/asked-before/packages/sdk"), "."),
       codeBlock("Quickstart", sdkQuickstart()),
       p("It reads your export, uploads it into a new project, waits for the sort, and lists the project's cards. In a copy of Asked Before it's ", code("packages/sdk/examples/quickstart.ts"), ". Run it with your server's address, a key from Settings, and your export:"),
       codeBlock("Run the quickstart", `ASKED_BEFORE_URL=${SERVER} ASKED_BEFORE_API_KEY=${PLACEHOLDERS.apiKey} \\\n  bun quickstart.ts conversations.json`),
+      p("Node 23.6 or later runs it too, as ", code("node quickstart.ts conversations.json"), "."),
       h3("Errors"),
       p(
         "A failed request throws ",

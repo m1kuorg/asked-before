@@ -3,18 +3,18 @@
 // Every area's types are exported here already, so an area's ticket only
 // edits its own file.
 
-export { createClient, type Client } from "./client";
-export { ApiError, type ClientOptions } from "./http";
-export { ExportError, MAX_PHRASING_LENGTH, readExport, type Phrasing, type ReadExport, type Source } from "./readers";
-export { MAX_CHUNK } from "./uploads";
+export { createClient, type Client } from "./client.ts";
+export { ApiError, type ClientOptions } from "./http.ts";
+export { ExportError, MAX_PHRASING_LENGTH, readExport, type Phrasing, type ReadExport, type Source } from "./readers.ts";
+export { MAX_CHUNK } from "./uploads.ts";
 
-export type * from "./account";
-export type * from "./auth";
-export type * from "./captures";
-export type * from "./cards";
-export type * from "./dashboard";
-export type * from "./health";
-export type * from "./keys";
-export type * from "./projects";
-export type * from "./reps";
-export type * from "./uploads";
+export type * from "./account.ts";
+export type * from "./auth.ts";
+export type * from "./captures.ts";
+export type * from "./cards.ts";
+export type * from "./dashboard.ts";
+export type * from "./health.ts";
+export type * from "./keys.ts";
+export type * from "./projects.ts";
+export type * from "./reps.ts";
+export type * from "./uploads.ts";

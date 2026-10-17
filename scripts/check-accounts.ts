@@ -183,12 +183,13 @@ await step("7. Create, rename, list, and get projects, with every count zero", a
 await step("8. A second account gets 404 on the first's project", async () => {
   await bea.client.auth.signUp(BEA);
   const id = work!.id;
+  // Each call starts only when it's awaited: one left waiting while another is checked would reject unhandled, which exits 1.
   for (const [what, call] of [
-    ["get", bea.client.projects.get(id)],
-    ["rename", bea.client.projects.rename(id, "Mine now")],
-    ["delete", bea.client.projects.delete(id)],
+    ["get", () => bea.client.projects.get(id)],
+    ["rename", () => bea.client.projects.rename(id, "Mine now")],
+    ["delete", () => bea.client.projects.delete(id)],
   ] as const) {
-    const error = await failure(call);
+    const error = await failure(call());
     check(error?.status === 404, `${what}: ${say(error)}`);
   }
   check((await bea.client.projects.list()).length === 0, "the second account lists none of them");

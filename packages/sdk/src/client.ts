@@ -2,17 +2,17 @@
 // API area. Each area's methods live in that area's own file, so building an
 // area never edits this one.
 
-import { account } from "./account";
-import { auth } from "./auth";
-import { captures } from "./captures";
-import { cards } from "./cards";
-import { dashboard } from "./dashboard";
-import { health } from "./health";
-import { requester, type ClientOptions } from "./http";
-import { keys } from "./keys";
-import { projects } from "./projects";
-import { reps } from "./reps";
-import { uploads } from "./uploads";
+import { account } from "./account.ts";
+import { auth } from "./auth.ts";
+import { captures } from "./captures.ts";
+import { cards } from "./cards.ts";
+import { dashboard } from "./dashboard.ts";
+import { health } from "./health.ts";
+import { requester, type ClientOptions } from "./http.ts";
+import { keys } from "./keys.ts";
+import { projects } from "./projects.ts";
+import { reps } from "./reps.ts";
+import { uploads } from "./uploads.ts";
 
 /**
  * In the page, `createClient()` calls its own origin with the session cookie.
