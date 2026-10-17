@@ -66,13 +66,15 @@ async function ask<T>(call: () => Promise<T>): Promise<T> {
 }
 
 const listNames = (projects: Project[]) => (projects.length ? projects.map((p) => `"${p.name}"`).join(", ") : "none yet");
+/** The project with the id `wanted`, or else with that name, ignoring case. */
+const named = (projects: Project[], wanted: string) => projects.find((p) => p.id === wanted) ?? projects.find((p) => p.name.toLowerCase() === wanted.toLowerCase());
 
 /** The project a call names, by id or name, or else the default one. */
 async function projectFor(given: string | undefined): Promise<Project> {
   const projects = await ask(() => api.projects.list());
   const wanted = given?.trim() || defaultProject;
   if (!wanted) throw new Error(`Say which project: the learner's projects are ${listNames(projects)}. Or set ${MCP_ENV.project} to pick a default.`);
-  const found = projects.find((p) => p.id === wanted) ?? projects.find((p) => p.name.toLowerCase() === wanted.toLowerCase());
+  const found = named(projects, wanted);
   if (!found) throw new Error(`The learner has no project "${wanted}". Their projects are ${listNames(projects)}.`);
   return found;
 }
@@ -95,7 +97,7 @@ function build(): McpServer {
     },
     async () => {
       const projects = await ask(() => api.projects.list());
-      const fallback = defaultProject ? (projects.find((p) => p.id === defaultProject) ?? projects.find((p) => p.name.toLowerCase() === defaultProject.toLowerCase())) : undefined;
+      const fallback = defaultProject ? named(projects, defaultProject) : undefined;
       const lines = projects.map(
         (p) =>
           `- "${p.name}"${p.demo ? " (demo data)" : ""}: ${p.counts.cards} cards, ${p.counts.borrowed} borrowed, ${p.counts.returned} returned, ${p.counts.borrowedAgain} borrowed again. Project id ${p.id}.`,
