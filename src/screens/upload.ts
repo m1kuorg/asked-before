@@ -106,7 +106,7 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
             el(
               "p",
               undefined,
-              `${count(read.skipped)} more ${read.skipped === 1 ? "runs" : "run"} over ${count(MAX_PHRASING_LENGTH)} characters, often a pasted log or file, so ${read.skipped === 1 ? "it stays" : "they stay"} here.`,
+              `${count(read.skipped)} more of your messages ${read.skipped === 1 ? "runs" : "run"} over ${count(MAX_PHRASING_LENGTH)} characters, often a pasted log or file, so ${read.skipped === 1 ? "it stays" : "they stay"} here.`,
             ),
           );
         }
