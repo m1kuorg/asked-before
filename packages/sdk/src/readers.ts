@@ -5,8 +5,8 @@
 // read from its directory, inflating only its conversations.json or its
 // numbered conversations-NNN.json shards, or the ones in a zip inside it, so
 // an export full of images never has to fit in memory. ChatGPT's tree is
-// walked from each conversation's current node, so edited-away branches
-// don't count. Messages over 2,000 characters (often pasted logs) are
+// walked from each conversation's current node, or without one from its
+// latest leaf, so edited-away branches don't count. Messages over 2,000 characters (often pasted logs) are
 // skipped and counted. A shape the reader can't use fails with an
 // ExportError naming the field, never quoting a message. Neither vendor
 // publishes a schema, so unknown fields and content types are passed over.
@@ -101,7 +101,7 @@ function date(value: unknown, field: string): number | undefined {
   return ms;
 }
 
-// ChatGPT: each conversation is a tree of message nodes; the branch shown is the path from current_node up to the root.
+// ChatGPT: each conversation is a tree of message nodes; the branch shown is the path from current_node, or else the latest leaf, up to the root.
 
 function chatgptConversation(conversation: unknown, where: string, take: Take): void {
   if (!isObject(conversation)) throw new ExportError(`${where} isn't an object.`);
@@ -139,9 +139,10 @@ function chatgptConversation(conversation: unknown, where: string, take: Take): 
   }
 }
 
-/** The node ids from the root down to current_node; with no current_node, every node in the export's order. */
-function currentBranch(leaf: unknown, mapping: JsonObject, where: string): string[] {
-  if (leaf === null || leaf === undefined) return Object.keys(mapping);
+/** The node ids from the root down to current_node, or with no current_node, down to the latest leaf. */
+function currentBranch(current: unknown, mapping: JsonObject, where: string): string[] {
+  const leaf = current ?? latestLeaf(mapping);
+  if (leaf === undefined) return [];
   if (typeof leaf !== "string" || !Object.hasOwn(mapping, leaf)) throw new ExportError(`${where}: current_node names a node that isn't in mapping.`);
   const branch: string[] = [];
   const seen = new Set<string>();
@@ -153,6 +154,19 @@ function currentBranch(leaf: unknown, mapping: JsonObject, where: string): strin
     id = isObject(node) ? node.parent : undefined;
   }
   return branch.reverse();
+}
+
+/** The node no other names as its parent with the latest create_time, the later in the export's order on a tie; undefined when there's none. */
+function latestLeaf(mapping: JsonObject): string | undefined {
+  const parents = new Set(Object.values(mapping).map((node) => (isObject(node) ? node.parent : undefined)));
+  let latest: { id: string; time: number } | undefined;
+  for (const [id, node] of Object.entries(mapping)) {
+    if (parents.has(id)) continue;
+    const message = isObject(node) && isObject(node.message) ? node.message : undefined;
+    const time = typeof message?.create_time === "number" ? message.create_time : -Infinity;
+    if (!latest || time >= latest.time) latest = { id, time };
+  }
+  return latest?.id;
 }
 
 // Claude: each conversation is a list of messages, already in order.

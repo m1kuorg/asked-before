@@ -3,7 +3,8 @@
 // and Claude, JSON and zip, numbered shards, a zip inside a zip) must yield
 // the phrasings, source ids, and times written out below, with longer
 // messages skipped and counted, and ChatGPT's abandoned branch, hidden
-// messages, and everyone else's words left out. The demo export yields its
+// messages, and everyone else's words left out; with no current_node, only
+// the branch to the latest leaf counts. The demo export yields its
 // 27 phrasings. A broken export fails with an ExportError that names the
 // field and never quotes a message. It prints each step's checks and exits
 // 1 if any fails, naming the step.
@@ -42,6 +43,11 @@ const CHATGPT: Phrasing[] = [
   { sourceId: "g2-long", text: AT_THE_LIMIT, time: "2025-10-10T12:45:00.000Z" },
 ];
 
+const NO_CURRENT_NODE: Phrasing[] = [
+  { sourceId: "g3-ask", text: "how do i squash my commits before merging", time: "2025-10-11T16:26:50.000Z" },
+  { sourceId: "g3-follow-up", text: "and how do i push the squashed branch", time: "2025-10-11T16:31:40.000Z" },
+];
+
 const CLAUDE: Phrasing[] = [
   { sourceId: "c1-ask", text: "how do i squash my last three commits", time: "2026-05-01T09:00:05.123Z" },
   { sourceId: "c1-follow-up", text: "and how do i undo a rebase", time: "2026-05-01T09:03:00.000Z" },
@@ -51,6 +57,8 @@ const CLAUDE: Phrasing[] = [
 /** Words in the fixtures that aren't the learner's own phrasings, or that belong to a branch they left. */
 const NEVER = [
   "the abandoned branch's question",
+  "a question on a branch left behind",
+  "another question on a branch left behind",
   "Run `jest --onlyFailures`.",
   "print(open('log').read())",
   "Timeout after 5000 ms",
@@ -86,26 +94,30 @@ await step("1. A ChatGPT conversations.json: the current branch only, your own w
   console.log("     (the same file as a Blob)");
 });
 
-await step("2. A Claude conversations.json: human messages, flat text or content blocks", async () => {
+await step("2. A ChatGPT conversation with no current_node: only the branch to its latest leaf", async () => {
+  expect(await readExport(fixture("chatgpt-no-current-node.json")), "chatgpt", NO_CURRENT_NODE, 0);
+});
+
+await step("3. A Claude conversations.json: human messages, flat text or content blocks", async () => {
   expect(await readExport(await fixture("claude.json").text()), "claude", CLAUDE, 1);
 });
 
-await step("3. A ChatGPT zip sharded into numbered files, beside the shared_conversations.json trap", async () => {
+await step("4. A ChatGPT zip sharded into numbered files, beside the shared_conversations.json trap", async () => {
   expect(await readExport(fixture("chatgpt-sharded.zip")), "chatgpt", CHATGPT, 1);
   const bytes = new Uint8Array(await fixture("chatgpt-sharded.zip").arrayBuffer());
   expect(await readExport(bytes), "chatgpt", CHATGPT, 1);
   console.log("     (the same zip as bytes)");
 });
 
-await step("4. A ChatGPT zip inside a zip, as the privacy portal sends it", async () => {
+await step("5. A ChatGPT zip inside a zip, as the privacy portal sends it", async () => {
   expect(await readExport(fixture("chatgpt-nested.zip")), "chatgpt", CHATGPT, 1);
 });
 
-await step("5. A Claude zip", async () => {
+await step("6. A Claude zip", async () => {
   expect(await readExport(fixture("claude.zip")), "claude", CLAUDE, 1);
 });
 
-await step("6. The demo export: 27 phrasings, each with its node's id", async () => {
+await step("7. The demo export: 27 phrasings, each with its node's id", async () => {
   const read = await readExport(Bun.file(join(ROOT, "demo", "export.json")));
   check(read.source === "chatgpt" && read.skipped === 0, `source ${read.source}, ${read.skipped} skipped`);
   check(read.phrasings.length === 27, `${read.phrasings.length} phrasings`);
@@ -117,7 +129,7 @@ await step("6. The demo export: 27 phrasings, each with its node's id", async ()
   );
 });
 
-await step("7. A broken export fails with an ExportError naming the field, never quoting a message", async () => {
+await step("8. A broken export fails with an ExportError naming the field, never quoting a message", async () => {
   const demo: Record<string, any>[] = await Bun.file(join(ROOT, "demo", "export.json")).json();
   const claude: Record<string, any>[] = await fixture("claude.json").json();
   const firstUser = (c: Record<string, any>) => Object.values<any>(c.mapping).find((n) => n.message?.author?.role === "user").message;
