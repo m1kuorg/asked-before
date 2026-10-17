@@ -2,9 +2,11 @@
 // (m1kuorg/basics#43), retry a failed sort (m1kuorg/basics#44), and delete
 // (m1kuorg/basics#45). An upload is one export loaded into a project: make
 // it, append its phrasings (read with readExport) in chunks of up to
-// MAX_CHUNK, then finish it, which leaves it waiting to be sorted. A
-// phrasing the project already holds, by its source id, is skipped, so the
-// same export uploaded twice stores nothing new.
+// MAX_CHUNK, then finish it, which starts its sort. A phrasing the project
+// already holds, by its source id, is skipped, so the same export uploaded
+// twice stores nothing new. Get the upload again to follow its sort: it
+// waits behind the project's other uploads, then sorts, and ends sorted or
+// failed with an error, which retry picks up from where it stopped.
 
 import { path, type Requester } from "./http";
 import type { Phrasing, Source } from "./readers";
@@ -56,5 +58,8 @@ export const uploads = (request: Requester) => ({
     request<Upload>("POST", path`/uploads/${uploadId}/phrasings`, {
       phrasings: phrasings.map(({ sourceId, text, time }) => ({ sourceId, text, time })),
     }),
+  /** Ends the upload's receiving and starts its sort. */
   finish: (uploadId: string) => request<Upload>("POST", path`/uploads/${uploadId}/finish`),
+  /** Sorts a failed upload again, from its first phrasing no sort has seen. Anything but a failed upload is a 409. */
+  retry: (uploadId: string) => request<Upload>("POST", path`/uploads/${uploadId}/retry`),
 });

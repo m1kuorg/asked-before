@@ -99,7 +99,7 @@ export function appendPhrasings(userId: string, uploadId: string, phrasings: Phr
   return getUpload(userId, uploadId);
 }
 
-/** Ends an upload's receiving, leaving it waiting to be sorted. Null when there's no such upload; "finished" when it was already. */
+/** Ends an upload's receiving, leaving it waiting to be sorted (server/sort.ts). Null when there's no such upload; "finished" when it was already. */
 export function finishUpload(userId: string, uploadId: string): Upload | null | "finished" {
   const upload = getUpload(userId, uploadId);
   if (!upload) return null;
@@ -107,4 +107,12 @@ export function finishUpload(userId: string, uploadId: string): Upload | null | 
     .query("UPDATE uploads SET status = 'waiting', finished_at = $now WHERE id = $uploadId AND status = 'receiving'")
     .run({ uploadId, now: Date.now() }).changes;
   return changed ? getUpload(userId, uploadId) : "finished";
+}
+
+/** Sets a failed upload waiting to be sorted again, from its first phrasing not yet offered. Null when there's no such upload; "not failed" when it didn't fail. */
+export function retryUpload(userId: string, uploadId: string): Upload | null | "not failed" {
+  const upload = getUpload(userId, uploadId);
+  if (!upload) return null;
+  const changed = db.query("UPDATE uploads SET status = 'waiting', error = NULL WHERE id = $uploadId AND status = 'failed'").run({ uploadId }).changes;
+  return changed ? getUpload(userId, uploadId) : "not failed";
 }
