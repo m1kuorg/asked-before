@@ -125,7 +125,7 @@ try {
     await close.getByRole("button", { name: "Sign up" }).click();
     await page.waitForURL(/\/app$/);
     await page.locator(".block h1").waitFor();
-    check((await text(".block h1")) === "Dashboard", `signing up lands on the dashboard: "${await text(".block h1")}"`);
+    check((await text(".block h1")) === "Still borrowed", `signing up lands on the dashboard: "${await text(".block h1")}"`);
     const api = app.browser().client;
     const session = await api.auth.logIn({ email: ADA.email, password: ADA.password });
     check(session.account.name === ADA.name, `the SDK logs in as the new account, ${session.account.name}`);
@@ -141,7 +141,7 @@ try {
     await page.getByRole("button", { name: "Log in" }).click();
     await page.waitForURL(/\/app$/);
     await page.locator(".block h1").waitFor();
-    check((await text(".block h1")) === "Dashboard", `logging in lands on the dashboard: "${await text(".block h1")}"`);
+    check((await text(".block h1")) === "Still borrowed", `logging in lands on the dashboard: "${await text(".block h1")}"`);
     check((await page.locator("body > nav").textContent())?.includes(ADA.name) ?? false, "the navigation names the account");
     await page.context().clearCookies();
     await page.goto(app.url);
