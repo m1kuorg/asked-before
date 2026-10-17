@@ -1,0 +1,239 @@
+[
+  {
+    "title": "Squash before merging",
+    "create_time": 1760200000,
+    "update_time": 1760200301,
+    "mapping": {
+      "g3-root": {
+        "id": "g3-root",
+        "message": null,
+        "parent": null,
+        "children": [
+          "g3-ask"
+        ]
+      },
+      "g3-ask": {
+        "id": "g3-ask",
+        "message": {
+          "id": "g3-ask",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760200010,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "how do i squash my commits before merging"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g3-root",
+        "children": [
+          "g3-answer"
+        ]
+      },
+      "g3-answer": {
+        "id": "g3-answer",
+        "message": {
+          "id": "g3-answer",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760200011,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Run `git rebase -i main`."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g3-ask",
+        "children": [
+          "g3-first-try",
+          "g3-follow-up",
+          "g3-second-try"
+        ]
+      },
+      "g3-first-try": {
+        "id": "g3-first-try",
+        "message": {
+          "id": "g3-first-try",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760200100,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "a question on a branch left behind"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g3-answer",
+        "children": [
+          "g3-first-try-answer"
+        ]
+      },
+      "g3-first-try-answer": {
+        "id": "g3-first-try-answer",
+        "message": {
+          "id": "g3-first-try-answer",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760200101,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "An answer on a branch left behind."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g3-first-try",
+        "children": []
+      },
+      "g3-follow-up": {
+        "id": "g3-follow-up",
+        "message": {
+          "id": "g3-follow-up",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760200300,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "and how do i push the squashed branch"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g3-answer",
+        "children": [
+          "g3-final"
+        ]
+      },
+      "g3-final": {
+        "id": "g3-final",
+        "message": {
+          "id": "g3-final",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760200301,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Push it with `--force-with-lease`."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g3-follow-up",
+        "children": []
+      },
+      "g3-second-try": {
+        "id": "g3-second-try",
+        "message": {
+          "id": "g3-second-try",
+          "author": {
+            "role": "user",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760200200,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "another question on a branch left behind"
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": null,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g3-answer",
+        "children": [
+          "g3-second-try-answer"
+        ]
+      },
+      "g3-second-try-answer": {
+        "id": "g3-second-try-answer",
+        "message": {
+          "id": "g3-second-try-answer",
+          "author": {
+            "role": "assistant",
+            "name": null,
+            "metadata": {}
+          },
+          "create_time": 1760200201,
+          "update_time": null,
+          "content": {
+            "content_type": "text",
+            "parts": [
+              "Another answer on a branch left behind."
+            ]
+          },
+          "status": "finished_successfully",
+          "end_turn": true,
+          "weight": 1,
+          "metadata": {},
+          "recipient": "all"
+        },
+        "parent": "g3-second-try",
+        "children": []
+      }
+    },
+    "conversation_id": "g3",
+    "id": "g3"
+  }
+]
