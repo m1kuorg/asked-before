@@ -72,12 +72,12 @@ async function states(kit: Kit, projectId: string) {
   await page.locator(".block .is-waiting").waitFor();
   const frame = await textarea.evaluate((t) => `${getComputedStyle(t).borderTopStyle} ${getComputedStyle(t).borderTopColor}`);
   check(frame === "dotted rgb(96, 98, 99)", `a locked answer's frame drops to a dotted Disabled Gray rule (${frame})`);
-  await kit.shoot(page, "rep-waiting");
+  await kit.shoot(page, "rep-waiting", { plate: true });
 
   // The check fails: its error and a retry, under the locked answer.
   checking.release(refuse());
   await page.locator(".block .error").waitFor();
-  await kit.shoot(page, "rep-error");
+  await kit.shoot(page, "rep-error", { plate: true });
 
   // The retry fails the rep: the reason, the lesson again, and a fresh problem.
   model.queue(verdictReply("fail", FAILED), repReply(PROBLEMS[1]!));

@@ -1,7 +1,8 @@
 // The dashboard's states (public/styles/dashboard.css; m1kuorg/basics#47),
 // on the real page: a new learner's empty state, and its first upload
-// refused for want of a name; waiting and failed, with the dashboard's
-// request held and answered here, never in the app; a project with no cards
+// refused for want of a name, keeping its plate of 0; waiting and failed,
+// with the dashboard's request held and answered here, never in the app, and
+// no plate, since the count is what they wait for; a project with no cards
 // yet; then the demo export sorted into a demo project as the answer key
 // sorts it, card A returned and card B borrowed again by real cold reps (the
 // model stand-in's answers queued here) and a newer borrow of B's skill, so
@@ -36,7 +37,7 @@ async function states(kit: Kit, made: string[]) {
   await block.locator(".first-project .error").waitFor();
   const invalid = await block.getByLabel("Or name your first project").evaluate((input) => `${input.getAttribute("aria-invalid")} ${getComputedStyle(input).borderTopWidth}`);
   check(invalid === "true 3px", `the unnamed project's field is marked, its frame 3px (${invalid})`);
-  await kit.shoot(page, "dashboard-first-project-refused");
+  await kit.shoot(page, "dashboard-first-project-refused", { plate: true });
 
   // Waiting, then a failure and its retry, with the dashboard's request held and answered here, never in the app.
   let release = () => {};
@@ -47,10 +48,10 @@ async function states(kit: Kit, made: string[]) {
   };
   await page.route("**/api/v1/dashboard", hold);
   await kit.open(page, "/app", ".block .is-waiting");
-  await kit.shoot(page, "dashboard-waiting");
+  await kit.shoot(page, "dashboard-waiting", { plate: false });
   release();
   await block.locator(".error").waitFor();
-  await kit.shoot(page, "dashboard-failed");
+  await kit.shoot(page, "dashboard-failed", { plate: false });
   await page.unroute("**/api/v1/dashboard", hold);
 
   // A project, but no cards yet.
