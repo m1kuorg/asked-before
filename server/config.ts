@@ -1,0 +1,20 @@
+// The server's settings, read once from the environment. Each has a default,
+// so a fresh clone needs only ANTHROPIC_API_KEY (which server/model.ts reads).
+
+import { join } from "node:path";
+
+const ROOT = join(import.meta.dir, "..");
+
+/** The public URL, when set. Without it, a request's own origin is the app's origin. */
+const publicUrl = process.env.PUBLIC_URL ? new URL(process.env.PUBLIC_URL) : undefined;
+
+export const config = {
+  port: Number(process.env.PORT ?? 3000),
+  /** The SQLite file. Its folder is made if it's missing. */
+  databasePath: process.env.DATABASE_PATH ?? join(ROOT, "data", "asked-before.sqlite"),
+  publicUrl,
+  /** An https public URL makes the session cookie Secure and __Host- prefixed. */
+  https: publicUrl?.protocol === "https:",
+  /** Model requests one account may make per UTC day. */
+  dailyModelRequests: Number(process.env.DAILY_MODEL_REQUESTS ?? 300),
+};

@@ -1,10 +1,14 @@
-// The one Anthropic client, shared by the three routes. Every request is a
-// structured output from claude-haiku-5-5 with effort set explicitly. A route
-// lets a ModelError propagate; server.ts answers it with 502 { error }.
+// The one Anthropic client, shared by every route that asks the model. Every
+// request is a structured output from claude-haiku-5-5 with effort set
+// explicitly. A request made for an account first spends one of its daily
+// model requests (store/usage.ts), or fails with 429. A route lets a
+// ModelError propagate; serve() answers it with 502 { error }.
 
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type { z } from "zod";
+import { HttpError } from "./http";
+import { spendModelRequest } from "./store/usage";
 
 export const MODEL = "claude-haiku-5-5";
 
@@ -16,8 +20,11 @@ export type Effort = NonNullable<Anthropic.OutputConfig["effort"]>;
 export const EFFORT: Effort = "medium";
 
 /** A request that gave no usable result. Its message is safe to show and holds no message text. */
-export class ModelError extends Error {
+export class ModelError extends HttpError {
   override name = "ModelError";
+  constructor(message: string) {
+    super(502, message);
+  }
 }
 
 let client: Anthropic | undefined;
@@ -27,10 +34,13 @@ export async function askStructured<S extends z.ZodType>(
   userText: string,
   schema: S,
   effort: Effort = EFFORT,
+  /** The account the request is for. The proof of concept's routes have none. */
+  userId?: string,
 ): Promise<z.infer<S>> {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new ModelError("The server has no ANTHROPIC_API_KEY. Set it in .env, as the README says.");
   }
+  if (userId) spendModelRequest(userId);
   client ??= new Anthropic();
   const format = zodOutputFormat(schema);
 
