@@ -135,12 +135,14 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
     request: async () => {
       const [project, cards] = await base();
       const chosen = cards.find((card) => card.id === query.get("card")) ?? cards[0];
-      return { project, cards, chosen: chosen && (await client.cards.get(chosen.id)) };
+      // With no cards, the uploads say why: none yet, a sort under way, or nothing asked twice.
+      const [detail, latest] = await Promise.all([chosen && client.cards.get(chosen.id), chosen ? null : client.uploads.list(projectId, { limit: PAGE })]);
+      return { project, cards, chosen: detail, uploads: latest?.uploads ?? [] };
     },
     signal,
-    show: ({ project, cards, chosen }) => {
+    show: ({ project, cards, chosen, uploads }) => {
       named(project);
-      if (!chosen) return noCards(project);
+      if (!chosen) return noCards(project, uploads);
       stack(project, cards, chosen);
     },
   });
@@ -327,20 +329,28 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
     }
   }
 
-  /** A project with no cards yet: its name heads the block, over a plate of none. */
-  function noCards(project: Project) {
+  /**
+   * A project with no cards yet: its name heads the block, over a plate of
+   * none, and the empty state says why, from its latest uploads: there are
+   * none, one is still being sorted, or nothing was asked twice yet.
+   */
+  function noCards(project: Project, uploads: Upload[]) {
     const heading = el("div", "heading", el("h1", undefined, project.name));
     if (project.demo) heading.append(demoLabel());
     drawMargin(project, [], undefined, { named: false });
-    block.replaceChildren(
-      heading,
-      plate(0, "cards"),
-      emptyState(
-        "No cards yet",
-        "Upload a chat export into this project, and every question you asked more than once becomes a card.",
-        link("Upload a chat export", uploadPath(project.id), "button"),
-      ),
-    );
+    const upload = link("Upload a chat export", uploadPath(project.id), "button");
+    const sorting = uploads.find((u) => u.status === "waiting" || u.status === "sorting");
+    const why = !uploads.length
+      ? emptyState("No cards yet", "Upload a chat export into this project, and every question you asked more than once becomes a card.", upload)
+      : sorting
+        ? emptyState("No cards yet", `Your upload into ${project.name} is still being sorted. Its cards show here once the sort is done.`, link("See its sort", `${uploadPath(project.id)}?upload=${encodeURIComponent(sorting.id)}`, "button"))
+        : emptyState(
+            "No cards yet",
+            `Nothing in ${project.name} has been asked more than once yet. A phrasing waits as unsorted until a later one asks the same thing.`,
+            link("See the unsorted phrasings", `${projectPath(project.id)}?view=unsorted`, "button"),
+            link("Upload a chat export", uploadPath(project.id), "button secondary"),
+          );
+    block.replaceChildren(heading, plate(0, "cards"), why);
   }
 
   /** The stack: the project's keys in the margin, and the chosen card in the block. */

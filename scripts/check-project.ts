@@ -4,7 +4,15 @@
 // export's answer key does, so every sort ends as the key says. The demo
 // action makes the demo project, labeled as demo data, whose stack shows
 // cards A to E in the key's order, with card A's phrasings word for word,
-// its count, its months, and a stamp per borrow.
+// its count, its months, and a stamp per borrow, in the learner's own time
+// zone. Each card's status shows (read from the API's answers rewritten in
+// this script, since nothing can pass a rep before m1kuorg/basics#46).
+// Unsorted lists the key's one-offs a page at a time, and the upload
+// history each upload's date, source, messages, and new ones. Deleting the
+// second of two uploads through the page, after its confirmation, removes
+// its borrows and any card left under two, as the key says, checked in the
+// API; deleting needs the owner's session. A project with no cards says
+// why, and the page reaches the server only through /api/v1.
 // It prints ids, counts, and skill names, never phrasing text, and exits 1
 // if any check fails, naming the step.
 // Run: bun run check:project [screenshot dir]
@@ -16,7 +24,7 @@ import { join } from "node:path";
 import { chromium, type Page } from "playwright";
 import { allUnsorted, idList, key, keySorter, named, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
-import { reply, startModelStub } from "./lib/model-stub";
+import { hold, reply, startModelStub } from "./lib/model-stub";
 
 const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-project");
 const FRAME = { width: 1920, height: 1080 };
@@ -37,6 +45,9 @@ const browser = await chromium.launch();
 const ada = app.browser();
 await ada.client.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
 
+const apiCalls: string[] = [];
+const consoleErrors: string[] = [];
+
 /** A page logged in as Ada, in its own context; the answer key's months and dates are in UTC, so pages read in UTC unless told otherwise. */
 async function adaPage(timezoneId = "UTC") {
   const context = await browser.newContext({ viewport: FRAME, deviceScaleFactor: 1, timezoneId });
@@ -44,6 +55,15 @@ async function adaPage(timezoneId = "UTC") {
   await context.addCookies(cookies.map(([name, value]) => ({ name: name!, value: value!, url: app.url })));
   const page = await context.newPage();
   page.setDefaultTimeout(15_000);
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (url.origin === app.url && ["fetch", "xhr"].includes(request.resourceType())) apiCalls.push(`${request.method()} ${url.pathname}`);
+  });
+  page.on("console", (message) => {
+    // Chrome reports every non-2xx answer as a failed resource; the steps check those answers themselves.
+    if (message.type() === "error" && !message.text().startsWith("Failed to load resource")) consoleErrors.push(message.text());
+  });
+  page.on("pageerror", (error) => consoleErrors.push(error.message));
   return page;
 }
 
@@ -331,6 +351,42 @@ try {
     const again = await failure(ada.client.uploads.delete(second.id));
     check(again?.status === 404, `deleting the deleted one again: ${say(again)}`);
     check((await ada.client.uploads.list(work.id)).uploads.length === 1, "the first upload is still there");
+  });
+
+  await step("8. A project with no cards says why: nothing uploaded, a sort under way, or nothing asked twice yet", async () => {
+    const empty = await ada.client.projects.create({ name: "Day job" });
+    const at = `${app.url}/app/projects/${empty.id}`;
+    const said = async () => {
+      await page.goto(at);
+      await page.locator(".block .empty").waitFor();
+      return { heading: await text(".block h1"), title: await text(".block .empty h2"), body: await text(".block .empty p"), plate: await text(".block .plate b"), links: await page.locator(".block .empty a").allTextContents() };
+    };
+    let now = await said();
+    check(now.heading === "Day job" && now.plate === "0" && now.title === "No cards yet" && now.links.join() === "Upload a chat export", `with no upload: ${JSON.stringify(now)}`);
+
+    // The sort's model request is held here, so the upload stays sorting while the page is read.
+    const held = hold();
+    model.queue(held.answer);
+    const twice = [
+      { sourceId: "twice-1", text: "how do i rename a branch in git", time: "2026-02-01T10:00:00.000Z" },
+      { sourceId: "twice-2", text: "how do i make a cup of tea", time: "2026-02-02T10:00:00.000Z" },
+    ];
+    const sorting = await upload(ada.client, empty.id, twice);
+    await held.reached;
+    now = await said();
+    check(now.body.includes("still being sorted") && now.links.join() === "See its sort", `while its sort runs: ${JSON.stringify(now)}`);
+    check((await page.locator(".block .empty a").getAttribute("href")) === `/app/projects/${empty.id}/upload?upload=${sorting.id}`, "and leads to the upload's own page, where the sort shows");
+    held.release(reply({ joins: [], newSkills: [] }));
+    await sortEnds(ada.client, sorting.id);
+    now = await said();
+    check(now.body.includes("asked more than once yet") && now.links.join() === "See the unsorted phrasings,Upload a chat export", `once nothing was asked twice: ${JSON.stringify(now)}`);
+  });
+
+  await step("9. The page reached the server only through /api/v1, within its security policy", async () => {
+    // The demo action reads the demo export, a static file, as any export is read on the page before it's sent.
+    const outside = apiCalls.filter((call) => !call.split(" ")[1]!.startsWith("/api/v1/") && call !== "GET /demo/export.json");
+    check(apiCalls.length > 0 && outside.length === 0, `${apiCalls.length} API calls, ${outside.length} outside /api/v1${outside.length ? `: ${outside.join(", ")}` : ""}`);
+    check(consoleErrors.length === 0, `no console errors or policy violations${consoleErrors.length ? `: ${consoleErrors.slice(0, 3).join(" | ")}` : ""}`);
   });
 } finally {
   await browser.close();
