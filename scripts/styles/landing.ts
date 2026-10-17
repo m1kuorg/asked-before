@@ -65,10 +65,17 @@ export default async function landing(kit: Kit) {
     await page.setViewportSize({ width, height: 900 });
     const at = await page.evaluate(() => {
       const block = document.querySelector(".block")!.getBoundingClientRect();
-      const notes = [...document.querySelectorAll(":is(.landing-card, .landing-section) > .margin > :first-child")].map((p) => p.getBoundingClientRect());
-      return { sideways: document.documentElement.scrollWidth > window.innerWidth, inMargin: notes.every((n) => n.left >= 0 && n.right <= block.left) };
+      const notes = [...document.querySelectorAll(":is(.landing-card, .landing-section) > .margin")].map((note) => {
+        const lines = [...note.children].map((p) => p.getBoundingClientRect());
+        return { left: Math.min(...lines.map((r) => r.left)), right: Math.max(...lines.map((r) => r.right)), top: lines[0]!.top, bottom: lines.at(-1)!.bottom };
+      });
+      return {
+        sideways: document.documentElement.scrollWidth > window.innerWidth,
+        inMargin: notes.every((n) => n.left >= 0 && n.right <= block.left),
+        apart: notes.every((n, i) => i === 0 || n.top - notes[i - 1]!.bottom >= 16),
+      };
     });
-    check(!at.sideways && at.inMargin, `at ${width}px nothing scrolls sideways and the side-notes stay in the margin`);
+    check(!at.sideways && at.inMargin && at.apart, `at ${width}px nothing scrolls sideways, and the side-notes stay in the margin, clear of one another (${JSON.stringify(at)})`);
   }
 
   // A narrow screen: one column, with the plate and the side-notes in flow.
