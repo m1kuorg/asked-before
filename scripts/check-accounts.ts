@@ -1,6 +1,6 @@
 // Checks accounts and projects (m1kuorg/basics#41) end to end, through the
 // SDK, on a fresh copy of the app: the health check and the security
-// headers, the 501 stubs, sign-up, log-in and its `next`, log-out, projects
+// headers, sign-up, log-in and its `next`, log-out, projects
 // and their counts, another account's 404, deletes, the Origin and JSON
 // rule, the logs, and, last, the per-IP throttle. It prints each step's
 // checks and exits 1 if any fails, naming the step.
@@ -64,7 +64,6 @@ await step("1. The health check answers, and every kind of answer carries the se
     ["a missing endpoint", "/api/v1/no-such-endpoint", 404],
     ["a method an endpoint doesn't have", "/api/v1/health?method=PUT", 404],
     ["an endpoint that needs a session", "/api/v1/projects", 401],
-    ["a stub endpoint", "/api/v1/projects/p1/captures?method=POST", 501],
   ];
   for (const [what, path, status] of answers) {
     const url = new URL(path, app.url);
@@ -80,18 +79,7 @@ await step("1. The health check answers, and every kind of answer carries the se
   check(/default-src 'self'/.test(csp) && /frame-ancestors 'none'/.test(csp), `the content security policy allows only the app's own origin: ${csp}`);
 });
 
-await step("2. Every stub area answers 501 with { error }", async () => {
-  const stubs: [string, string][] = [
-    ["POST", "/api/v1/projects/p1/captures"],
-  ];
-  for (const [method, path] of stubs) {
-    const response = await fetch(new URL(path, app.url), { method });
-    const body = (await response.json().catch(() => null)) as { error?: unknown } | null;
-    check(response.status === 501 && typeof body?.error === "string", `${method} ${path}: ${response.status} ${JSON.stringify(body)}`);
-  }
-});
-
-await step("3. Sign up, with the email trimmed and lowercased", async () => {
+await step("2. Sign up, with the email trimmed and lowercased", async () => {
   const session = await ada.client.auth.signUp({ ...ADA, email: "  Ada@Example.COM " });
   check(session.account.email === ADA.email, `the account's email is ${session.account.email}`);
   check(session.account.name === ADA.name, `the account's name is ${session.account.name}`);
@@ -100,7 +88,7 @@ await step("3. Sign up, with the email trimmed and lowercased", async () => {
   check(me.id === session.account.id && !Number.isNaN(Date.parse(me.createdAt)), `the current account is the new one, made ${me.createdAt}`);
 });
 
-await step("4. Sign-up rejects a weak password, a bad email, and an email in use", async () => {
+await step("3. Sign-up rejects a weak password, a bad email, and an email in use", async () => {
   const weak = await failure(bea.client.auth.signUp({ ...BEA, password: "too short" }));
   check(weak?.status === 400 && /10/.test(weak.message), `a 9-character password: ${say(weak)}`);
   const long = await failure(bea.client.auth.signUp({ ...BEA, password: "x".repeat(201) }));
@@ -113,7 +101,7 @@ await step("4. Sign-up rejects a weak password, a bad email, and an email in use
   check(me?.status === 401, `none of them logged in: ${say(me)}`);
 });
 
-await step("5. Log out", async () => {
+await step("4. Log out", async () => {
   await ada.client.auth.logOut();
   const me = await failure(ada.client.auth.me());
   check(me?.status === 401, `the current account after logging out: ${say(me)}`);
@@ -122,7 +110,7 @@ await step("5. Log out", async () => {
   check(ada.cookie() === "", `the session cookie is cleared: "${ada.cookie()}"`);
 });
 
-await step("6. A wrong log-in says neither which field was wrong nor whether the account exists", async () => {
+await step("5. A wrong log-in says neither which field was wrong nor whether the account exists", async () => {
   const wrongPassword = await failure(ada.client.auth.logIn({ email: ADA.email, password: "the wrong password" }));
   const noAccount = await failure(ada.client.auth.logIn({ email: "nobody@example.com", password: ADA.password }));
   check(wrongPassword?.status === 401, `a wrong password: ${say(wrongPassword)}`);
@@ -133,7 +121,7 @@ await step("6. A wrong log-in says neither which field was wrong nor whether the
   check(me?.status === 401, `neither logged in: ${say(me)}`);
 });
 
-await step("7. Log in, following `next` only when it's a path inside the app", async () => {
+await step("6. Log in, following `next` only when it's a path inside the app", async () => {
   const inside = "/app/projects/p1?tab=uploads#latest";
   const session = await ada.client.auth.logIn({ email: ` ${ADA.email.toUpperCase()} `, password: ADA.password, next: inside });
   check(session.next === inside, `next ${inside} is followed: ${session.next}`);
@@ -168,7 +156,7 @@ let bootcamp: Project | undefined;
 /** The rows step 10 writes under the demo project, by table. */
 const seeded: Record<"uploads" | "cards" | "phrasings" | "reps", string[]> = { uploads: ["u1"], cards: [], phrasings: [], reps: [] };
 
-await step("8. Create, rename, list, and get projects, with every count zero", async () => {
+await step("7. Create, rename, list, and get projects, with every count zero", async () => {
   work = await ada.client.projects.create({ name: "  Work  " });
   bootcamp = await ada.client.projects.create({ name: "Bootcamp", demo: true });
   const zero = { cards: 0, borrowed: 0, returned: 0, borrowedAgain: 0 };
@@ -192,7 +180,7 @@ await step("8. Create, rename, list, and get projects, with every count zero", a
   check(blank?.status === 400, `renaming to a blank name: ${say(blank)}`);
 });
 
-await step("9. A second account gets 404 on the first's project", async () => {
+await step("8. A second account gets 404 on the first's project", async () => {
   await bea.client.auth.signUp(BEA);
   const id = work!.id;
   for (const [what, call] of [
@@ -207,7 +195,7 @@ await step("9. A second account gets 404 on the first's project", async () => {
   check((await ada.client.projects.get(id)).name === "Day job", "the first account's project is untouched");
 });
 
-await step("10. A project's counts come from its cards' status", async () => {
+await step("9. A project's counts come from its cards' status", async () => {
   // No endpoint can make uploads, cards, or reps until m1kuorg/basics#43 to
   // #46 land, so this step writes them into the app's database as those
   // endpoints would. Everything it checks, it checks through the API.
@@ -255,7 +243,7 @@ await step("10. A project's counts come from its cards' status", async () => {
   check(JSON.stringify(listed?.counts) === JSON.stringify(want), "the list shows the same counts");
 });
 
-await step("11. Deleting a project deletes it and everything in it", async () => {
+await step("10. Deleting a project deletes it and everything in it", async () => {
   // The project holds an upload, phrasings, cards, and reps (step 10).
   await ada.client.projects.delete(bootcamp!.id);
   const got = await failure(ada.client.projects.get(bootcamp!.id));
@@ -277,7 +265,7 @@ await step("11. Deleting a project deletes it and everything in it", async () =>
   check(left.every(([, n]) => n === 0), `rows left of those step 10 made: ${left.map(([table, n, of]) => `${table} ${n} of ${of}`).join(", ")}`);
 });
 
-await step("12. A cookie request that changes something needs the page's Origin and JSON", async () => {
+await step("11. A cookie request that changes something needs the page's Origin and JSON", async () => {
   const cookie = ada.cookie();
   const post = (headers: Record<string, string>, body = JSON.stringify({ name: "Sneaky" })) =>
     fetch(new URL("/api/v1/projects", app.url), { method: "POST", headers: { cookie, ...headers }, body });
@@ -307,7 +295,7 @@ await step("12. A cookie request that changes something needs the page's Origin 
   }
 });
 
-await step("13. The app logs only the method, path, status, and duration", async () => {
+await step("12. The app logs only the method, path, status, and duration", async () => {
   const lines = app.log().trim().split("\n").slice(1);
   const odd = lines.filter((line) => !/^(GET|HEAD|POST|PUT|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));
   check(lines.length > 50 && odd.length === 0, `${lines.length} request lines${odd.length ? `, and these others: ${odd.slice(0, 3).join(" | ")}` : ""}`);
@@ -316,7 +304,7 @@ await step("13. The app logs only the method, path, status, and duration", async
   check(leaked.length === 0, `no email, name, password, or project name in the logs${leaked.length ? `: ${leaked.join(", ")}` : ""}`);
 });
 
-await step("14. Signing up and logging in are throttled per IP address", async () => {
+await step("13. Signing up and logging in are throttled per IP address", async () => {
   // Last, since it locks this address out for the rest of the run.
   let tries = 0;
   let throttled: ApiError | null = null;
