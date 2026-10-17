@@ -28,7 +28,7 @@ cp .env.example .env        # then set ANTHROPIC_API_KEY=...
 bun run start
 ```
 
-Then open <http://localhost:3000>, sign up, and make a project. A new learner can try the demo project, made from a made-up demo export and labeled as demo data, before finding their own export. Only the server reads the key, and `.env` is gitignored.
+Then open <http://localhost:3000>, sign up, and make a project. A new learner can try the demo project, made from a made-up demo export and labeled as demo data, before finding their own export. Only the server reads the key, and `.env` is gitignored; a key exported in your shell works too, and wins over `.env`.
 
 Everything else has a default, so the key is the only setting you need. `.env.example` lists them:
 
