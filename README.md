@@ -18,6 +18,16 @@ Then open <http://localhost:3000>. Set `PORT` to use another port, as in `PORT=3
 
 The app is mid-build on this branch (m1kuorg/basics#40): sign up from the start page, make, rename, and delete projects, upload a chat export into one, which is sorted into cards, see the project's card stack, and take cold reps on its cards. The rest comes back with its tickets.
 
+Coding agents reach your cards through the MCP server in `packages/mcp`. In Claude Code, the Asked Before plugin in `plugins/asked-before` brings the server and a skill in one install, from this repo's marketplace, with your server's address and an API key from Settings:
+
+```sh
+claude plugin install asked-before --marketplace m1kuorg/asked-before \
+  --config server_url=http://localhost:3000 \
+  --config api_key=YOUR_API_KEY
+```
+
+The docs page, at `/docs`, covers the API, the SDK, the MCP server, and the plugin; Settings shows each agent's setup with your server's address filled in.
+
 ## Check it
 
 The browser checks drive Playwright's Chromium, so a fresh clone needs it once:
@@ -49,11 +59,14 @@ bun run check:sort-page    # the upload page's sort progress, failure, retry, an
 bun run check:captures     # captures' rules through the SDK, with the model stubbed
 bun run check:capture-sort # where captures land with the real model: rephrasings of the demo skills, and questions none of them ask
 bun run check:mcp          # the MCP server over stdio with the official client, a real key, and the real model
+bun run check:plugin       # the Claude Code plugin: validated, its server's build fresh, and the build run from a copy as Claude Code runs it
+bun run check:docs         # the docs page against the server's route table, and the SDK's quickstart run on the demo export
 ```
 
 - `check:accounts`, `check:shell`, and `check:styles` start their own copy of the app on a free port, and need no key. `check:styles` needs Chromium.
 - `check:reps` and `check:card-page` start their own copy of the app too, and need the key: `check:reps` makes 10 model calls in a minute or two, and `check:card-page` 4. `check:rep-rules` stubs the model in the script, so it needs no key.
 - `check:sort` starts its own copies of the app too, and needs the key: each run makes 6 model calls in about 10 seconds. Add a number, as in `bun run check:sort 10`, for that many runs (1 if you don't). `check:sort-rules` and `check:sort-page` stub the model in the script, so they need no key.
+- `check:plugin` needs `claude` and `node` on your `PATH`, and no key. After a change to the MCP server or the SDK, `bun run build:plugin` rebuilds the plugin's server, which `check:plugin` fails on until you do. `check:docs` needs Chromium, and no key.
 - `check:mcp` and `check:capture-sort` start their own copy of the app too, and need the key: `check:mcp` makes 4 model calls in under a minute, and each run of `check:capture-sort` 20. Add a number, as in `bun run check:capture-sort 3`, for that many runs. `check:captures` stubs the model in the script, so it needs no key.
 
 ## Disclosures
