@@ -21,22 +21,13 @@
 
 import type { CardDetail, Project, Rep } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
-import { months, PLATE_CAPTION, rails } from "../parts/card";
-import { button, el, link, type Child } from "../parts/dom";
+import { borrowedAgain, flagged, months, PLATE_CAPTION, railEnd, rails } from "../parts/card";
+import { button, el, link } from "../parts/dom";
 import { failure, frame, load, plate, waiting } from "../parts/frame";
 import { demoLabel, privacyLine, stamp } from "../parts/library";
 import { rows } from "../parts/rows";
 
 const projectPath = (projectId: string) => `/app/projects/${encodeURIComponent(projectId)}`;
-
-/**
- * Text with each command flag (`-m`, `--soft`) in a bare span, so the
- * stylesheet keeps the flag on one line. The split's capture group puts
- * the flags at the odd indexes.
- */
-function flagged(text: string): Child[] {
-  return text.split(/((?<![\w-])--?\w[\w-]*)/).map((part, i) => (i % 2 ? el("span", undefined, part) : part));
-}
 
 /** A titled section whose text keeps the model's line breaks as paragraphs. */
 function section(className: string, title: string, text: string): HTMLElement {
@@ -99,19 +90,14 @@ export function mountCard(root: HTMLElement, { client, params, navigate, signal 
     /** The card's status wherever it shows: the margin, the plate, the end of its rail, and its earlier reps. */
     function showStatus() {
       status.replaceChildren(
-        ...(card.returnedAt === null ? ["Not returned yet."] : ["Returned ", stamp(card.returnedAt), card.status === "borrowed_again" ? ", then borrowed again." : "."]),
+        ...(card.returnedAt === null ? ["Not returned yet."] : card.status === "borrowed_again" ? borrowedAgain(card.returnedAt) : ["Returned ", stamp(card.returnedAt), "."]),
       );
       const next = plate(card.count, PLATE_CAPTION[card.status]);
       plateNode.replaceWith(next);
       plateNode = next;
 
       closing?.remove();
-      closing =
-        card.returnedAt === null
-          ? null
-          : card.status === "returned"
-            ? el("p", "end-rule", "Returned ", stamp(card.returnedAt))
-            : el("p", undefined, "Returned ", stamp(card.returnedAt), ", then borrowed again.");
+      closing = railEnd(card);
       if (closing) cardRails.at(-1)!.after(closing);
 
       const checked = card.reps.filter((rep) => rep.checkedAt !== null).reverse();

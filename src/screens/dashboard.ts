@@ -18,14 +18,13 @@ import { button, el, link, type Child } from "../parts/dom";
 import { emptyState } from "../parts/empty";
 import { field, form } from "../parts/fields";
 import { frame, load, notice, plate } from "../parts/frame";
-import { demoLabel, stamp } from "../parts/library";
+import { count, demoLabel, stamp } from "../parts/library";
 import { messageOf } from "../parts/messages";
 import { rows } from "../parts/rows";
 import { startDemoProject } from "./upload";
 
 const cardPath = (cardId: string) => `/app/cards/${encodeURIComponent(cardId)}`;
 const projectPath = (projectId: string) => `/app/projects/${encodeURIComponent(projectId)}`;
-const count = (n: number) => n.toLocaleString("en-US");
 
 const STATUS_NOTE =
   "A card stays borrowed until you pass a cold rep on it, which stamps it returned. A borrow dated after that stamp makes it borrowed again.";

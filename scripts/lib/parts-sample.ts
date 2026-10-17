@@ -57,7 +57,7 @@ const SAMPLES: Record<string, (root: HTMLElement) => void> = {
           { label: "Prefix", cell: (k) => k.prefix },
           { label: "Created", numeric: true, cell: (k) => stamp(k.created) },
           { label: "Last used", numeric: true, cell: (k) => (k.used ? stamp(k.used) : "Never") },
-          { label: "Actions", hiddenLabel: true, cell: (k) => button("Revoke", () => {}, "quiet") },
+          { label: "Actions", actions: true, cell: (k) => button("Revoke", () => {}, "quiet") },
         ],
         detail: (k) =>
           k.name === "Old desktop"

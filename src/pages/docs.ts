@@ -13,12 +13,12 @@ import { connectSnippets, MCP_ENV, PLACEHOLDERS, PLUGIN, SERVER_NAME } from "../
 import { codeBlock } from "../parts/code-block";
 import { el, link, type Child } from "../parts/dom";
 import { frame } from "../parts/frame";
+import { count } from "../parts/library";
 import { rows, type RowsOptions } from "../parts/rows";
 import { sdkQuickstart } from "./sdk-quickstart" with { type: "macro" };
 
 const SERVER = location.origin;
 const snippets = connectSnippets(SERVER);
-const n = (count: number) => count.toLocaleString("en-US");
 
 /** A word or line of code inside prose, set in the text family like every code block. */
 const code = (text: string) => el("code", undefined, text);
@@ -120,7 +120,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/uploads/:uploadId/phrasings",
         sdk: "uploads.append",
         who: KEY,
-        does: `Appends { phrasings }, up to ${n(MAX_CHUNK)} at a time: the upload. A phrasing whose sourceId the project holds already is skipped, so the same export uploaded twice stores nothing new, unless an upload that never finished holds it: then it joins this upload, to be sorted with it. A finished upload is a 409.`,
+        does: `Appends { phrasings }, up to ${count(MAX_CHUNK)} at a time: the upload. A phrasing whose sourceId the project holds already is skipped, so the same export uploaded twice stores nothing new, unless an upload that never finished holds it: then it joins this upload, to be sorted with it. A finished upload is a 409.`,
       },
       {
         method: "POST",
@@ -214,7 +214,7 @@ const STATUSES: [string, string][] = [
   ["403", "An API key on an endpoint that needs a session; a cookie request that changes something without the page's Origin or a JSON body; or a wrong password when changing it or deleting the account."],
   ["404", "There's no such endpoint, or the project, upload, card, key, or cold rep isn't yours. Another account's is a 404 at any depth."],
   ["409", "A conflict: an email that has an account, an upload finished already, a retry of a sort that hasn't failed, or a cold rep checked already."],
-  ["413", `A phrasing or capture over ${n(MAX_PHRASING_LENGTH)} characters, an append over ${n(MAX_CHUNK)} phrasings, or an answer over 4,000 characters.`],
+  ["413", `A phrasing or capture over ${count(MAX_PHRASING_LENGTH)} characters, an append over ${count(MAX_CHUNK)} phrasings, or an answer over 4,000 characters.`],
   ["429", "Too many sign-up or log-in tries from one address, or the account's model requests for the day are spent."],
   ["500", "The server failed. Its message says nothing more."],
   ["502", "The model failed. Nothing was stored, so send the request again."],
@@ -245,7 +245,7 @@ function api(): Section {
       p("Times are ISO timestamps, and ids are opaque strings. A list comes inside an object, such as { projects }. A list that can grow without bound comes a page at a time, newest first: pass ", code("limit"), " (1 to 100, 50 by default), and ", code("cursor"), ", the ", code("next"), " of the page before, which is null on the last page."),
       p(
         "A phrasing is sent as { sourceId, text, time } and nothing else: the export's own message id, your words, and when you sent them. It has at most ",
-        n(MAX_PHRASING_LENGTH),
+        count(MAX_PHRASING_LENGTH),
         " characters, and a time more than 5 minutes after the server's clock is a 400. A card's status is ",
         code("borrowed"),
         ", ",

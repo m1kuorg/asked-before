@@ -215,13 +215,13 @@ Each part is a function that returns elements, in `src/parts/`, styled by `publi
 | `dom.ts` | `el(tag, className, ...children)`, `button(text, onClick, className)`, `link(text, href, className)`, `uniqueId()`. Button classes: none for the primary, `secondary` for the safe choice, `retry`, `quiet` for row and navigation actions; `link(..., "button")` looks like a button |
 | `frame.ts` | `frame(root, marginNotes)` mounts `aside.margin` and `main.block`; `plate(count, caption)`, the one reversed plate; `waiting(line)`; `notice(message)`; `failure(error, onRetry)`; `load(block, { keep, line, request, show, signal })`, which shows the waiting line, then the result or the error and a retry |
 | `fields.ts` | `field({ label, name, type, hint, ... })`, a label over a box with an optional hint; `form({ fields, submit, onSubmit, layout })`, which locks its button while `onSubmit` runs and shows a thrown error as its notice. `layout: "row"` sets one field and its button on one line |
-| `rows.ts` | `rows({ caption, columns, items, detail })`, a table between hairlines with right-aligned numeric columns, a hidden-label actions column, and an optional full-width detail row under an item. Put a title and its labels in `span.row-title` |
+| `rows.ts` | `rows({ caption, columns, items, detail })`, a table between hairlines with right-aligned numeric columns, a column of row actions (`actions: true`) whose label only assistive technology reads, and an optional full-width detail row under an item. Put a title and its labels in `span.row-title` |
 | `empty.ts` | `emptyState(title, body, ...actions)` |
 | `confirm.ts` | `confirmDelete({ title, body, action, onConfirm, onCancel })`, the delete confirmation, in place (a `rows` detail row, say), never a modal |
 | `drop-zone.ts` | `dropZone({ title, hint, accept, onFile })` |
 | `code-block.ts` | `codeBlock(caption, code)`, with its copy button |
-| `library.ts` | `PRIVACY_LINE` and `privacyLine()`, the spec's privacy line; `demoLabel()`; `stamp(iso)`, a date in the learner's time zone |
-| `card.ts` | A card's pieces the stack and the card page share, styled by `stack.css`: `rails(borrows)`, one rail per year, `phrasing(text)`, `PLATE_CAPTION` after a card's status, and `months(card)` (m1kuorg/basics#46) |
+| `library.ts` | `PRIVACY_LINE` and `privacyLine()`, the spec's privacy line; `demoLabel()`; `stamp(iso)`, a date in the learner's time zone; `count(n)`, a number as the page writes it; and `SOURCES`, each export's chatbot by name |
+| `card.ts` | A card's pieces the stack and the card page share, styled by `stack.css`: `rails(borrows)`, one rail per year, `phrasing(text)` and `flagged(text)`, which keep a command flag whole, `railEnd(card)` and `borrowedAgain(returnedAt)`, what closes a returned card's rail, `PLATE_CAPTION` after a card's status, and `months(card)` (m1kuorg/basics#46) |
 | `messages.ts` | `messageOf(error)`: the API's message, or a connection failure |
 
 A new part that more than one screen needs goes here, with its rules in `parts.css` and a sample in `scripts/lib/parts-sample.ts`; record it in `docs/DESIGN.md` under Components.

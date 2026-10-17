@@ -20,12 +20,12 @@
 
 import type { Card, CardDetail, Project, StoredPhrasing, Upload } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
-import { months, PLATE_CAPTION, phrasing, rails } from "../parts/card";
+import { months, PLATE_CAPTION, phrasing, railEnd, rails } from "../parts/card";
 import { confirmDelete } from "../parts/confirm";
 import { button, el, link, type Child } from "../parts/dom";
 import { emptyState } from "../parts/empty";
 import { failure, frame, load, plate, waiting } from "../parts/frame";
-import { demoLabel, privacyLine, stamp } from "../parts/library";
+import { count, demoLabel, privacyLine, SOURCES, stamp } from "../parts/library";
 import { rows } from "../parts/rows";
 
 const projectPath = (projectId: string) => `/app/projects/${encodeURIComponent(projectId)}`;
@@ -34,8 +34,6 @@ const cardPath = (cardId: string) => `/app/cards/${encodeURIComponent(cardId)}`;
 
 type View = "cards" | "unsorted" | "uploads";
 const VIEWS: Record<string, View> = { unsorted: "unsorted", uploads: "uploads" };
-const SOURCES = { chatgpt: "ChatGPT", claude: "Claude" } as const;
-const count = (n: number) => n.toLocaleString("en-US");
 /** How many rows of a list one page brings. */
 const PAGE = 50;
 
@@ -237,7 +235,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
                 { label: "Source", cell: (u) => SOURCES[u.source] },
                 { label: "Your messages", numeric: true, className: "is-count", cell: (u) => count(u.messages) },
                 { label: "New", numeric: true, className: "is-count", cell: (u) => count(u.phrasings) },
-                { label: "Actions", hiddenLabel: true, className: "is-actions", cell: deleteButton },
+                { label: "Actions", actions: true, className: "is-actions", cell: deleteButton },
               ],
               detail: (u) => (u.id === deleting ? confirmation(u) : null),
             })
@@ -355,8 +353,8 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
       plate(card.count, PLATE_CAPTION[card.status]),
       ...cardRails,
     ];
-    if (card.returnedAt && card.status === "returned") children.push(el("p", "end-rule", "Returned ", stamp(card.returnedAt)));
-    if (card.returnedAt && card.status === "borrowed_again") children.push(el("p", undefined, "Returned ", stamp(card.returnedAt), ", then borrowed again."));
+    const end = railEnd(card);
+    if (end) children.push(end);
     children.push(link(`Open key ${letter}`, cardPath(card.id), "button"));
     block.replaceChildren(...children);
   }
