@@ -5,12 +5,12 @@
 // the project stores nothing new; into another project it stores it all. A
 // phrasing over 2,000 characters, or a chunk over 2,000 phrasings, gets 413;
 // one dated more than a day ahead gets 400, as does anything but
-// { sourceId, text, time }. Another account's upload is a 404, and the logs
-// never hold a phrasing. It prints each step's checks and exits 1 if any
+// { sourceId, text, time }. Another account's upload is a 404, an API key
+// can upload as a session can, and the logs never hold a phrasing. It prints each step's checks and exits 1 if any
 // fails, naming the step.
 // Run: bun run check:uploads
 
-import { ApiError, readExport, type Phrasing, type Project, type Upload } from "@asked-before/sdk";
+import { ApiError, createClient, readExport, type Phrasing, type Project, type Upload } from "@asked-before/sdk";
 import { join } from "node:path";
 import { startApp } from "./lib/app";
 
@@ -185,7 +185,19 @@ try {
     check(response.status === 401, `no session: ${response.status}`);
   });
 
-  await step("9. The logs hold no phrasing", async () => {
+  await step("9. An API key uploads an export, as a script would", async () => {
+    const { key } = await ada.client.keys.create({ name: "Upload script" });
+    const script = createClient({ baseUrl: app.url, apiKey: key });
+    const read = await readExport(Bun.file(join(import.meta.dir, "..", "packages", "sdk", "fixtures", "claude.zip")));
+    const made = await script.uploads.create(bootcamp.id, { source: read.source, fileName: "claude.zip" });
+    await script.uploads.append(made.id, read.phrasings);
+    const finished = await script.uploads.finish(made.id);
+    check(finished.source === "claude" && finished.phrasings === 3 && finished.status === "waiting", `through the key: ${counts(finished)} from ${finished.source}`);
+    const listed = await script.uploads.list(bootcamp.id);
+    check(listed.uploads[0]?.id === made.id && (await script.uploads.get(made.id)).id === made.id, "and the key lists and gets it");
+  });
+
+  await step("10. The logs hold no phrasing", async () => {
     const log = app.log();
     const leaked = demo.phrasings.filter((p) => log.includes(p.text));
     check(log.includes("POST /api/v1/uploads/") && leaked.length === 0, `${log.split("\n").length} log lines, ${leaked.length} holding a phrasing`);
