@@ -5,9 +5,10 @@
 // action makes the demo project, labeled as demo data, whose stack shows
 // cards A to E in the key's order, with card A's phrasings word for word,
 // its count, its months, and a stamp per borrow, in the learner's own time
-// zone. Each card's status shows (read from the API's answers rewritten in
-// this script, since nothing can pass a rep before m1kuorg/basics#46).
-// Unsorted lists the key's one-offs a page at a time, and the upload
+// zone. Each card's status shows, after real cold reps through the API,
+// whose model answers are queued in this script: card A passes one, and
+// card B passes one, then a small export with a newer phrasing of its
+// skill makes it borrowed again. Unsorted lists the key's one-offs a page at a time, and the upload
 // history each upload's date, source, messages, and new ones. Deleting the
 // second of two uploads through the page, after its confirmation, removes
 // its borrows and any card left under two, as the key says, checked in the
@@ -17,14 +18,15 @@
 // if any check fails, naming the step.
 // Run: bun run check:project [screenshot dir]
 
-import { ApiError, createClient, type Card, type CardDetail, type Project, type Upload } from "@asked-before/sdk";
+import { ApiError, createClient, type Project, type Upload } from "@asked-before/sdk";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, type Page } from "playwright";
-import { allUnsorted, idList, key, keySorter, named, phrasings, sortEnds, upload } from "./lib/answer-key";
+import { allUnsorted, idList, key, named, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
-import { hold, reply, startModelStub } from "./lib/model-stub";
+import { hold, refuse, reply, startModelStub } from "./lib/model-stub";
+import { repReply, smallExport, sortsByKey, verdictReply } from "./lib/reps";
 
 const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-project");
 const FRAME = { width: 1920, height: 1080 };
@@ -38,7 +40,9 @@ const check = (ok: boolean, what: string) => {
 };
 
 await mkdir(OUT, { recursive: true });
-const model = await startModelStub(reply(keySorter));
+// Sorts as the key does, with any phrasing `also` names placed on its skill's card; a rep or check takes the answer a step queues.
+const also = new Map<string, string>();
+const model = await startModelStub(sortsByKey(refuse(), also));
 const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
 const browser = await chromium.launch();
 
@@ -178,21 +182,26 @@ try {
   });
 
   await step("2. Each card's status shows on the stack: borrowed, returned, and borrowed again told apart", async () => {
-    // Nothing can pass a cold rep until m1kuorg/basics#46, so the API's own answers are read here with card A
-    // returned and card B borrowed again, rewritten in this script, never in the app.
-    const RETURNED = "2026-10-16T12:00:00.000Z";
-    const AGAIN = "2026-01-02T12:00:00.000Z";
+    // Card A passes a cold rep; card B passes one, then a small export brings a newer phrasing of its skill.
     const [cardA, cardB] = await ada.client.cards.list(demo.id);
-    const status = (card: Card): Partial<Card> =>
-      card.id === cardA!.id ? { status: "returned", returnedAt: RETURNED } : card.id === cardB!.id ? { status: "borrowed_again", returnedAt: AGAIN } : {};
-    await page.route(`**/api/v1/projects/${demo.id}/cards`, async (route) => {
-      const { cards } = (await (await route.fetch()).json()) as { cards: Card[] };
-      await route.fulfill({ json: { cards: cards.map((card) => ({ ...card, ...status(card) })) } });
-    });
-    await page.route("**/api/v1/cards/*", async (route) => {
-      const card = (await (await route.fetch()).json()) as CardDetail;
-      await route.fulfill({ json: { ...card, ...status(card) } });
-    });
+    let stamped = "";
+    for (const card of [cardA!, cardB!]) {
+      model.queue(repReply("A problem of the card's skill.", "The card's lesson."), verdictReply("pass", "You did it."));
+      const { rep } = await ada.client.reps.start(card.id);
+      stamped = (await ada.client.reps.check(rep.id, { answer: "My own answer." })).card.returnedAt!;
+    }
+    // Asked a second after card B's return stamp: a borrow at the same moment would leave it returned.
+    const newer = "how do i put a div in the middle of the page with css";
+    also.set(newer, key.skills[1]!.name);
+    const read = await smallExport([{ text: newer, time: new Date(Date.parse(stamped) + 1000) }]);
+    const made = await ada.client.uploads.create(demo.id, { source: read.source, fileName: "conversations.json" });
+    await ada.client.uploads.append(made.id, read.phrasings);
+    await ada.client.uploads.finish(made.id);
+    await sortEnds(ada.client, made.id);
+    const [A, B] = await ada.client.cards.list(demo.id);
+    check(A?.status === "returned" && B?.status === "borrowed_again" && B.count === key.skills[1]!.count + 1, `the API has card A ${A?.status}, card B ${B?.status} with ${B?.count} borrows (its last borrow ${B?.lastBorrowAt}, after its return stamp ${B?.returnedAt})`);
+    const RETURNED = A!.returnedAt!;
+    const AGAIN = B!.returnedAt!;
     await page.goto(`${app.url}/app/projects/${demo.id}`);
     await page.locator(".block .end-rule").waitFor();
 
@@ -201,7 +210,7 @@ try {
     const said = await page.locator(".margin .margin-key").evaluateAll((all) => all.map((k) => k.textContent ?? ""));
     check(said[0]?.includes("returned") === true && said[1]?.includes("Borrowed again") === true && !/returned|again/i.test(said[2] ?? ""), `each key says its status: ${said.map((t, i) => `${String.fromCharCode(65 + i)} "${t}"`).join(", ")}`);
     check((await text(".block .plate span")) === "times borrowed, returned", `card A's plate says "${await text(".block .plate span")}"`);
-    check((await text(".block .end-rule")) === "Returned 2026-10-16", `its rail closes with "${await text(".block .end-rule")}"`);
+    check((await text(".block .end-rule")) === `Returned ${utcDate(RETURNED)}`, `its rail closes with "${await text(".block .end-rule")}"`);
     check((await page.evaluate(() => document.getAnimations().length)) === 0, "its keys are already seated, with no drop");
 
     await page.locator(".margin .margin-key").nth(1).click();
@@ -209,14 +218,13 @@ try {
     check((await text(".block .plate span")) === "times borrowed, borrowed again", `card B's plate says "${await text(".block .plate span")}"`);
     check((await page.locator(".block .end-rule").count()) === 0, "its rail has no end rule");
     const again = await text(".block .rail:last-of-type + p");
-    check(again === "Returned 2026-01-02, then borrowed again.", `under its rail: "${again}"`);
-    check((await page.evaluate(() => document.getAnimations().length)) === key.skills[1]!.count, "its keys drop again, since it needs a fresh cold rep");
+    check(again === `Returned ${utcDate(AGAIN)}, then borrowed again.`, `under its rail: "${again}"`);
+    check((await page.evaluate(() => document.getAnimations().length)) === key.skills[1]!.count + 1, "its keys drop again, since it needs a fresh cold rep");
     check(new URL(page.url()).searchParams.get("card") === cardB!.id, `the address keeps the chosen card (${new URL(page.url()).search})`);
 
     await page.locator(".margin .margin-key").nth(2).click();
     await page.locator(".block h1.skill", { hasText: key.skills[2]!.name }).waitFor();
     check((await text(".block .plate span")) === "times borrowed, not returned", `card C, borrowed, has a plate that says "${await text(".block .plate span")}"`);
-    await page.unrouteAll();
   });
 
   const ZONE = "Pacific/Kiritimati";
@@ -271,12 +279,13 @@ try {
     await page.locator(".margin").getByRole("link", { name: "Upload history" }).click();
     await page.locator(".block table.rows").waitFor();
     check((await text(".block h1")) === "Upload history" && new URL(page.url()).searchParams.get("view") === "uploads", `headed "${await text(".block h1")}", at ${new URL(page.url()).search}`);
-    const [only] = (await ada.client.uploads.list(demo.id)).uploads;
+    const [small, whole] = (await ada.client.uploads.list(demo.id)).uploads;
     const rows = await uploadRows();
-    check(rows.length === 1, `${rows.length} upload listed`);
-    const row = rows[0];
-    check(row?.date === utcDate(only!.createdAt) && row.source === "ChatGPT" && row.messages === "27" && row.added === "27", `it reads ${JSON.stringify(row)}`);
-    check(row?.href === `/app/projects/${demo.id}/upload?upload=${only!.id}`, `its date leads to the upload's own page (${row?.href})`);
+    check(rows.length === 2, `${rows.length} uploads listed: the demo export, then step 2's small export`);
+    const [newest, row] = rows;
+    check(newest?.source === "Claude" && newest.messages === "1" && newest.added === "1", `newest first, the small export reads ${JSON.stringify(newest)}`);
+    check(row?.date === utcDate(whole!.createdAt) && row.source === "ChatGPT" && row.messages === "27" && row.added === "27", `the demo export reads ${JSON.stringify(row)}`);
+    check(newest?.href === `/app/projects/${demo.id}/upload?upload=${small!.id}` && row?.href === `/app/projects/${demo.id}/upload?upload=${whole!.id}`, `each date leads to its upload's own page (${row?.href})`);
   });
 
   // The demo export in two halves, as two uploads: the second brings the rest of every card's borrows.
