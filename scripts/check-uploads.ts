@@ -91,7 +91,7 @@ try {
     for (let i = 0; i < demo.phrasings.length; i += 10) after = await ada.client.uploads.append(first.id, demo.phrasings.slice(i, i + 10));
     check(after.messages === 27 && after.phrasings === 27 && after.status === "receiving", `after three chunks it holds ${counts(after)}`);
     const again = await ada.client.uploads.append(first.id, demo.phrasings.slice(0, 5));
-    check(again.messages === 32 && again.phrasings === 27, `a chunk sent twice counts its messages again, but stores no phrasing twice: ${counts(again)}`);
+    check(again.messages === 27 && again.phrasings === 27, `a chunk sent twice counts no message twice, and stores no phrasing twice: ${counts(again)}`);
   });
 
   await step("3. Finish it: it waits to be sorted, and takes nothing more", async () => {
