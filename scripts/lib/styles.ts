@@ -3,7 +3,9 @@
 // a state and checks it against docs/DESIGN.md: the type floor, where
 // vermilion appears (in the markup and in the pixels), radius and shadow,
 // every color against the inks and the one ramp, contrast, at most one
-// plate, and no sideways scroll. Each surface's states live in their own
+// plate, ending inside the block's padding, and no sideways scroll; and, for
+// a waiting or error state, whether it keeps its plate (the Plate Holds
+// Rule). Each surface's states live in their own
 // module under scripts/styles/; see that folder's modules for the shape.
 
 import type { Client } from "@asked-before/sdk";
@@ -50,8 +52,12 @@ export type Kit = {
   page: (options?: PageOptions) => Promise<Page>;
   /** Goes to an app path and waits for the fonts and for the selector, when given. */
   open: (page: Page, path: string, selector?: string) => Promise<void>;
-  /** Saves `<name>.png`, measures the page as it stands, and checks it against the rules. */
-  shoot: (page: Page, name: string, options?: { fullPage?: boolean }) => Promise<void>;
+  /**
+   * Saves `<name>.png`, measures the page as it stands, and checks it against the rules. Give a waiting or
+   * error state `plate`: true once the screen has its count, so the plate holds; false while it waits for
+   * that count, or failed to get it, so there's no plate to hold (docs/DESIGN.md's Plate Holds Rule).
+   */
+  shoot: (page: Page, name: string, options?: { fullPage?: boolean; plate?: boolean }) => Promise<void>;
   check: (ok: boolean, what: string) => void;
   /** Where the screenshots go. */
   out: string;
@@ -99,12 +105,12 @@ export function makeKit({
     await target.evaluate(() => document.fonts.ready.then(() => undefined));
   };
 
-  const shoot = async (target: Page, name: string, { fullPage = false } = {}) => {
+  const shoot = async (target: Page, name: string, { fullPage = false, plate }: { fullPage?: boolean; plate?: boolean } = {}) => {
     scratch ??= await (await browser.newContext()).newPage();
     const png = await target.screenshot({ path: join(out, `${name}.png`), fullPage });
     const measured = await target.evaluate(audit);
     const pixels = await strayVermilion(scratch, png, measured.allowedRects);
-    results.push(report(check, name, measured, pixels));
+    results.push(report(check, name, measured, pixels, plate));
   };
 
   return { app, model, browser, learner, page, open, shoot, check, out };
@@ -118,6 +124,8 @@ type Audit = {
   shapes: string[];
   colors: string[];
   plates: number;
+  /** How far the plate's foot runs past the inside of its block's bottom padding, in pixels; null with no plate in a block. */
+  plateOvershoot: number | null;
   overflow: boolean;
   allowedRects: { x: number; y: number; w: number; h: number }[];
 };
@@ -149,7 +157,7 @@ function audit(): Audit {
   // Read by assistive technology only: never drawn, so never measured.
   const hidden = (el: Element) => el.closest(".visually-hidden") !== null;
 
-  const result: Audit = { texts: [], vermilion: [], shapes: [], colors: [], plates: 0, overflow: false, allowedRects: [] };
+  const result: Audit = { texts: [], vermilion: [], shapes: [], colors: [], plates: 0, plateOvershoot: null, overflow: false, allowedRects: [] };
   const colors = new Set<string>();
   const all = [...document.querySelectorAll("body *")].filter((el) => !hidden(el));
 
@@ -216,6 +224,13 @@ function audit(): Audit {
   }
   result.colors = [...colors];
   result.plates = document.querySelectorAll(".plate").length;
+  const plate = document.querySelector(".plate");
+  const block = plate?.closest(".block");
+  if (plate && block) {
+    const cs = getComputedStyle(block);
+    const inside = block.getBoundingClientRect().bottom - parseFloat(cs.borderBottomWidth) - parseFloat(cs.paddingBottom);
+    result.plateOvershoot = Math.round(plate.getBoundingClientRect().bottom - inside);
+  }
   result.overflow = document.documentElement.scrollWidth > window.innerWidth;
   return result;
 }
@@ -249,7 +264,7 @@ async function strayVermilion(scratch: Page, png: Buffer, rects: Audit["allowedR
   );
 }
 
-function report(check: Kit["check"], name: string, measured: Audit, pixels: { red: number; stray: number }): Result {
+function report(check: Kit["check"], name: string, measured: Audit, pixels: { red: number; stray: number }, plate?: boolean): Result {
   const min = (roles: string[]) => Math.min(...measured.texts.filter((t) => roles.includes(t.role)).map((t) => t.size), Infinity);
   const body = min(["body", "display", "count"]);
   const label = min(["label", "apparatus"]);
@@ -264,6 +279,9 @@ function report(check: Kit["check"], name: string, measured: Audit, pixels: { re
   check(oneOffs.length === 0, `${name}: every color is an ink or a ramp step${oneOffs.length ? ` (also ${oneOffs.join(", ")})` : ""}`);
   check(lowContrast.length === 0, `${name}: text contrast at least 4.5:1${lowContrast.length ? ` (${lowContrast.map((t) => `${t.where} ${t.contrast.toFixed(2)}`).join(", ")})` : ""}`);
   check(measured.plates <= 1, `${name}: at most one plate (${measured.plates})`);
+  if (measured.plateOvershoot !== null) check(measured.plateOvershoot <= 0, `${name}: the plate ends inside the block's padding (${measured.plateOvershoot}px past it)`);
+  if (plate === true) check(measured.plates === 1, `${name}: the plate holds, since the screen has its count (${measured.plates} plates)`);
+  if (plate === false) check(measured.plates === 0, `${name}: no plate, since the screen is still without its count (${measured.plates} plates)`);
   check(!measured.overflow, `${name}: no sideways scroll`);
   return { name, body, label };
 }

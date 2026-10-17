@@ -336,7 +336,8 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
         details.set(card.id, detail);
         if (chosen === card.id && !signal.aborted) showCard(detail, keyLetter(index));
       } catch (error) {
-        if (chosen === card.id && !signal.aborted) block.replaceChildren(el("h1", "skill", card.skill), ...failure(error, () => void choose(card, index)));
+        // The stack's list already counts the card's borrows, so its plate holds over the error.
+        if (chosen === card.id && !signal.aborted) block.replaceChildren(el("h1", "skill", card.skill), plate(card.count, PLATE_CAPTION[card.status]), ...failure(error, () => void choose(card, index)));
       }
     }
   }

@@ -1,11 +1,14 @@
 // The upload page's states (public/styles/upload.css; m1kuorg/basics#43), on
-// the real page: the drop zone with the instructions in the margin; a
+// the real page: waiting for the project, and failing to get it (its request
+// held and answered here), with no plate, since nothing is counted yet; the
+// drop zone with the instructions in the margin; a
 // Claude export's preview, with a message skipped for length; sending, and
 // a failed chunk with its retry (the chunk held and answered here, never in
 // the app); the finished upload, and its sort under way, failed with a
 // retry, and done (the upload's own answer rewritten here, never in the
-// app; m1kuorg/basics#44); a file that can't be read; and the preview on a
-// narrow screen.
+// app; m1kuorg/basics#44), every one of them keeping the plate of what it
+// counts; a file that can't be read, with no plate, since it counts nothing;
+// and the preview on a narrow screen.
 
 import { join } from "node:path";
 import type { Upload } from "@asked-before/sdk";
@@ -22,6 +25,21 @@ export default async function upload(kit: Kit) {
   const at = `/app/projects/${project.id}/upload`;
   const page = await kit.page({ loggedIn: true });
   const uploadButton = page.locator(".block").getByRole("button", { name: /^Upload / });
+
+  // Waiting for the project, then failing to get it, with its request held and answered here.
+  let releaseProject = () => {};
+  const projectHeld = new Promise<void>((resolve) => (releaseProject = resolve));
+  const projectFails = async (route: Route) => {
+    await projectHeld;
+    await route.fulfill({ status: 500, json: { error: "The server failed." } });
+  };
+  await page.route(`**/api/v1/projects/${project.id}`, projectFails);
+  await kit.open(page, at, ".block .is-waiting");
+  await kit.shoot(page, "upload-waiting", { plate: false });
+  releaseProject();
+  await page.locator(".block .error").waitFor();
+  await kit.shoot(page, "upload-load-failed", { plate: false });
+  await page.unroute(`**/api/v1/projects/${project.id}`, projectFails);
 
   await kit.open(page, at, ".drop-zone");
   await kit.shoot(page, "upload");
@@ -40,10 +58,10 @@ export default async function upload(kit: Kit) {
   await page.route("**/api/v1/uploads/*/phrasings", fail);
   await uploadButton.click();
   await page.locator(".block .is-waiting").waitFor();
-  await kit.shoot(page, "upload-sending");
+  await kit.shoot(page, "upload-sending", { plate: true });
   release();
   await page.locator(".block .error").waitFor();
-  await kit.shoot(page, "upload-failed");
+  await kit.shoot(page, "upload-failed", { plate: true });
   await page.unroute("**/api/v1/uploads/*/phrasings", fail);
   await page.getByRole("button", { name: "Try again" }).click();
   await page.locator(".block .upload-done").waitFor();
@@ -52,21 +70,21 @@ export default async function upload(kit: Kit) {
   check(sent?.phrasings === 3, `the retried upload holds ${sent?.phrasings} phrasings`);
 
   // The sort's states: the page reads the upload as each one, whatever the real sort is doing.
-  const as = async (state: Partial<Upload>, name: string, selector: string) => {
+  const as = async (state: Partial<Upload>, name: string, selector: string, plate?: boolean) => {
     const pattern = `**/api/v1/uploads/${sent!.id}`;
     await page.route(pattern, async (route) => route.fulfill({ json: { ...(await (await route.fetch()).json()), ...state } }));
     await kit.open(page, `${at}?upload=${sent!.id}`, selector);
-    await kit.shoot(page, name);
+    await kit.shoot(page, name, { plate });
     await page.unroute(pattern);
   };
-  await as({ status: "sorting", offered: 1 }, "upload-sorting", ".block .is-waiting");
-  await as({ status: "failed", offered: 1, error: "The model request failed (502)." }, "upload-sort-failed", ".block .error");
+  await as({ status: "sorting", offered: 1 }, "upload-sorting", ".block .is-waiting", true);
+  await as({ status: "failed", offered: 1, error: "The model request failed (502)." }, "upload-sort-failed", ".block .error", true);
   await as({ status: "sorted", offered: 3, error: null }, "upload-sorted", ".block .upload-done p + p");
 
   await kit.open(page, at, ".drop-zone");
   await page.locator(".drop-zone input[type=file]").setInputFiles({ name: "photo.png", mimeType: "image/png", buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47]) });
   await page.locator(".block .error").waitFor();
-  await kit.shoot(page, "upload-unreadable");
+  await kit.shoot(page, "upload-unreadable", { plate: false });
 
   const narrow = await kit.page({ loggedIn: true, viewport: { width: 390, height: 844 } });
   await kit.open(narrow, at, ".drop-zone");
