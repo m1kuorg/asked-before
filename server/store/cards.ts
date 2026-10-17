@@ -3,8 +3,9 @@
 // number. Every query joins up to the project's owner, so another account's
 // project or card reads as missing.
 
-import type { Borrow, Card, CardDetail, Rep, UnsortedPage } from "@asked-before/sdk";
+import type { Borrow, Card, CardDetail, UnsortedPage } from "@asked-before/sdk";
 import { db, iso } from "./db";
+import { REP_COLUMNS, toRep, type RepRow } from "./reps";
 
 type CardRow = {
   id: string;
@@ -50,28 +51,21 @@ export function listCards(userId: string, projectId: string): Card[] | null {
   return rows.map(toCard);
 }
 
+const cardRow = (userId: string, cardId: string) => db.query(`${SELECT} WHERE c.id = $cardId AND p.user_id = $userId`).get({ userId, cardId }) as CardRow | null;
+
+/** One card with its status, as a list shows it; or null when the account has no such card. */
+export function findCard(userId: string, cardId: string): Card | null {
+  const row = cardRow(userId, cardId);
+  return row && toCard(row);
+}
+
 /** One card with its lesson, its borrows oldest first, and its reps oldest first; or null when the account has no such card. */
 export function getCard(userId: string, cardId: string): CardDetail | null {
-  const row = db.query(`${SELECT} WHERE c.id = $cardId AND p.user_id = $userId`).get({ userId, cardId }) as CardRow | null;
+  const row = cardRow(userId, cardId);
   if (!row) return null;
   const borrows = db.query("SELECT id, source_id, text, time FROM phrasings WHERE card_id = $cardId ORDER BY time, id").all({ cardId }) as PhrasingRow[];
-  const reps = db
-    .query("SELECT id, problem, answer, verdict, reason, created_at, checked_at FROM reps WHERE card_id = $cardId ORDER BY created_at, id")
-    .all({ cardId }) as { id: string; problem: string; answer: string | null; verdict: Rep["verdict"]; reason: string | null; created_at: number; checked_at: number | null }[];
-  return {
-    ...toCard(row),
-    lesson: row.lesson,
-    borrows: borrows.map(toBorrow),
-    reps: reps.map((r) => ({
-      id: r.id,
-      problem: r.problem,
-      answer: r.answer,
-      verdict: r.verdict,
-      reason: r.reason,
-      createdAt: iso(r.created_at),
-      checkedAt: r.checked_at === null ? null : iso(r.checked_at),
-    })),
-  };
+  const reps = db.query(`SELECT ${REP_COLUMNS} FROM reps WHERE card_id = $cardId ORDER BY created_at, id`).all({ cardId }) as RepRow[];
+  return { ...toCard(row), lesson: row.lesson, borrows: borrows.map(toBorrow), reps: reps.map(toRep) };
 }
 
 /**

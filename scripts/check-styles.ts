@@ -42,7 +42,7 @@ const results: Result[] = [];
 try {
   const session = app.browser();
   await session.client.auth.signUp(LEARNER);
-  const kit = makeKit({ app, browser, learner: { ...LEARNER, ...session }, out: OUT, check, results });
+  const kit = makeKit({ app, model, browser, learner: { ...LEARNER, ...session }, out: OUT, check, results });
 
   const files = [...new Bun.Glob("*.ts").scanSync(SURFACES)].sort();
   for (const file of files) {

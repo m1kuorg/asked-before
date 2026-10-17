@@ -1,12 +1,13 @@
 // A demo export (demo/), read by the SDK's export reader into the proof of
-// concept's message shape (src/types.ts), for the checks that still use its
-// card builder and model routes until m1kuorg/basics#44 and #46 retire them:
-// ids m1, m2, … in export order, as the answer key names them, each with
-// its conversation's id and its time in Unix seconds.
+// concept's message shape, for check:key, which checks the answer key
+// against the export: ids m1, m2, … in export order, as the answer key
+// names them, each with its conversation's id and its time in Unix seconds.
 
 import { readExport } from "@asked-before/sdk";
 import { join } from "node:path";
-import type { Message } from "../../src/types";
+
+/** One of your own messages. `time` is Unix seconds. */
+export type Message = { id: string; conversationId: string; text: string; time: number };
 
 const DEMO = join(import.meta.dir, "..", "..", "demo");
 
