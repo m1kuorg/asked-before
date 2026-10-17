@@ -150,8 +150,14 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
         void attempt();
       }
 
-      /** A finished upload: how many of its messages were new, and where its sort stands, watched until it ends. */
+      /** A finished upload: where its sort stands, watched until it ends. */
       function done(upload: Upload) {
+        show(upload, ...standing(upload));
+        if (upload.status === "waiting" || upload.status === "sorting") setTimeout(() => void watch(upload), WATCH_MS);
+      }
+
+      /** A finished upload, how many of its messages were new, and then `lines`. */
+      function show(upload: Upload, ...lines: Node[]) {
         const already = upload.messages - upload.phrasings;
         const said =
           upload.phrasings > 0
@@ -159,14 +165,9 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
             : upload.messages === 1
               ? `The one message in ${upload.fileName} was in ${project.name} already, so nothing new was added.`
               : `All ${count(upload.messages)} of your messages in ${upload.fileName} were in ${project.name} already, so nothing new was added.`;
-        show(upload, el("p", undefined, said), ...standing(upload));
-        if (upload.status === "waiting" || upload.status === "sorting") setTimeout(() => void watch(upload), WATCH_MS);
-      }
-
-      function show(upload: Upload, ...lines: Node[]) {
         draw(
           plate(count(upload.phrasings), upload.phrasings === 1 ? "new phrasing" : "new phrasings"),
-          el("section", "upload-done", ...lines),
+          el("section", "upload-done", el("p", undefined, said), ...lines),
           el("div", "actions", link(`Go to ${project.name}`, projectPath(project.id), "button"), link("Upload another export", uploadPath(project.id), "button secondary")),
         );
       }
