@@ -46,7 +46,7 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `src/app/` | The app page: its entry, its SDK client, the router, the route table, and the top navigation | m1kuorg/basics#42 |
 | `src/screens/<screen>.ts` | One module per app screen | See [the app page](#the-app-page) |
 | `src/parts/` | The shared parts every screen composes | m1kuorg/basics#42; see [shared parts](#shared-parts) |
-| `src/pages/` | The public pages' scripts: log in and sign up | m1kuorg/basics#42; a landing page script would be m1kuorg/basics#52's |
+| `src/pages/` | The public pages' scripts: log in and sign up; the landing page (`landing.ts`), and `demo-card.ts`, a Bun macro that reads card A of the demo export when the pages are bundled, so the page's script carries that one card and never the answer key | m1kuorg/basics#42; `landing.ts` and `demo-card.ts` are m1kuorg/basics#52's |
 | `src/cards.ts`, `src/types.ts` | The proof of concept's card builder and request shapes, which its rep and check routes, `check:cards`, and the stack and rep styles samples still use | See [proof-of-concept leftovers](#proof-of-concept-leftovers) |
 | `packages/sdk/src/client.ts` | `createClient()`, which composes the areas | m1kuorg/basics#41 |
 | `packages/sdk/src/http.ts` | The request function, `ApiError`, and the `path` tag | m1kuorg/basics#41 |
@@ -69,6 +69,7 @@ The repo is a Bun workspace: the app at the root, and `packages/sdk` and `packag
 | `scripts/check-sort-rules.ts` | `bun run check:sort-rules`: the sort's rules and the cards endpoints through the SDK, with the model stubbed | m1kuorg/basics#44 |
 | `scripts/check-sort-page.ts` | `bun run check:sort-page`: the upload page's sort states in a real browser, with the model stubbed | m1kuorg/basics#44 |
 | `scripts/check-settings.ts` | `bun run check:settings`: API keys and the account through the SDK, then the settings page in a real browser | m1kuorg/basics#48 |
+| `scripts/check-landing.ts` | `bun run check:landing`: the landing page's card against the answer key, its sections, and signing up and logging in from it, in a real browser | m1kuorg/basics#52 |
 | `scripts/check-styles.ts`, `scripts/lib/styles.ts` | `bun run check:styles` and its kit | m1kuorg/basics#42 |
 | `scripts/styles/<surface>.ts` | One styles-check module per surface | Each surface's ticket; see [check scripts](#check-scripts) |
 
@@ -215,7 +216,7 @@ The three tickets that run in parallel after m1kuorg/basics#42 touch none of the
 | --- | --- |
 | m1kuorg/basics#43, upload | `src/screens/upload.ts`, `public/styles/upload.css`, `scripts/styles/upload.ts` if it checks styles, its check script, and its own SDK and server files |
 | m1kuorg/basics#48, settings | `src/screens/settings.ts`, `public/styles/settings.css`, `scripts/styles/settings.ts`, its check script, and its own SDK and server files |
-| m1kuorg/basics#52, landing | `public/index.html`, `public/styles/landing.css`, a new `src/pages/landing.ts` if the page needs a script, `scripts/styles/landing.ts` |
+| m1kuorg/basics#52, landing | `public/index.html`, `public/styles/landing.css`, `src/pages/landing.ts`, `src/pages/demo-card.ts`, `scripts/styles/landing.ts`, `scripts/check-landing.ts` |
 
 Each uses the shared parts and `PRIVACY_LINE` as they are. A change a part needs is a small edit to that part's own module; say so in the PR, since another ticket may use it too. The landing page links `stack.css` to set a real card on the rail.
 

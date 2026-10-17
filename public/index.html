@@ -4,14 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Asked Before</title>
+    <meta name="description" content="Asked Before turns the questions you keep asking a chatbot into library cards, and won't stamp a card returned until you pass a cold rep without AI." />
     <link rel="stylesheet" href="./styles/base.css" />
     <link rel="stylesheet" href="./styles/shell.css" />
     <link rel="stylesheet" href="./styles/parts.css" />
+    <link rel="stylesheet" href="./styles/stack.css" />
     <link rel="stylesheet" href="./styles/landing.css" />
   </head>
   <body>
     <nav aria-label="Asked Before">
-      <a class="nav-name" href="/">Asked Before</a>
+      <a class="nav-name" href="/" aria-current="page">Asked Before</a>
       <ul>
         <li><a class="nav-item" href="/docs">Docs</a></li>
       </ul>
@@ -20,15 +22,7 @@
         <a class="button" href="/signup">Sign up</a>
       </div>
     </nav>
-    <div id="app" data-screen="landing">
-      <main class="block">
-        <h1>Asked Before</h1>
-        <p>Asked Before turns the questions you keep asking a chatbot into library cards, and won't stamp a card returned until you pass a cold rep without AI.</p>
-        <div class="actions">
-          <a class="button" href="/signup">Sign up</a>
-          <a class="button secondary" href="/login">Log in</a>
-        </div>
-      </main>
-    </div>
+    <div id="app" data-screen="landing"></div>
+    <script type="module" src="../src/pages/landing.ts"></script>
   </body>
 </html>

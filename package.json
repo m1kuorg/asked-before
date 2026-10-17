@@ -13,6 +13,7 @@
     "check:uploads": "bun run scripts/check-uploads.ts",
     "check:upload-page": "bun run scripts/check-upload-page.ts",
     "check:settings": "bun run scripts/check-settings.ts",
+    "check:landing": "bun run scripts/check-landing.ts",
     "check:key": "bun run scripts/check-answer-key.ts",
     "check:cards": "bun run scripts/check-cards.ts",
     "check:styles": "bun run scripts/check-styles.ts",
