@@ -1,0 +1,12 @@
+{
+  "name": "asked-before",
+  "description": "The Asked Before plugin for Claude Code",
+  "owner": { "name": "kymil4", "url": "https://github.com/kymil4" },
+  "plugins": [
+    {
+      "name": "asked-before",
+      "source": "./plugins/asked-before",
+      "description": "Records the how-to questions you ask Claude Code onto your Asked Before library cards, and runs cold reps on them in the chat. Needs Node.js 20 or later."
+    }
+  ]
+}
