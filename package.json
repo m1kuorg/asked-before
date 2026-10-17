@@ -30,7 +30,9 @@
     "check:dashboard": "bun run scripts/check-dashboard.ts",
     "check:plugin": "bun run scripts/check-plugin.ts",
     "check:docs": "bun run scripts/check-docs.ts",
-    "build:plugin": "bun run scripts/build-plugin.ts"
+    "check:sdk": "bun run scripts/check-sdk.ts",
+    "build:plugin": "bun run scripts/build-plugin.ts",
+    "build:sdk": "bun run --cwd packages/sdk build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",

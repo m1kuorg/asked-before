@@ -4,9 +4,9 @@
 // projects' own counts. Plain numbers and lists only: no charts, streaks,
 // or scores.
 
-import type { Borrow, Card, CardStatus } from "./cards";
-import type { Requester } from "./http";
-import type { Project } from "./projects";
+import type { Borrow, Card, CardStatus } from "./cards.ts";
+import type { Requester } from "./http.ts";
+import type { Project } from "./projects.ts";
 
 /** The project a card or borrow is in. A demo project is labeled as demo data wherever it shows. */
 export type DashboardProject = Pick<Project, "id" | "name" | "demo">;

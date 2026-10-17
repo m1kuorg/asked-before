@@ -2,12 +2,12 @@
 // download all your data, and delete the account (m1kuorg/basics#49). All of
 // them need a session, not an API key.
 
-import type { Account } from "./auth";
-import type { Borrow, Card } from "./cards";
-import type { Requester } from "./http";
-import type { Project } from "./projects";
-import type { Rep } from "./reps";
-import type { Upload } from "./uploads";
+import type { Account } from "./auth.ts";
+import type { Borrow, Card } from "./cards.ts";
+import type { Requester } from "./http.ts";
+import type { Project } from "./projects.ts";
+import type { Rep } from "./reps.ts";
+import type { Upload } from "./uploads.ts";
 
 /** The name, the email, or both. */
 export type AccountChange = { name?: string; email?: string };

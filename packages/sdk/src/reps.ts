@@ -7,8 +7,8 @@
 // checking one after a newer rep on its card has started. A card's reps
 // also come with the card (cards.get).
 
-import type { Card } from "./cards";
-import { path, type Requester } from "./http";
+import type { Card } from "./cards.ts";
+import { path, type Requester } from "./http.ts";
 
 /** A cold rep on a card: its problem, and once checked, your answer, the verdict, and the reason. */
 export type Rep = {
