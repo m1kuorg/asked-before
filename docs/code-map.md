@@ -120,7 +120,7 @@ Every endpoint is under `/api/v1`, and every one is built (captures, m1kuorg/bas
 | Account | `DELETE /account`, session only, with `{ password }`: a wrong one is a 403. Deletes everything in the account and ends every session, clearing this one's cookie | `account.delete` | m1kuorg/basics#49 |
 | API keys | `GET /keys`, `POST /keys`, `DELETE /keys/:keyId`, session only | `keys.list`, `keys.create`, `keys.revoke` | m1kuorg/basics#48 |
 | Projects | `GET /projects`, `POST /projects` | `projects.list`, `projects.create` | m1kuorg/basics#41 |
-| Projects | `GET /projects/:projectId`, `PATCH /projects/:projectId` | `projects.get`, `projects.rename` | m1kuorg/basics#41 |
+| Projects | `GET /projects/:projectId`; `PATCH /projects/:projectId`, session only | `projects.get`, `projects.rename` | m1kuorg/basics#41 |
 | Projects | `DELETE /projects/:projectId`, session only | `projects.delete` | m1kuorg/basics#41 |
 | Uploads | `GET /projects/:projectId/uploads`, `POST /projects/:projectId/uploads` | `uploads.list`, `uploads.create` | m1kuorg/basics#43 |
 | Uploads | `GET /uploads/:uploadId`, `POST /uploads/:uploadId/phrasings`, `POST /uploads/:uploadId/finish` | `uploads.get`, `uploads.append`, `uploads.finish` | m1kuorg/basics#43 |
@@ -137,7 +137,7 @@ Collections sit under their parent and single items stand alone, so `/uploads/:u
 
 ## Adding an endpoint
 
-1. In `server/api/<area>.ts`, add a handler wrapped in `authed()`. Add `{ sessionOnly: true }` for anything a key can't do: deleting, exporting, keys, and the account. `req.params` is typed from the path.
+1. In `server/api/<area>.ts`, add a handler wrapped in `authed()`. Add `{ sessionOnly: true }` for anything a key can't do: renaming, deleting, exporting, keys, and the account. `req.params` is typed from the path.
 1. Read the body with `readJson(req, schema)`, a zod schema with a message per field, which answers 400 with the first one. Throw `HttpError(status, message)` for any other failure. A message is shown to the caller, so it never holds phrasing text.
 1. Put the SQL in `server/store/<area>.ts`, scoped by `auth.userId`, and return the SDK's types. Nothing outside `server/store/` imports `db`.
 1. Add the methods and their types to `packages/sdk/src/<area>.ts`; the server's answers use `satisfies` with those types.

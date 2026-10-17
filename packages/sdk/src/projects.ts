@@ -1,6 +1,6 @@
 // Projects: list, create, get, rename, and delete (m1kuorg/basics#41).
-// Deleting a project deletes everything in it, and needs a session, not an
-// API key.
+// Renaming a project, and deleting it with everything in it, need a
+// session, not an API key.
 
 import { path, type Requester } from "./http.ts";
 
@@ -22,6 +22,7 @@ export const projects = (request: Requester) => ({
   list: () => request<{ projects: Project[] }>("GET", "/projects").then((body) => body.projects),
   create: (input: NewProject) => request<Project>("POST", "/projects", input),
   get: (projectId: string) => request<Project>("GET", path`/projects/${projectId}`),
+  /** Needs a session: an API key gets 403. */
   rename: (projectId: string, name: string) => request<Project>("PATCH", path`/projects/${projectId}`, { name }),
   delete: (projectId: string) => request<void>("DELETE", path`/projects/${projectId}`),
 });
