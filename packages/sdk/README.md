@@ -81,7 +81,7 @@ The client has one group of methods per area of the API: `auth`, `account`, `key
 
 A list comes back as an array, such as `Project[]`. A list that can grow without bound, `uploads.list` or `cards.unsorted`, comes a page at a time, newest first: pass `{ limit, cursor }`, with the `next` of the page before as the cursor, until `next` is null.
 
-An API key can read projects, cards, uploads, and the dashboard, and make projects, uploads, captures, and cold reps. Deleting anything, downloading your data, managing keys, and changing the account need a session, so a key gets 403 there.
+An API key can read projects, cards, uploads, and the dashboard, and make projects, uploads, captures, and cold reps. Renaming a project, deleting anything, downloading your data, managing keys, and changing the account need a session, so a key gets 403 there.
 
 ## Errors
 

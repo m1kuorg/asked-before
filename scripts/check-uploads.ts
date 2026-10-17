@@ -7,15 +7,17 @@
 // so no sort reaches the real model. Uploading the same export again into
 // the project stores nothing new; into another project it stores it all. A
 // phrasing over 2,000 characters, or a chunk over 2,000 phrasings, gets 413;
-// one dated more than a day ahead gets 400, as does anything but
+// one dated more than 5 minutes after the server's clock gets 400, as does anything but
 // { sourceId, text, time }. Another account's upload is a 404, an API key
-// can upload as a session can, and the logs never hold a phrasing. It prints each step's checks and exits 1 if any
-// fails, naming the step.
+// can upload as a session can, an upload left unfinished strands none of
+// its phrasings when the export is uploaded again, and the logs never hold
+// a phrasing. It prints each step's checks and exits 1 if any fails, naming
+// the step.
 // Run: bun run check:uploads
 
 import { ApiError, createClient, readExport, type Phrasing, type Project, type Upload } from "@asked-before/sdk";
 import { join } from "node:path";
-import { keySorter } from "./lib/answer-key";
+import { compareWithKey, keySorter, sortEnds } from "./lib/answer-key";
 import { startApp } from "./lib/app";
 import { reply, startModelStub } from "./lib/model-stub";
 
@@ -56,7 +58,7 @@ const counts = (u: Upload) => `${u.status}, ${u.messages} messages, ${u.phrasing
 const ada = app.browser();
 const bea = app.browser();
 const demo = await readExport(Bun.file(join(import.meta.dir, "..", "demo", "export.json")));
-const HOUR = 60 * 60 * 1000;
+const MINUTE = 60 * 1000;
 const at = (ms: number) => new Date(ms).toISOString();
 const phrasing = (sourceId: string, text = "how do i undo my last git commit", time = "2026-01-02T03:04:05.000Z"): Phrasing => ({ sourceId, text, time });
 
@@ -130,12 +132,12 @@ try {
     check(full.phrasings === 2001, `a chunk of 2,000 is stored: ${counts(full)}`);
   });
 
-  await step("6. A phrasing dated more than a day ahead, or shaped otherwise, gets 400", async () => {
+  await step("6. A phrasing dated more than 5 minutes after the server's clock, or shaped otherwise, gets 400", async () => {
     const open = await ada.client.uploads.create(work.id, { source: "chatgpt", fileName: "conversations.json" });
-    const ahead = await failure(ada.client.uploads.append(open.id, [phrasing("ahead-1", "a question", at(Date.now() + 25 * HOUR))]));
-    check(ahead?.status === 400, `25 hours ahead: ${say(ahead)}`);
-    const soon = await ada.client.uploads.append(open.id, [phrasing("ahead-2", "a question", at(Date.now() + 23 * HOUR))]);
-    check(soon.phrasings === 1, `23 hours ahead is stored (a clock can run fast): ${counts(soon)}`);
+    const ahead = await failure(ada.client.uploads.append(open.id, [phrasing("ahead-1", "a question", at(Date.now() + 6 * MINUTE))]));
+    check(ahead?.status === 400, `6 minutes ahead: ${say(ahead)}`);
+    const soon = await ada.client.uploads.append(open.id, [phrasing("ahead-2", "a question", at(Date.now() + 4 * MINUTE))]);
+    check(soon.phrasings === 1, `4 minutes ahead is stored (a clock can run a little fast): ${counts(soon)}`);
     const send = (body: unknown) => fetch(`${app.url}/api/v1/uploads/${open.id}/phrasings`, {
       method: "POST",
       headers: { "content-type": "application/json", origin: app.url, cookie: ada.cookie() },
@@ -204,7 +206,23 @@ try {
     check(listed.uploads[0]?.id === made.id && (await script.uploads.get(made.id)).id === made.id, "and the key lists and gets it");
   });
 
-  await step("10. The logs hold no phrasing", async () => {
+  await step("10. An upload left unfinished strands nothing: uploading the export again sorts what it held", async () => {
+    const side = await ada.client.projects.create({ name: "Side project" });
+    const left = await ada.client.uploads.create(side.id, { source: "chatgpt", fileName: "conversations.json" });
+    await ada.client.uploads.append(left.id, demo.phrasings.slice(0, 10));
+    // The tab closed before it finished, so the learner uploads the export again.
+    const again = await upload(side, demo.phrasings);
+    check(again.messages === 27 && again.phrasings === 27, `the new upload takes all 27 to sort: ${counts(again)}`);
+    const unfinished = await ada.client.uploads.get(left.id);
+    check(unfinished.status === "receiving" && unfinished.messages === 10 && unfinished.phrasings === 0, `the unfinished one keeps none of them: ${counts(unfinished)}`);
+    const sorted = await sortEnds(ada.client, again.id);
+    check(sorted.status === "sorted" && sorted.offered === 27, `its sort ends ${sorted.status}, ${sorted.offered} of ${sorted.phrasings} offered`);
+    const { lines, problems } = await compareWithKey(ada.client, side.id);
+    for (const line of lines) console.log(line);
+    check(problems.length === 0, `each phrasing is on its card or unsorted, counted once, as the key says${problems.length ? `: ${problems.join("; ")}` : ""}`);
+  });
+
+  await step("11. The logs hold no phrasing", async () => {
     const log = app.log();
     const leaked = demo.phrasings.filter((p) => log.includes(p.text));
     check(log.includes("POST /api/v1/uploads/") && leaked.length === 0, `${log.split("\n").length} log lines, ${leaked.length} holding a phrasing`);

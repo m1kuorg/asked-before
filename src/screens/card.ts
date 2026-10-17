@@ -10,31 +10,24 @@
 //
 // Opening a card takes its rep up where it stands: an open rep (the latest,
 // unchecked) is shown again, after the reason of a failed one before it;
-// otherwise a fresh rep starts. The card's first rep brings the lesson; a
-// failed rep shows its reason and the lesson again, then a different
-// problem; a pass stamps the card returned on the day it passed, and leads
-// back to the stack. Every model wait has its waiting line, and every
-// failure its error and a retry of the same request; the answer stays
-// locked while it's checked, so a retry checks what's on screen.
+// otherwise the card shows with Take a cold rep, which starts a fresh one,
+// so opening a card to look at it spends no model request. The card's
+// first rep brings the lesson; a failed rep shows its reason and the lesson
+// again, then a different problem; a pass stamps the card returned on the
+// day it passed, and leads back to the stack. Every model wait has its
+// waiting line, and every failure its error and a retry of the same
+// request; the answer stays locked while it's checked, so a retry checks
+// what's on screen.
 
 import type { CardDetail, Project, Rep } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
-import { months, PLATE_CAPTION, rails } from "../parts/card";
-import { button, el, link, type Child } from "../parts/dom";
+import { borrowedAgain, flagged, months, PLATE_CAPTION, railEnd, rails } from "../parts/card";
+import { button, el, link } from "../parts/dom";
 import { failure, frame, load, plate, waiting } from "../parts/frame";
 import { demoLabel, privacyLine, stamp } from "../parts/library";
 import { rows } from "../parts/rows";
 
 const projectPath = (projectId: string) => `/app/projects/${encodeURIComponent(projectId)}`;
-
-/**
- * Text with each command flag (`-m`, `--soft`) in a bare span, so the
- * stylesheet keeps the flag on one line. The split's capture group puts
- * the flags at the odd indexes.
- */
-function flagged(text: string): Child[] {
-  return text.split(/((?<![\w-])--?\w[\w-]*)/).map((part, i) => (i % 2 ? el("span", undefined, part) : part));
-}
 
 /** A titled section whose text keeps the model's line breaks as paragraphs. */
 function section(className: string, title: string, text: string): HTMLElement {
@@ -92,24 +85,19 @@ export function mountCard(root: HTMLElement, { client, params, navigate, signal 
     const failedBefore = lastChecked?.verdict === "fail" ? lastChecked : null;
     const open = card.reps.at(-1)?.checkedAt === null ? card.reps.at(-1)! : null;
     if (open) answer(told(failedBefore, lastChecked?.verdict === "pass" ? null : card.lesson), open);
-    else start(failedBefore);
+    else offer(failedBefore);
 
     /** The card's status wherever it shows: the margin, the plate, the end of its rail, and its earlier reps. */
     function showStatus() {
       status.replaceChildren(
-        ...(card.returnedAt === null ? ["Not returned yet."] : ["Returned ", stamp(card.returnedAt), card.status === "borrowed_again" ? ", then borrowed again." : "."]),
+        ...(card.returnedAt === null ? ["Not returned yet."] : card.status === "borrowed_again" ? borrowedAgain(card.returnedAt) : ["Returned ", stamp(card.returnedAt), "."]),
       );
       const next = plate(card.count, PLATE_CAPTION[card.status]);
       plateNode.replaceWith(next);
       plateNode = next;
 
       closing?.remove();
-      closing =
-        card.returnedAt === null
-          ? null
-          : card.status === "returned"
-            ? el("p", "end-rule", "Returned ", stamp(card.returnedAt))
-            : el("p", undefined, "Returned ", stamp(card.returnedAt), ", then borrowed again.");
+      closing = railEnd(card);
       if (closing) cardRails.at(-1)!.after(closing);
 
       const checked = card.reps.filter((rep) => rep.checkedAt !== null).reverse();
@@ -151,6 +139,13 @@ export function mountCard(root: HTMLElement, { client, params, navigate, signal 
           retry!.focus({ preventScroll: true });
         },
       );
+    }
+
+    /** The action that starts a fresh rep; after a failed one, under its reason and the lesson again. */
+    function offer(failed: Rep | null) {
+      const take = button("Take a cold rep", () => start(failed));
+      step.replaceChildren(...told(failed, failed && card.lesson), take);
+      take.focus({ preventScroll: true });
     }
 
     /** Starts a fresh rep. After a failed one, its reason and the lesson again stay above while the problem is written. */

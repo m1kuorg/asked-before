@@ -16,7 +16,7 @@
 // names, never phrasing text, and exits 1 if any fails, naming the step.
 // Run: bun run check:sort-rules
 
-import { ApiError, type Client, type Phrasing, type Project } from "@asked-before/sdk";
+import { ApiError, createClient, type Client, type Phrasing, type Project } from "@asked-before/sdk";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -215,9 +215,10 @@ try {
     failedUpload = failed.id;
   });
 
-  await step("8. Retrying a failed sort carries on with the same upload; retrying anything else is a 409, and another account's a 404", async () => {
-    const retried = await ada.uploads.retry(failedUpload);
-    check(retried.status === "waiting" && retried.error === null, `the retry answers ${retried.status}, error ${retried.error}`);
+  await step("8. Retrying a failed sort, with an API key too, carries on with the same upload; retrying anything else is a 409, and another account's a 404", async () => {
+    const script = createClient({ baseUrl: main.app.url, apiKey: (await ada.keys.create({ name: "Sort script" })).key });
+    const retried = await script.uploads.retry(failedUpload);
+    check(retried.status === "waiting" && retried.error === null, `the key's retry answers ${retried.status}, error ${retried.error}`);
     const end = await sortEnds(ada, failedUpload);
     check(end.status === "sorted" && end.offered === 2, `then ends ${end.status}, ${end.offered} offered`);
     const twice = await failure(ada.uploads.retry(failedUpload));
@@ -276,7 +277,8 @@ try {
     await Bun.sleep(1000);
     check(small.model.requests.length === asked, `after its first batch's answer came back, no more were asked (${small.model.requests.length - asked} more)`);
     const gone = await failure(small.client.uploads.get(sorting.id));
-    check(gone?.status === 404 && !small.app.log().includes("A sort failed"), `its upload is ${say(gone)}, and the app logged no failure`);
+    const odd = small.app.log().trim().split("\n").slice(1).filter((line) => !/^(GET|POST|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));
+    check(gone?.status === 404 && odd.length === 0, `its upload is ${say(gone)}, and the app logged its requests and nothing else${odd.length ? `: ${odd.slice(0, 3).join(" | ")}` : ""}`);
   });
 
   await step("12. A sort a restart cuts off carries on when the app starts again", async () => {

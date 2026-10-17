@@ -1,11 +1,12 @@
 // What every route shares. A handler throws HttpError to answer with a
-// status and { error }; readJson checks a body against a zod schema.
+// status and { error }; readJson checks a body against a zod schema, and
+// readPage a list's limit and cursor.
 // serve() wraps every handler the server has: it turns a thrown error into
 // its answer, adds the security headers, and logs the method, path,
 // status, and duration, never anything from a body.
 
 import type { BunRequest, Server } from "bun";
-import type { z } from "zod";
+import { z } from "zod";
 import { config } from "./config";
 
 /** An answer other than 2xx. Its message is shown to the caller, so it never holds phrasing text. */
@@ -42,6 +43,19 @@ export async function readJson<S extends z.ZodType>(req: Request, schema: S): Pr
   const result = schema.safeParse(body);
   if (!result.success) throw new HttpError(400, result.error.issues[0]?.message ?? "The body isn't valid.");
   return result.data;
+}
+
+const LIMIT = "limit is a number from 1 to 100.";
+const Page = z.object({
+  limit: z.coerce.number({ error: LIMIT }).int(LIMIT).min(1, LIMIT).max(100, LIMIT).default(50),
+  cursor: z.string().min(1, "cursor is the next value of the page before.").optional(),
+});
+
+/** A list's page from the query: `limit`, 1 to 100 and 50 by default, and `cursor`, the page before's `next`; or a 400. */
+export function readPage(req: Request): z.infer<typeof Page> {
+  const query = Page.safeParse(Object.fromEntries(new URL(req.url).searchParams));
+  if (!query.success) throw new HttpError(400, query.error.issues[0]?.message ?? "The query isn't valid.");
+  return query.data;
 }
 
 // Only the app's own origin, for every kind of content. fflate inflates a

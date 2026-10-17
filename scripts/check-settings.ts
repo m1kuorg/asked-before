@@ -120,7 +120,7 @@ await step("3. Revoked, a key gets 401 at once", async () => {
   laptop = spare.key;
 });
 
-await step("4. A key reads and adds, but gets 403 deleting, managing keys, or changing the account", async () => {
+await step("4. A key reads and adds, but gets 403 renaming or deleting, managing keys, or changing the account", async () => {
   const key = withKey(laptop);
   const made = await key.projects.create({ name: "Made by a key" });
   check(made.name === "Made by a key", `a key can make a project: "${made.name}"`);
@@ -131,6 +131,7 @@ await step("4. A key reads and adds, but gets 403 deleting, managing keys, or ch
 
   const keyIds = (await ada.client.keys.list()).map((k) => k.id);
   for (const [what, call] of [
+    ["renaming a project", () => key.projects.rename(made.id, "Renamed by a key")],
     ["deleting a project", () => key.projects.delete(made.id)],
     ["listing keys", () => key.keys.list()],
     ["making a key", () => key.keys.create({ name: "Another" })],
@@ -142,7 +143,7 @@ await step("4. A key reads and adds, but gets 403 deleting, managing keys, or ch
     const error = await failure(call());
     check(error?.status === 403, `${what}: ${say(error)}`);
   }
-  check((await ada.client.projects.list()).some((p) => p.id === made.id), "the project is still there");
+  check((await ada.client.projects.get(made.id)).name === "Made by a key", "the project is still there, under its own name");
   check((await ada.client.keys.list()).length === 1, "no key was made or revoked");
   check((await ada.client.auth.me()).name === ADA.name, "the account is unchanged");
   const revoked = `ab_${laptopId}_${"0".repeat(32)}`;

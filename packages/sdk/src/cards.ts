@@ -4,7 +4,7 @@
 // the sort makes it from your phrasings, and its count, stamps, and status
 // all come from those phrasings' own times and its reps, never from the model.
 
-import { path, type Requester } from "./http.ts";
+import { paged, path, type PageOptions, type Requester } from "./http.ts";
 import type { Rep } from "./reps.ts";
 
 /** Borrowed while no cold rep on it has passed; returned once one passed after its latest borrow; borrowed again when a borrow came after that pass. */
@@ -24,35 +24,29 @@ export type Card = {
   returnedAt: string | null;
 };
 
-/** One borrow: a phrasing on a card, word for word, with when you sent it. */
-export type Borrow = {
+/** One of your phrasings as Asked Before keeps it: on a card, unsorted, or waiting for its sort. */
+export type StoredPhrasing = {
   id: string;
   /** The export's own message id, or a generated one for a capture. */
   sourceId: string;
+  /** Your words, word for word. */
   text: string;
+  /** When you sent it. */
   time: string;
 };
+
+/** One borrow: a phrasing on a card. */
+export type Borrow = StoredPhrasing;
 
 /** A card with its lesson (null until its first cold rep), every borrow, oldest first, and its reps, oldest first. */
 export type CardDetail = Card & { lesson: string | null; borrows: Borrow[]; reps: Rep[] };
 
-/** A phrasing a sort has seen that isn't on a card, because nothing else so far asks the same thing. */
-export type UnsortedPhrasing = Borrow;
-
-/** One page of a project's unsorted phrasings, newest first. Pass `next` as the cursor for the page after; it's null on the last. */
-export type UnsortedPage = { phrasings: UnsortedPhrasing[]; next: string | null };
-
-export type UnsortedListOptions = { limit?: number; cursor?: string };
+/** One page of a project's unsorted phrasings, newest first: those a sort has seen that aren't on a card, because nothing else so far asks the same thing. Pass `next` as the cursor for the page after; it's null on the last. */
+export type UnsortedPage = { phrasings: StoredPhrasing[]; next: string | null };
 
 export const cards = (request: Requester) => ({
   /** The project's cards, most borrowed first, ties to the later last borrow. */
   list: (projectId: string) => request<{ cards: Card[] }>("GET", path`/projects/${projectId}/cards`).then((body) => body.cards),
   get: (cardId: string) => request<CardDetail>("GET", path`/cards/${cardId}`),
-  unsorted: (projectId: string, { limit, cursor }: UnsortedListOptions = {}) => {
-    const query = new URLSearchParams();
-    if (limit !== undefined) query.set("limit", String(limit));
-    if (cursor !== undefined) query.set("cursor", cursor);
-    const search = query.size ? `?${query}` : "";
-    return request<UnsortedPage>("GET", `${path`/projects/${projectId}/unsorted`}${search}`);
-  },
+  unsorted: (projectId: string, page: PageOptions = {}) => request<UnsortedPage>("GET", paged(path`/projects/${projectId}/unsorted`, page)),
 });

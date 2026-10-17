@@ -45,6 +45,14 @@ function requester({ baseUrl = "", apiKey, fetch: send = globalThis.fetch.bind(g
     return data;
   };
 }
+function paged(path, { limit, cursor }) {
+  const query = new URLSearchParams;
+  if (limit !== undefined)
+    query.set("limit", String(limit));
+  if (cursor !== undefined)
+    query.set("cursor", cursor);
+  return query.size ? `${path}?${query}` : path;
+}
 var path = (strings, ...values) => String.raw({ raw: strings }, ...values.map(encodeURIComponent));
 
 // packages/sdk/src/captures.ts
@@ -56,15 +64,7 @@ var captures = (request) => ({
 var cards = (request) => ({
   list: (projectId) => request("GET", path`/projects/${projectId}/cards`).then((body) => body.cards),
   get: (cardId) => request("GET", path`/cards/${cardId}`),
-  unsorted: (projectId, { limit, cursor } = {}) => {
-    const query = new URLSearchParams;
-    if (limit !== undefined)
-      query.set("limit", String(limit));
-    if (cursor !== undefined)
-      query.set("cursor", cursor);
-    const search = query.size ? `?${query}` : "";
-    return request("GET", `${path`/projects/${projectId}/unsorted`}${search}`);
-  }
+  unsorted: (projectId, page = {}) => request("GET", paged(path`/projects/${projectId}/unsorted`, page))
 });
 
 // packages/sdk/src/dashboard.ts
@@ -101,15 +101,7 @@ var reps = (request) => ({
 
 // packages/sdk/src/uploads.ts
 var uploads = (request) => ({
-  list: (projectId, { limit, cursor } = {}) => {
-    const query = new URLSearchParams;
-    if (limit !== undefined)
-      query.set("limit", String(limit));
-    if (cursor !== undefined)
-      query.set("cursor", cursor);
-    const search = query.size ? `?${query}` : "";
-    return request("GET", `${path`/projects/${projectId}/uploads`}${search}`);
-  },
+  list: (projectId, page = {}) => request("GET", paged(path`/projects/${projectId}/uploads`, page)),
   create: (projectId, input) => request("POST", path`/projects/${projectId}/uploads`, input),
   get: (uploadId) => request("GET", path`/uploads/${uploadId}`),
   append: (uploadId, phrasings) => request("POST", path`/uploads/${uploadId}/phrasings`, {
@@ -21646,10 +21638,11 @@ var api2 = createClient({ baseUrl, apiKey });
 var INSTRUCTIONS = `Asked Before keeps the learner's library cards. A card is one skill they asked a chatbot how to do more than once, such as "Undo a git commit", with a borrow for each time they asked. A card is returned when they pass a cold rep, a fresh problem of its skill answered without AI, and borrowed again when they ask it once more after that.
 
 When the learner asks you how to do something, record their question with record_question, in their own words: only what they wrote, never your answer, their code, or secrets. If it lands on a card they asked before, tell them how many times they've borrowed it and offer a cold rep. During a cold rep, show the problem as written, give no hints and no answer, and pass their answer to check_answer exactly as they wrote it.`;
+var STATUS = { borrowed: "borrowed", returned: "returned", borrowed_again: "borrowed again" };
 var CardOut = object({
   id: string2(),
   skill: string2(),
-  status: _enum(["borrowed", "returned", "borrowed_again"]),
+  status: _enum(Object.keys(STATUS)),
   count: number2(),
   firstBorrowAt: string2(),
   lastBorrowAt: string2(),
@@ -21658,11 +21651,10 @@ var CardOut = object({
 var ProjectRef = object({ id: string2(), name: string2() });
 var ProjectArg = string2().min(1).optional().describe(`The project's name or id. Leave it out for the default project${defaultProject ? `, ${defaultProject}` : ""}.`);
 var day = (iso) => iso.slice(0, 10);
-var STATUS = { borrowed: "borrowed", returned: "returned", borrowed_again: "borrowed again" };
 var times = (n) => n === 1 ? "once" : `${n} times`;
 var status = (card) => card.status === "returned" ? `returned ${day(card.returnedAt)}` : STATUS[card.status];
 var cardLine = (card) => `"${card.skill}": borrowed ${times(card.count)}, first ${day(card.firstBorrowAt)}, last ${day(card.lastBorrowAt)}; ${status(card)}. Card id ${card.id}.`;
-var cardOut = ({ id, skill, status, count, firstBorrowAt, lastBorrowAt, returnedAt }) => ({ id, skill, status, count, firstBorrowAt, lastBorrowAt, returnedAt });
+var cardOut = ({ projectId, ...card }) => card;
 var projectRef = ({ id, name }) => ({ id, name });
 var toolResult = (text, structuredContent) => ({ content: [{ type: "text", text }], structuredContent });
 async function callApi(call) {

@@ -248,6 +248,7 @@ try {
       await take.waitFor();
       model.queue(repReply("A problem of the card's skill.", "The card's lesson."), verdictReply("pass", "You did it."));
       await take.click();
+      await page.locator(".block").getByRole("button", { name: "Take a cold rep" }).click();
       await page.locator(".answer-box textarea").fill("My own answer.");
       await page.getByRole("button", { name: "Check my answer" }).click();
       await page.getByRole("button", { name: "Back to the stack" }).waitFor();

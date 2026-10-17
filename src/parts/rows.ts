@@ -10,8 +10,8 @@ export type Column<T> = {
   label: string;
   /** Right-aligned, for counts. */
   numeric?: boolean;
-  /** Read by assistive technology but not drawn, for a column whose cells explain themselves, such as row actions. */
-  hiddenLabel?: boolean;
+  /** The row's actions: the column's label is read by assistive technology but not drawn, since its buttons say what they do, and its cells are set as row actions. */
+  actions?: boolean;
   /** A class for the column, which the surface's stylesheet can size. */
   className?: string;
   cell: (item: T) => Child | Child[];
@@ -30,7 +30,7 @@ export function rows<T>({ caption, columns, items, detail }: RowsOptions<T>): HT
   const head = el("tr");
   const group = el("colgroup");
   for (const column of columns) {
-    const header = el("th", column.numeric ? "is-numeric" : undefined, column.hiddenLabel ? el("span", "visually-hidden", column.label) : column.label);
+    const header = el("th", column.numeric ? "is-numeric" : undefined, column.actions ? el("span", "visually-hidden", column.label) : column.label);
     header.scope = "col";
     head.append(header);
     group.append(el("col", column.className));
@@ -40,7 +40,7 @@ export function rows<T>({ caption, columns, items, detail }: RowsOptions<T>): HT
     const row = el("tr");
     for (const column of columns) {
       const content = column.cell(item);
-      const cell = el("td", [column.numeric ? "is-numeric" : "", column.hiddenLabel ? "row-actions" : ""].filter(Boolean).join(" "));
+      const cell = el("td", [column.numeric ? "is-numeric" : "", column.actions ? "row-actions" : ""].filter(Boolean).join(" "));
       // On a narrow screen the header row is hidden and each count carries its column's name.
       cell.dataset.label = column.label;
       cell.append(...(Array.isArray(content) ? content : [content]));

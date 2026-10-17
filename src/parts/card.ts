@@ -1,10 +1,11 @@
 // A card's pieces that the project page's stack and the card page both set
 // (public/styles/stack.css): its phrasings on the rail, one rail per year
-// of borrows, with a stamp per borrow in the learner's own time zone; the
-// plate's caption after its status; and its months.
+// of borrows, with a stamp per borrow in the learner's own time zone; what
+// closes the rail once it's returned; the plate's caption after its status;
+// and its months.
 
-import type { CardDetail, CardStatus } from "@asked-before/sdk";
-import { el } from "./dom";
+import type { Card, CardDetail, CardStatus } from "@asked-before/sdk";
+import { el, type Child } from "./dom";
 import { stamp } from "./library";
 
 /** What the plate's count is, after the card's status. */
@@ -25,12 +26,24 @@ export function months(card: { firstBorrowAt: string; lastBorrowAt: string }): s
 }
 
 /**
- * A phrasing's words, with each command flag (`-m`, `--soft`) in a bare
- * span, so the stylesheet keeps the flag on one line. The split's capture
- * group puts the flags at the odd indexes.
+ * Text with each command flag (`-m`, `--soft`) in a bare span, so the
+ * stylesheet keeps the flag on one line. The split's capture group puts the
+ * flags at the odd indexes.
  */
-export function phrasing(text: string): HTMLElement {
-  return el("span", "phrasing", ...text.split(/((?<![\w-])--?\w[\w-]*)/).map((part, i) => (i % 2 ? el("span", undefined, part) : part)));
+export function flagged(text: string): Child[] {
+  return text.split(/((?<![\w-])--?\w[\w-]*)/).map((part, i) => (i % 2 ? el("span", undefined, part) : part));
+}
+
+/** A phrasing's words, its flags kept whole. */
+export const phrasing = (text: string) => el("span", "phrasing", ...flagged(text));
+
+/** "Returned <stamp>, then borrowed again.": a card with a borrow dated after its return stamp. */
+export const borrowedAgain = (returnedAt: string): Child[] => ["Returned ", stamp(returnedAt), ", then borrowed again."];
+
+/** What closes a returned card's rail: its stamp on the end rule, or the line that says it's borrowed again; null before its first return. */
+export function railEnd(card: Pick<Card, "status" | "returnedAt">): HTMLElement | null {
+  if (card.returnedAt === null) return null;
+  return card.status === "borrowed_again" ? el("p", undefined, ...borrowedAgain(card.returnedAt)) : el("p", "end-rule", "Returned ", stamp(card.returnedAt));
 }
 
 /** The rail, cut where the year turns: one `.rail` per year of borrows, oldest first, a key for each. */

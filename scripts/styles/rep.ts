@@ -2,8 +2,8 @@
 // m1kuorg/basics#46): the demo export uploaded into a project and sorted
 // as the answer key sorts it, then card A's rep, with the rep and check
 // requests answered by the styles check's model stand-in, queued here and
-// never in the app. Its states: the first rep, with the lesson and a
-// problem; waiting on a check with the answer locked; a failed check's
+// never in the app. Its states: the card opened, with Take a cold rep;
+// the first rep, with the lesson and a problem; waiting on a check with the answer locked; a failed check's
 // error and retry; a failed rep, with the reason, the lesson again, and a
 // fresh problem; typing in the focused answer box; a pass, with its stamp
 // and the way back in the frame; the whole card page under it, with the
@@ -52,10 +52,15 @@ async function states(kit: Kit, projectId: string) {
   const textarea = page.locator(".answer-box textarea");
   const checkAnswer = page.getByRole("button", { name: "Check my answer" });
 
+  // Opened, the card shows with Take a cold rep, and no rep starts until it's chosen.
+  await kit.open(page, at, '.block button:text-is("Take a cold rep")');
+  await settle(page);
+  await kit.shoot(page, "rep-opened");
+
   // The first rep: the lesson on the left, the problem and the answer box on the right.
   model.queue(repReply(PROBLEMS[0]!, LESSON));
-  await kit.open(page, at, ".block .problem");
-  await settle(page);
+  await page.getByRole("button", { name: "Take a cold rep" }).click();
+  await page.locator(".block .problem").waitFor();
   await kit.shoot(page, "rep-first");
 
   // Waiting on a check, with the answer locked.
