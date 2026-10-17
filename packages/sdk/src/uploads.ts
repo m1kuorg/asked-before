@@ -4,7 +4,8 @@
 // it, append its phrasings (read with readExport) in chunks of up to
 // MAX_CHUNK, then finish it, which starts its sort. A phrasing the project
 // already holds, by its source id, is skipped, so the same export uploaded
-// twice stores nothing new. Get the upload again to follow its sort: it
+// twice stores nothing new; one held by an upload that never finished joins
+// this upload instead, to be sorted with it. Get the upload again to follow its sort: it
 // waits behind the project's other uploads, then sorts, and ends sorted or
 // failed with an error, which retry picks up from where it stopped.
 // Deleting an upload, which needs a session rather than an API key, deletes
@@ -27,7 +28,7 @@ export type Upload = {
   status: UploadStatus;
   /** Your messages it was sent, each counted once, even when a chunk was sent twice. */
   messages: number;
-  /** The new ones among them, stored as its phrasings: the rest were in the project already. */
+  /** The ones among them it sorts: those new to the project, and any an upload that never finished held. The rest were in the project already. */
   phrasings: number;
   /** How many of its phrasings a sort has seen so far. */
   offered: number;

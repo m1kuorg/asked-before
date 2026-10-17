@@ -9,13 +9,15 @@
 // phrasing over 2,000 characters, or a chunk over 2,000 phrasings, gets 413;
 // one dated more than a day ahead gets 400, as does anything but
 // { sourceId, text, time }. Another account's upload is a 404, an API key
-// can upload as a session can, and the logs never hold a phrasing. It prints each step's checks and exits 1 if any
-// fails, naming the step.
+// can upload as a session can, an upload left unfinished strands none of
+// its phrasings when the export is uploaded again, and the logs never hold
+// a phrasing. It prints each step's checks and exits 1 if any fails, naming
+// the step.
 // Run: bun run check:uploads
 
 import { ApiError, createClient, readExport, type Phrasing, type Project, type Upload } from "@asked-before/sdk";
 import { join } from "node:path";
-import { keySorter } from "./lib/answer-key";
+import { compareWithKey, keySorter, sortEnds } from "./lib/answer-key";
 import { startApp } from "./lib/app";
 import { reply, startModelStub } from "./lib/model-stub";
 
@@ -204,7 +206,23 @@ try {
     check(listed.uploads[0]?.id === made.id && (await script.uploads.get(made.id)).id === made.id, "and the key lists and gets it");
   });
 
-  await step("10. The logs hold no phrasing", async () => {
+  await step("10. An upload left unfinished strands nothing: uploading the export again sorts what it held", async () => {
+    const side = await ada.client.projects.create({ name: "Side project" });
+    const left = await ada.client.uploads.create(side.id, { source: "chatgpt", fileName: "conversations.json" });
+    await ada.client.uploads.append(left.id, demo.phrasings.slice(0, 10));
+    // The tab closed before it finished, so the learner uploads the export again.
+    const again = await upload(side, demo.phrasings);
+    check(again.messages === 27 && again.phrasings === 27, `the new upload takes all 27 to sort: ${counts(again)}`);
+    const unfinished = await ada.client.uploads.get(left.id);
+    check(unfinished.status === "receiving" && unfinished.messages === 10 && unfinished.phrasings === 0, `the unfinished one keeps none of them: ${counts(unfinished)}`);
+    const sorted = await sortEnds(ada.client, again.id);
+    check(sorted.status === "sorted" && sorted.offered === 27, `its sort ends ${sorted.status}, ${sorted.offered} of ${sorted.phrasings} offered`);
+    const { lines, problems } = await compareWithKey(ada.client, side.id);
+    for (const line of lines) console.log(line);
+    check(problems.length === 0, `each phrasing is on its card or unsorted, counted once, as the key says${problems.length ? `: ${problems.join("; ")}` : ""}`);
+  });
+
+  await step("11. The logs hold no phrasing", async () => {
     const log = app.log();
     const leaked = demo.phrasings.filter((p) => log.includes(p.text));
     check(log.includes("POST /api/v1/uploads/") && leaked.length === 0, `${log.split("\n").length} log lines, ${leaked.length} holding a phrasing`);
