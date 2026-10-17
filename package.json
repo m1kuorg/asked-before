@@ -9,6 +9,7 @@
     "start": "bun run server.ts",
     "check:accounts": "bun run scripts/check-accounts.ts",
     "check:shell": "bun run scripts/check-shell.ts",
+    "check:landing": "bun run scripts/check-landing.ts",
     "check:key": "bun run scripts/check-answer-key.ts",
     "check:cards": "bun run scripts/check-cards.ts",
     "check:styles": "bun run scripts/check-styles.ts",
