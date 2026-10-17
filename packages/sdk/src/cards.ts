@@ -4,8 +4,8 @@
 // the sort makes it from your phrasings, and its count, stamps, and status
 // all come from those phrasings' own times and its reps, never from the model.
 
-import { path, type Requester } from "./http";
-import type { Rep } from "./reps";
+import { path, type Requester } from "./http.ts";
+import type { Rep } from "./reps.ts";
 
 /** Borrowed while no cold rep on it has passed; returned once one passed after its latest borrow; borrowed again when a borrow came after that pass. */
 export type CardStatus = "borrowed" | "returned" | "borrowed_again";

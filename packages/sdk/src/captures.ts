@@ -5,8 +5,8 @@
 // unsorted. The same words in the same project within ten minutes return
 // that earlier capture instead of adding a borrow.
 
-import type { Borrow, Card } from "./cards";
-import { path, type Requester } from "./http";
+import type { Borrow, Card } from "./cards.ts";
+import { path, type Requester } from "./http.ts";
 
 /** Your own question, word for word, of at most 2,000 characters. Its time is the server's clock. */
 export type NewCapture = { text: string };

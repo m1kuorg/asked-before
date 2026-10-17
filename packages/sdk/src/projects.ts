@@ -2,7 +2,7 @@
 // Deleting a project deletes everything in it, and needs a session, not an
 // API key.
 
-import { path, type Requester } from "./http";
+import { path, type Requester } from "./http.ts";
 
 export type Project = {
   id: string;

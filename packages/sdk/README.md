@@ -12,11 +12,14 @@ Contents:
 
 ## Install it
 
-It isn't on npm yet. In a copy of Asked Before it's the workspace package `@asked-before/sdk`. To use it in another Bun project, add it from your copy:
+It isn't on npm yet. In a copy of Asked Before it's the workspace package `@asked-before/sdk`, run from its TypeScript sources. To use it in another project, build it in your copy, which writes JavaScript and type declarations to `packages/sdk/dist`, then add it from there:
 
 ```sh
-bun add /path/to/asked-before/packages/sdk
+cd /path/to/asked-before && bun run build:sdk
+cd /path/to/your-project && bun add /path/to/asked-before/packages/sdk
 ```
+
+The build is what another project imports, in Bun, Node, or a bundler for the browser, with its types under both bundler and Node module resolution. Build it again after you pull a newer copy.
 
 ## Quickstart
 
@@ -61,12 +64,14 @@ for (const card of await client.cards.list(project.id)) {
 }
 ```
 
-Run it with your Asked Before server's address, an API key from its Settings page, and your export. In a copy of Asked Before it's `packages/sdk/examples/quickstart.ts`, and `bun run check:docs` runs it.
+Run it with your Asked Before server's address, an API key from its Settings page, and your export. In a copy of Asked Before it's `packages/sdk/examples/quickstart.ts`: `bun run check:docs` runs it there, and `bun run check:sdk` runs it in a project of its own against the build, in Bun and in Node.
 
 ```sh
 ASKED_BEFORE_URL=https://asked-before.example ASKED_BEFORE_API_KEY=YOUR_API_KEY \
   bun quickstart.ts conversations.json
 ```
+
+Node 23.6 or later runs it too, as `node quickstart.ts conversations.json`.
 
 ## The client
 
