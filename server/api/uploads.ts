@@ -6,8 +6,10 @@
 // A chunk holds phrasings as { sourceId, text, time } and nothing else, so
 // no answer, title, or other part of an export can reach the server (ADR
 // 0001). A phrasing over 2,000 characters, or a chunk over 2,000 phrasings,
-// is a 413; a phrasing dated more than a day ahead is a 400. Finishing an
-// upload answers with it waiting to be sorted, and starts the project's sort
+// is a 413; a phrasing dated more than 5 minutes after the server's clock
+// is a 400 (its time is a Unix timestamp, so no time zone runs ahead), lest
+// a card show borrowed again the moment it's returned. Finishing an upload
+// answers with it waiting to be sorted, and starts the project's sort
 // (server/sort.ts), which records its progress and any failure on the
 // upload. Retrying a failed sort carries on from the first phrasing it
 // hadn't offered; anything but a failed upload is a 409. Deleting an upload
@@ -21,7 +23,8 @@ import { defineRoutes, HttpError, readJson } from "../http";
 import { sortProject } from "../sort";
 import { appendPhrasings, createUpload, deleteUpload, finishUpload, getUpload, listUploads, retryUpload } from "../store/uploads";
 
-const DAY = 24 * 60 * 60 * 1000;
+/** How far past the server's clock a phrasing may be dated, for a clock that runs a little fast. */
+const AHEAD_MS = 5 * 60 * 1000;
 /** The largest chunk body: MAX_CHUNK phrasings of MAX_PHRASING_LENGTH characters, every one escaped, with room to spare. */
 const MAX_CHUNK_BYTES = 32 * 1024 * 1024;
 
@@ -94,12 +97,12 @@ export const uploads = defineRoutes({
       if (Number(req.headers.get("content-length")) > MAX_CHUNK_BYTES) throw new HttpError(413, "This chunk is too big. Send at most 2,000 phrasings at a time.");
       const { phrasings } = await readJson(req, Chunk);
       if (phrasings.length > MAX_CHUNK) throw new HttpError(413, `A chunk can hold at most ${MAX_CHUNK.toLocaleString("en-US")} phrasings.`);
-      const ahead = Date.now() + DAY;
+      const latest = Date.now() + AHEAD_MS;
       phrasings.forEach(({ text, time }, i) => {
         if (text.length > MAX_PHRASING_LENGTH) {
           throw new HttpError(413, `Phrasing ${i + 1} has more than ${MAX_PHRASING_LENGTH.toLocaleString("en-US")} characters.`);
         }
-        if (Date.parse(time) > ahead) throw new HttpError(400, `Phrasing ${i + 1} is dated more than a day ahead.`);
+        if (Date.parse(time) > latest) throw new HttpError(400, `Phrasing ${i + 1} is dated more than 5 minutes after the server's clock.`);
       });
       return Response.json(open(appendPhrasings(auth.userId, req.params.uploadId, phrasings)));
     }),
