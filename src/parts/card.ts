@@ -16,7 +16,7 @@ export const PLATE_CAPTION: Record<CardStatus, string> = {
 
 const monthYear = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" });
 /** An ISO time's month, in the learner's own time zone, such as "March 2025". */
-export const month = (iso: string) => monthYear.format(new Date(iso));
+const month = (iso: string) => monthYear.format(new Date(iso));
 
 /** The months of a card's first and last borrow: "in March 2025", or "March 2025 to September 2026". */
 export function months(card: { firstBorrowAt: string; lastBorrowAt: string }): string {
