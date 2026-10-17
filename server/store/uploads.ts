@@ -1,7 +1,9 @@
 // Uploads and the phrasings they bring. Every query joins up to the
 // project's owner, so another account's upload reads as missing. Appending
 // stores only the phrasings whose source id the project doesn't hold yet,
-// which is what keeps a re-uploaded export from counting a borrow twice.
+// which is what keeps a re-uploaded export from counting a borrow twice,
+// and counts each of the upload's messages once, by its source id, so a
+// chunk sent twice doesn't count twice either.
 
 import type { Phrasing, Source, Upload, UploadPage } from "@asked-before/sdk";
 import { db, iso, newId } from "./db";
@@ -12,7 +14,7 @@ type Row = {
   source: Source;
   file_name: string;
   status: Upload["status"];
-  message_count: number;
+  messages: number;
   phrasings: number;
   offered: number;
   error: string | null;
@@ -22,7 +24,8 @@ type Row = {
 
 const SELECT = `
   SELECT
-    u.id, u.project_id, u.source, u.file_name, u.status, u.message_count, u.error, u.created_at, u.finished_at,
+    u.id, u.project_id, u.source, u.file_name, u.status, u.error, u.created_at, u.finished_at,
+    (SELECT count(*) FROM upload_messages m WHERE m.upload_id = u.id) AS messages,
     (SELECT count(*) FROM phrasings f WHERE f.upload_id = u.id) AS phrasings,
     (SELECT count(*) FROM phrasings f WHERE f.upload_id = u.id AND f.offered_at IS NOT NULL) AS offered
   FROM uploads u
@@ -34,7 +37,7 @@ const toUpload = (row: Row): Upload => ({
   source: row.source,
   fileName: row.file_name,
   status: row.status,
-  messages: row.message_count,
+  messages: row.messages,
   phrasings: row.phrasings,
   offered: row.offered,
   error: row.error,
@@ -79,11 +82,12 @@ const insertPhrasing = db.query(`
   VALUES ($id, $projectId, 'export', $uploadId, $sourceId, $text, $time, $now)
   ON CONFLICT (project_id, source_id) DO NOTHING
 `);
+const countMessage = db.query("INSERT INTO upload_messages (upload_id, source_id) VALUES ($uploadId, $sourceId) ON CONFLICT DO NOTHING");
 
 /**
- * Adds a chunk to an upload that's still receiving: every phrasing counts
- * toward its messages, and those new to the project are stored. Null when
- * the account has no such upload; "finished" when it takes no more.
+ * Adds a chunk to an upload that's still receiving: each phrasing counts
+ * once toward its messages, and those new to the project are stored. Null
+ * when the account has no such upload; "finished" when it takes no more.
  */
 export function appendPhrasings(userId: string, uploadId: string, phrasings: Phrasing[]): Upload | null | "finished" {
   const upload = getUpload(userId, uploadId);
@@ -93,8 +97,8 @@ export function appendPhrasings(userId: string, uploadId: string, phrasings: Phr
   db.transaction(() => {
     for (const { sourceId, text, time } of phrasings) {
       insertPhrasing.run({ id: newId(), projectId: upload.projectId, uploadId, sourceId, text, time: Date.parse(time), now });
+      countMessage.run({ uploadId, sourceId });
     }
-    db.query("UPDATE uploads SET message_count = message_count + $count WHERE id = $uploadId").run({ uploadId, count: phrasings.length });
   })();
   return getUpload(userId, uploadId);
 }
@@ -115,4 +119,19 @@ export function retryUpload(userId: string, uploadId: string): Upload | null | "
   if (!upload) return null;
   const changed = db.query("UPDATE uploads SET status = 'waiting', error = NULL WHERE id = $uploadId AND status = 'failed'").run({ uploadId }).changes;
   return changed ? getUpload(userId, uploadId) : "not failed";
+}
+
+/**
+ * Deletes an upload and its phrasings. A card of its project left with
+ * fewer than two borrows goes too, with its reps, and its remaining
+ * phrasing becomes unsorted. False when the account has no such upload.
+ */
+export function deleteUpload(userId: string, uploadId: string): boolean {
+  return db.transaction(() => {
+    const upload = getUpload(userId, uploadId);
+    if (!upload) return false;
+    db.query("DELETE FROM uploads WHERE id = $uploadId").run({ uploadId });
+    db.query("DELETE FROM cards WHERE project_id = $projectId AND (SELECT count(*) FROM phrasings f WHERE f.card_id = cards.id) < 2").run({ projectId: upload.projectId });
+    return true;
+  })();
 }

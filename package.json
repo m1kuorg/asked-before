@@ -20,7 +20,8 @@
     "check:rep-routes": "bun run scripts/check-rep-routes.ts",
     "check:sort": "bun run scripts/check-sort.ts",
     "check:sort-rules": "bun run scripts/check-sort-rules.ts",
-    "check:sort-page": "bun run scripts/check-sort-page.ts"
+    "check:sort-page": "bun run scripts/check-sort-page.ts",
+    "check:project": "bun run scripts/check-project.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
