@@ -41,7 +41,7 @@ Everything else has a default, so the key is the only setting you need. `.env.ex
 | `DAILY_MODEL_REQUESTS` | `300` | Model requests one account may make per UTC day. |
 | `SORT_BATCH_SIZE` | `300` | Phrasings a sort sends the model at once. |
 
-Nothing has shipped, so the schema changes in place: after pulling a change to `server/store/schema.sql`, delete your `data/` folder. Migrations come before the first deployment (m1kuorg/basics#54).
+The schema is a series of migrations in `server/store/migrations/`, which the server applies when it starts; see [Self-host it](#self-host-it).
 
 ## Check it
 
@@ -87,7 +87,8 @@ The other checks:
 | `bun run check:docs` | The docs page against the server's route table, and the SDK's quickstart run on the demo export | Chromium |
 | `bun run check:sdk` | The SDK's build, used from a project outside the repo, in Bun and in Node | `node` |
 | `bun run check:styles` | The stylesheets at 1080p, surface by surface (`scripts/styles/`) | Chromium |
-| `bun run check:container` | The container image: it builds, serves the app, keeps its data on the volume across a restart and a new container, and its health check answers | Docker |
+| `bun run check:migrations` | The schema's migrations: a new one, added in a copy of the app, applied at startup to a database with data in it, which keeps its data; a failing one applying nothing; and a fresh database getting every one | |
+| `bun run check:container` | The container image: it builds, serves the app, keeps its data on the volume across a restart and a new container, applying each migration once, and its health check answers | Docker |
 
 A check that needs the key and stubs nothing calls the real model; the others stub it inside the script, never in the app, so they need no key. After a change to the MCP server or the SDK, `bun run build:plugin` rebuilds the plugin's server, which `check:plugin` fails on until you do. A new API route needs its row on the docs page, `src/pages/docs.ts`, or `check:docs` fails. [`docs/code-map.md`](docs/code-map.md) says where each piece lives.
 
@@ -105,6 +106,8 @@ docker run -d --name asked-before -p 3000:3000 \
 ```
 
 `-e ANTHROPIC_API_KEY` passes the key from your shell without writing it down. The app serves plain HTTP, so put it behind your host's HTTPS, and set `PUBLIC_URL` to that address: it's the origin the app accepts changes from, and an `https` one makes the session cookie `Secure`. Back up the volume, which holds everything. The logs carry only each request's method, path, status, and duration, never your words.
+
+To upgrade, build the new image and start it on the same volume. The schema is a series of migrations, the numbered files in `server/store/migrations/`, and at startup the app applies, in order, the ones the database hasn't had, in one transaction, recording each in its `migrations` table, so your data stays and a restart applies nothing twice. If one fails, the app undoes them all, logs which one, and doesn't start, so the old image still runs on that volume. Back up the volume before an upgrade anyway.
 
 Without Docker, run `bun install --production` and `bun run start` with `DATABASE_PATH` on the persistent disk.
 

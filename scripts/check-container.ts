@@ -5,14 +5,16 @@
 // the landing page answer, a learner signs up and makes a project, and the
 // SQLite file is on the volume. Docker's health check reports it healthy.
 // After a restart, and then in a new container on the same volume, the
-// learner's session and project are still there. The container, its
+// learner's session and project are still there, and the database records
+// each of the schema's migrations once. The container, its
 // volume, and the image are removed at the end. It makes no model calls, so
 // it needs no key; it needs Docker running. It exits 1 if any check fails,
 // naming the step.
 // Run: bun run check:container
 
+import { readdir } from "node:fs/promises";
 import { join } from "node:path";
-import { browser } from "./lib/app";
+import { browser, freePort } from "./lib/app";
 
 const ROOT = join(import.meta.dir, "..");
 const RUN = `asked-before-check-${Date.now().toString(36)}`;
@@ -47,14 +49,6 @@ async function docker(...args: string[]) {
 if ((await docker("info", "--format", "{{.ServerVersion}}")).code !== 0) {
   console.error("check:container needs Docker running: start Docker, then run it again.");
   process.exit(1);
-}
-
-/** A port nothing on this computer is listening on. */
-function freePort(): number {
-  const probe = Bun.serve({ port: 0, fetch: () => new Response() });
-  const { port } = probe;
-  probe.stop(true);
-  return port!;
 }
 
 const port = freePort();
@@ -150,6 +144,10 @@ try {
     const lines = (await docker("logs", container)).out.split("\n").slice(1);
     const odd = lines.filter((line) => !/^(GET|HEAD|POST|PUT|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));
     check(lines.length > 0 && odd.length === 0, `its log holds only method, path, status, and duration: ${lines.length} lines${odd.length ? `, and ${odd.slice(0, 2).join(" | ")}` : ""}`);
+    const files = (await readdir(join(ROOT, "server", "store", "migrations"))).filter((name) => name.endsWith(".sql")).sort().join(" ");
+    const read = `import { Database } from "bun:sqlite"; console.log(new Database("${DATA}/asked-before.sqlite", { readonly: true }).query("SELECT name FROM migrations ORDER BY version").all().map((m) => m.name).join(" "))`;
+    const recorded = await docker("exec", container, "bun", "-e", read);
+    check(recorded.out === files, `after three starts on the volume, its database records each migration once: ${recorded.out || recorded.err.split("\n")[0]}`);
   });
 } finally {
   if (container) await docker("rm", "--force", container);
