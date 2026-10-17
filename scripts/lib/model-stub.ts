@@ -48,20 +48,27 @@ export const forward: Answer = async (_request, raw, body) => {
   });
 };
 
-/** A finished message whose text is `result` as JSON: the structured output the app asked for. */
+/** A finished message whose text is `result` as JSON: the structured output the app asked for, streamed when the app streams. */
 export const reply =
   (result: object | ((request: ModelRequest) => object)): Answer =>
-  (request) =>
-    Response.json({
-      id: "msg_stub",
-      type: "message",
-      role: "assistant",
-      model: "claude-haiku-5-5",
-      content: [{ type: "text", text: JSON.stringify(typeof result === "function" ? result(request) : result) }],
-      stop_reason: "end_turn",
-      stop_sequence: null,
-      usage: { input_tokens: 0, output_tokens: 0 },
-    });
+  (request) => {
+    const text = JSON.stringify(typeof result === "function" ? result(request) : result);
+    const usage = { input_tokens: 0, output_tokens: 0 };
+    const message = { id: "msg_stub", type: "message", role: "assistant", model: "claude-haiku-5-5", stop_sequence: null };
+    if (!(request.body as { stream?: boolean }).stream) {
+      return Response.json({ ...message, content: [{ type: "text", text }], stop_reason: "end_turn", usage });
+    }
+    const events = [
+      { type: "message_start", message: { ...message, content: [], stop_reason: null, usage } },
+      { type: "content_block_start", index: 0, content_block: { type: "text", text: "" } },
+      { type: "content_block_delta", index: 0, delta: { type: "text_delta", text } },
+      { type: "content_block_stop", index: 0 },
+      { type: "message_delta", delta: { stop_reason: "end_turn", stop_sequence: null }, usage: { output_tokens: 0 } },
+      { type: "message_stop" },
+    ];
+    const body = events.map((event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`).join("");
+    return new Response(body, { headers: { "content-type": "text/event-stream" } });
+  };
 
 /** An API error the SDK doesn't retry. The app reports it as "The model request failed (<status>)." */
 export const refuse =
