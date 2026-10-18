@@ -72,9 +72,9 @@ export const auth = defineRoutes({
       await throttle(ctx.db, callerAddress(req));
       const { name, email, password, next } = await readJson(req, SignUp);
       const passwordHash = hashPassword(password);
-      const made = await createUser(ctx.db, { name, email, passwordHash });
-      if (!made) throw new HttpError(409, "That email already has an account. Log in instead.");
-      const session = await startSession(req, ctx, { userId: made.id, passwordHash });
+      const created = await createUser(ctx.db, { name, email, passwordHash });
+      if (!created) throw new HttpError(409, "That email already has an account. Log in instead.");
+      const session = await startSession(req, ctx, { userId: created.id, passwordHash });
       if (!session) throw new HttpError(401, "Log in first.");
       return Response.json({ account: session.account, next: appPath(next) } satisfies Session, {
         status: 201,

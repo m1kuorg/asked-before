@@ -18,16 +18,16 @@ const SESSION_MS = SESSION_DAYS * 24 * 60 * 60 * 1000;
  * an account deleted, or a password changed, since then gets no session and
  * null. Otherwise the new session's token, for the cookie, and the account.
  */
-export async function startSession(
+export async function createSession(
   db: Db,
   { userId, passwordHash, earlier }: { userId: string; passwordHash: string; earlier: string | null },
 ): Promise<{ token: string; account: Account } | null> {
   const token = randomToken(32, "base64url");
   const now = Date.now();
-  const holds = "SELECT 1 FROM users WHERE id = ?1 AND password_hash = ?2";
+  const stillHolds = "SELECT 1 FROM users WHERE id = ?1 AND password_hash = ?2";
   const [, , , read] = await db.batch<AccountRow>([
     db.prepare("DELETE FROM sessions WHERE expires_at <= ?1").bind(now),
-    db.prepare(`DELETE FROM sessions WHERE id = ?3 AND EXISTS (${holds})`).bind(userId, passwordHash, earlier === null ? null : sha256(earlier)),
+    db.prepare(`DELETE FROM sessions WHERE id = ?3 AND EXISTS (${stillHolds})`).bind(userId, passwordHash, earlier === null ? null : sha256(earlier)),
     db
       .prepare("INSERT INTO sessions (id, user_id, created_at, expires_at) SELECT ?3, id, ?4, ?5 FROM users WHERE id = ?1 AND password_hash = ?2")
       .bind(userId, passwordHash, sha256(token), now, now + SESSION_MS),

@@ -28,7 +28,7 @@ const SELECT = `
   LEFT JOIN card_status s ON s.shelf_id = sh.id`;
 
 /** One shelf of the account's, as ?1 (the account) and ?2 (the shelf). */
-const ONE = `${SELECT} WHERE sh.user_id = ?1 AND sh.id = ?2 GROUP BY sh.id`;
+const ONE_SHELF = `${SELECT} WHERE sh.user_id = ?1 AND sh.id = ?2 GROUP BY sh.id`;
 
 const toShelf = (row: Row): Shelf => ({
   id: row.id,
@@ -50,7 +50,7 @@ export async function listShelves(db: Db, userId: string): Promise<Shelf[]> {
 }
 
 export async function getShelf(db: Db, userId: string, shelfId: string): Promise<Shelf | null> {
-  const row = await db.prepare(ONE).bind(userId, shelfId).first<Row>();
+  const row = await db.prepare(ONE_SHELF).bind(userId, shelfId).first<Row>();
   return row && toShelf(row);
 }
 
@@ -59,7 +59,7 @@ export async function createShelf(db: Db, userId: string, name: string, demo: bo
   const id = newId();
   const [, read] = await db.batch<Row>([
     db.prepare("INSERT INTO shelves (id, user_id, name, demo, created_at) SELECT ?2, id, ?3, ?4, ?5 FROM users WHERE id = ?1").bind(userId, id, name, demo ? 1 : 0, Date.now()),
-    db.prepare(ONE).bind(userId, id),
+    db.prepare(ONE_SHELF).bind(userId, id),
   ]);
   const row = read?.results[0];
   return row ? toShelf(row) : null;
@@ -69,7 +69,7 @@ export async function createShelf(db: Db, userId: string, name: string, demo: bo
 export async function renameShelf(db: Db, userId: string, shelfId: string, name: string): Promise<Shelf | null> {
   const [, read] = await db.batch<Row>([
     db.prepare("UPDATE shelves SET name = ?3 WHERE id = ?2 AND user_id = ?1").bind(userId, shelfId, name),
-    db.prepare(ONE).bind(userId, shelfId),
+    db.prepare(ONE_SHELF).bind(userId, shelfId),
   ]);
   const row = read?.results[0];
   return row ? toShelf(row) : null;
