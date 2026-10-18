@@ -1,0 +1,24 @@
+// What the three type configs share: the Bun scripts and packages
+// (tsconfig.json), the Worker (worker/tsconfig.json), and the pages
+// (src/tsconfig.json). Each adds its own runtime's types, which clash if
+// they're mixed: Bun's and the Workers runtime's both declare fetch,
+// Request, and the rest. `bun run typecheck` checks all three.
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "Preserve",
+    "moduleDetection": "force",
+    "allowJs": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    // The repo runs the SDK from its sources, so nothing in it waits on the SDK's build (packages/sdk/dist).
+    "paths": { "@asked-before/sdk": ["./packages/sdk/src/index.ts"] }
+  }
+}

@@ -1,0 +1,11 @@
+// The Worker, with the Workers runtime's types and Node.js's, for the
+// node: modules it uses (see tsconfig.base.json). Everything it bundles
+// from server/ is checked through its imports.
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "types": ["@cloudflare/workers-types", "node"]
+  },
+  "include": ["."]
+}

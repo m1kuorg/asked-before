@@ -1,0 +1,10 @@
+// The pages, in the browser, with Bun's types too for the macros that run
+// when they're bundled (see tsconfig.base.json).
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["bun"]
+  },
+  "include": ["."]
+}

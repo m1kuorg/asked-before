@@ -1,13 +1,14 @@
 -- Migration 1: the spec's whole schema (m1kuorg/basics#40, Store), as it
--- stood when migrations arrived (m1kuorg/basics#54). server/store/db.ts
--- applies it once, to a fresh database; a later change is a new migration.
+-- stood when migrations arrived (m1kuorg/basics#54). `wrangler d1
+-- migrations apply` applies it once, to a fresh database; a later change is
+-- a new migration.
 -- Times are Unix milliseconds. Every child row is deleted with its parent.
 
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,              -- trimmed and lowercased
-  password_hash TEXT NOT NULL,             -- Bun.password's PHC string
+  password_hash TEXT NOT NULL,             -- scrypt, with its parameters (server/passwords.ts)
   created_at INTEGER NOT NULL
 );
 

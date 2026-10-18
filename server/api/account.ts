@@ -1,18 +1,15 @@
-// Account: update the name and email, change the password
-// (m1kuorg/basics#48), download all your data, and delete the account
-// (m1kuorg/basics#49). All of them need a session: authed(..., { sessionOnly: true }).
+// Account: update the name and email, and change the password
+// (m1kuorg/basics#48). Both need a session: authed(..., { sessionOnly: true }).
 // Changing the password needs the current one, and ends every other session.
-// The download is the account and everything in it, as the API shows it.
-// Deleting the account needs its password, deletes everything in it, and
-// ends every session, this one included.
+// Downloading your data and deleting the account (m1kuorg/basics#49) come
+// back on Workers with m1kuorg/basics#63.
 
-import type { Account, AccountData } from "@asked-before/sdk";
+import type { Account } from "@asked-before/sdk";
 import { z } from "zod";
-import { authed, clearSessionCookie } from "../auth";
+import { authed } from "../auth";
 import { defineRoutes, HttpError, readJson } from "../http";
-import { accountData } from "../store/account-data";
-import { deleteOtherSessions } from "../store/sessions";
-import { deleteUser, passwordHashOf, setPasswordHash, updateAccount } from "../store/users";
+import { hashPassword, verifyPassword } from "../passwords";
+import { changePasswordHash, passwordHashOf, updateAccount } from "../store/users";
 import { AccountName, Email, MAX_PASSWORD, NewPassword } from "./auth";
 
 const Change = z
@@ -24,44 +21,26 @@ const PasswordChange = z.strictObject({
   newPassword: NewPassword("A new password"),
 });
 
-const Deletion = z.strictObject({
-  password: z.string({ error: "Your password is needed." }).min(1, "Your password is needed.").max(MAX_PASSWORD, "That isn't your password."),
-});
-
 const sessionOnly = { sessionOnly: true };
+const NOT_CURRENT = "That isn't your current password.";
 
 export const account = defineRoutes({
   "/api/v1/account": {
-    PATCH: authed(async (req, auth) => {
+    PATCH: authed(async (req, { db, auth }) => {
       const change = await readJson(req, Change);
-      const updated = updateAccount(auth.userId, change);
+      const updated = await updateAccount(db, auth.userId, change);
       if (!updated) throw new HttpError(409, "That email already has an account.");
       return Response.json(updated satisfies Account);
     }, sessionOnly),
-    DELETE: authed(async (req, auth) => {
-      const { password } = await readJson(req, Deletion);
-      const hash = passwordHashOf(auth.userId);
-      if (!hash || !(await Bun.password.verify(password, hash))) throw new HttpError(403, "That isn't your password.");
-      deleteUser(auth.userId);
-      clearSessionCookie(req);
-      return new Response(null, { status: 204 });
-    }, sessionOnly),
   },
   "/api/v1/account/password": {
-    POST: authed(async (req, auth) => {
+    POST: authed(async (req, { db, auth }) => {
       const { currentPassword, newPassword } = await readJson(req, PasswordChange);
-      const hash = passwordHashOf(auth.userId);
-      if (!hash || !(await Bun.password.verify(currentPassword, hash))) throw new HttpError(403, "That isn't your current password.");
-      setPasswordHash(auth.userId, await Bun.password.hash(newPassword));
-      if (auth.via === "session") deleteOtherSessions(auth.userId, auth.sessionId);
+      const hash = await passwordHashOf(db, auth.userId);
+      if (!hash || !verifyPassword(currentPassword, hash)) throw new HttpError(403, NOT_CURRENT);
+      const changed = await changePasswordHash(db, auth.userId, { from: hash, to: hashPassword(newPassword), keepSessionId: auth.via === "session" ? auth.sessionId : null });
+      if (!changed) throw new HttpError(403, NOT_CURRENT);
       return new Response(null, { status: 204 });
-    }, sessionOnly),
-  },
-  "/api/v1/account/export": {
-    GET: authed((_req, auth) => {
-      const data = accountData(auth.userId);
-      if (!data) throw new HttpError(401, "Log in first.");
-      return Response.json(data satisfies AccountData);
     }, sessionOnly),
   },
 });
