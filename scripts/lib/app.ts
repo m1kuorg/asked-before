@@ -19,7 +19,7 @@ const ROOT = join(import.meta.dir, "..", "..");
 export type App = {
   /** The app's origin, as "http://localhost:51234". */
   url: string;
-  /** The local D1 database's SQLite file, for the few checks that read it with bun:sqlite, read-only. */
+  /** The local D1 database's SQLite file, for the few checks that read it with bun:sqlite, read-only; check:captures' one write, aging a capture past the ten-minute window, is the documented exception (docs/code-map.md). */
   databasePath: string;
   /** Everything Wrangler has printed so far, the Worker's own lines among its own. */
   log: () => string;
