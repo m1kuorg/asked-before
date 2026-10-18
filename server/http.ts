@@ -34,7 +34,6 @@ export type Context<P extends string = string> = {
   /** The database, for the store's functions; nothing outside server/store/ queries it. */
   db: D1Database;
   config: Config;
-  env: Env;
 };
 
 export type Handler<P extends string = string> = (req: Request, ctx: Context<P>) => Response | Promise<Response>;
@@ -116,7 +115,7 @@ async function route(req: Request, env: Env, routes: RouteTable, pathname: strin
   const found = match(routes, pathname);
   const handler = found?.methods[req.method as Method];
   if (!found || !handler) throw new HttpError(404, "There's no such endpoint.");
-  const ctx: Context = { params: found.params, db: env.DB, config: readConfig(env), env };
+  const ctx: Context = { params: found.params, db: env.DB, config: readConfig(env) };
   return await handler(req, ctx);
 }
 
