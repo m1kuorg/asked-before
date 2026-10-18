@@ -36,7 +36,7 @@ export class ExportError extends Error {
 /** Reads an export: a zip or a conversations.json, as a File or Blob, its bytes, or its text. */
 export async function readExport(input: Blob | ArrayBuffer | Uint8Array | string): Promise<ReadExport> {
   if (typeof input === "string") return readConversations(parse(input, "The export", "The export isn't valid JSON."));
-  const file = input instanceof Blob ? input : new Blob([input as BlobPart]);
+  const file = input instanceof Blob ? input : new Blob([input] as BlobParts);
   const head = await bytes(file, 0, 2);
   if (head[0] !== 0x50 || head[1] !== 0x4b) return readConversations(parse(await file.text(), "The file", "The file is neither a zip nor JSON."));
   const conversations = await fromZip(file, true);
@@ -49,6 +49,9 @@ export async function readExport(input: Blob | ArrayBuffer | Uint8Array | string
 // JSON.
 
 type JsonObject = Record<string, unknown>;
+
+/** What a Blob is made from, named the same in every runtime's types: the browser's, Bun's, Node's, and Workers'. */
+type BlobParts = ConstructorParameters<typeof Blob>[0];
 
 const isObject = (value: unknown): value is JsonObject => typeof value === "object" && value !== null && !Array.isArray(value);
 
@@ -322,5 +325,5 @@ async function unpack(zip: Blob, entry: Entry): Promise<Blob> {
   } catch {
     throw new ExportError(`${entry.name} in this zip is damaged, so it can't be unpacked.`);
   }
-  return new Blob(out as BlobPart[]);
+  return new Blob(out as BlobParts);
 }

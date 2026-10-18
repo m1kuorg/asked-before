@@ -1,13 +1,15 @@
 // What every route shares. A handler throws HttpError to answer with a
 // status and { error }; readJson checks a body against a zod schema, and
 // readPage a list's limit and cursor.
-// serve() wraps every handler the server has: it turns a thrown error into
-// its answer, adds the security headers, and logs the method, path,
-// status, and duration, never anything from a body.
+// answer() is the Worker's whole fetch (worker/index.ts): it routes the API,
+// turns any thrown error into JSON (never Cloudflare's error page), adds the
+// security headers, and logs the method, path, status, and duration, never
+// anything from a body and never an error itself.
 
-import type { BunRequest, Server } from "bun";
+import type { D1Database } from "@cloudflare/workers-types";
 import { z } from "zod";
-import { config } from "./config";
+import { readConfig, type Config, type Env } from "./config";
+import { SECURITY_HEADERS } from "./security";
 
 /** An answer other than 2xx. Its message is shown to the caller, so it never holds phrasing text. */
 export class HttpError extends Error {
@@ -20,21 +22,33 @@ export class HttpError extends Error {
   }
 }
 
-export type Handler<P extends string = string> = (
-  req: BunRequest<P>,
-  server: Server<undefined>,
-) => Response | Promise<Response>;
+/** The `:name` segments of a route's path. */
+type ParamNames<P extends string> = P extends `${string}:${infer Name}/${infer Rest}` ? Name | ParamNames<`/${Rest}`> : P extends `${string}:${infer Name}` ? Name : never;
+
+/** A route's params, decoded, by name. */
+export type Params<P extends string> = { [K in ParamNames<P>]: string };
+
+/** What a handler gets beside its request, bound for that request alone. */
+export type Context<P extends string = string> = {
+  params: Params<P>;
+  /** The database, for the store's functions; nothing outside server/store/ queries it. */
+  db: D1Database;
+  config: Config;
+  env: Env;
+};
+
+export type Handler<P extends string = string> = (req: Request, ctx: Context<P>) => Response | Promise<Response>;
 
 type Method = "GET" | "POST" | "PATCH" | "DELETE";
 
 /** An area's routes: full paths, each with a handler per method. */
 export type Routes<R extends string> = { [P in R]: Partial<Record<Method, Handler<P>>> };
 
-/** Types an area's routes, so that each handler's req.params follows its path. */
+/** Types an area's routes, so that each handler's params follow its path. */
 export const defineRoutes = <R extends string>(routes: Routes<R>) => routes;
 
 /** Routes composed from several areas, whose handlers each take their own path's params. */
-export type RouteTable = Record<string, Partial<Record<Method, (req: any, server: Server<undefined>) => Response | Promise<Response>>>>;
+export type RouteTable = Record<string, Partial<Record<Method, (req: Request, ctx: any) => Response | Promise<Response>>>>;
 
 /** The parsed body, or a 400 with the schema's first message. */
 export async function readJson<S extends z.ZodType>(req: Request, schema: S): Promise<z.output<S>> {
@@ -58,32 +72,16 @@ export function readPage(req: Request): z.infer<typeof Page> {
   return query.data;
 }
 
-// Only the app's own origin, for every kind of content. fflate inflates a
-// large zip entry in a worker made from a blob: URL, which the page itself
-// creates (app-notes/unzip-in-browser.md, Workers and CSP).
-const CONTENT_SECURITY_POLICY = [
-  "default-src 'self'",
-  "worker-src 'self' blob:",
-  "object-src 'none'",
-  "base-uri 'none'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-].join("; ");
-
-const SECURITY_HEADERS: Record<string, string> = {
-  "content-security-policy": CONTENT_SECURITY_POLICY,
-  "x-content-type-options": "nosniff",
-  "x-frame-options": "DENY",
-  "referrer-policy": "same-origin",
-  "cross-origin-opener-policy": "same-origin",
-  ...(config.https ? { "strict-transport-security": "max-age=31536000" } : {}),
-};
-
-/** Adds the security headers, and keeps API answers out of every cache. */
+/**
+ * A new answer with the security headers, keeping API answers out of every
+ * cache. It's a copy, since a redirect's or a static asset's headers can't
+ * be changed.
+ */
 export function secure(response: Response, pathname: string): Response {
-  for (const [name, value] of Object.entries(SECURITY_HEADERS)) response.headers.set(name, value);
-  if (pathname.startsWith("/api/")) response.headers.set("cache-control", "no-store");
-  return response;
+  const secured = new Response(response.body, response);
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) secured.headers.set(name, value);
+  if (pathname.startsWith("/api/")) secured.headers.set("cache-control", "no-store");
+  return secured;
 }
 
 /** An HttpError keeps its status; anything else is a 500 that says nothing more. */
@@ -92,27 +90,51 @@ export function answerError(error: unknown): Response {
   return Response.json({ error: "The server failed." }, { status: 500 });
 }
 
-export const serve =
-  <R extends Request>(handler: (req: R, server: Server<undefined>) => Response | Promise<Response>) =>
-  async (req: R, server: Server<undefined>): Promise<Response> => {
-    const started = performance.now();
-    let response: Response;
-    try {
-      response = await handler(req, server);
-    } catch (error) {
-      response = answerError(error);
-    }
-    const { pathname } = new URL(req.url);
-    console.log(`${req.method} ${pathname} ${response.status} ${Math.round(performance.now() - started)}ms`);
-    return secure(response, pathname);
-  };
+/** The route a path matches, with its params, or null. A param that isn't valid percent-encoding matches nothing. */
+function match(routes: RouteTable, pathname: string): { methods: RouteTable[string]; params: Record<string, string> } | null {
+  const parts = pathname.split("/");
+  for (const [path, methods] of Object.entries(routes)) {
+    const pattern = path.split("/");
+    if (pattern.length !== parts.length) continue;
+    const params: Record<string, string> = {};
+    const matches = pattern.every((segment, i) => {
+      const part = parts[i]!;
+      if (!segment.startsWith(":")) return segment === part;
+      try {
+        params[segment.slice(1)] = decodeURIComponent(part);
+      } catch {
+        return false;
+      }
+      return part !== "";
+    });
+    if (matches) return { methods, params };
+  }
+  return null;
+}
 
-/** Wraps every handler in a route table with serve(). */
-export function serveAll(routes: RouteTable) {
-  return Object.fromEntries(
-    Object.entries(routes).map(([path, route]) => [
-      path,
-      Object.fromEntries(Object.entries(route).map(([method, handler]) => [method, serve(handler)])),
-    ]),
-  );
+async function route(req: Request, env: Env, routes: RouteTable, pathname: string): Promise<Response> {
+  const found = match(routes, pathname);
+  const handler = found?.methods[req.method as Method];
+  if (!found || !handler) throw new HttpError(404, "There's no such endpoint.");
+  const ctx: Context = { params: found.params, db: env.DB, config: readConfig(env), env };
+  return await handler(req, ctx);
+}
+
+/**
+ * The Worker's answer to any request it gets, which is only ever under /api/:
+ * the static assets answer every other path, a page or the not-found page,
+ * before the Worker (wrangler.jsonc). Never a thrown error, and always with
+ * the security headers.
+ */
+export async function answer(req: Request, env: Env, routes: RouteTable): Promise<Response> {
+  const started = performance.now();
+  const { pathname } = new URL(req.url);
+  let response: Response;
+  try {
+    response = await route(req, env, routes, pathname);
+  } catch (error) {
+    response = answerError(error);
+  }
+  console.log(`${req.method} ${pathname} ${response.status} ${Math.round(performance.now() - started)}ms`);
+  return secure(response, pathname);
 }

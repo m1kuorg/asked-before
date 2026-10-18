@@ -1,0 +1,30 @@
+// Asked Before on Cloudflare Workers (m1kuorg/basics#60). One Worker answers
+// the API under /api/; every other path is a static asset that
+// `bun run build:pages` writes to dist/ first. `bun run dev` runs it all
+// locally, with no Cloudflare account; deploying waits for m1kuorg/basics#55.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "asked-before",
+  "main": "worker/index.ts",
+  // Node.js's APIs (node:crypto) are on by default from 2026-08-04.
+  "compatibility_date": "2026-10-12",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
+  },
+  // No database_id: locally it isn't needed, and the first deploy makes the database.
+  "d1_databases": [{ "binding": "DB", "database_name": "asked-before", "migrations_dir": "migrations" }],
+  // Settings, as strings; server/config.ts checks them. PUBLIC_URL is the
+  // address people reach the app at: unset, a request's own origin counts as
+  // the app's, and an https one makes the session cookie Secure.
+  "vars": {
+    "PUBLIC_URL": "",
+    "DAILY_MODEL_REQUESTS": "300",
+    "SORT_BATCH_SIZE": "300"
+  },
+  // A Worker secret in production; locally, read from .env or the shell.
+  "secrets": { "required": ["ANTHROPIC_API_KEY"] },
+  // Logs carry only each request's method, path, status, and duration, and stay in the terminal.
+  "observability": { "enabled": false, "issues": { "enabled": false } }
+}

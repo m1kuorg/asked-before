@@ -24,25 +24,27 @@ const found = (shelf: Shelf | null): Shelf => {
 
 export const shelves = defineRoutes({
   "/api/v1/shelves": {
-    GET: authed((_req, auth) => Response.json({ shelves: listShelves(auth.userId) })),
-    POST: authed(async (req, auth) => {
+    GET: authed(async (_req, { db, auth }) => Response.json({ shelves: await listShelves(db, auth.userId) })),
+    POST: authed(async (req, { db, auth }) => {
       const { name, demo = false } = await readJson(req, NewShelf);
-      return Response.json(createShelf(auth.userId, name, demo), { status: 201 });
+      const shelf = await createShelf(db, auth.userId, name, demo);
+      if (!shelf) throw new HttpError(401, "Log in first.");
+      return Response.json(shelf, { status: 201 });
     }),
   },
 
   "/api/v1/shelves/:shelfId": {
-    GET: authed((req, auth) => Response.json(found(getShelf(auth.userId, req.params.shelfId)))),
+    GET: authed(async (_req, { db, params, auth }) => Response.json(found(await getShelf(db, auth.userId, params.shelfId)))),
     PATCH: authed(
-      async (req, auth) => {
+      async (req, { db, params, auth }) => {
         const { name } = await readJson(req, Rename);
-        return Response.json(found(renameShelf(auth.userId, req.params.shelfId, name)));
+        return Response.json(found(await renameShelf(db, auth.userId, params.shelfId, name)));
       },
       { sessionOnly: true },
     ),
     DELETE: authed(
-      (req, auth) => {
-        if (!deleteShelf(auth.userId, req.params.shelfId)) throw new HttpError(404, "There's no such shelf.");
+      async (_req, { db, params, auth }) => {
+        if (!(await deleteShelf(db, auth.userId, params.shelfId))) throw new HttpError(404, "There's no such shelf.");
         return new Response(null, { status: 204 });
       },
       { sessionOnly: true },
