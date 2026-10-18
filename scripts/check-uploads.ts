@@ -6,8 +6,9 @@
 // a stand-in in this script, answering as the demo export's answer key does,
 // so no sort reaches the real model. Uploading the same export again into
 // the shelf stores nothing new; onto another shelf it stores it all. A
-// phrasing over 2,000 characters, or a chunk over 2,000 phrasings, gets 413;
-// one dated more than 5 minutes after the server's clock gets 400, as does anything but
+// phrasing over 2,000 characters, or a chunk over 2,000 phrasings, gets
+// 413, and the largest chunk of all is stored whole; one dated more than 5
+// minutes after the server's clock gets 400, as does anything but
 // { sourceId, text, time }. Another account's upload is a 404, an API key
 // can upload as a session can, an upload left unfinished strands none of
 // its phrasings when the export is uploaded again, and the logs never hold
@@ -130,6 +131,10 @@ try {
     check(big?.status === 413, `a chunk of 2,001: ${say(big)}`);
     const full = await ada.client.uploads.append(open.id, many.slice(0, 2000));
     check(full.phrasings === 2001, `a chunk of 2,000 is stored: ${counts(full)}`);
+    // About 12 MB of JSON, which D1 takes only in slices: a bound value holds at most 2 MB.
+    const wide = await ada.client.uploads.create((await ada.client.shelves.create({ name: "Wide" })).id, { source: "chatgpt", fileName: "conversations.json" });
+    const widest = await ada.client.uploads.append(wide.id, Array.from({ length: 2000 }, (_, i) => phrasing(`wide-${i}`, `${i} ${"語".repeat(1990)}`)));
+    check(widest.phrasings === 2000 && widest.messages === 2000, `the largest chunk, 2,000 phrasings of 2,000 characters of three bytes each, is stored whole: ${counts(widest)}`);
   });
 
   await step("6. A phrasing dated more than 5 minutes after the server's clock, or shaped otherwise, gets 400", async () => {

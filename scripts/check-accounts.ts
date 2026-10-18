@@ -5,10 +5,8 @@
 // logs, and, last, the per-IP throttle. The counts come from cards made and
 // returned through the API, with the app's model a stand-in in this script,
 // never in the app: it sorts as the answer key does, writes a stand-in's
-// problem, and passes the answer "right" and fails any other. On Workers
-// (m1kuorg/basics#60), a step whose endpoints aren't ported yet is skipped,
-// naming the ticket that brings it back. It prints each step's checks and
-// exits 1 if any fails, naming the step.
+// problem, and passes the answer "right" and fails any other. It prints
+// each step's checks and exits 1 if any fails, naming the step.
 // Run: bun run check:accounts
 
 import { ApiError, type Card, type Shelf } from "@asked-before/sdk";
@@ -44,11 +42,6 @@ async function step(name: string, run: () => Promise<void>) {
   } catch (error) {
     check(false, `threw ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`);
   }
-}
-
-/** A step whose endpoints aren't on Workers yet: skipped, naming the ticket that brings them back. */
-async function later(ticket: string, name: string, _run: () => Promise<void>) {
-  console.log(`\n${name}\nskip its endpoints come to Workers with ${ticket}`);
 }
 
 /** The ApiError a call fails with, or null when it doesn't fail. */
@@ -216,10 +209,7 @@ await step("8. A second account gets 404 on the first's shelf", async () => {
   check((await ada.client.shelves.get(id)).name === "Day job", "the first account's shelf is untouched");
 });
 
-/** Set once step 9 has filled Bootcamp with uploads, cards, and reps, for step 10 to check they go with it. */
-let filled = false;
-
-await later("m1kuorg/basics#62 (uploads and the sort) and m1kuorg/basics#63 (cold reps)", "9. A shelf's counts come from its cards' status", async () => {
+await step("9. A shelf's counts come from its cards' status", async () => {
   const shelfId = bootcamp!.id;
   const sorted = await sortEnds(ada.client, (await upload(ada.client, shelfId, phrasings, "demo-export.json")).id);
   const [a, b, c, d, e] = (await ada.client.cards.list(shelfId)) as Card[];
@@ -248,21 +238,18 @@ await later("m1kuorg/basics#62 (uploads and the sort) and m1kuorg/basics#63 (col
   check(got.lastUploadAt === latest.createdAt, `last upload ${got.lastUploadAt}`);
   const listed = (await ada.client.shelves.list()).find((p) => p.id === shelfId);
   check(JSON.stringify(listed?.counts) === JSON.stringify(want), "the list shows the same counts");
-  filled = true;
 });
 
 await step("10. Deleting a shelf deletes it and everything on it", async () => {
-  // The shelf holds uploads, phrasings, cards, and reps, once step 9 has run.
+  // The shelf holds uploads, phrasings, cards, and reps (step 9).
   const shelfId = bootcamp!.id;
-  const cards = filled ? await Promise.all((await ada.client.cards.list(shelfId)).map((card) => ada.client.cards.get(card.id))) : [];
-  const held: Record<"uploads" | "cards" | "phrasings" | "reps", string[]> | null = filled
-    ? {
-        uploads: (await ada.client.uploads.list(shelfId)).uploads.map((u) => u.id),
-        cards: cards.map((card) => card.id),
-        phrasings: [...cards.flatMap((card) => card.borrows.map((p) => p.id)), ...(await allUnsorted(ada.client, shelfId)).map((p) => p.id)],
-        reps: cards.flatMap((card) => card.reps.map((r) => r.id)),
-      }
-    : null;
+  const cards = await Promise.all((await ada.client.cards.list(shelfId)).map((card) => ada.client.cards.get(card.id)));
+  const held: Record<"uploads" | "cards" | "phrasings" | "reps", string[]> = {
+    uploads: (await ada.client.uploads.list(shelfId)).uploads.map((u) => u.id),
+    cards: cards.map((card) => card.id),
+    phrasings: [...cards.flatMap((card) => card.borrows.map((p) => p.id)), ...(await allUnsorted(ada.client, shelfId)).map((p) => p.id)],
+    reps: cards.flatMap((card) => card.reps.map((r) => r.id)),
+  };
   await ada.client.shelves.delete(shelfId);
   const got = await failure(ada.client.shelves.get(shelfId));
   check(got?.status === 404, `getting it afterwards: ${say(got)}`);
@@ -274,10 +261,6 @@ await step("10. Deleting a shelf deletes it and everything on it", async () => {
   // No endpoint reaches a deleted shelf's uploads, phrasings, cards, and
   // reps, so only the database can show they went with it. Without
   // cascades, or with foreign keys off, they stay.
-  if (!held) {
-    console.log("skip what it held goes with it, since step 9 was skipped: its uploads, cards, and reps come to Workers with m1kuorg/basics#62 and m1kuorg/basics#63");
-    return;
-  }
   const store = new Database(app.databasePath, { readonly: true, strict: true });
   const left = Object.entries(held).map(([table, ids]) => {
     const { n } = store.query(`SELECT count(*) AS n FROM ${table} WHERE id IN (SELECT value FROM json_each($ids))`).get({ ids: JSON.stringify(ids) }) as { n: number };

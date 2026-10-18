@@ -2,17 +2,22 @@
 // Each area of the spec's API table is its own module, built by its own
 // ticket. Anything else under /api/, a path or a method, is a 404
 // (server/http.ts). On Workers (m1kuorg/basics#60), an area joins the table
-// once it's ported: uploads, cards, captures, and the Desk with
-// m1kuorg/basics#62, and cold reps with m1kuorg/basics#63.
+// once it's ported; Account's data download and delete come with
+// m1kuorg/basics#63 (server/api/account.ts).
 
 import type { RouteTable } from "../http";
 import { account } from "./account";
 import { auth } from "./auth";
+import { cards } from "./cards";
+import { captures } from "./captures";
+import { desk } from "./desk";
 import { health } from "./health";
 import { keys } from "./keys";
+import { reps } from "./reps";
 import { shelves } from "./shelves";
+import { uploads } from "./uploads";
 
-const areas: RouteTable[] = [auth, account, keys, shelves, health];
+const areas: RouteTable[] = [auth, account, keys, shelves, uploads, cards, captures, reps, desk, health];
 
 export const apiRoutes: RouteTable = {};
 for (const area of areas) {
