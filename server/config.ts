@@ -19,6 +19,8 @@ export type Env = {
   ANTHROPIC_API_KEY?: string;
   /** Where model requests go instead of Anthropic's API: only a check sets it, to its stand-in (scripts/lib/model-stub.ts). */
   ANTHROPIC_BASE_URL?: string;
+  /** A fault in the sort's Durable Object (worker/sorter.ts): only a check sets it. "start" makes every start() throw. */
+  SORTER_FAULT?: "start";
   PUBLIC_URL?: string;
   DAILY_MODEL_REQUESTS?: string;
   SORT_BATCH_SIZE?: string;

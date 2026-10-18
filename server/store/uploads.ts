@@ -153,6 +153,20 @@ export async function retryUpload(db: Db, userId: string, uploadId: string): Pro
 }
 
 /**
+ * Fails an upload whose sort didn't start, saying why, while it still
+ * waits for it, so a retry can start it again. The upload as it stands
+ * then, perhaps sorting by now; or null when the account has no such upload.
+ */
+export async function failUnstarted(db: Db, userId: string, uploadId: string, error: string): Promise<Upload | null> {
+  const [, read] = await db.batch<UploadRow>([
+    db.prepare(`UPDATE uploads SET status = 'failed', error = ?3 WHERE id = ?2 AND status = 'waiting' AND ${OWNED}`).bind(userId, uploadId, error),
+    db.prepare(ONE_UPLOAD).bind(userId, uploadId),
+  ]);
+  const row = read!.results[0];
+  return row ? toUpload(row) : null;
+}
+
+/**
  * Deletes an upload and its phrasings, in one batch. A card of its shelf
  * left with fewer than two borrows goes too, with its reps, and its
  * remaining phrasing becomes unsorted. False when the account has no such

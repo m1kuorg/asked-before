@@ -12,8 +12,10 @@
 // offered; sorts run one at a time on a shelf and side by side across
 // shelves; deleting a shelf stops its sort; after a hard kill of the app
 // mid-sort, starting it again on the same state carries on the sort it cut
-// off, from its shelf's Durable Object's stored alarm; and past the daily
-// cap, the next model request gets 429, which the upload records. It
+// off, from its shelf's Durable Object's stored alarm; a sort whose
+// Durable Object fails to start (SORTER_FAULT) fails its upload, which a
+// retry sorts; and past the daily cap, the next model request gets 429,
+// which the upload records. It
 // prints each step's checks, ids, and skill names, never phrasing text,
 // and exits 1 if any fails, naming the step.
 // Run: bun run check:sort-rules
@@ -22,7 +24,7 @@ import { ApiError, createClient, type Client, type Phrasing, type Shelf } from "
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { startApp, type App } from "./lib/app";
+import { browser, freePort, startApp, type App } from "./lib/app";
 import { allUnsorted, compareWithKey, key, keySorter, named, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { hold, refuse, reply, sortRequest, startModelStub, type ModelStub } from "./lib/model-stub";
 
@@ -53,6 +55,8 @@ async function failure(call: Promise<unknown>): Promise<ApiError | null> {
 const say = (error: ApiError | null) => (error ? `${error.status} "${error.message}"` : "no error");
 
 const apps: App[] = [];
+/** Apps a step started on a state of its own and stopped itself, whose logs are checked too. */
+const ended: App[] = [];
 const models: ModelStub[] = [];
 /** A copy of the app whose model is a stand-in answering as the key does, and a learner signed up on it. */
 async function copy(env: Record<string, string> = {}) {
@@ -314,8 +318,43 @@ try {
     }
   });
 
+  await step("13. A sort that fails to start fails its upload, so a retry sorts it", async () => {
+    const state = await mkdtemp(join(tmpdir(), "asked-before-unstarted-"));
+    const port = freePort();
+    const model = await startModelStub(reply(keySorter));
+    models.push(model);
+    // One address across both starts, so the learner keeps her session.
+    const dee = browser(`http://localhost:${port}`).client;
+    // SORTER_FAULT=start makes every start() of the sort's Durable Object throw.
+    let app: App | undefined = await startApp({ ANTHROPIC_BASE_URL: model.url, SORTER_FAULT: "start" }, { state, port });
+    try {
+      await dee.auth.signUp({ name: "Dee Example", email: "dee@example.com", password: "punched cards" });
+      const shelf = await dee.shelves.create({ name: "Unstarted" });
+      const finished = await upload(dee, shelf.id, phrasings).catch((error: ApiError) => error);
+      const [made] = (await dee.uploads.list(shelf.id)).uploads;
+      check(
+        !(finished instanceof ApiError) && finished.status === "failed" && finished.error === "The sort didn't start. Try again." && finished.offered === 0,
+        finished instanceof ApiError ? `the finish failed: ${say(finished)}, and the upload is ${made?.status}` : `the finish answers ${finished.status}, "${finished.error}"`,
+      );
+      check(model.requests.length === 0, `the model wasn't asked (${model.requests.length} requests)`);
+      ended.push(app);
+      await app.stop();
+      app = undefined;
+      app = await startApp({ ANTHROPIC_BASE_URL: model.url }, { state, port });
+      ended.push(app);
+      const retried = await failure(dee.uploads.retry(made!.id));
+      check(retried === null, `once start() works, the learner's retry is taken: ${say(retried)}`);
+      const end = await sortEnds(dee, made!.id);
+      const { problems } = await compareWithKey(dee, shelf.id);
+      check(end.status === "sorted" && problems.length === 0, `the upload ends ${end.status}, ${problems.length ? problems.join("; ") : "its cards matching the key"}`);
+    } finally {
+      await app?.stop();
+      await rm(state, { recursive: true, force: true });
+    }
+  });
+
   const capped = await copy({ DAILY_MODEL_REQUESTS: "2" });
-  await step("13. Past the daily cap, the next model request gets 429, and the upload says so", async () => {
+  await step("14. Past the daily cap, the next model request gets 429, and the upload says so", async () => {
     const shelf = await capped.client.shelves.create({ name: "Capped" });
     const first = await sortEnds(capped.client, (await upload(capped.client, shelf.id, phrasings.slice(0, half))).id);
     const second = await sortEnds(capped.client, (await upload(capped.client, shelf.id, phrasings.slice(half))).id);
@@ -327,9 +366,9 @@ try {
     check(retried.status === "failed" && /today's 2 model requests/.test(retried.error ?? ""), `retried the same day, it fails again: "${retried.error}"`);
   });
 
-  await step("14. The logs hold no phrasing", async () => {
-    const leaked = apps.filter((app) => [...phrasings.map((p) => p.text), "squash my last three commits into one"].some((text) => app.log().includes(text)));
-    check(leaked.length === 0, `${apps.length} apps' logs, ${leaked.length} holding a phrasing`);
+  await step("15. The logs hold no phrasing", async () => {
+    const leaked = [...apps, ...ended].filter((app) => [...phrasings.map((p) => p.text), "squash my last three commits into one"].some((text) => app.log().includes(text)));
+    check(leaked.length === 0, `${apps.length + ended.length} apps' logs, ${leaked.length} holding a phrasing`);
   });
 } finally {
   await Promise.all(apps.map((app) => app.stop()));
