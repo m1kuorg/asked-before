@@ -79,7 +79,7 @@ try {
       ["sign up", "/signup", 200],
       ["the Desk", "/app/desk", 200],
       ["an app screen", "/app/shelves/p1", 200],
-      ["bare /app, which is no page", "/app", 404],
+      ["the app's root", "/app", 200],
       ["a missing page", "/no-such-page", 404],
     ] as const) {
       const response = await fetch(new URL(at, app.url));
@@ -198,6 +198,7 @@ try {
     check(true, "forward returns to the shelf");
 
     for (const [at, title] of [
+      ["/app", "Still borrowed"],
       [`/app/shelves/${dayJob.id}/upload`, "Upload a chat export"],
       ["/app/cards/c1", "Card"],
       ["/app/settings", "Settings"],

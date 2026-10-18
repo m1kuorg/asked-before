@@ -53,7 +53,7 @@ export const route = <P extends string>(name: string, path: P, section: Section 
   screen: screen as Screen<string>,
 });
 
-export const isAppPath = (pathname: string) => pathname.startsWith("/app/");
+export const isAppPath = (pathname: string) => pathname === "/app" || pathname.startsWith("/app/");
 
 function safeDecode(segment: string): string | null {
   try {

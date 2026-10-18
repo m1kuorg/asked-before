@@ -13,6 +13,7 @@ import { mountUpload } from "../screens/upload";
 import { route } from "./router";
 
 export const ROUTES = [
+  route("desk", "/app", "desk", "Desk", mountDesk),
   route("desk", "/app/desk", "desk", "Desk", mountDesk),
   route("shelves", "/app/shelves", "shelves", "Shelves", mountShelves),
   route("shelf", "/app/shelves/:shelfId", "shelves", "Shelf", mountShelf),
