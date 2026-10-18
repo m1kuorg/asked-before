@@ -102,7 +102,8 @@ try {
     check(again.card?.id === cardA!.id && again.card.count === 10, `card A still has ${again.card?.count} borrows`);
     check(model.requests.length === before, `${model.requests.length - before} model requests`);
 
-    // A capture's time is the server's clock, which no endpoint sets, so the ten minutes pass here, in the database, rather than in a ten-minute wait.
+    // A capture's time is the server's clock, which no endpoint sets, so the ten minutes pass here, in the database, rather than in a ten-minute wait:
+    // the one write a check makes to the local database, the read-only rule's documented exception (docs/code-map.md).
     const db = new Database(app.databasePath, { strict: true });
     db.query("UPDATE phrasings SET time = time - 11 * 60 * 1000 WHERE id = $id").run({ id: first.phrasing.id });
     db.close();
