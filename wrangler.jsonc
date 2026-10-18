@@ -15,6 +15,9 @@
   },
   // No database_id: locally it isn't needed, and the first deploy makes the database.
   "d1_databases": [{ "binding": "DB", "database_name": "asked-before", "migrations_dir": "migrations" }],
+  // Each shelf's sort, one Durable Object per shelf, named by its id (worker/sorter.ts).
+  "durable_objects": { "bindings": [{ "name": "SORTER", "class_name": "Sorter" }] },
+  "exports": { "Sorter": { "type": "durable-object", "storage": "sqlite" } },
   // Settings, as strings; server/config.ts checks them. PUBLIC_URL is the
   // address people reach the app at: unset, a request's own origin counts as
   // the app's, and an https one makes the session cookie Secure.

@@ -9,23 +9,23 @@ import { getCard, listCards, listUnsorted } from "../store/cards";
 
 export const cards = defineRoutes({
   "/api/v1/shelves/:shelfId/cards": {
-    GET: authed((req, auth) => {
-      const cards = listCards(auth.userId, req.params.shelfId);
+    GET: authed(async (_req, { db, params, auth }) => {
+      const cards = await listCards(db, auth.userId, params.shelfId);
       if (!cards) throw new HttpError(404, "There's no such shelf.");
       return Response.json({ cards });
     }),
   },
   "/api/v1/shelves/:shelfId/unsorted": {
-    GET: authed((req, auth) => {
+    GET: authed(async (req, { db, params, auth }) => {
       const { limit, cursor } = readPage(req);
-      const page = listUnsorted(auth.userId, req.params.shelfId, limit, cursor);
+      const page = await listUnsorted(db, auth.userId, params.shelfId, limit, cursor);
       if (!page) throw new HttpError(404, "There's no such shelf.");
       return Response.json(page);
     }),
   },
   "/api/v1/cards/:cardId": {
-    GET: authed((req, auth) => {
-      const card = getCard(auth.userId, req.params.cardId);
+    GET: authed(async (_req, { db, params, auth }) => {
+      const card = await getCard(db, auth.userId, params.cardId);
       if (!card) throw new HttpError(404, "There's no such card.");
       return Response.json(card);
     }),
