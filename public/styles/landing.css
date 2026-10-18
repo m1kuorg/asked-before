@@ -69,7 +69,7 @@
   text-wrap: balance;
 }
 
-/* The card's name with its demo-data label beside it, as a demo project's heading sets it. */
+/* The card's name with its demo-data label beside it, as a demo shelf's heading sets it. */
 .landing-card > .heading {
   display: flex;
   flex-wrap: wrap;

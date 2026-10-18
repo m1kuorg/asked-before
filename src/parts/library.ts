@@ -16,7 +16,7 @@ export const count = (n: number) => n.toLocaleString("en-US");
 /** Each export's chatbot, by name. */
 export const SOURCES = { chatgpt: "ChatGPT", claude: "Claude" } as const;
 
-/** The label beside a demo project's name, wherever it shows. */
+/** The label beside a demo shelf's name, wherever it shows. */
 export const demoLabel = () => el("span", "demo-label", "Demo data");
 
 const pad = (n: number) => String(n).padStart(2, "0");
