@@ -9,10 +9,10 @@ Asked Before keeps the learner's library cards. A card is one skill they asked a
 
 ## When the learner asks how to do something
 
-A how-to question asks how to do a task the learner could learn to do alone: "how do I undo my last commit?", "what's the flag that makes grep ignore case?", "how do I center a div?". Asks for project work, such as "fix this test" or "add a login page", aren't how-to questions, and stay unrecorded.
+A how-to question asks how to do a task the learner could learn to do alone: "how do I undo my last commit?", "what's the flag that makes grep ignore case?", "how do I center a div?". Asks for work on their code, such as "fix this test" or "add a login page", aren't how-to questions, and stay unrecorded.
 
 1. Before you answer, call `record_question` with the learner's own words: their question as they wrote it, word for word. Send only those words. Leave out everything else in their message (pasted code, logs, file contents, paths) and anything secret (keys, tokens, passwords, personal details). Never send your answer, your code, or your rewording of the question. If nothing of their own question is left, record nothing.
-2. Name the `project` when you know it. If `record_question` asks which project, call `list_projects`, ask the learner which one their questions go to, and use it for the rest of the session.
+2. Name the `shelf` when you know it. If `record_question` asks which shelf, call `list_shelves`, ask the learner which one their questions go to, and use it for the rest of the session.
 3. Read what `record_question` gives back:
    - **A card they asked before.** Tell the learner they've asked this before, naming the card's skill and how many times they've borrowed it, and, when it's borrowed again, the date they returned it. Then offer a cold rep on it before you answer, since an answer in view would warm the rep. If they take it, run the cold rep below; if not, answer as usual.
    - **New, waiting unsorted.** Answer as usual.

@@ -343,7 +343,7 @@ const TOOLS: [string, string][] = [
 const SETTINGS: [string, string][] = [
   [MCP_ENV.url, `Your Asked Before server's address, such as ${SERVER}.`],
   [MCP_ENV.apiKey, "An API key from Settings."],
-  [MCP_ENV.project, "Optional: the project, by name or id, that the tools use when a call names none."],
+  [MCP_ENV.shelf, "Optional: the project, by name or id, that the tools use when a call names none."],
 ];
 
 function mcp(): Section {
@@ -393,7 +393,7 @@ function plugin(): Section {
         ", and carries a single-file build of the server, which runs on Node.js 20 or later.",
       ),
       codeBlock("Claude Code plugin", snippets.claudeCodePlugin),
-      p("Run it in a terminal, with a key from Settings for ", code(PLACEHOLDERS.apiKey), ", then start a new Claude Code session. To pick a default project too, add ", code(`--config ${PLUGIN.options.project}=Work`), "."),
+      p("Run it in a terminal, with a key from Settings for ", code(PLACEHOLDERS.apiKey), ", then start a new Claude Code session. To pick a default project too, add ", code(`--config ${PLUGIN.options.shelf}=Work`), "."),
       h3("The skill"),
       p("The skill tells Claude Code when to use the tools:"),
       el(
