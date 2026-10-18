@@ -74,7 +74,7 @@ async function downloadsD1Calls(download: () => Promise<unknown>): Promise<strin
   const traces = `${app.url}/cdn-cgi/local/explorer/api/local/observability`;
   await fetch(`${traces}/clear`, { method: "POST" });
   await download();
-  const sql = "SELECT name FROM spans WHERE kind = 'd1' AND trace_id IN (SELECT trace_id FROM logs WHERE message LIKE '%GET /api/v1/account/export 200%') ORDER BY start_ms";
+  const sql = "SELECT name FROM spans WHERE kind = 'd1' AND trace_id IN (SELECT trace_id FROM logs WHERE message LIKE '%GET /api/v1/account/export 200%') ORDER BY start_ms, rowid";
   const answer = (await (await fetch(`${traces}/query`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sql }) })).json()) as { result: { rows: [string][] } };
   return answer.result.rows.map(([name]) => name);
 }
