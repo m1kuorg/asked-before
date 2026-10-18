@@ -22,6 +22,7 @@ import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, type BrowserContext, type Page, type Request } from "playwright";
+import { CONTENT_SECURITY_POLICY } from "../server/security";
 import { PRIVACY_LINE } from "../src/parts/library";
 import { keySorter } from "./lib/answer-key";
 import { startApp, type Browser as Learner } from "./lib/app";
@@ -157,7 +158,10 @@ try {
   });
 
   await step("6. A ChatGPT zip in numbered shards uploads", async () => {
+    const served = page.waitForResponse((response) => response.request().resourceType() === "document");
     await choose(work, join(FIXTURES, "chatgpt-sharded.zip"));
+    const policy = (await served).headers()["content-security-policy"];
+    check(policy === CONTENT_SECURITY_POLICY, `the page reads it under the app's content security policy: ${policy}`);
     await uploadButton().waitFor();
     check((await plate()) === "4", `the preview counts ${await plate()}`);
     await uploadButton().click();

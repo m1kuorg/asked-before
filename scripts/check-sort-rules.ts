@@ -10,10 +10,12 @@
 // breaks a rule is asked again with the error, then fails the sort with no
 // card made. A failed sort resumes on retry from the first phrasing not yet
 // offered; sorts run one at a time on a shelf and side by side across
-// shelves; deleting a shelf stops its sort; a restart carries on the
-// sort it cut off; and past the daily cap, the next model request gets 429,
-// which the upload records. It prints each step's checks, ids, and skill
-// names, never phrasing text, and exits 1 if any fails, naming the step.
+// shelves; deleting a shelf stops its sort; after a hard kill of the app
+// mid-sort, starting it again on the same state carries on the sort it cut
+// off, from its shelf's Durable Object's stored alarm; and past the daily
+// cap, the next model request gets 429, which the upload records. It
+// prints each step's checks, ids, and skill names, never phrasing text,
+// and exits 1 if any fails, naming the step.
 // Run: bun run check:sort-rules
 
 import { ApiError, createClient, type Client, type Phrasing, type Shelf } from "@asked-before/sdk";
@@ -277,17 +279,18 @@ try {
     await Bun.sleep(1000);
     check(small.model.requests.length === asked, `after its first batch's answer came back, no more were asked (${small.model.requests.length - asked} more)`);
     const gone = await failure(small.client.uploads.get(sorting.id));
-    const odd = small.app.log().trim().split("\n").slice(1).filter((line) => !/^(GET|POST|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));
+    // After Wrangler's banner, a line is either Wrangler's own, which says the same of each request, or the Worker's.
+    const lines = small.app.log().split(/Ready on \S+\n/)[1]?.trim().split("\n") ?? [];
+    const odd = lines.filter((line) => !line.startsWith("[wrangler:") && !/^(GET|POST|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));
     check(gone?.status === 404 && odd.length === 0, `its upload is ${say(gone)}, and the app logged its requests and nothing else${odd.length ? `: ${odd.slice(0, 3).join(" | ")}` : ""}`);
   });
 
-  await step("12. A sort a restart cuts off carries on when the app starts again", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "asked-before-restart-"));
-    const env = { DATABASE_PATH: join(dir, "app.sqlite") };
+  await step("12. A sort a hard kill cuts off carries on when the app starts again on the same state", async () => {
+    const state = await mkdtemp(join(tmpdir(), "asked-before-restart-"));
     const model = await startModelStub(reply(keySorter));
     models.push(model);
     try {
-      const before = await startApp({ ANTHROPIC_BASE_URL: model.url, ...env });
+      const before = await startApp({ ANTHROPIC_BASE_URL: model.url }, { state });
       const learner = before.browser().client;
       await learner.auth.signUp({ name: "Cy Example", email: "cy@example.com", password: "jacquard loom" });
       const shelf = await learner.shelves.create({ name: "Restarted" });
@@ -295,9 +298,10 @@ try {
       model.queue(held.answer);
       const cut = await upload(learner, shelf.id, phrasings);
       await held.reached;
-      await before.stop();
+      // Wrangler and workerd get SIGKILL mid-batch, with the model's answer still to come.
+      await before.kill();
       held.release(refuse());
-      const after = await startApp({ ANTHROPIC_BASE_URL: model.url, ...env });
+      const after = await startApp({ ANTHROPIC_BASE_URL: model.url }, { state });
       apps.push(after);
       const again = after.browser().client;
       await again.auth.logIn({ email: "cy@example.com", password: "jacquard loom" });
@@ -306,7 +310,7 @@ try {
       const { problems } = await compareWithKey(again, shelf.id);
       check(problems.length === 0, problems.length ? problems.join("; ") : "and its cards match the key");
     } finally {
-      await rm(dir, { recursive: true, force: true });
+      await rm(state, { recursive: true, force: true });
     }
   });
 
