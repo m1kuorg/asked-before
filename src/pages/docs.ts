@@ -74,7 +74,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/account/export",
         sdk: "account.export",
         who: SESSION,
-        does: "All your data as one JSON value: the account, and each project with its uploads, every phrasing, and its cards with their lessons and cold reps. No API key or password is in it.",
+        does: "All your data as one JSON value: the account, and each shelf with its uploads, every phrasing, and its cards with their lessons and cold reps. No API key or password is in it.",
       },
       { method: "DELETE", path: "/account", sdk: "account.delete", who: SESSION, does: "Deletes the account and everything in it with { password }, and ends every session: 204. A wrong password is a 403." },
     ],
@@ -88,22 +88,22 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
     ],
   },
   {
-    area: "Projects",
+    area: "Shelves",
     endpoints: [
-      { method: "GET", path: "/projects", sdk: "projects.list", who: KEY, does: "{ projects }: each with its counts of cards, borrowed, returned, and borrowed again, and when its latest upload was made." },
-      { method: "POST", path: "/projects", sdk: "projects.create", who: KEY, does: "Makes a project named { name }, of 1 to 80 characters, or a demo project with demo: true: 201 with the project." },
-      { method: "GET", path: "/projects/:projectId", sdk: "projects.get", who: KEY, does: "The project, with its counts." },
-      { method: "PATCH", path: "/projects/:projectId", sdk: "projects.rename", who: SESSION, does: "Renames it with { name }: the project." },
-      { method: "DELETE", path: "/projects/:projectId", sdk: "projects.delete", who: SESSION, does: "Deletes the project and everything in it: 204." },
+      { method: "GET", path: "/shelves", sdk: "shelves.list", who: KEY, does: "{ shelves }: each with its counts of cards, borrowed, returned, and borrowed again, and when its latest upload was made." },
+      { method: "POST", path: "/shelves", sdk: "shelves.create", who: KEY, does: "Makes a shelf named { name }, of 1 to 80 characters, or a demo shelf with demo: true: 201 with the shelf." },
+      { method: "GET", path: "/shelves/:shelfId", sdk: "shelves.get", who: KEY, does: "The shelf, with its counts." },
+      { method: "PATCH", path: "/shelves/:shelfId", sdk: "shelves.rename", who: SESSION, does: "Renames it with { name }: the shelf." },
+      { method: "DELETE", path: "/shelves/:shelfId", sdk: "shelves.delete", who: SESSION, does: "Deletes the shelf and everything on it: 204." },
     ],
   },
   {
     area: "Uploads",
     endpoints: [
-      { method: "GET", path: "/projects/:projectId/uploads", sdk: "uploads.list", who: KEY, does: "The project's uploads, a page at a time, newest first: { uploads, next }." },
+      { method: "GET", path: "/shelves/:shelfId/uploads", sdk: "uploads.list", who: KEY, does: "The shelf's uploads, a page at a time, newest first: { uploads, next }." },
       {
         method: "POST",
-        path: "/projects/:projectId/uploads",
+        path: "/shelves/:shelfId/uploads",
         sdk: "uploads.create",
         who: KEY,
         does: "Starts an upload with { source, fileName }, its source chatgpt or claude: 201 with the upload, receiving.",
@@ -120,14 +120,14 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/uploads/:uploadId/phrasings",
         sdk: "uploads.append",
         who: KEY,
-        does: `Appends { phrasings }, up to ${count(MAX_CHUNK)} at a time: the upload. A phrasing whose sourceId the project holds already is skipped, so the same export uploaded twice stores nothing new, unless an upload that never finished holds it: then it joins this upload, to be sorted with it. A finished upload is a 409.`,
+        does: `Appends { phrasings }, up to ${count(MAX_CHUNK)} at a time: the upload. A phrasing whose sourceId the shelf holds already is skipped, so the same export uploaded twice stores nothing new, unless an upload that never finished holds it: then it joins this upload, to be sorted with it. A finished upload is a 409.`,
       },
       {
         method: "POST",
         path: "/uploads/:uploadId/finish",
         sdk: "uploads.finish",
         who: KEY,
-        does: "Finishes the upload and starts its project's sort: the upload, waiting. Get the upload again to follow the sort. Finishing it twice is a 409.",
+        does: "Finishes the upload and starts its shelf's sort: the upload, waiting. Get the upload again to follow the sort. Finishing it twice is a 409.",
       },
       {
         method: "POST",
@@ -150,12 +150,12 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
     endpoints: [
       {
         method: "GET",
-        path: "/projects/:projectId/cards",
+        path: "/shelves/:shelfId/cards",
         sdk: "cards.list",
         who: KEY,
         does: "{ cards }, most borrowed first, ties to the later last borrow: each card's skill, status, count, first and last borrow, and return stamp.",
       },
-      { method: "GET", path: "/projects/:projectId/unsorted", sdk: "cards.unsorted", who: KEY, does: "The project's unsorted phrasings, a page at a time, newest first: { phrasings, next }." },
+      { method: "GET", path: "/shelves/:shelfId/unsorted", sdk: "cards.unsorted", who: KEY, does: "The shelf's unsorted phrasings, a page at a time, newest first: { phrasings, next }." },
       { method: "GET", path: "/cards/:cardId", sdk: "cards.get", who: KEY, does: "The card with its lesson, its borrows, oldest first, and its cold reps." },
     ],
   },
@@ -164,10 +164,10 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
     endpoints: [
       {
         method: "POST",
-        path: "/projects/:projectId/captures",
+        path: "/shelves/:shelfId/captures",
         sdk: "captures.create",
         who: KEY,
-        does: "Records { text }, one question in your own words, and sorts it at once: 201 with { phrasing, card, alreadyCaptured }, its card the one it landed on, or null while it waits unsorted. The same words in the same project within ten minutes give 200 with that earlier capture, and add no borrow.",
+        does: "Records { text }, one question in your own words, and sorts it at once: 201 with { phrasing, card, alreadyCaptured }, its card the one it landed on, or null while it waits unsorted. The same words on the same shelf within ten minutes give 200 with that earlier capture, and add no borrow.",
       },
     ],
   },
@@ -191,14 +191,14 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
     ],
   },
   {
-    area: "Dashboard",
+    area: "Desk",
     endpoints: [
       {
         method: "GET",
-        path: "/dashboard",
-        sdk: "dashboard.get",
+        path: "/desk",
+        sdk: "desk.get",
         who: KEY,
-        does: "The summary across projects: your cards' totals by status, up to 10 cards not returned, most borrowed first, your 10 latest borrows, and your 10 latest returns.",
+        does: "The Desk, across your shelves: your cards' totals by status, up to 10 cards not returned, most borrowed first, your 10 latest borrows, and your 10 latest returns.",
       },
     ],
   },
@@ -212,7 +212,7 @@ const STATUSES: [string, string][] = [
   ["400", "The body or query isn't valid. The message names the first problem."],
   ["401", "No session or key came with the request, the key is wrong or revoked, or the email or password is wrong."],
   ["403", "An API key on an endpoint that needs a session; a cookie request that changes something without the page's Origin or a JSON body; or a wrong password when changing it or deleting the account."],
-  ["404", "There's no such endpoint, or the project, upload, card, key, or cold rep isn't yours. Another account's is a 404 at any depth."],
+  ["404", "There's no such endpoint, or the shelf, upload, card, key, or cold rep isn't yours. Another account's is a 404 at any depth."],
   ["409", "A conflict: an email that has an account, an upload finished already, a retry of a sort that hasn't failed, or a cold rep checked already."],
   ["413", `A phrasing or capture over ${count(MAX_PHRASING_LENGTH)} characters, an append over ${count(MAX_CHUNK)} phrasings, or an answer over 4,000 characters.`],
   ["429", "Too many sign-up or log-in tries from one address, or the account's model requests for the day are spent."],
@@ -239,10 +239,10 @@ function api(): Section {
         code("Authorization: Bearer ab_<id>_<secret>"),
         ". When a key comes with a request, the session cookie is ignored. A wrong or revoked key is a 401.",
       ),
-      p("A key can read your projects, cards, uploads, and dashboard, and make projects, uploads, captures, and cold reps. Deleting anything, downloading your data, managing keys, and changing the account need a session: a key gets 403 there."),
+      p("A key can read your shelves, cards, uploads, and the Desk, and make shelves, uploads, captures, and cold reps. Deleting anything, downloading your data, managing keys, and changing the account need a session: a key gets 403 there."),
       p("The page uses the session cookie that logging in sets, for 30 days. A cookie request that changes something must carry the page's Origin and a JSON body, or it's a 403, so another site can't act for you."),
       h3("Conventions"),
-      p("Times are ISO timestamps, and ids are opaque strings. A list comes inside an object, such as { projects }. A list that can grow without bound comes a page at a time, newest first: pass ", code("limit"), " (1 to 100, 50 by default), and ", code("cursor"), ", the ", code("next"), " of the page before, which is null on the last page."),
+      p("Times are ISO timestamps, and ids are opaque strings. A list comes inside an object, such as { shelves }. A list that can grow without bound comes a page at a time, newest first: pass ", code("limit"), " (1 to 100, 50 by default), and ", code("cursor"), ", the ", code("next"), " of the page before, which is null on the last page."),
       p(
         "A phrasing is sent as { sourceId, text, time } and nothing else: the export's own message id, your words, and when you sent them. It has at most ",
         count(MAX_PHRASING_LENGTH),
@@ -296,9 +296,9 @@ function sortWindow(): Section {
       p(
         "An upload is sorted in batches. Each batch carries up to ",
         code("SORT_BATCH_SIZE"),
-        " (300) new phrasings, plus up to as many of the project's most recent unsorted ones, and later batches see the cards earlier ones made. So an older unsorted phrasing is compared again only while it's inside that window. This is a known limit: once 300 or more unsorted phrasings dated after it are in the project, a new phrasing that asks the same thing can wait unsorted beside it instead of making a card.",
+        " (300) new phrasings, plus up to as many of the shelf's most recent unsorted ones, and later batches see the cards earlier ones made. So an older unsorted phrasing is compared again only while it's inside that window. This is a known limit: once 300 or more unsorted phrasings dated after it are on the shelf, a new phrasing that asks the same thing can wait unsorted beside it instead of making a card.",
       ),
-      p("A capture is compared with the project's cards and its 50 most recent unsorted phrasings."),
+      p("A capture is compared with the shelf's cards and its 50 most recent unsorted phrasings."),
     ],
   };
 }
@@ -311,9 +311,9 @@ function sdk(): Section {
     title: "The SDK",
     body: [
       p("The TypeScript SDK has one method per endpoint, with typed inputs and results. It also has the export readers the upload page uses: they read a ChatGPT or Claude export on your computer, in Bun, Node, or a browser, so a script sends only your own words, as the page does."),
-      p("It isn't on npm yet. In a copy of Asked Before it's the workspace package ", code("@asked-before/sdk"), ". To use it in another project, build it in your copy with ", code("bun run build:sdk"), ", which writes JavaScript and type declarations to ", code("packages/sdk/dist"), " for Bun, Node, or a bundler, then add it from there: ", code("bun add /path/to/asked-before/packages/sdk"), "."),
+      p("It isn't on npm yet. In a copy of Asked Before it's the workspace package ", code("@asked-before/sdk"), ". To use it in your own code, build it in your copy with ", code("bun run build:sdk"), ", which writes JavaScript and type declarations to ", code("packages/sdk/dist"), " for Bun, Node, or a bundler, then add it from there: ", code("bun add /path/to/asked-before/packages/sdk"), "."),
       codeBlock("Quickstart", sdkQuickstart()),
-      p("It reads your export, uploads it into a new project, waits for the sort, and lists the project's cards. In a copy of Asked Before it's ", code("packages/sdk/examples/quickstart.ts"), ". Run it with your server's address, a key from Settings, and your export:"),
+      p("It reads your export, uploads it onto a new shelf, waits for the sort, and lists the shelf's cards. In a copy of Asked Before it's ", code("packages/sdk/examples/quickstart.ts"), ". Run it with your server's address, a key from Settings, and your export:"),
       codeBlock("Run the quickstart", `ASKED_BEFORE_URL=${SERVER} ASKED_BEFORE_API_KEY=${PLACEHOLDERS.apiKey} \\\n  bun quickstart.ts conversations.json`),
       p("Node 23.6 or later runs it too, as ", code("node quickstart.ts conversations.json"), "."),
       h3("Errors"),
@@ -333,8 +333,8 @@ function sdk(): Section {
 // The MCP server.
 
 const TOOLS: [string, string][] = [
-  ["list_projects", "Lists your projects, each with its cards and how many are borrowed, returned, and borrowed again, and says which is the default."],
-  ["list_cards", "Lists a project's cards, most borrowed first; with not_returned, only those still waiting for a cold rep."],
+  ["list_shelves", "Lists your shelves, each with its cards and how many are borrowed, returned, and borrowed again, and says which is the default."],
+  ["list_cards", "Lists a shelf's cards, most borrowed first; with not_returned, only those still waiting for a cold rep."],
   ["record_question", "Records a question in your own words as a capture, and says whether it landed on a card you asked before, with its count and status, or waits unsorted."],
   ["start_cold_rep", "Starts a cold rep on a card: the problem, and the lesson on its first cold rep or after a failed one."],
   ["check_answer", "Checks your answer to a cold rep, as you wrote it: the verdict, the reason, and the card's status."],
@@ -343,7 +343,7 @@ const TOOLS: [string, string][] = [
 const SETTINGS: [string, string][] = [
   [MCP_ENV.url, `Your Asked Before server's address, such as ${SERVER}.`],
   [MCP_ENV.apiKey, "An API key from Settings."],
-  [MCP_ENV.project, "Optional: the project, by name or id, that the tools use when a call names none."],
+  [MCP_ENV.shelf, "Optional: the shelf, by name or id, that the tools use when a call names none."],
 ];
 
 function mcp(): Section {
@@ -355,7 +355,7 @@ function mcp(): Section {
       p("Asked Before's MCP server lets an agent record your how-to questions as captures, as you ask them, and run cold reps in the chat. It runs on your computer over stdio and reaches your Asked Before server with an API key. Its tools tell the agent to send only your own words: never its answer, your code, or secrets."),
       h3("Tools"),
       table("docs-tools", { caption: "The MCP server's tools", columns: [{ label: "Tool", className: "is-name", cell: ([name]) => code(name) }, { label: "What it does", cell: ([, does]) => does }], items: TOOLS }),
-      p("A tool that works in a project takes it by name or id, or else uses the default project. Recording a question the model has to place, starting a cold rep, and checking an answer each count toward your daily cap. Past it, the tool answers with an error, and a question it couldn't record is lost unless the agent sends it again."),
+      p("A tool that works on a shelf takes it by name or id, or else uses the default shelf. Recording a question the model has to place, starting a cold rep, and checking an answer each count toward your daily cap. Past it, the tool answers with an error, and a question it couldn't record is lost unless the agent sends it again."),
       h3("Settings"),
       table("docs-tools", { caption: "The MCP server's settings", columns: [{ label: "Setting", className: "is-name", cell: ([name]) => code(name) }, { label: "What it holds", cell: ([, holds]) => holds }], items: SETTINGS }),
       p("Without the address or the key, the server exits at once, naming them."),
@@ -374,7 +374,7 @@ function mcp(): Section {
       codeBlock("Claude Desktop", snippets.claudeDesktop),
       p(`In Claude Desktop, open Settings, then Developer, then Edit Config, and add it to claude_desktop_config.json. ${whichBun} Then restart Claude Desktop.`),
       codeBlock("Cursor", snippets.cursor),
-      p(`Add it to ~/.cursor/mcp.json, or to .cursor/mcp.json for one project. ${whichBun}`),
+      p(`Add it to ~/.cursor/mcp.json, or to .cursor/mcp.json in one repository. ${whichBun}`),
     ],
   };
 }
@@ -393,7 +393,7 @@ function plugin(): Section {
         ", and carries a single-file build of the server, which runs on Node.js 20 or later.",
       ),
       codeBlock("Claude Code plugin", snippets.claudeCodePlugin),
-      p("Run it in a terminal, with a key from Settings for ", code(PLACEHOLDERS.apiKey), ", then start a new Claude Code session. To pick a default project too, add ", code(`--config ${PLUGIN.options.project}=Work`), "."),
+      p("Run it in a terminal, with a key from Settings for ", code(PLACEHOLDERS.apiKey), ", then start a new Claude Code session. To pick a default shelf too, add ", code(`--config ${PLUGIN.options.shelf}=Work`), "."),
       h3("The skill"),
       p("The skill tells Claude Code when to use the tools:"),
       el(

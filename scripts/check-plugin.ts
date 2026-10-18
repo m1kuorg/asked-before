@@ -5,12 +5,12 @@
 // alone, as a marketplace install copies it, launches its server exactly as
 // its .mcp.json says, with `node` and the options a user would give, on a
 // fresh copy of the app: the official MCP client lists the five tools,
-// lists the learner's project, and records a question into it. Its launch,
+// lists the learner's shelf, and records a question onto it. Its launch,
 // its options, and the settings page's install snippet agree with
 // connect.ts. The skill's SKILL.md is under 500 lines, with frontmatter the
 // Agent Skills spec accepts, and names only tools the server lists. It
 // needs `claude` and `node` on the PATH and no model key: the one question
-// it records lands in an empty project, which the model isn't asked about.
+// it records lands on an empty shelf, which the model isn't asked about.
 // It exits 1 if any check fails, naming the step.
 // Run: bun run check:plugin
 
@@ -42,7 +42,7 @@ async function step(name: string, run: () => Promise<void>) {
 
 const ROOT = join(import.meta.dir, "..");
 const PLUGIN_DIR = join(ROOT, PLUGIN.dir);
-const TOOLS = ["check_answer", "list_cards", "list_projects", "record_question", "start_cold_rep"];
+const TOOLS = ["check_answer", "list_cards", "list_shelves", "record_question", "start_cold_rep"];
 
 type Option = { type: string; title: string; description: string; required?: boolean; default?: string; sensitive?: boolean };
 type Manifest = { name: string; userConfig: Record<string, Option> };
@@ -79,7 +79,7 @@ let listed: { name: string; inputSchema: { properties?: Record<string, unknown> 
 try {
   const ada = app.browser().client;
   await ada.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
-  const work = await ada.projects.create({ name: "Work" });
+  const work = await ada.shelves.create({ name: "Work" });
   const { key } = await ada.keys.create({ name: "Claude Code" });
 
   // A marketplace install copies the plugin's directory and nothing else, so the copy sits where no node_modules can be reached.
@@ -105,19 +105,19 @@ try {
     listed = (await mcp.listTools()).tools;
     const names = listed.map((t) => t.name).sort();
     check(names.join() === TOOLS.join(), `tools: ${names.join(", ")}, on protocol ${mcp.getNegotiatedProtocolVersion()}`);
-    const projects = await mcp.callTool({ name: "list_projects", arguments: {} });
-    const found = projects.structuredContent as { projects: { name: string }[]; defaultProject: unknown };
-    check(!projects.isError && found.projects.map((p) => p.name).join() === "Work" && found.defaultProject === null, `list_projects reaches the app with the key: ${textOf(projects).split("\n")[1]}`);
+    const shelves = await mcp.callTool({ name: "list_shelves", arguments: {} });
+    const found = shelves.structuredContent as { shelves: { name: string }[]; defaultShelf: unknown };
+    check(!shelves.isError && found.shelves.map((p) => p.name).join() === "Work" && found.defaultShelf === null, `list_shelves reaches the app with the key: ${textOf(shelves).split("\n")[1]}`);
     const question = "how do I squash my last three commits into one?";
-    const recorded = await mcp.callTool({ name: "record_question", arguments: { question, project: "Work" } });
+    const recorded = await mcp.callTool({ name: "record_question", arguments: { question, shelf: "Work" } });
     const unsorted = await ada.cards.unsorted(work.id);
     check(!recorded.isError && unsorted.phrasings.map((p) => p.text).join() === question, `record_question records it into Work, where it waits unsorted: ${textOf(recorded)}`);
   });
 
-  await step("4. With the default project option set, a call that names no project uses it", async () => {
-    const mcp = await connect({ server_url: app.url, api_key: key, project: "Work" });
+  await step("4. With the default shelf option set, a call that names no shelf uses it", async () => {
+    const mcp = await connect({ server_url: app.url, api_key: key, shelf: "Work" });
     const cards = await mcp.callTool({ name: "list_cards", arguments: {} });
-    check(!cards.isError && (cards.structuredContent as { project: { id: string } }).project.id === work.id, `list_cards with no project: ${textOf(cards)}`);
+    check(!cards.isError && (cards.structuredContent as { shelf: { id: string } }).shelf.id === work.id, `list_cards with no shelf: ${textOf(cards)}`);
   });
 
   await step("5. The plugin's launch, its options, and the settings page's install snippet agree with connect.ts", async () => {

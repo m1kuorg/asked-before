@@ -9,6 +9,6 @@ export function mountNotFound(root: HTMLElement, _props: ScreenProps) {
   block.append(
     el("h1", undefined, "This page doesn't exist"),
     el("p", undefined, "Nothing is filed at this address. It may be mistyped, or the page may have moved."),
-    el("p", undefined, link("Go to the dashboard", "/app")),
+    el("p", undefined, link("Go to the Desk", "/app/desk")),
   );
 }

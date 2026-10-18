@@ -99,7 +99,7 @@ button.nav-item:focus-visible::after {
   padding: var(--space-2) var(--space-4);
 }
 
-/* The demo-data label, beside a demo project's name wherever it shows. */
+/* The demo-data label, beside a demo shelf's name wherever it shows. */
 .demo-label {
   display: inline-block;
   padding: var(--space-1) var(--space-3);
@@ -204,7 +204,7 @@ button.nav-item:focus-visible::after {
   margin-top: var(--space-6);
 }
 
-/* A heading with what stands beside it, such as a demo project's name and its label. */
+/* A heading with what stands beside it, such as a demo shelf's name and its label. */
 .block > .heading {
   display: flex;
   flex-wrap: wrap;

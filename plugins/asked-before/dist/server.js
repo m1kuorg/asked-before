@@ -57,19 +57,19 @@ var path = (strings, ...values) => String.raw({ raw: strings }, ...values.map(en
 
 // packages/sdk/src/captures.ts
 var captures = (request) => ({
-  create: (projectId, input) => request("POST", path`/projects/${projectId}/captures`, input)
+  create: (shelfId, input) => request("POST", path`/shelves/${shelfId}/captures`, input)
 });
 
 // packages/sdk/src/cards.ts
 var cards = (request) => ({
-  list: (projectId) => request("GET", path`/projects/${projectId}/cards`).then((body) => body.cards),
+  list: (shelfId) => request("GET", path`/shelves/${shelfId}/cards`).then((body) => body.cards),
   get: (cardId) => request("GET", path`/cards/${cardId}`),
-  unsorted: (projectId, page = {}) => request("GET", paged(path`/projects/${projectId}/unsorted`, page))
+  unsorted: (shelfId, page = {}) => request("GET", paged(path`/shelves/${shelfId}/unsorted`, page))
 });
 
-// packages/sdk/src/dashboard.ts
-var dashboard = (request) => ({
-  get: () => request("GET", "/dashboard")
+// packages/sdk/src/desk.ts
+var desk = (request) => ({
+  get: () => request("GET", "/desk")
 });
 
 // packages/sdk/src/health.ts
@@ -84,13 +84,13 @@ var keys = (request) => ({
   revoke: (keyId) => request("DELETE", path`/keys/${keyId}`)
 });
 
-// packages/sdk/src/projects.ts
-var projects = (request) => ({
-  list: () => request("GET", "/projects").then((body) => body.projects),
-  create: (input) => request("POST", "/projects", input),
-  get: (projectId) => request("GET", path`/projects/${projectId}`),
-  rename: (projectId, name) => request("PATCH", path`/projects/${projectId}`, { name }),
-  delete: (projectId) => request("DELETE", path`/projects/${projectId}`)
+// packages/sdk/src/shelves.ts
+var shelves = (request) => ({
+  list: () => request("GET", "/shelves").then((body) => body.shelves),
+  create: (input) => request("POST", "/shelves", input),
+  get: (shelfId) => request("GET", path`/shelves/${shelfId}`),
+  rename: (shelfId, name) => request("PATCH", path`/shelves/${shelfId}`, { name }),
+  delete: (shelfId) => request("DELETE", path`/shelves/${shelfId}`)
 });
 
 // packages/sdk/src/reps.ts
@@ -101,8 +101,8 @@ var reps = (request) => ({
 
 // packages/sdk/src/uploads.ts
 var uploads = (request) => ({
-  list: (projectId, page = {}) => request("GET", paged(path`/projects/${projectId}/uploads`, page)),
-  create: (projectId, input) => request("POST", path`/projects/${projectId}/uploads`, input),
+  list: (shelfId, page = {}) => request("GET", paged(path`/shelves/${shelfId}/uploads`, page)),
+  create: (shelfId, input) => request("POST", path`/shelves/${shelfId}/uploads`, input),
   get: (uploadId) => request("GET", path`/uploads/${uploadId}`),
   append: (uploadId, phrasings) => request("POST", path`/uploads/${uploadId}/phrasings`, {
     phrasings: phrasings.map(({ sourceId, text, time }) => ({ sourceId, text, time }))
@@ -119,12 +119,12 @@ function createClient(options = {}) {
     auth: auth(request),
     account: account(request),
     keys: keys(request),
-    projects: projects(request),
+    shelves: shelves(request),
     uploads: uploads(request),
     cards: cards(request),
     captures: captures(request),
     reps: reps(request),
-    dashboard: dashboard(request),
+    desk: desk(request),
     health: health(request)
   };
 }
@@ -21615,7 +21615,7 @@ function toError(value) {
 var MCP_ENV = {
   apiKey: "ASKED_BEFORE_API_KEY",
   url: "ASKED_BEFORE_URL",
-  project: "ASKED_BEFORE_PROJECT"
+  shelf: "ASKED_BEFORE_SHELF"
 };
 var PLACEHOLDERS = {
   clone: "/path/to/asked-before",
@@ -21629,7 +21629,7 @@ var ENTRY = `${PLACEHOLDERS.clone}/${ENTRY_IN_CLONE}`;
 // packages/mcp/src/server.ts
 var baseUrl = process.env[MCP_ENV.url]?.trim();
 var apiKey = process.env[MCP_ENV.apiKey]?.trim();
-var defaultProject = process.env[MCP_ENV.project]?.trim() || null;
+var defaultShelf = process.env[MCP_ENV.shelf]?.trim() || null;
 if (!baseUrl || !apiKey) {
   console.error(`Asked Before's MCP server needs ${MCP_ENV.url}, your Asked Before server's address, and ${MCP_ENV.apiKey}, a key from its Settings page.`);
   process.exit(1);
@@ -21648,14 +21648,14 @@ var CardOut = object({
   lastBorrowAt: string2(),
   returnedAt: string2().nullable()
 });
-var ProjectRef = object({ id: string2(), name: string2() });
-var ProjectArg = string2().min(1).optional().describe(`The project's name or id. Leave it out for the default project${defaultProject ? `, ${defaultProject}` : ""}.`);
+var ShelfRef = object({ id: string2(), name: string2() });
+var ShelfArg = string2().min(1).optional().describe(`The shelf's name or id. Leave it out for the default shelf${defaultShelf ? `, ${defaultShelf}` : ""}.`);
 var day = (iso) => iso.slice(0, 10);
 var times = (n) => n === 1 ? "once" : `${n} times`;
 var status = (card) => card.status === "returned" ? `returned ${day(card.returnedAt)}` : STATUS[card.status];
 var cardLine = (card) => `"${card.skill}": borrowed ${times(card.count)}, first ${day(card.firstBorrowAt)}, last ${day(card.lastBorrowAt)}; ${status(card)}. Card id ${card.id}.`;
-var cardOut = ({ projectId, ...card }) => card;
-var projectRef = ({ id, name }) => ({ id, name });
+var cardOut = ({ shelfId, ...card }) => card;
+var shelfRef = ({ id, name }) => ({ id, name });
 var toolResult = (text, structuredContent) => ({ content: [{ type: "text", text }], structuredContent });
 async function callApi(call) {
   try {
@@ -21668,83 +21668,83 @@ async function callApi(call) {
     throw new Error(`Asked Before couldn't be reached at ${baseUrl}.`);
   }
 }
-var listNames = (projects) => projects.length ? projects.map((p) => `"${p.name}"`).join(", ") : "none yet";
-var projectNamed = (projects, wanted) => projects.find((p) => p.id === wanted) ?? projects.find((p) => p.name.toLowerCase() === wanted.toLowerCase());
-async function projectFor(given) {
-  const projects = await callApi(() => api2.projects.list());
-  const wanted = given?.trim() || defaultProject;
+var listNames = (shelves) => shelves.length ? shelves.map((p) => `"${p.name}"`).join(", ") : "none yet";
+var shelfNamed = (shelves, wanted) => shelves.find((p) => p.id === wanted) ?? shelves.find((p) => p.name.toLowerCase() === wanted.toLowerCase());
+async function shelfFor(given) {
+  const shelves = await callApi(() => api2.shelves.list());
+  const wanted = given?.trim() || defaultShelf;
   if (!wanted)
-    throw new Error(`Say which project: the learner's projects are ${listNames(projects)}. Or set ${MCP_ENV.project} to pick a default.`);
-  const found = projectNamed(projects, wanted);
+    throw new Error(`Say which shelf: the learner's shelves are ${listNames(shelves)}. Or set ${MCP_ENV.shelf} to pick a default.`);
+  const found = shelfNamed(shelves, wanted);
   if (!found)
-    throw new Error(`The learner has no project "${wanted}". Their projects are ${listNames(projects)}.`);
+    throw new Error(`The learner has no shelf "${wanted}". Their shelves are ${listNames(shelves)}.`);
   return found;
 }
 function build2() {
   const server = new McpServer({ name: SERVER_NAME, version: "0.1.0" }, { instructions: INSTRUCTIONS });
-  server.registerTool("list_projects", {
-    title: "List projects",
-    description: "List the learner's Asked Before projects. A project is a named library of their history for one part of their life, such as Work, with its own cards. Gives each project's cards and how many are borrowed, returned, and borrowed again, and says which is the default project. Sends nothing of the learner's.",
+  server.registerTool("list_shelves", {
+    title: "List shelves",
+    description: "List the learner's Asked Before shelves. A shelf is one named part of their history, such as Work, holding its own cards. Gives each shelf's cards and how many are borrowed, returned, and borrowed again, and says which is the default shelf. Sends nothing of the learner's.",
     inputSchema: object({}),
     outputSchema: object({
-      projects: array(ProjectRef.extend({ demo: boolean2(), cards: number2(), borrowed: number2(), returned: number2(), borrowedAgain: number2() })),
-      defaultProject: ProjectRef.nullable()
+      shelves: array(ShelfRef.extend({ demo: boolean2(), cards: number2(), borrowed: number2(), returned: number2(), borrowedAgain: number2() })),
+      defaultShelf: ShelfRef.nullable()
     }),
     annotations: { readOnlyHint: true }
   }, async () => {
-    const projects = await callApi(() => api2.projects.list());
-    const fallback = defaultProject ? projectNamed(projects, defaultProject) : undefined;
-    const lines = projects.map((p) => `- "${p.name}"${p.demo ? " (demo data)" : ""}: ${p.counts.cards} cards, ${p.counts.borrowed} borrowed, ${p.counts.returned} returned, ${p.counts.borrowedAgain} borrowed again. Project id ${p.id}.`);
-    const which = fallback ? `The default project is "${fallback.name}".` : "No default project is set, so name one in each call.";
-    return toolResult(projects.length ? `The learner's projects:
+    const shelves = await callApi(() => api2.shelves.list());
+    const fallback = defaultShelf ? shelfNamed(shelves, defaultShelf) : undefined;
+    const lines = shelves.map((p) => `- "${p.name}"${p.demo ? " (demo data)" : ""}: ${p.counts.cards} cards, ${p.counts.borrowed} borrowed, ${p.counts.returned} returned, ${p.counts.borrowedAgain} borrowed again. Shelf id ${p.id}.`);
+    const which = fallback ? `The default shelf is "${fallback.name}".` : "No default shelf is set, so name one in each call.";
+    return toolResult(shelves.length ? `The learner's shelves:
 ${lines.join(`
 `)}
-${which}` : "The learner has no projects yet. They make one in Asked Before.", {
-      projects: projects.map((p) => ({ ...projectRef(p), demo: p.demo, ...p.counts })),
-      defaultProject: fallback ? projectRef(fallback) : null
+${which}` : "The learner has no shelves yet. They make one in Asked Before.", {
+      shelves: shelves.map((p) => ({ ...shelfRef(p), demo: p.demo, ...p.counts })),
+      defaultShelf: fallback ? shelfRef(fallback) : null
     });
   });
   server.registerTool("list_cards", {
     title: "List cards",
-    description: `List a project's cards, most borrowed first. A card is one skill the learner asked about more than once, such as "Undo a git commit", and its count is how many times they borrowed it. A card is borrowed until a cold rep on it passes, then returned, and borrowed again once they ask it after that. Set not_returned to list only the cards still waiting for a cold rep. Sends nothing of the learner's.`,
+    description: `List a shelf's cards, most borrowed first. A card is one skill the learner asked about more than once, such as "Undo a git commit", and its count is how many times they borrowed it. A card is borrowed until a cold rep on it passes, then returned, and borrowed again once they ask it after that. Set not_returned to list only the cards still waiting for a cold rep. Sends nothing of the learner's.`,
     inputSchema: object({
-      project: ProjectArg,
+      shelf: ShelfArg,
       not_returned: boolean2().default(false).describe("Only the cards that aren't returned: borrowed, or borrowed again.")
     }),
-    outputSchema: object({ project: ProjectRef, cards: array(CardOut) }),
+    outputSchema: object({ shelf: ShelfRef, cards: array(CardOut) }),
     annotations: { readOnlyHint: true }
-  }, async ({ project, not_returned }) => {
-    const found = await projectFor(project);
+  }, async ({ shelf, not_returned }) => {
+    const found = await shelfFor(shelf);
     const cards = (await callApi(() => api2.cards.list(found.id))).filter((card) => !not_returned || card.status !== "returned");
     const which = not_returned ? "cards not returned" : "cards";
     const text = cards.length ? `"${found.name}" has ${cards.length} ${which}, most borrowed first:
 ${cards.map((card) => `- ${cardLine(card)}`).join(`
 `)}` : `"${found.name}" has no ${which}.`;
-    return toolResult(text, { project: projectRef(found), cards: cards.map(cardOut) });
+    return toolResult(text, { shelf: shelfRef(found), cards: cards.map(cardOut) });
   });
   server.registerTool("record_question", {
     title: "Record a question",
-    description: "Record the learner's how-to question as a capture in one of their projects, and sort it onto their cards at once. Send only the learner's own words, exactly as they asked: never your answer, their code, file contents, or secrets. Says whether it landed on a card they asked before, with how many times they've borrowed it and its status, so you can tell them and offer a cold rep; or that it's new, and waits unsorted until they ask the same thing again. The same words again within ten minutes add no borrow.",
+    description: "Record the learner's how-to question as a capture on one of their shelves, and sort it onto their cards at once. Send only the learner's own words, exactly as they asked: never your answer, their code, file contents, or secrets. Says whether it landed on a card they asked before, with how many times they've borrowed it and its status, so you can tell them and offer a cold rep; or that it's new, and waits unsorted until they ask the same thing again. The same words again within ten minutes add no borrow.",
     inputSchema: object({
       question: string2().min(1).max(MAX_PHRASING_LENGTH).describe("The learner's question, in their own words, word for word."),
-      project: ProjectArg
+      shelf: ShelfArg
     }),
     outputSchema: object({
-      project: ProjectRef,
+      shelf: ShelfRef,
       phrasing: object({ id: string2(), text: string2(), time: string2() }),
       card: CardOut.nullable(),
       alreadyCaptured: boolean2()
     }),
     annotations: { readOnlyHint: false, destructiveHint: false }
-  }, async ({ question, project }) => {
-    const found = await projectFor(project);
+  }, async ({ question, shelf }) => {
+    const found = await shelfFor(shelf);
     const capture = await callApi(() => api2.captures.create(found.id, { text: question }));
     const lines = [
-      capture.alreadyCaptured ? `These words were recorded in "${found.name}" less than ten minutes ago, so no borrow was added.` : `Recorded in "${found.name}".`,
+      capture.alreadyCaptured ? `These words were recorded on the shelf "${found.name}" less than ten minutes ago, so no borrow was added.` : `Recorded on the shelf "${found.name}".`,
       capture.card ? `It's on the card ${cardLine(capture.card)} Tell the learner they've asked this before, and offer a cold rep on it with start_cold_rep.` : "No card asks this yet, so it waits unsorted until the learner asks the same thing again."
     ];
     const { id, text, time } = capture.phrasing;
-    return toolResult(lines.join(" "), { project: projectRef(found), phrasing: { id, text, time }, card: capture.card && cardOut(capture.card), alreadyCaptured: capture.alreadyCaptured });
+    return toolResult(lines.join(" "), { shelf: shelfRef(found), phrasing: { id, text, time }, card: capture.card && cardOut(capture.card), alreadyCaptured: capture.alreadyCaptured });
   });
   server.registerTool("start_cold_rep", {
     title: "Start a cold rep",

@@ -8,14 +8,14 @@ import { account } from "./account";
 import { auth } from "./auth";
 import { captures } from "./captures";
 import { cards } from "./cards";
-import { dashboard } from "./dashboard";
+import { desk } from "./desk";
 import { health } from "./health";
 import { keys } from "./keys";
-import { projects } from "./projects";
+import { shelves } from "./shelves";
 import { reps } from "./reps";
 import { uploads } from "./uploads";
 
-const areas: RouteTable[] = [auth, account, keys, projects, uploads, cards, captures, reps, dashboard, health];
+const areas: RouteTable[] = [auth, account, keys, shelves, uploads, cards, captures, reps, desk, health];
 
 export const apiRoutes: RouteTable = {};
 for (const area of areas) {

@@ -309,7 +309,7 @@
       },
       {
         "name": "The Plate Holds Rule",
-        "body": "Once a screen has its count, every state keeps its one plate, inside the block's padding: waiting and error too. Until then, while a screen waits for the count itself (its first load, or a file being read) or fails to get it, there's no plate, since the Plate Counts Rule leaves nothing to put on one. A plate that drops out of a short state once its count is known, such as a project's card that failed to come, or hangs past the block's foot, is wrong.",
+        "body": "Once a screen has its count, every state keeps its one plate, inside the block's padding: waiting and error too. Until then, while a screen waits for the count itself (its first load, or a file being read) or fails to get it, there's no plate, since the Plate Counts Rule leaves nothing to put on one. A plate that drops out of a short state once its count is known, such as a shelf's card that failed to come, or hangs past the block's foot, is wrong.",
         "section": "elevation"
       },
       {

@@ -5,7 +5,7 @@
 import type { Account } from "./auth.ts";
 import type { Card, StoredPhrasing } from "./cards.ts";
 import type { Requester } from "./http.ts";
-import type { Project } from "./projects.ts";
+import type { Shelf } from "./shelves.ts";
 import type { Rep } from "./reps.ts";
 import type { Upload } from "./uploads.ts";
 
@@ -31,8 +31,8 @@ export type PhrasingData = StoredPhrasing & {
 /** A card as `cards.list` shows it, with its lesson and its cold reps, oldest first. Its borrows are the phrasings whose `cardId` is its id. */
 export type CardData = Card & { lesson: string | null; reps: Rep[] };
 
-/** A project as `projects.list` shows it, with everything in it. */
-export type ProjectData = Project & {
+/** A shelf as `shelves.list` shows it, with everything in it. */
+export type ShelfData = Shelf & {
   /** Its uploads, oldest first. */
   uploads: Upload[];
   /** Every phrasing in it, oldest first: on a card, unsorted, or waiting for its sort. */
@@ -41,8 +41,8 @@ export type ProjectData = Project & {
   cards: CardData[];
 };
 
-/** Everything Asked Before keeps for you: the account and every project, oldest first. API keys and the password aren't in it. */
-export type AccountData = { exportedAt: string; account: Account; projects: ProjectData[] };
+/** Everything Asked Before keeps for you: the account and every shelf, oldest first. API keys and the password aren't in it. */
+export type AccountData = { exportedAt: string; account: Account; shelves: ShelfData[] };
 
 /** Deleting the account needs its password. */
 export type AccountDeletion = { password: string };

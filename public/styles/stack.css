@@ -256,11 +256,11 @@
   }
 }
 
-/* The project page (src/screens/project.ts): the stack, set as above, with the project named at the head of the margin. */
+/* The shelf page (src/screens/shelf.ts): the stack, set as above, with the shelf named at the head of the margin. */
 
-#app[data-screen="project"] {
-  /* The project's name, and beside it a demo project's label. */
-  .project-name {
+#app[data-screen="shelf"] {
+  /* The shelf's name, and beside it a demo shelf's label. */
+  .shelf-name {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
@@ -268,8 +268,8 @@
     font: 800 var(--body-size) / 1.2 var(--face);
   }
 
-  /* The way to the project's views, as margin notes; the view on screen is set heavier, without its underline. */
-  .project-views {
+  /* The way to the shelf's views, as margin notes; the view on screen is set heavier, without its underline. */
+  .shelf-views {
     display: grid;
     gap: var(--space-2);
     padding: 0;
@@ -277,7 +277,7 @@
     font-weight: 600;
   }
 
-  .project-views [aria-current="page"] {
+  .shelf-views [aria-current="page"] {
     font-weight: 800;
     text-decoration: none;
   }

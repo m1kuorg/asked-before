@@ -18,7 +18,7 @@ export const config = {
   https: publicUrl?.protocol === "https:",
   /** Model requests one account may make per UTC day. */
   dailyModelRequests: wholeNumber("DAILY_MODEL_REQUESTS", 300),
-  /** Phrasings a sort sends the model at once, beside as many of the project's most recent unsorted ones (server/sort.ts). */
+  /** Phrasings a sort sends the model at once, beside as many of the shelf's most recent unsorted ones (server/sort.ts). */
   sortBatchSize: wholeNumber("SORT_BATCH_SIZE", 300),
 };
 

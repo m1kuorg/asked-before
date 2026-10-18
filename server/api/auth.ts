@@ -13,8 +13,8 @@ import { deleteSession } from "../store/sessions";
 import { createUser, findLogin, getAccount } from "../store/users";
 import { throttle } from "../throttle";
 
-/** The app's home, where signing up or logging in goes when `next` is missing or outside the app. */
-const APP_HOME = "/app";
+/** The app's home, the Desk, where signing up or logging in goes when `next` is missing or outside the app. */
+const APP_HOME = "/app/desk";
 
 /** An email, trimmed and lowercased; changing it in settings checks it the same way. */
 export const Email = z
@@ -60,7 +60,7 @@ function appPath(next: string | undefined): string {
   if (next === undefined || !next.startsWith("/")) return APP_HOME;
   const base = "http://app.invalid";
   const url = URL.parse(next, base);
-  const inside = url?.origin === base && (url.pathname === APP_HOME || url.pathname.startsWith(`${APP_HOME}/`));
+  const inside = url?.origin === base && url.pathname.startsWith("/app/");
   return inside ? url.pathname + url.search + url.hash : APP_HOME;
 }
 

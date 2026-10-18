@@ -108,7 +108,7 @@ try {
     check(await page.locator(".landing-agents a[href='/docs']").isVisible(), "and leads to the docs");
   });
 
-  await step("3. Sign up from the landing page's head, in its close: a weak password is refused, then the dashboard", async () => {
+  await step("3. Sign up from the landing page's head, in its close: a weak password is refused, then the Desk", async () => {
     const close = page.locator(".landing-close");
     await page.locator(".landing-lede").getByRole("link", { name: "Sign up", exact: true }).click();
     const ready = await close.getByLabel("Name").evaluate((input) => input === document.activeElement && input.getBoundingClientRect().top < window.innerHeight);
@@ -123,9 +123,9 @@ try {
     check(new URL(page.url()).pathname === "/", "and the visitor stays on the landing page");
     await close.getByLabel("Password").fill(ADA.password);
     await close.getByRole("button", { name: "Sign up" }).click();
-    await page.waitForURL(/\/app$/);
+    await page.waitForURL(/\/app\/desk$/);
     await page.locator(".block h1").waitFor();
-    check((await text(".block h1")) === "Still borrowed", `signing up lands on the dashboard: "${await text(".block h1")}"`);
+    check((await text(".block h1")) === "Still borrowed", `signing up lands on the Desk: "${await text(".block h1")}"`);
     const api = app.browser().client;
     const session = await api.auth.logIn({ email: ADA.email, password: ADA.password });
     check(session.account.name === ADA.name, `the SDK logs in as the new account, ${session.account.name}`);
@@ -139,9 +139,9 @@ try {
     await page.getByLabel("Email").fill(ADA.email);
     await page.getByLabel("Password").fill(ADA.password);
     await page.getByRole("button", { name: "Log in" }).click();
-    await page.waitForURL(/\/app$/);
+    await page.waitForURL(/\/app\/desk$/);
     await page.locator(".block h1").waitFor();
-    check((await text(".block h1")) === "Still borrowed", `logging in lands on the dashboard: "${await text(".block h1")}"`);
+    check((await text(".block h1")) === "Still borrowed", `logging in lands on the Desk: "${await text(".block h1")}"`);
     check((await page.locator("body > nav").textContent())?.includes(ADA.name) ?? false, "the navigation names the account");
     await page.context().clearCookies();
     await page.goto(app.url);

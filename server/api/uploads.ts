@@ -1,4 +1,4 @@
-// Uploads: list a project's uploads, create one, append a chunk of up to
+// Uploads: list a shelf's uploads, create one, append a chunk of up to
 // 2,000 phrasings, finish it, and get one (m1kuorg/basics#43); retry a
 // failed sort (m1kuorg/basics#44); delete one, which needs a session
 // (m1kuorg/basics#45).
@@ -9,7 +9,7 @@
 // is a 413; a phrasing dated more than 5 minutes after the server's clock
 // is a 400 (its time is a Unix timestamp, so no time zone runs ahead), lest
 // a card show borrowed again the moment it's returned. Finishing an upload
-// answers with it waiting to be sorted, and starts the project's sort
+// answers with it waiting to be sorted, and starts the shelf's sort
 // (server/sort.ts), which records its progress and any failure on the
 // upload. Retrying a failed sort carries on from the first phrasing it
 // hadn't offered; anything but a failed upload is a 409. Deleting an upload
@@ -20,7 +20,7 @@ import { MAX_CHUNK, MAX_PHRASING_LENGTH, type Upload } from "@asked-before/sdk";
 import { z } from "zod";
 import { authed } from "../auth";
 import { defineRoutes, HttpError, readJson, readPage } from "../http";
-import { sortProject } from "../sort";
+import { sortShelf } from "../sort";
 import { appendPhrasings, createUpload, deleteUpload, finishUpload, getUpload, listUploads, retryUpload, type UploadChange } from "../store/uploads";
 
 /** How far past the server's clock a phrasing may be dated, for a clock that runs a little fast. */
@@ -65,17 +65,17 @@ const changed = (change: UploadChange, conflict: string): Upload => {
 };
 
 export const uploads = defineRoutes({
-  "/api/v1/projects/:projectId/uploads": {
+  "/api/v1/shelves/:shelfId/uploads": {
     GET: authed((req, auth) => {
       const { limit, cursor } = readPage(req);
-      const page = listUploads(auth.userId, req.params.projectId, limit, cursor);
-      if (!page) throw new HttpError(404, "There's no such project.");
+      const page = listUploads(auth.userId, req.params.shelfId, limit, cursor);
+      if (!page) throw new HttpError(404, "There's no such shelf.");
       return Response.json(page);
     }),
     POST: authed(async (req, auth) => {
       const { source, fileName } = await readJson(req, NewUpload);
-      const upload = createUpload(auth.userId, req.params.projectId, source, fileName);
-      if (!upload) throw new HttpError(404, "There's no such project.");
+      const upload = createUpload(auth.userId, req.params.shelfId, source, fileName);
+      if (!upload) throw new HttpError(404, "There's no such shelf.");
       return Response.json(upload, { status: 201 });
     }),
   },
@@ -108,14 +108,14 @@ export const uploads = defineRoutes({
   "/api/v1/uploads/:uploadId/finish": {
     POST: authed((req, auth) => {
       const upload = changed(finishUpload(auth.userId, req.params.uploadId), "This upload is finished already.");
-      sortProject(upload.projectId);
+      sortShelf(upload.shelfId);
       return Response.json(upload);
     }),
   },
   "/api/v1/uploads/:uploadId/retry": {
     POST: authed((req, auth) => {
       const upload = changed(retryUpload(auth.userId, req.params.uploadId), "Only a sort that failed can be tried again.");
-      sortProject(upload.projectId);
+      sortShelf(upload.shelfId);
       return Response.json(upload);
     }),
   },

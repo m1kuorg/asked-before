@@ -1,6 +1,6 @@
-// Checks accounts and projects (m1kuorg/basics#41) end to end, through the
+// Checks accounts and shelves (m1kuorg/basics#41) end to end, through the
 // SDK, on a fresh copy of the app: the health check and the security
-// headers, sign-up, log-in and its `next`, log-out, projects and their
+// headers, sign-up, log-in and its `next`, log-out, shelves and their
 // counts, another account's 404, deletes, the Origin and JSON rule, the
 // logs, and, last, the per-IP throttle. The counts come from cards made and
 // returned through the API, with the app's model a stand-in in this script,
@@ -9,7 +9,7 @@
 // each step's checks and exits 1 if any fails, naming the step.
 // Run: bun run check:accounts
 
-import { ApiError, type Card, type Project } from "@asked-before/sdk";
+import { ApiError, type Card, type Shelf } from "@asked-before/sdk";
 import { Database } from "bun:sqlite";
 import { allUnsorted, key, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
@@ -78,7 +78,7 @@ await step("1. The health check answers, and every kind of answer carries the se
     ["a missing page", "/no-such-page", 404],
     ["a missing endpoint", "/api/v1/no-such-endpoint", 404],
     ["a method an endpoint doesn't have", "/api/v1/health?method=PUT", 404],
-    ["an endpoint that needs a session", "/api/v1/projects", 401],
+    ["an endpoint that needs a session", "/api/v1/shelves", 401],
   ];
   for (const [what, path, status] of answers) {
     const url = new URL(path, app.url);
@@ -98,7 +98,7 @@ await step("2. Sign up, with the email trimmed and lowercased", async () => {
   const session = await ada.client.auth.signUp({ ...ADA, email: "  Ada@Example.COM " });
   check(session.account.email === ADA.email, `the account's email is ${session.account.email}`);
   check(session.account.name === ADA.name, `the account's name is ${session.account.name}`);
-  check(session.next === "/app", `with no next, sign-up goes to ${session.next}`);
+  check(session.next === "/app/desk", `with no next, sign-up goes to ${session.next}`);
   const me = await ada.client.auth.me();
   check(me.id === session.account.id && !Number.isNaN(Date.parse(me.createdAt)), `the current account is the new one, made ${me.createdAt}`);
 });
@@ -120,8 +120,8 @@ await step("4. Log out", async () => {
   await ada.client.auth.logOut();
   const me = await failure(ada.client.auth.me());
   check(me?.status === 401, `the current account after logging out: ${say(me)}`);
-  const list = await failure(ada.client.projects.list());
-  check(list?.status === 401, `projects after logging out: ${say(list)}`);
+  const list = await failure(ada.client.shelves.list());
+  check(list?.status === 401, `shelves after logging out: ${say(list)}`);
   check(ada.cookie() === "", `the session cookie is cleared: "${ada.cookie()}"`);
 });
 
@@ -137,13 +137,13 @@ await step("5. A wrong log-in says neither which field was wrong nor whether the
 });
 
 await step("6. Log in, following `next` only when it's a path inside the app", async () => {
-  const inside = "/app/projects/p1?tab=uploads#latest";
+  const inside = "/app/shelves/p1?tab=uploads#latest";
   const session = await ada.client.auth.logIn({ email: ` ${ADA.email.toUpperCase()} `, password: ADA.password, next: inside });
   check(session.next === inside, `next ${inside} is followed: ${session.next}`);
   const offSite = ["https://evil.example/app", "//evil.example/app", "/\\evil.example/app", "/app/../../evil", "/apple", "javascript:alert(1)"];
   for (const next of offSite) {
     const { next: went } = await ada.client.auth.logIn({ email: ADA.email, password: ADA.password, next });
-    check(went === "/app", `next ${next} is ignored: ${went}`);
+    check(went === "/app/desk", `next ${next} is ignored: ${went}`);
   }
   const me = await ada.client.auth.me();
   check(me.email === ADA.email, `logged in as ${me.email}`);
@@ -166,54 +166,54 @@ await step("6. Log in, following `next` only when it's a path inside the app", a
   }
 });
 
-let work: Project | undefined;
-let bootcamp: Project | undefined;
+let work: Shelf | undefined;
+let bootcamp: Shelf | undefined;
 
-await step("7. Create, rename, list, and get projects, with every count zero", async () => {
-  work = await ada.client.projects.create({ name: "  Work  " });
-  bootcamp = await ada.client.projects.create({ name: "Bootcamp", demo: true });
+await step("7. Create, rename, list, and get shelves, with every count zero", async () => {
+  work = await ada.client.shelves.create({ name: "  Work  " });
+  bootcamp = await ada.client.shelves.create({ name: "Bootcamp", demo: true });
   const zero = { cards: 0, borrowed: 0, returned: 0, borrowedAgain: 0 };
   check(work.name === "Work" && work.demo === false, `made "${work.name}", demo ${work.demo}`);
-  check(bootcamp.demo === true, `made "${bootcamp.name}" as a demo project`);
+  check(bootcamp.demo === true, `made "${bootcamp.name}" as a demo shelf`);
   check(JSON.stringify(work.counts) === JSON.stringify(zero) && work.lastUploadAt === null, `its counts are ${JSON.stringify(work.counts)}, last upload ${work.lastUploadAt}`);
 
-  const renamed = await ada.client.projects.rename(work.id, "Day job");
+  const renamed = await ada.client.shelves.rename(work.id, "Day job");
   check(renamed.id === work.id && renamed.name === "Day job", `renamed to "${renamed.name}"`);
-  const got = await ada.client.projects.get(work.id);
+  const got = await ada.client.shelves.get(work.id);
   check(got.name === "Day job", `getting it shows "${got.name}"`);
-  const list = await ada.client.projects.list();
+  const list = await ada.client.shelves.list();
   check(
     JSON.stringify(list.map((p) => p.name)) === JSON.stringify(["Day job", "Bootcamp"]),
     `the list, oldest first: ${list.map((p) => p.name).join(", ")}`,
   );
 
-  const empty = await failure(ada.client.projects.create({ name: "   " }));
+  const empty = await failure(ada.client.shelves.create({ name: "   " }));
   check(empty?.status === 400, `a blank name: ${say(empty)}`);
-  const blank = await failure(ada.client.projects.rename(work.id, ""));
+  const blank = await failure(ada.client.shelves.rename(work.id, ""));
   check(blank?.status === 400, `renaming to a blank name: ${say(blank)}`);
 });
 
-await step("8. A second account gets 404 on the first's project", async () => {
+await step("8. A second account gets 404 on the first's shelf", async () => {
   await bea.client.auth.signUp(BEA);
   const id = work!.id;
   // Each call starts only when it's awaited: one left waiting while another is checked would reject unhandled, which exits 1.
   for (const [what, call] of [
-    ["get", () => bea.client.projects.get(id)],
-    ["rename", () => bea.client.projects.rename(id, "Mine now")],
-    ["delete", () => bea.client.projects.delete(id)],
+    ["get", () => bea.client.shelves.get(id)],
+    ["rename", () => bea.client.shelves.rename(id, "Mine now")],
+    ["delete", () => bea.client.shelves.delete(id)],
   ] as const) {
     const error = await failure(call());
     check(error?.status === 404, `${what}: ${say(error)}`);
   }
-  check((await bea.client.projects.list()).length === 0, "the second account lists none of them");
-  check((await ada.client.projects.get(id)).name === "Day job", "the first account's project is untouched");
+  check((await bea.client.shelves.list()).length === 0, "the second account lists none of them");
+  check((await ada.client.shelves.get(id)).name === "Day job", "the first account's shelf is untouched");
 });
 
-await step("9. A project's counts come from its cards' status", async () => {
-  const projectId = bootcamp!.id;
-  const sorted = await sortEnds(ada.client, (await upload(ada.client, projectId, phrasings, "demo-export.json")).id);
-  const [a, b, c, d, e] = (await ada.client.cards.list(projectId)) as Card[];
-  check(sorted.status === "sorted" && e !== undefined, `the demo export is sorted into ${(await ada.client.cards.list(projectId)).length} cards`);
+await step("9. A shelf's counts come from its cards' status", async () => {
+  const shelfId = bootcamp!.id;
+  const sorted = await sortEnds(ada.client, (await upload(ada.client, shelfId, phrasings, "demo-export.json")).id);
+  const [a, b, c, d, e] = (await ada.client.cards.list(shelfId)) as Card[];
+  check(sorted.status === "sorted" && e !== undefined, `the demo export is sorted into ${(await ada.client.cards.list(shelfId)).length} cards`);
   /** A cold rep on the card, answered "right" to pass or anything else to fail. */
   const rep = async (card: Card, answer: string) => (await ada.client.reps.check((await ada.client.reps.start(card.id)).rep.id, { answer })).rep;
   await rep(a!, "wrong");
@@ -227,38 +227,38 @@ await step("9. A project's counts come from its cards' status", async () => {
     { sourceId: "on-the-dot-d", text: "a newer question on card D", time: dPassed.checkedAt!, skill: d!.skill },
   ];
   for (const { text, skill } of after) newer.set(text, skill);
-  const latest = await upload(ada.client, projectId, after.map(({ skill, ...phrasing }) => phrasing), "newer.json");
+  const latest = await upload(ada.client, shelfId, after.map(({ skill, ...phrasing }) => phrasing), "newer.json");
   await sortEnds(ada.client, latest.id);
 
-  const got = await ada.client.projects.get(projectId);
+  const got = await ada.client.shelves.get(shelfId);
   const want = { cards: key.skills.length, borrowed: 2, returned: 2, borrowedAgain: 1 };
   check(JSON.stringify(got.counts) === JSON.stringify(want), `counts ${JSON.stringify(got.counts)}, want ${JSON.stringify(want)}`);
-  const statuses = (await ada.client.cards.list(projectId)).map((card) => `${card.skill}: ${card.status}`);
+  const statuses = (await ada.client.cards.list(shelfId)).map((card) => `${card.skill}: ${card.status}`);
   console.log(`     ${statuses.join("; ")}`);
   check(got.lastUploadAt === latest.createdAt, `last upload ${got.lastUploadAt}`);
-  const listed = (await ada.client.projects.list()).find((p) => p.id === projectId);
+  const listed = (await ada.client.shelves.list()).find((p) => p.id === shelfId);
   check(JSON.stringify(listed?.counts) === JSON.stringify(want), "the list shows the same counts");
 });
 
-await step("10. Deleting a project deletes it and everything in it", async () => {
-  // The project holds uploads, phrasings, cards, and reps (step 9).
-  const projectId = bootcamp!.id;
-  const cards = await Promise.all((await ada.client.cards.list(projectId)).map((card) => ada.client.cards.get(card.id)));
+await step("10. Deleting a shelf deletes it and everything on it", async () => {
+  // The shelf holds uploads, phrasings, cards, and reps (step 9).
+  const shelfId = bootcamp!.id;
+  const cards = await Promise.all((await ada.client.cards.list(shelfId)).map((card) => ada.client.cards.get(card.id)));
   const held: Record<"uploads" | "cards" | "phrasings" | "reps", string[]> = {
-    uploads: (await ada.client.uploads.list(projectId)).uploads.map((u) => u.id),
+    uploads: (await ada.client.uploads.list(shelfId)).uploads.map((u) => u.id),
     cards: cards.map((card) => card.id),
-    phrasings: [...cards.flatMap((card) => card.borrows.map((p) => p.id)), ...(await allUnsorted(ada.client, projectId)).map((p) => p.id)],
+    phrasings: [...cards.flatMap((card) => card.borrows.map((p) => p.id)), ...(await allUnsorted(ada.client, shelfId)).map((p) => p.id)],
     reps: cards.flatMap((card) => card.reps.map((r) => r.id)),
   };
-  await ada.client.projects.delete(projectId);
-  const got = await failure(ada.client.projects.get(projectId));
+  await ada.client.shelves.delete(shelfId);
+  const got = await failure(ada.client.shelves.get(shelfId));
   check(got?.status === 404, `getting it afterwards: ${say(got)}`);
-  const again = await failure(ada.client.projects.delete(projectId));
+  const again = await failure(ada.client.shelves.delete(shelfId));
   check(again?.status === 404, `deleting it again: ${say(again)}`);
-  const list = await ada.client.projects.list();
-  check(list.length === 1 && list[0]!.id === work!.id, `the other project stays: ${list.map((p) => p.name).join(", ")}`);
+  const list = await ada.client.shelves.list();
+  check(list.length === 1 && list[0]!.id === work!.id, `the other shelf stays: ${list.map((p) => p.name).join(", ")}`);
 
-  // No endpoint reaches a deleted project's uploads, phrasings, cards, and
+  // No endpoint reaches a deleted shelf's uploads, phrasings, cards, and
   // reps, so only the database can show they went with it. Without
   // cascades, or with foreign keys off, they stay.
   const store = new Database(app.databasePath, { readonly: true, strict: true });
@@ -273,7 +273,7 @@ await step("10. Deleting a project deletes it and everything in it", async () =>
 await step("11. A cookie request that changes something needs the page's Origin and JSON", async () => {
   const cookie = ada.cookie();
   const post = (headers: Record<string, string>, body = JSON.stringify({ name: "Sneaky" })) =>
-    fetch(new URL("/api/v1/projects", app.url), { method: "POST", headers: { cookie, ...headers }, body });
+    fetch(new URL("/api/v1/shelves", app.url), { method: "POST", headers: { cookie, ...headers }, body });
   const cases: [string, Record<string, string>, string | undefined, number][] = [
     ["no Origin", { "content-type": "application/json" }, undefined, 403],
     ["another site's Origin", { "content-type": "application/json", origin: "https://evil.example" }, undefined, 403],
@@ -283,19 +283,19 @@ await step("11. A cookie request that changes something needs the page's Origin 
   for (const [what, headers, body, status] of cases) {
     const response = await post(headers, body);
     const error = ((await response.json()) as { error?: string }).error;
-    check(response.status === status, `a project made with ${what}: ${response.status} "${error}"`);
+    check(response.status === status, `a shelf made with ${what}: ${response.status} "${error}"`);
   }
-  const del = await fetch(new URL(`/api/v1/projects/${work!.id}`, app.url), { method: "DELETE", headers: { cookie } });
+  const del = await fetch(new URL(`/api/v1/shelves/${work!.id}`, app.url), { method: "DELETE", headers: { cookie } });
   check(del.status === 403, `a delete with no Origin: ${del.status}`);
-  const read = await fetch(new URL("/api/v1/projects", app.url), { headers: { cookie } });
-  const { projects } = (await read.json()) as { projects: Project[] };
+  const read = await fetch(new URL("/api/v1/shelves", app.url), { headers: { cookie } });
+  const { shelves } = (await read.json()) as { shelves: Shelf[] };
   check(read.status === 200, `a read with no Origin is fine: ${read.status}`);
-  check(projects.length === 1 && projects[0]!.id === work!.id, `nothing was made or deleted: ${projects.map((p) => p.name).join(", ")}`);
+  check(shelves.length === 1 && shelves[0]!.id === work!.id, `nothing was made or deleted: ${shelves.map((p) => p.name).join(", ")}`);
   const made = await post({ "content-type": "application/json", origin: app.url });
   check(made.status === 201, `with the page's Origin and JSON, it's made: ${made.status}`);
 
   for (const scheme of ["Bearer", "bearer"]) {
-    const bearer = await fetch(new URL("/api/v1/projects", app.url), { headers: { cookie, authorization: `${scheme} ab_nope_nope` } });
+    const bearer = await fetch(new URL("/api/v1/shelves", app.url), { headers: { cookie, authorization: `${scheme} ab_nope_nope` } });
     check(bearer.status === 401, `with a "${scheme}" key, the cookie is ignored: ${bearer.status}`);
   }
 });
@@ -306,7 +306,7 @@ await step("12. The app logs only the method, path, status, and duration", async
   check(lines.length > 50 && odd.length === 0, `${lines.length} request lines${odd.length ? `, and these others: ${odd.slice(0, 3).join(" | ")}` : ""}`);
   const secrets = [ADA.email, ADA.name, ADA.password, BEA.email, BEA.password, "Day job", "Sneaky"];
   const leaked = secrets.filter((text) => app.log().toLowerCase().includes(text.toLowerCase()));
-  check(leaked.length === 0, `no email, name, password, or project name in the logs${leaked.length ? `: ${leaked.join(", ")}` : ""}`);
+  check(leaked.length === 0, `no email, name, password, or shelf name in the logs${leaked.length ? `: ${leaked.join(", ")}` : ""}`);
 });
 
 await step("13. Signing up and logging in are throttled per IP address", async () => {
@@ -330,4 +330,4 @@ if (failures.length) {
   console.log(`\n${failures.length} check(s) failed:\n${failures.map((f) => `  ${f}`).join("\n")}`);
   process.exit(1);
 }
-console.log("\nAccounts and projects hold up.");
+console.log("\nAccounts and shelves hold up.");

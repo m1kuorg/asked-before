@@ -1,5 +1,5 @@
 // The card stack's states (public/styles/stack.css; m1kuorg/basics#45), on
-// the real project page: the demo export uploaded into a demo project and
+// the real shelf page: the demo export uploaded onto a demo shelf and
 // sorted as the answer key sorts it (check:styles's model stand-in), so the
 // stack holds cards A to E. Its states: card A as the stack first shows it,
 // mid-drop; card A returned and card B borrowed again, from the API's own
@@ -32,10 +32,10 @@ async function tabToOpenKey(page: Page) {
 
 export default async function stack(kit: Kit) {
   const { check, learner } = kit;
-  const demo = await learner.client.projects.create({ name: "Demo", demo: true });
+  const demo = await learner.client.shelves.create({ name: "Demo", demo: true });
   const sorted = await sortEnds(learner.client, (await upload(learner.client, demo.id, phrasings, "demo-export.json")).id);
-  check(sorted.status === "sorted", `the demo export is sorted into the demo project (${sorted.status})`);
-  const at = `/app/projects/${demo.id}`;
+  check(sorted.status === "sorted", `the demo export is sorted onto the demo shelf (${sorted.status})`);
+  const at = `/app/shelves/${demo.id}`;
   const page = await kit.page({ loggedIn: true });
 
   // Fonts: the self-hosted faces load, render, and set figures at one width.
@@ -54,7 +54,7 @@ export default async function stack(kit: Kit) {
   await cdp.send("DOM.enable");
   await cdp.send("CSS.enable");
   const { root } = await cdp.send("DOM.getDocument");
-  for (const selector of [".phrasing", ".rail .stamp", ".skill", ".plate b", ".margin-key span", ".project-name"]) {
+  for (const selector of [".phrasing", ".rail .stamp", ".skill", ".plate b", ".margin-key span", ".shelf-name"]) {
     const { nodeId } = await cdp.send("DOM.querySelector", { nodeId: root.nodeId, selector });
     const { fonts: used } = await cdp.send("CSS.getPlatformFontsForNode", { nodeId });
     check(
@@ -131,7 +131,7 @@ export default async function stack(kit: Kit) {
     const card = (await (await route.fetch()).json()) as CardDetail;
     await route.fulfill({ json: { ...card, ...status(card) } });
   };
-  await page.route(`**/api/v1/projects/${demo.id}/cards`, list);
+  await page.route(`**/api/v1/shelves/${demo.id}/cards`, list);
   await page.route("**/api/v1/cards/*", one);
   await kit.open(page, at, ".block .end-rule");
   check((await page.evaluate(() => document.getAnimations().length)) === 0, "a returned card's keys are already seated, with no drop");
@@ -156,13 +156,13 @@ export default async function stack(kit: Kit) {
     await held;
     await route.fulfill({ status: 500, json: { error: "The server failed." } });
   };
-  await page.route(`**/api/v1/projects/${demo.id}/cards`, fail);
+  await page.route(`**/api/v1/shelves/${demo.id}/cards`, fail);
   await kit.open(page, at, ".block .is-waiting");
   await kit.shoot(page, "stack-waiting", { plate: false });
   release();
   await page.locator(".block .error").waitFor();
   await kit.shoot(page, "stack-error", { plate: false });
-  await page.unroute(`**/api/v1/projects/${demo.id}/cards`, fail);
+  await page.unroute(`**/api/v1/shelves/${demo.id}/cards`, fail);
 
   // A card that fails to come, chosen from the margin: the stack already counts its borrows, so the plate holds.
   const cardFails = (route: Route) => route.fulfill({ status: 500, json: { error: "The server failed." } });
@@ -175,19 +175,19 @@ export default async function stack(kit: Kit) {
   await kit.shoot(page, "stack-card-error", { plate: true });
   await page.unroute(`**/api/v1/cards/${cardB!.id}`, cardFails);
 
-  // The project's other views.
+  // The shelf's other views.
   await kit.open(page, `${at}?view=unsorted`, ".block table.rows");
-  await kit.shoot(page, "project-unsorted");
+  await kit.shoot(page, "shelf-unsorted");
   await kit.open(page, `${at}?view=uploads`, ".block table.rows");
-  await kit.shoot(page, "project-uploads");
+  await kit.shoot(page, "shelf-uploads");
   await page.getByRole("button", { name: /^Delete the upload of / }).click();
   await page.locator(".block .confirm").waitFor();
-  await kit.shoot(page, "project-uploads-confirm");
+  await kit.shoot(page, "shelf-uploads-confirm");
   const deleteFails = (route: Route) => (route.request().method() === "DELETE" ? route.fulfill({ status: 500, json: { error: "The server failed." } }) : route.fallback());
   await page.route("**/api/v1/uploads/*", deleteFails);
   await page.locator(".block .confirm").getByRole("button", { name: "Delete the upload" }).click();
   await page.locator(".block .confirm .error").waitFor();
-  await kit.shoot(page, "project-uploads-delete-failed", { plate: true });
+  await kit.shoot(page, "shelf-uploads-delete-failed", { plate: true });
   await page.unroute("**/api/v1/uploads/*", deleteFails);
 
   // A focused control, from the keyboard, and a pressed one.
@@ -229,7 +229,7 @@ export default async function stack(kit: Kit) {
   });
   check(outboard, "on a narrow screen the rail sits outboard of the text, a channel of keys");
   await kit.open(page, `${at}?view=uploads`, ".block table.rows");
-  await kit.shoot(page, "project-uploads-narrow", { fullPage: true });
+  await kit.shoot(page, "shelf-uploads-narrow", { fullPage: true });
   await page.setViewportSize(FRAME);
 
   // Reduced motion: the keys are simply in place on the first frame.

@@ -1,5 +1,5 @@
 // Proves cold reps with the real model (m1kuorg/basics#46), through the
-// SDK, on the demo skill, "Undo a git commit": card A of the demo project,
+// SDK, on the demo skill, "Undo a git commit": card A of the demo shelf,
 // on a fresh copy of the app. The sort is a stand-in in this script that
 // sorts as the answer key does (the sort has its own check); every rep and
 // check request goes on to the real model. Five reps in turn on card A,
@@ -73,7 +73,7 @@ const seen: string[] = [...phrasings.map((p) => p.text), known.wrong, known.righ
 try {
   const ada = app.browser();
   await ada.client.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
-  const demo = await ada.client.projects.create({ name: "Demo", demo: true });
+  const demo = await ada.client.shelves.create({ name: "Demo", demo: true });
   await sortEnds(ada.client, (await upload(ada.client, demo.id, phrasings, "demo-export.json")).id);
   const [A] = await ada.client.cards.list(demo.id);
   const card = await ada.client.cards.get(A!.id);

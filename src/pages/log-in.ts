@@ -1,5 +1,5 @@
 // The log-in page. A wrong email or password gets the server's one message
-// for both; logging in goes back to `next`, or to the dashboard.
+// for both; logging in goes back to `next`, or to the Desk.
 
 import { field, form } from "../parts/fields";
 import { client, mountAccountPage, next } from "./account";
