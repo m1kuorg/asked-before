@@ -29,7 +29,8 @@ export class Sorter extends DurableObject<Env> implements ShelfSort {
    * that keeps the failure from being recorded: that's logged nowhere,
    * since an error may hold anything, and the runtime doesn't retry it.
    * The upload stays waiting or sorting until the shelf's sort is started
-   * again.
+   * again, by the cron (server/sort.ts's resumeStalledSorts) if nothing
+   * else.
    */
   override async alarm(): Promise<void> {
     const shelfId = this.ctx.id.name;
@@ -37,7 +38,7 @@ export class Sorter extends DurableObject<Env> implements ShelfSort {
     try {
       if (shelfId && (await sortNextBatch(env, shelfId))) await this.ctx.storage.setAlarm(Date.now());
     } catch {
-      // Left as it stands, for a later start.
+      // Left as it stands, for the cron.
     }
   }
 }
