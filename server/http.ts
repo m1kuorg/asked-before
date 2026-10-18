@@ -78,7 +78,7 @@ export function readPage(req: Request): z.infer<typeof Page> {
  * cache. It's a copy, since a redirect's or a static asset's headers can't
  * be changed.
  */
-export function secure(response: Response, pathname: string): Response {
+function secure(response: Response, pathname: string): Response {
   const secured = new Response(response.body, response);
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) secured.headers.set(name, value);
   if (pathname.startsWith("/api/")) secured.headers.set("cache-control", "no-store");
@@ -86,7 +86,7 @@ export function secure(response: Response, pathname: string): Response {
 }
 
 /** An HttpError keeps its status; anything else is a 500 that says nothing more. */
-export function answerError(error: unknown): Response {
+function answerError(error: unknown): Response {
   if (error instanceof HttpError) return Response.json({ error: error.message }, { status: error.status });
   return Response.json({ error: "The server failed." }, { status: 500 });
 }
