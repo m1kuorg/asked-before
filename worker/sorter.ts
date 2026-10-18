@@ -18,6 +18,7 @@ export class Sorter extends DurableObject<Env> implements ShelfSort {
    * alarm runs at a time.
    */
   async start(): Promise<void> {
+    if (this.env.SORTER_FAULT === "start") throw new Error("The check's fault: the sort doesn't start.");
     await this.ctx.storage.setAlarm(Date.now());
   }
 
