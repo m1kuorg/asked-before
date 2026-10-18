@@ -14,7 +14,7 @@
 // mid-sort, starting it again on the same state carries on the sort it cut
 // off, from its shelf's Durable Object's stored alarm; a sort whose
 // Durable Object fails to start (SORTER_FAULT) fails its upload, which a
-// retry sorts; and past the daily cap, the next model request gets 429,
+// retry sorts; a database failure in its alarm escapes nothing; and past the daily cap, the next model request gets 429,
 // which the upload records. It
 // prints each step's checks, ids, and skill names, never phrasing text,
 // and exits 1 if any fails, naming the step.
@@ -353,8 +353,34 @@ try {
     }
   });
 
+  /** What step 14 leaves for step 15: a state whose upload waits with no alarm set, and the address its learner's session is for. */
+  const stranded = { state: await mkdtemp(join(tmpdir(), "asked-before-stranded-")), port: freePort(), upload: "", shelf: "" };
+  const strandedModel = await startModelStub(reply(keySorter));
+  models.push(strandedModel);
+  const eve = browser(`http://localhost:${stranded.port}`).client;
+  await step("14. A database failure in the sort's alarm escapes nothing, and leaves its upload waiting", async () => {
+    // SORTER_FAULT=database makes every query the sort's Durable Object's alarm makes fail, as a database out of reach would.
+    const app = await startApp({ ANTHROPIC_BASE_URL: strandedModel.url, SORTER_FAULT: "database" }, { state: stranded.state, port: stranded.port });
+    ended.push(app);
+    try {
+      await eve.auth.signUp({ name: "Eve Example", email: "eve@example.com", password: "tabulating machine" });
+      const shelf = await eve.shelves.create({ name: "Stranded" });
+      const finished = await upload(eve, shelf.id, phrasings);
+      Object.assign(stranded, { upload: finished.id, shelf: shelf.id });
+      // The alarm is set for now; a few seconds is time for it to run, and for the runtime to retry one that threw.
+      await Bun.sleep(3000);
+      const { others } = app.workerLog();
+      check(others.length === 0, `the app logged its requests and nothing else${others.length ? `: ${others.slice(0, 3).join(" | ")}` : ""}`);
+      const now = await eve.uploads.get(finished.id);
+      check(now.status === "waiting" && strandedModel.requests.length === 0, `the upload is ${now.status}, and the model wasn't asked (${strandedModel.requests.length} requests)`);
+    } finally {
+      await app.stop();
+    }
+  });
+  await rm(stranded.state, { recursive: true, force: true });
+
   const capped = await copy({ DAILY_MODEL_REQUESTS: "2" });
-  await step("14. Past the daily cap, the next model request gets 429, and the upload says so", async () => {
+  await step("16. Past the daily cap, the next model request gets 429, and the upload says so", async () => {
     const shelf = await capped.client.shelves.create({ name: "Capped" });
     const first = await sortEnds(capped.client, (await upload(capped.client, shelf.id, phrasings.slice(0, half))).id);
     const second = await sortEnds(capped.client, (await upload(capped.client, shelf.id, phrasings.slice(half))).id);
@@ -366,7 +392,7 @@ try {
     check(retried.status === "failed" && /today's 2 model requests/.test(retried.error ?? ""), `retried the same day, it fails again: "${retried.error}"`);
   });
 
-  await step("15. The logs hold no phrasing", async () => {
+  await step("17. The logs hold no phrasing", async () => {
     const leaked = [...apps, ...ended].filter((app) => [...phrasings.map((p) => p.text), "squash my last three commits into one"].some((text) => app.log().includes(text)));
     check(leaked.length === 0, `${apps.length + ended.length} apps' logs, ${leaked.length} holding a phrasing`);
   });
