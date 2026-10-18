@@ -1,57 +1,131 @@
 # Asked Before
 
-It turns the questions you keep asking a chatbot into library cards, stamped once per borrow, and won't stamp a card returned until you pass a cold rep: a fresh problem of the same kind, solved without AI. It runs on a made-up demo chat export, labeled as demo data on every screen.
+It turns the questions you keep asking a chatbot into library cards, stamped once per borrow, and won't stamp a card returned until you pass a cold rep: a fresh problem of the same kind, solved without AI.
+
+You sign up, make a project for each part of your life, and upload a ChatGPT or Claude export into it. Your browser reads the export and sends only your own messages, with when you sent them; the chatbot's answers and your titles never leave your computer, and the model sees your words only, never your dates. Asked Before sorts them into cards, most borrowed first, and the dashboard shows what's still borrowed across your projects. A TypeScript SDK, an MCP server, and a Claude Code plugin let your scripts and coding agents reach the same cards, so a question you ask an agent lands on its card as you ask it.
+
+This branch, `feat/app`, holds the app. `main` holds the proof of concept submitted to the hackathon, a single page on a made-up demo export, until judging ends on October 30, 2026.
+
+Contents:
+
+1. [Run it](#run-it)
+1. [Check it](#check-it)
+1. [Self-host it](#self-host-it)
+1. [The SDK](#the-sdk)
+1. [Agents](#agents)
+1. [Disclosures](#disclosures)
+1. [License](#license)
 
 ## Run it
 
-You need [Bun](https://bun.com) 1.x and an Anthropic API key.
+You need [Bun](https://bun.com) 1.4 or later and an Anthropic API key.
 
 ```sh
-git clone https://github.com/m1kuorg/asked-before.git
+git clone --branch feat/app https://github.com/m1kuorg/asked-before.git
 cd asked-before
 bun install
 cp .env.example .env        # then set ANTHROPIC_API_KEY=...
 bun run start
 ```
 
-Then open <http://localhost:3000>. Set `PORT` to use another port, as in `PORT=3101 bun run start`. Only the local server reads the key, and `.env` is gitignored.
+Then open <http://localhost:3000>, sign up, and make a project. A new learner can try the demo project, made from a made-up demo export and labeled as demo data, before finding their own export. Only the server reads the key, and `.env` is gitignored; a key exported in your shell works too, and wins over `.env`.
 
-The page opens on the demo chat export. It says how many of your own messages the export holds, and that only those go to the model. Press **Load the demo export** to sort them into cards, then open a card and take its cold rep.
+Everything else has a default, so the key is the only setting you need. `.env.example` lists them:
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `ANTHROPIC_API_KEY` | none | The model key. The app starts without it, but every sort and cold rep fails. |
+| `PORT` | `3000` | The port the server listens on. |
+| `DATABASE_PATH` | `data/asked-before.sqlite` | The SQLite file. Its folder is made if it's missing. |
+| `PUBLIC_URL` | unset | The address people reach the app at. Unset, a request's own origin counts as the app's; an `https` address makes the session cookie `Secure`. |
+| `DAILY_MODEL_REQUESTS` | `300` | Model requests one account may make per UTC day. |
+| `SORT_BATCH_SIZE` | `300` | Phrasings a sort sends the model at once. |
+
+The schema is a series of migrations in `server/store/migrations/`, which the server applies when it starts; see [Self-host it](#self-host-it).
 
 ## Check it
 
-The browser checks drive Playwright's Chromium, so a fresh clone needs it once:
+There are no unit tests. Every check starts its own copy of the app on a free port, with a fresh database, and drives it from outside: the API through the SDK, the pages in a real browser, and the MCP server through the official MCP client. Each one prints its steps and exits 1 naming the step that failed. The browser checks drive Playwright's Chromium, so a fresh clone needs it once:
 
 ```sh
 bunx playwright install chromium
 ```
 
-Then run the whole journey:
+Then walk the whole product:
 
 ```sh
 bun run journey
 ```
 
-It starts its own copy of the app, on `PORT` or a free port, and walks the journey in Chromium at 1920×1080 with nothing stubbed. It loads the demo export and checks card A's count and months against `demo/answer-key.json`. It opens key A, fails a cold rep with the known wrong answer from `demo/known-answers.json`, passes the next one with the known right answer, and goes back to the stack. It saves a screenshot of each step and prints how long after opening the page the fail and the returned stamp came. It fails if either comes after the first minute or the whole journey takes three, and on any mismatch it fails with a message naming the step. It calls the model, so it needs the key, and a run takes about 20 seconds.
-
-- `bun run journey <dir>` saves the screenshots in `<dir>` instead of your temp folder.
-- `--video` also records the run at 1920×1080, as `journey.webm` beside the screenshots.
-- `--pause <ms>` waits that long after each step and before each submit, for a watchable pace. The pauses count toward the time limits, as they would in a recording.
+It needs the key, and makes 6 model calls in under a minute, with nothing stubbed. In Chromium at 1920×1080, it signs up from the landing page, makes a project, uploads the demo export through the upload page's file input, and checks card A against the demo export's answer key, word for word. It fails a cold rep on card A with a known wrong answer and passes the next with a known right one, sees the return on the dashboard, and makes an API key in Settings. Then it lists the cards through the SDK with that key, and records a rephrasing of card A's question through the MCP server, so card A's count goes up by one and it's borrowed again. It saves a screenshot of each step in your temp folder, or in `<dir>` with `bun run journey <dir>`.
 
 The other checks:
 
+| Command | What it checks | Needs |
+| --- | --- | --- |
+| `bun run check:key` | The demo export's answer key against the export | |
+| `bun run check:accounts` | Accounts and projects through the SDK: sessions, `next`, 404s across accounts, the Origin rule, the logs, the throttle | |
+| `bun run check:shell` | The app's shell: sign up, the dashboard, projects, log out, and the redirect to log in and back | Chromium |
+| `bun run check:landing` | The landing page's card against the answer key, and signing up and logging in from it | Chromium |
+| `bun run check:readers` | The SDK's export readers on every fixture, and on broken exports | |
+| `bun run check:uploads` | The uploads endpoints, and uploading the same export twice | |
+| `bun run check:upload-page` | The upload page: the preview, what it sends, failures, and the demo action | Chromium |
+| `bun run check:sort` | Sorting the demo export three ways, against the answer key; `bun run check:sort 10` for 10 runs | Key |
+| `bun run check:sort-rules` | The sort's rules and the cards endpoints, with the model stubbed | |
+| `bun run check:sort-page` | The upload page's sort progress, failure, retry, and daily cap, with the model stubbed | Chromium |
+| `bun run check:project` | A project's card stack, statuses, unsorted phrasings, and upload history | Chromium |
+| `bun run check:reps` | Five cold reps on card A: lessons, problems, and verdicts | Key |
+| `bun run check:rep-rules` | The cold reps' rules through the SDK, with the model stubbed | |
+| `bun run check:card-page` | A card's page and its cold rep: card A with the real model, then waits and failures stubbed | Key, Chromium |
+| `bun run check:dashboard` | The dashboard through the SDK and in the page | Chromium |
+| `bun run check:settings` | API keys and the account, through the SDK and in the settings page | Chromium |
+| `bun run check:data` | Downloading and deleting your data | Chromium |
+| `bun run check:captures` | Captures' rules through the SDK, with the model stubbed | |
+| `bun run check:capture-sort` | Where captures land with the real model; `bun run check:capture-sort 3` for 3 runs | Key |
+| `bun run check:mcp` | The MCP server over stdio with the official client and a real key | Key |
+| `bun run check:plugin` | The Claude Code plugin: validated, its server's build fresh, and the build run from a copy as Claude Code runs it | `claude`, `node` |
+| `bun run check:docs` | The docs page against the server's route table, and the SDK's quickstart run on the demo export | Chromium |
+| `bun run check:sdk` | The SDK's build, used from a project outside the repo, in Bun and in Node | `node` |
+| `bun run check:styles` | The stylesheets at 1080p, surface by surface (`scripts/styles/`) | Chromium |
+| `bun run check:migrations` | The schema's migrations: a new one, added in a copy of the app, applied at startup to a database with data in it, which keeps its data; a failing one applying nothing; and a fresh database getting every one | |
+| `bun run check:container` | The container image: it builds, serves the app, keeps its data on the volume across a restart and a new container, applying each migration once, and its health check answers | Docker |
+
+A check that needs the key and stubs nothing calls the real model; the others stub it inside the script, never in the app, so they need no key. After a change to the MCP server or the SDK, `bun run build:plugin` rebuilds the plugin's server, which `check:plugin` fails on until you do. A new API route needs its row on the docs page, `src/pages/docs.ts`, or `check:docs` fails. [`docs/code-map.md`](docs/code-map.md) says where each piece lives.
+
+## Self-host it
+
+The app is one Bun process with one SQLite file, so it runs on any host with a persistent disk. The `Dockerfile` builds it on the official Bun image, with the database on a volume at `/data` and a health check that Bun runs against `/api/v1/health`:
+
 ```sh
-bun run check:key          # the demo export's answer key against the export
-bun run check:cards        # the card builder against the answer key
-bun run check:styles       # the stylesheet at 1080p, on sample markup and the real screens
-bun run check:rep          # the rep screen's fails, retries, and pass, in a browser
-bun run check:rep-routes   # lessons, problems, and verdicts on the demo skill
-bun run check:grouping     # groups the demo messages several times and compares each run with the answer key
+docker build -t asked-before .
+docker run -d --name asked-before -p 3000:3000 \
+  -v asked-before-data:/data \
+  -e ANTHROPIC_API_KEY \
+  -e PUBLIC_URL=https://asked-before.example \
+  asked-before
 ```
 
-- `check:styles` and `check:rep` stub the model routes inside the script, so they need Chromium but not the key. Each starts its own copy of the app, on `PORT` (3133 and 3129 if it isn't set).
-- `check:rep-routes` starts its own copy of the app too. It makes about 20 model calls in a minute or two.
-- `check:grouping` sends to an app that's already running, on the same `PORT`. Run `bun run start` in one shell, then `bun run check:grouping` in another; add a number, as in `bun run check:grouping 10`, for that many runs (3 if you don't).
+`-e ANTHROPIC_API_KEY` passes the key from your shell without writing it down. The app serves plain HTTP, so put it behind your host's HTTPS, and set `PUBLIC_URL` to that address: it's the origin the app accepts changes from, and an `https` one makes the session cookie `Secure`. Back up the volume, which holds everything. The logs carry only each request's method, path, status, and duration, never your words.
+
+To upgrade, build the new image and start it on the same volume. The schema is a series of migrations, the numbered files in `server/store/migrations/`, and at startup the app applies, in order, the ones the database hasn't had, in one transaction, recording each in its `migrations` table, so your data stays and a restart applies nothing twice. If one fails, the app undoes them all, logs which one, and doesn't start, so the old image still runs on that volume. Back up the volume before an upgrade anyway.
+
+Without Docker, run `bun install --production` and `bun run start` with `DATABASE_PATH` on the persistent disk.
+
+## The SDK
+
+`@asked-before/sdk`, in `packages/sdk`, is a typed client for the HTTP API, version 1, with one method per endpoint, and the export readers the upload page uses, which read an export on your computer in Bun, Node, or a browser. The page reaches the server only through it. It isn't on npm; `bun run build:sdk` builds it to JavaScript with type declarations, for another project to add from your copy. Its [README](packages/sdk/README.md) has the quickstart, which reads an export, uploads it, and lists the cards. The docs page, at `/docs` on any Asked Before server, lists every endpoint with the credential it needs.
+
+## Agents
+
+Coding agents reach your cards through the MCP server in `packages/mcp`, with an API key from Settings: it records your how-to questions as captures, in your own words only, tells you when one is on a card you've asked before, and runs cold reps in the chat. In Claude Code, the Asked Before plugin in `plugins/asked-before` brings the server and a skill that says when to use it, in one install from this repo's marketplace:
+
+```sh
+claude plugin install asked-before --marketplace m1kuorg/asked-before \
+  --config server_url=http://localhost:3000 \
+  --config api_key=YOUR_API_KEY
+```
+
+The plugin installs once the repo is public. For Claude Desktop, Cursor, or Claude Code without the plugin, Settings shows each agent's setup with your server's address filled in, and the [MCP server's README](packages/mcp/README.md) explains it.
 
 ## Disclosures
 
@@ -61,4 +135,4 @@ bun run check:grouping     # groups the demo messages several times and compares
 
 ## License
 
-[MIT](LICENSE). Third-party files keep their own licenses: the Skill Pack's MIT license, the impeccable skill's Apache 2.0 license, and the SIL Open Font License of the self-hosted Hanken Grotesk font.
+[MIT](LICENSE). Third-party files keep their own licenses: the Skill Pack's MIT license, the impeccable skill's Apache 2.0 license, and the SIL Open Font License of the self-hosted Hanken Grotesk font. The plugin's built MCP server, `plugins/asked-before/dist/server.js`, carries the MCP TypeScript SDK (Apache 2.0) and zod (MIT) inside it.

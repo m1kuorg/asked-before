@@ -4,3 +4,5 @@
 !.env.example
 node_modules/
 .worktrees/
+data/
+packages/sdk/dist/

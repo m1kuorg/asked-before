@@ -1,0 +1,111 @@
+/*
+  The docs page (m1kuorg/basics#51 owns this file, public/docs.html, and
+  src/pages/docs.ts). The margin holds the contents, and stays in view while
+  the block scrolls by. The block holds the sections, each opening on an
+  iron hairline under a heading a step under the page's, like the landing
+  page's sections; its parts open under title-size headings, with rows of
+  endpoints and code blocks across the block's width. Code in prose is set
+  in the text family at weight 600, since the world has no monospace.
+*/
+
+#app[data-screen="docs"] {
+  > .margin {
+    position: sticky;
+    top: 0;
+    align-self: start;
+  }
+
+  .docs-contents {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .docs-section {
+    margin-top: var(--space-7);
+    padding-top: var(--space-5);
+    border-top: var(--hairline);
+  }
+
+  .docs-section > * + * {
+    margin-top: var(--space-4);
+  }
+
+  .docs-section > h2 {
+    margin: 0;
+    font: 900 2.5rem / 1 var(--face);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .docs-section > h2 + * {
+    margin-top: var(--space-5);
+  }
+
+  .docs-section > h3 {
+    margin-top: var(--space-6);
+    font: 800 var(--body-size) / 1.2 var(--face);
+  }
+
+  /* A snippet's note sits close under its well, and the next snippet stands clear of it, as in settings. */
+  .docs-section > .code-block + p {
+    margin-top: var(--space-2);
+  }
+
+  .docs-section > p + .code-block {
+    margin-top: var(--space-5);
+  }
+
+  :is(p, td, li) code {
+    font: inherit;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  /* Rows of endpoints, statuses, tools, and settings: a narrow name column, then words in prose leading. */
+  .rows col.is-endpoint {
+    width: 23rem;
+  }
+
+  .rows col.is-who {
+    width: 12rem;
+  }
+
+  .rows col.is-status {
+    width: 6rem;
+  }
+
+  .rows col.is-name {
+    width: 19rem;
+  }
+
+  .rows td {
+    vertical-align: top;
+    line-height: var(--prose-leading);
+  }
+
+  .docs-endpoint,
+  .docs-sdk {
+    display: block;
+  }
+
+  .docs-endpoint > b {
+    font-weight: 800;
+  }
+
+  .docs-list {
+    max-width: var(--measure);
+    padding-left: 1.25em;
+    list-style: square;
+  }
+
+  .docs-list > li + li {
+    margin-top: var(--space-2);
+  }
+}
+
+/* Narrow screens: the margin goes above the block, in flow. */
+@media (max-width: 67.5rem) {
+  #app[data-screen="docs"] > .margin {
+    position: static;
+  }
+}
