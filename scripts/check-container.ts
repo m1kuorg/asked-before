@@ -110,7 +110,7 @@ try {
     const landing = await fetch(url);
     check(landing.status === 200 && (await landing.text()).includes("<html"), `the landing page answers ${landing.status}`);
     await ada.client.auth.signUp(ADA);
-    const work = await ada.client.projects.create({ name: "Work" });
+    const work = await ada.client.shelves.create({ name: "Work" });
     check(work.name === "Work", `Ada signs up and makes "${work.name}"`);
     const files = (await docker("exec", container, "ls", DATA)).out.split("\n");
     check(files.includes("asked-before.sqlite"), `the database is on the volume at ${DATA}: ${files.join(", ")}`);
@@ -129,7 +129,7 @@ try {
     check(restarted.code === 0, `docker restart exits ${restarted.code}`);
     await answers();
     const me = await ada.client.auth.me();
-    const names = (await ada.client.projects.list()).map((p) => p.name);
+    const names = (await ada.client.shelves.list()).map((p) => p.name);
     check(me.email === ADA.email && names.join() === "Work", `still logged in as ${me.email}, with ${names.join(", ")}`);
     check((await healthy()) === "healthy", "and healthy again");
   });
@@ -139,7 +139,7 @@ try {
     await start(`${RUN}-2`);
     await answers();
     const me = await ada.client.auth.me();
-    const names = (await ada.client.projects.list()).map((p) => p.name);
+    const names = (await ada.client.shelves.list()).map((p) => p.name);
     check(me.email === ADA.email && names.join() === "Work", `logged in as ${me.email}, with ${names.join(", ")}`);
     const lines = (await docker("logs", container)).out.split("\n").slice(1);
     const odd = lines.filter((line) => !/^(GET|HEAD|POST|PUT|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));

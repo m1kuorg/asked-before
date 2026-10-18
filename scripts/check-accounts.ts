@@ -9,7 +9,7 @@
 // each step's checks and exits 1 if any fails, naming the step.
 // Run: bun run check:accounts
 
-import { ApiError, type Card, type Project } from "@asked-before/sdk";
+import { ApiError, type Card, type Shelf } from "@asked-before/sdk";
 import { Database } from "bun:sqlite";
 import { allUnsorted, key, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
@@ -120,7 +120,7 @@ await step("4. Log out", async () => {
   await ada.client.auth.logOut();
   const me = await failure(ada.client.auth.me());
   check(me?.status === 401, `the current account after logging out: ${say(me)}`);
-  const list = await failure(ada.client.projects.list());
+  const list = await failure(ada.client.shelves.list());
   check(list?.status === 401, `projects after logging out: ${say(list)}`);
   check(ada.cookie() === "", `the session cookie is cleared: "${ada.cookie()}"`);
 });
@@ -166,30 +166,30 @@ await step("6. Log in, following `next` only when it's a path inside the app", a
   }
 });
 
-let work: Project | undefined;
-let bootcamp: Project | undefined;
+let work: Shelf | undefined;
+let bootcamp: Shelf | undefined;
 
 await step("7. Create, rename, list, and get projects, with every count zero", async () => {
-  work = await ada.client.projects.create({ name: "  Work  " });
-  bootcamp = await ada.client.projects.create({ name: "Bootcamp", demo: true });
+  work = await ada.client.shelves.create({ name: "  Work  " });
+  bootcamp = await ada.client.shelves.create({ name: "Bootcamp", demo: true });
   const zero = { cards: 0, borrowed: 0, returned: 0, borrowedAgain: 0 };
   check(work.name === "Work" && work.demo === false, `made "${work.name}", demo ${work.demo}`);
   check(bootcamp.demo === true, `made "${bootcamp.name}" as a demo project`);
   check(JSON.stringify(work.counts) === JSON.stringify(zero) && work.lastUploadAt === null, `its counts are ${JSON.stringify(work.counts)}, last upload ${work.lastUploadAt}`);
 
-  const renamed = await ada.client.projects.rename(work.id, "Day job");
+  const renamed = await ada.client.shelves.rename(work.id, "Day job");
   check(renamed.id === work.id && renamed.name === "Day job", `renamed to "${renamed.name}"`);
-  const got = await ada.client.projects.get(work.id);
+  const got = await ada.client.shelves.get(work.id);
   check(got.name === "Day job", `getting it shows "${got.name}"`);
-  const list = await ada.client.projects.list();
+  const list = await ada.client.shelves.list();
   check(
     JSON.stringify(list.map((p) => p.name)) === JSON.stringify(["Day job", "Bootcamp"]),
     `the list, oldest first: ${list.map((p) => p.name).join(", ")}`,
   );
 
-  const empty = await failure(ada.client.projects.create({ name: "   " }));
+  const empty = await failure(ada.client.shelves.create({ name: "   " }));
   check(empty?.status === 400, `a blank name: ${say(empty)}`);
-  const blank = await failure(ada.client.projects.rename(work.id, ""));
+  const blank = await failure(ada.client.shelves.rename(work.id, ""));
   check(blank?.status === 400, `renaming to a blank name: ${say(blank)}`);
 });
 
@@ -198,15 +198,15 @@ await step("8. A second account gets 404 on the first's project", async () => {
   const id = work!.id;
   // Each call starts only when it's awaited: one left waiting while another is checked would reject unhandled, which exits 1.
   for (const [what, call] of [
-    ["get", () => bea.client.projects.get(id)],
-    ["rename", () => bea.client.projects.rename(id, "Mine now")],
-    ["delete", () => bea.client.projects.delete(id)],
+    ["get", () => bea.client.shelves.get(id)],
+    ["rename", () => bea.client.shelves.rename(id, "Mine now")],
+    ["delete", () => bea.client.shelves.delete(id)],
   ] as const) {
     const error = await failure(call());
     check(error?.status === 404, `${what}: ${say(error)}`);
   }
-  check((await bea.client.projects.list()).length === 0, "the second account lists none of them");
-  check((await ada.client.projects.get(id)).name === "Day job", "the first account's project is untouched");
+  check((await bea.client.shelves.list()).length === 0, "the second account lists none of them");
+  check((await ada.client.shelves.get(id)).name === "Day job", "the first account's project is untouched");
 });
 
 await step("9. A project's counts come from its cards' status", async () => {
@@ -230,13 +230,13 @@ await step("9. A project's counts come from its cards' status", async () => {
   const latest = await upload(ada.client, projectId, after.map(({ skill, ...phrasing }) => phrasing), "newer.json");
   await sortEnds(ada.client, latest.id);
 
-  const got = await ada.client.projects.get(projectId);
+  const got = await ada.client.shelves.get(projectId);
   const want = { cards: key.skills.length, borrowed: 2, returned: 2, borrowedAgain: 1 };
   check(JSON.stringify(got.counts) === JSON.stringify(want), `counts ${JSON.stringify(got.counts)}, want ${JSON.stringify(want)}`);
   const statuses = (await ada.client.cards.list(projectId)).map((card) => `${card.skill}: ${card.status}`);
   console.log(`     ${statuses.join("; ")}`);
   check(got.lastUploadAt === latest.createdAt, `last upload ${got.lastUploadAt}`);
-  const listed = (await ada.client.projects.list()).find((p) => p.id === projectId);
+  const listed = (await ada.client.shelves.list()).find((p) => p.id === projectId);
   check(JSON.stringify(listed?.counts) === JSON.stringify(want), "the list shows the same counts");
 });
 
@@ -250,12 +250,12 @@ await step("10. Deleting a project deletes it and everything in it", async () =>
     phrasings: [...cards.flatMap((card) => card.borrows.map((p) => p.id)), ...(await allUnsorted(ada.client, projectId)).map((p) => p.id)],
     reps: cards.flatMap((card) => card.reps.map((r) => r.id)),
   };
-  await ada.client.projects.delete(projectId);
-  const got = await failure(ada.client.projects.get(projectId));
+  await ada.client.shelves.delete(projectId);
+  const got = await failure(ada.client.shelves.get(projectId));
   check(got?.status === 404, `getting it afterwards: ${say(got)}`);
-  const again = await failure(ada.client.projects.delete(projectId));
+  const again = await failure(ada.client.shelves.delete(projectId));
   check(again?.status === 404, `deleting it again: ${say(again)}`);
-  const list = await ada.client.projects.list();
+  const list = await ada.client.shelves.list();
   check(list.length === 1 && list[0]!.id === work!.id, `the other project stays: ${list.map((p) => p.name).join(", ")}`);
 
   // No endpoint reaches a deleted project's uploads, phrasings, cards, and
@@ -288,7 +288,7 @@ await step("11. A cookie request that changes something needs the page's Origin 
   const del = await fetch(new URL(`/api/v1/projects/${work!.id}`, app.url), { method: "DELETE", headers: { cookie } });
   check(del.status === 403, `a delete with no Origin: ${del.status}`);
   const read = await fetch(new URL("/api/v1/projects", app.url), { headers: { cookie } });
-  const { projects } = (await read.json()) as { projects: Project[] };
+  const { projects } = (await read.json()) as { projects: Shelf[] };
   check(read.status === 200, `a read with no Origin is fine: ${read.status}`);
   check(projects.length === 1 && projects[0]!.id === work!.id, `nothing was made or deleted: ${projects.map((p) => p.name).join(", ")}`);
   const made = await post({ "content-type": "application/json", origin: app.url });

@@ -11,7 +11,7 @@
 // upload: name a project, and go to its upload page. With projects but no
 // cards yet, it leads to them.
 
-import type { Dashboard, DashboardBorrow, DashboardCard, DashboardProject } from "@asked-before/sdk";
+import type { Desk, DeskBorrow, DeskCard, DeskShelf } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
 import { phrasing } from "../parts/card";
 import { button, el, link, type Child } from "../parts/dom";
@@ -36,14 +36,14 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
   load(block, {
     keep: [heading],
     line: "Finding your cards…",
-    request: () => client.dashboard.get(),
+    request: () => client.desk.get(),
     signal,
     show: (dashboard) => {
       const out = dashboard.totals.borrowed + dashboard.totals.borrowedAgain;
       const counted = plate(count(out), out === 1 ? "card borrowed, not returned" : "cards borrowed, not returned");
       if (!dashboard.totals.cards) {
         margin.replaceChildren(el("p", undefined, "Your cards from every project are counted here, with the ones you still borrow at the top."), el("p", undefined, STATUS_NOTE));
-        block.replaceChildren(heading, counted, ...(dashboard.projects ? noCardsYet() : firstVisit()));
+        block.replaceChildren(heading, counted, ...(dashboard.shelves ? noCardsYet() : firstVisit()));
         return;
       }
       margin.replaceChildren(...ledger(dashboard));
@@ -72,7 +72,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
       layout: "row",
       className: "first-project",
       onSubmit: async () => {
-        const made = await client.projects.create({ name: name.input.value });
+        const made = await client.shelves.create({ name: name.input.value });
         navigate(`${projectPath(made.id)}/upload`);
       },
     });
@@ -99,7 +99,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
   }
 
   /** The margin's ledger: your cards by status, in plain numbers, and what they're counted across. */
-  function ledger({ totals, projects }: Dashboard): Node[] {
+  function ledger({ totals, shelves: projects }: Desk): Node[] {
     const line = (word: string, n: number, className?: string) => el("div", className, el("dt", undefined, word), el("dd", undefined, count(n)));
     return [
       el("h2", undefined, "Your cards"),
@@ -117,7 +117,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
   }
 
   /** The cards no cold rep has returned, most borrowed first, and the way to a cold rep on the top one. */
-  function stillBorrowed({ mostBorrowed, totals }: Dashboard, counted: HTMLElement): Node[] {
+  function stillBorrowed({ mostBorrowed, totals }: Desk, counted: HTMLElement): Node[] {
     const out = totals.borrowed + totals.borrowedAgain;
     if (!mostBorrowed.length) {
       return [
@@ -138,7 +138,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
         items: mostBorrowed,
         columns: [
           { label: "Card", cell: (card) => cardTitle(card, card.status === "borrowed_again" ? ["Borrowed again"] : null) },
-          { label: "Project", className: "is-project", cell: projectTitle },
+          { label: "Shelf", className: "is-project", cell: projectTitle },
           { label: "Borrows", numeric: true, className: "is-count", cell: (card) => count(card.count) },
           { label: "Last borrow", numeric: true, className: "is-date", cell: (card) => stamp(card.lastBorrowAt) },
         ],
@@ -149,7 +149,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
   }
 
   /** Your latest borrows on the rail, newest first: your words, a key, then the stamp and the card each borrowed. A cut marks where the year turns. */
-  function latestBorrows(borrows: DashboardBorrow[]): HTMLElement {
+  function latestBorrows(borrows: DeskBorrow[]): HTMLElement {
     const years = Map.groupBy(borrows, (borrow) => new Date(borrow.time).getFullYear());
     const rails = [...years].map(([year, inYear]) => {
       const rail = el(
@@ -168,7 +168,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
   }
 
   /** Your latest return stamps: each card, its project, and the day its cold rep passed; one borrowed again since says so. */
-  function latestReturns(returns: DashboardCard[]): HTMLElement {
+  function latestReturns(returns: DeskCard[]): HTMLElement {
     if (!returns.length) {
       return section("latest-returns", "Latest returns", el("p", undefined, "No card is returned yet. A card is stamped returned the day you pass a cold rep on it."));
     }
@@ -180,7 +180,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
         items: returns,
         columns: [
           { label: "Card", cell: (card) => cardTitle(card, card.status === "borrowed_again" ? ["Borrowed again ", stamp(card.lastBorrowAt)] : null, { struck: card.status === "returned" }) },
-          { label: "Project", className: "is-project", cell: projectTitle },
+          { label: "Shelf", className: "is-project", cell: projectTitle },
           { label: "Returned", numeric: true, className: "is-date", cell: (card) => stamp(card.returnedAt!) },
         ],
       }),
@@ -196,14 +196,14 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
    * under it when it needs saying. A returned card's skill is struck, as its
    * margin key is on its project's page.
    */
-  function cardTitle(card: DashboardCard, status: Child[] | null, { struck = false } = {}): Child[] {
+  function cardTitle(card: DeskCard, status: Child[] | null, { struck = false } = {}): Child[] {
     const skill = link("", cardPath(card.id));
     skill.append(struck ? el("span", "is-struck", card.skill) : card.skill);
     const title = el("span", "row-title", skill);
     return status ? [title, el("span", "card-status", ...status)] : [title];
   }
 
-  function projectTitle({ project }: { project: DashboardProject }): HTMLElement {
+  function projectTitle({ shelf: project }: { shelf: DeskShelf }): HTMLElement {
     const title = el("span", "row-title", link(project.name, projectPath(project.id)));
     if (project.demo) title.append(demoLabel());
     return title;

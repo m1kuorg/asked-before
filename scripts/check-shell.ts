@@ -9,7 +9,7 @@
 // exits 1 if any fails, naming the step.
 // Run: bun run check:shell [screenshot dir]
 
-import type { Project } from "@asked-before/sdk";
+import type { Shelf } from "@asked-before/sdk";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -143,7 +143,7 @@ try {
     check((await refusal.textContent()) === "A project needs a name.", `a blank name says "${await refusal.textContent()}"`);
 
     await api.auth.logIn({ email: ADA.email, password: ADA.password });
-    const names = (await api.projects.list()).map((project) => project.name);
+    const names = (await api.shelves.list()).map((project) => project.name);
     check(names.join(", ") === "Work, Bootcamp", `the API lists ${names.join(", ")}`);
   });
 
@@ -158,7 +158,7 @@ try {
     await page.getByLabel("Name of Work").press("Enter");
     await row("Day job").waitFor();
     check((await row("Work").count()) === 0, "the row now reads Day job");
-    const names = (await api.projects.list()).map((project) => project.name);
+    const names = (await api.shelves.list()).map((project) => project.name);
     check(names.join(", ") === "Day job, Bootcamp", `the API lists ${names.join(", ")}`);
   });
 
@@ -173,17 +173,17 @@ try {
     await page.screenshot({ path: join(OUT, `${shot}b-confirm.png`) });
     await page.getByRole("button", { name: "Keep it" }).click();
     check((await notice.count()) === 0 && (await row("Bootcamp").count()) === 1, "Keep it closes the confirmation and keeps the project");
-    check((await api.projects.list()).length === 2, "the API still lists both");
+    check((await api.shelves.list()).length === 2, "the API still lists both");
 
     await row("Bootcamp").getByRole("button", { name: "Delete Bootcamp" }).click();
     await page.getByRole("button", { name: "Delete Bootcamp" }).last().click();
     await row("Bootcamp").waitFor({ state: "detached" });
-    const left = (await api.projects.list()).map((project) => project.name);
+    const left = (await api.shelves.list()).map((project) => project.name);
     check(left.join(", ") === "Day job", `the API lists only ${left.join(", ")}`);
   });
 
   await step("6. Every screen has its route, and back and forward work", async () => {
-    const [dayJob] = (await api.projects.list()) as [Project];
+    const [dayJob] = (await api.shelves.list()) as [Shelf];
     await page.getByRole("link", { name: "Day job", exact: true }).click();
     await page.waitForURL(new RegExp(`/app/projects/${dayJob.id}$`));
     await page.locator(".block h1", { hasText: "Day job" }).waitFor();

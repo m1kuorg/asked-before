@@ -41,7 +41,7 @@ const changed = (userId: string, uploadId: string): UploadChange => ({ upload: g
 
 const toUpload = (row: Row): Upload => ({
   id: row.id,
-  projectId: row.shelf_id,
+  shelfId: row.shelf_id,
   source: row.source,
   fileName: row.file_name,
   status: row.status,
@@ -104,7 +104,7 @@ export function appendPhrasings(userId: string, uploadId: string, phrasings: Phr
   const now = Date.now();
   db.transaction(() => {
     for (const { sourceId, text, time } of phrasings) {
-      insertPhrasing.run({ id: newId(), shelfId: upload.projectId, uploadId, sourceId, text, time: Date.parse(time), now });
+      insertPhrasing.run({ id: newId(), shelfId: upload.shelfId, uploadId, sourceId, text, time: Date.parse(time), now });
       countMessage.run({ uploadId, sourceId });
     }
   })();
@@ -137,7 +137,7 @@ export function deleteUpload(userId: string, uploadId: string): boolean {
     const upload = getUpload(userId, uploadId);
     if (!upload) return false;
     db.query("DELETE FROM uploads WHERE id = $uploadId").run({ uploadId });
-    db.query("DELETE FROM cards WHERE shelf_id = $shelfId AND (SELECT count(*) FROM phrasings f WHERE f.card_id = cards.id) < 2").run({ shelfId: upload.projectId });
+    db.query("DELETE FROM cards WHERE shelf_id = $shelfId AND (SELECT count(*) FROM phrasings f WHERE f.card_id = cards.id) < 2").run({ shelfId: upload.shelfId });
     return true;
   })();
 }

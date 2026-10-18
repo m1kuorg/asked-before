@@ -17,7 +17,7 @@
 // naming the step.
 // Run: bun run check:upload-page [screenshot dir]
 
-import { readExport, type Project, type Upload } from "@asked-before/sdk";
+import { readExport, type Shelf, type Upload } from "@asked-before/sdk";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -85,21 +85,21 @@ async function step(name: string, run: () => Promise<void>, on: Page = page) {
 const uploadsSent = (requests: Request[]) => requests.filter((r) => new URL(r.url()).pathname.match(/^\/api\/v1\/(projects\/[^/]+\/uploads|uploads\/)/) && r.method() === "POST");
 const text = async (selector: string, on: Page = page) => ((await on.locator(selector).first().textContent()) ?? "").replace(/\s+/g, " ").trim();
 const plate = (on: Page = page) => text(".block .plate b", on);
-const latest = async (learner: Learner, project: Project): Promise<Upload> => (await learner.client.uploads.list(project.id, { limit: 1 })).uploads[0]!;
+const latest = async (learner: Learner, project: Shelf): Promise<Upload> => (await learner.client.uploads.list(project.id, { limit: 1 })).uploads[0]!;
 
 /** Opens the project's upload page and chooses a file through the drop zone's input, as a learner would. */
-async function choose(project: Project, file: string | { name: string; mimeType: string; buffer: Buffer }, on: Page = page) {
+async function choose(project: Shelf, file: string | { name: string; mimeType: string; buffer: Buffer }, on: Page = page) {
   await on.goto(`${app.url}/app/projects/${project.id}/upload`);
   await on.locator(".drop-zone input[type=file]").setInputFiles(file);
 }
 
 const uploadButton = (on: Page = page) => on.locator(".block").getByRole("button", { name: /^Upload \d+ (message|messages)$/ });
 
-let work: Project;
+let work: Shelf;
 
 try {
   await step("1. The upload page says how to request each export, and reads nothing yet", async () => {
-    work = await ada.learner.client.projects.create({ name: "Work" });
+    work = await ada.learner.client.shelves.create({ name: "Work" });
     await page.goto(`${app.url}/app/projects/${work.id}/upload`);
     await page.locator(".drop-zone").waitFor();
     check((await text(".block h1")) === "Upload a chat export", `headed "${await text(".block h1")}"`);
@@ -193,7 +193,7 @@ try {
       }
       return route.continue();
     });
-    const bootcamp = await ada.learner.client.projects.create({ name: "Bootcamp" });
+    const bootcamp = await ada.learner.client.shelves.create({ name: "Bootcamp" });
     await choose(bootcamp, DEMO);
     await uploadButton().click();
     await page.locator(".block .is-waiting").waitFor();
@@ -239,7 +239,7 @@ try {
       await bea.page.goto(`${app.url}/app/projects`);
       await bea.page.locator(".block .empty").getByRole("button", { name: "Try the demo project" }).click();
       await bea.page.locator(".block .upload-done").waitFor();
-      const [demoProject] = await bea.learner.client.projects.list();
+      const [demoProject] = await bea.learner.client.shelves.list();
       check(demoProject?.demo === true, `made "${demoProject?.name}", flagged demo: ${demoProject?.demo}`);
       check(new URL(bea.page.url()).pathname === `/app/projects/${demoProject!.id}/upload`, `and went to its upload page: ${new URL(bea.page.url()).pathname}`);
       check(await bea.page.locator(".block .demo-label").isVisible(), "labeled as demo data");

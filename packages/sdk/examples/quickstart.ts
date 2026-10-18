@@ -14,10 +14,10 @@ const file = process.argv[2]!;
 const { source, phrasings, skipped } = await readExport(await readFile(file));
 console.log(`${phrasings.length} of your messages, ${skipped} skipped as too long.`);
 
-// Upload them into a project: create the upload, send its phrasings in
+// Upload them onto a shelf: create the upload, send its phrasings in
 // chunks, then finish it, which starts the sort.
-const project = await client.projects.create({ name: "Work" });
-let upload = await client.uploads.create(project.id, { source, fileName: basename(file) });
+const shelf = await client.shelves.create({ name: "Work" });
+let upload = await client.uploads.create(shelf.id, { source, fileName: basename(file) });
 for (let i = 0; i < phrasings.length; i += MAX_CHUNK) {
   await client.uploads.append(upload.id, phrasings.slice(i, i + MAX_CHUNK));
 }
@@ -30,7 +30,7 @@ while (upload.status === "waiting" || upload.status === "sorting") {
 }
 if (upload.status === "failed") throw new Error(`The sort failed: ${upload.error}`);
 
-// List the project's cards, most borrowed first.
-for (const card of await client.cards.list(project.id)) {
+// List the shelf's cards, most borrowed first.
+for (const card of await client.cards.list(shelf.id)) {
   console.log(`${card.skill}: borrowed ${card.count} times, ${card.status}`);
 }

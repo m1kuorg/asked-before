@@ -33,7 +33,7 @@ const SELECT = `SELECT ${CARD_COLUMNS} ${CARD_TABLES}`;
 
 export const toCard = (row: CardRow): Card => ({
   id: row.id,
-  projectId: row.shelf_id,
+  shelfId: row.shelf_id,
   skill: row.skill,
   status: row.status,
   count: row.borrows,

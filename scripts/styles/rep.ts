@@ -34,11 +34,11 @@ const settle = (page: Page) => page.evaluate(() => Promise.all(document.getAnima
 
 export default async function rep(kit: Kit) {
   const { check, learner, model } = kit;
-  const project = await learner.client.projects.create({ name: "Bootcamp" });
+  const project = await learner.client.shelves.create({ name: "Bootcamp" });
   try {
     await states(kit, project.id);
   } finally {
-    await learner.client.projects.delete(project.id);
+    await learner.client.shelves.delete(project.id);
   }
 }
 

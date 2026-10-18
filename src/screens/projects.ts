@@ -4,7 +4,7 @@
 // the field that makes a new one. With no projects, an empty state says
 // what a project is for.
 
-import type { Project } from "@asked-before/sdk";
+import type { Shelf } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
 import { confirmDelete } from "../parts/confirm";
 import { button, el, link, uniqueId } from "../parts/dom";
@@ -23,7 +23,7 @@ export function mountProjects(root: HTMLElement, { client, navigate, signal }: S
   ]);
   const heading = el("h1", undefined, "Projects");
 
-  let projects: Project[] = [];
+  let projects: Shelf[] = [];
   /** The project whose name is a field, or whose delete is being confirmed, if any. */
   let renaming: string | null = null;
   let deleting: string | null = null;
@@ -35,7 +35,7 @@ export function mountProjects(root: HTMLElement, { client, navigate, signal }: S
     layout: "row",
     className: "new-project",
     onSubmit: async () => {
-      const made = await client.projects.create({ name: newProject.input.value });
+      const made = await client.shelves.create({ name: newProject.input.value });
       projects = [...projects, made];
       newProject.input.value = "";
       draw();
@@ -46,7 +46,7 @@ export function mountProjects(root: HTMLElement, { client, navigate, signal }: S
   load(block, {
     keep: [heading],
     line: "Finding your projects…",
-    request: () => client.projects.list(),
+    request: () => client.shelves.list(),
     signal,
     show: (listed) => {
       projects = listed;
@@ -60,7 +60,7 @@ export function mountProjects(root: HTMLElement, { client, navigate, signal }: S
           caption: "Your projects",
           items: projects,
           columns: [
-            { label: "Project", cell: nameCell },
+            { label: "Shelf", cell: nameCell },
             { label: "Cards", numeric: true, className: "is-count", cell: (p) => String(p.counts.cards) },
             { label: "Borrowed", numeric: true, className: "is-count", cell: (p) => String(p.counts.borrowed + p.counts.borrowedAgain) },
             { label: "Returned", numeric: true, className: "is-count", cell: (p) => String(p.counts.returned) },
@@ -93,7 +93,7 @@ export function mountProjects(root: HTMLElement, { client, navigate, signal }: S
     return demo;
   }
 
-  function nameCell(project: Project) {
+  function nameCell(project: Shelf) {
     if (project.id !== renaming) {
       const title = el("span", "row-title", link(project.name, `/app/projects/${encodeURIComponent(project.id)}`));
       if (project.demo) title.append(demoLabel());
@@ -112,7 +112,7 @@ export function mountProjects(root: HTMLElement, { client, navigate, signal }: S
     return input;
   }
 
-  function actionsCell(project: Project) {
+  function actionsCell(project: Shelf) {
     if (project.id === renaming) {
       // The rename form holds no cells of its own: the name's field and these buttons name it by id.
       const rename = el("form");
@@ -125,7 +125,7 @@ export function mountProjects(root: HTMLElement, { client, navigate, signal }: S
         const input = document.querySelector<HTMLInputElement>(`input[form="${rename.id}"]`)!;
         save.disabled = true;
         try {
-          const renamed = await client.projects.rename(project.id, input.value);
+          const renamed = await client.shelves.rename(project.id, input.value);
           projects = projects.map((p) => (p.id === project.id ? renamed : p));
           renaming = null;
           draw(() => renameButton(renamed));
@@ -158,13 +158,13 @@ export function mountProjects(root: HTMLElement, { client, navigate, signal }: S
     return [rename, remove];
   }
 
-  function confirmation(project: Project) {
+  function confirmation(project: Shelf) {
     return confirmDelete({
       title: `Delete ${project.name}?`,
       body: "This deletes the project and everything in it: its uploads, phrasings, cards, and reps. It can't be undone.",
       action: `Delete ${project.name}`,
       onConfirm: async () => {
-        await client.projects.delete(project.id);
+        await client.shelves.delete(project.id);
         projects = projects.filter((p) => p.id !== project.id);
         deleting = null;
         draw(() => (projects.length ? null : newProject.input));
@@ -176,14 +176,14 @@ export function mountProjects(root: HTMLElement, { client, navigate, signal }: S
     });
   }
 
-  function stopRenaming(project: Project) {
+  function stopRenaming(project: Shelf) {
     renaming = null;
     draw(() => renameButton(project));
   }
 
-  const formId = (project: Project) => `rename-${project.id}`;
-  const rowOf = (project: Project) =>
+  const formId = (project: Shelf) => `rename-${project.id}`;
+  const rowOf = (project: Shelf) =>
     [...block.querySelectorAll<HTMLTableRowElement>("tbody tr")].find((row) => row.querySelector(`a[href$="/${CSS.escape(encodeURIComponent(project.id))}"]`));
-  const renameButton = (project: Project) => rowOf(project)?.querySelector<HTMLElement>("button[aria-label^='Rename']") ?? null;
-  const deleteButton = (project: Project) => rowOf(project)?.querySelector<HTMLElement>("button[aria-label^='Delete']") ?? null;
+  const renameButton = (project: Shelf) => rowOf(project)?.querySelector<HTMLElement>("button[aria-label^='Rename']") ?? null;
+  const deleteButton = (project: Shelf) => rowOf(project)?.querySelector<HTMLElement>("button[aria-label^='Delete']") ?? null;
 }

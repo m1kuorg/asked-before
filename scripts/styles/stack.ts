@@ -32,7 +32,7 @@ async function tabToOpenKey(page: Page) {
 
 export default async function stack(kit: Kit) {
   const { check, learner } = kit;
-  const demo = await learner.client.projects.create({ name: "Demo", demo: true });
+  const demo = await learner.client.shelves.create({ name: "Demo", demo: true });
   const sorted = await sortEnds(learner.client, (await upload(learner.client, demo.id, phrasings, "demo-export.json")).id);
   check(sorted.status === "sorted", `the demo export is sorted into the demo project (${sorted.status})`);
   const at = `/app/projects/${demo.id}`;

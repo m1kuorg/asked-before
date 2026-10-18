@@ -21,7 +21,7 @@
 // if any check fails, naming the step.
 // Run: bun run check:dashboard [screenshot dir]
 
-import { ApiError, createClient, type Client, type Dashboard, type Project } from "@asked-before/sdk";
+import { ApiError, createClient, type Client, type Desk, type Shelf } from "@asked-before/sdk";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -93,18 +93,18 @@ const text = async (page: Page, selector: string) => ((await page.locator(select
 const body = async (page: Page, selector: string) => (await page.locator(`${selector} p`).allTextContents()).join(" ");
 const utcDate = (iso: string) => new Date(iso).toISOString().slice(0, 10);
 
-const zero = (totals: Dashboard["totals"]) => totals.cards === 0 && totals.borrowed === 0 && totals.returned === 0 && totals.borrowedAgain === 0;
+const zero = (totals: Desk["totals"]) => totals.cards === 0 && totals.borrowed === 0 && totals.returned === 0 && totals.borrowedAgain === 0;
 
 /** The projects' own counts, added up through projects.list: what the dashboard's totals must equal. */
-async function projectSums(client: Client): Promise<Dashboard["totals"]> {
+async function projectSums(client: Client): Promise<Desk["totals"]> {
   const sums = { cards: 0, borrowed: 0, returned: 0, borrowedAgain: 0 };
-  for (const { counts } of await client.projects.list()) {
+  for (const { counts } of await client.shelves.list()) {
     for (const name of Object.keys(sums) as (keyof typeof sums)[]) sums[name] += counts[name];
   }
   return sums;
 }
 
-const sameTotals = (a: Dashboard["totals"], b: Dashboard["totals"]) => JSON.stringify(a) === JSON.stringify(b);
+const sameTotals = (a: Desk["totals"], b: Desk["totals"]) => JSON.stringify(a) === JSON.stringify(b);
 
 /** The key's phrasings on a card, newest first by their own time, as names such as "m27". */
 const keyedByTime = () =>
@@ -112,36 +112,36 @@ const keyedByTime = () =>
     .flatMap((skill) => skill.messageIds.map((id) => ({ id, skill: skill.name, time: Date.parse(phrasings[Number(id.slice(1)) - 1]!.time) })))
     .sort((a, b) => b.time - a.time);
 
-let demo: Project;
-let work: Project;
+let demo: Shelf;
+let work: Shelf;
 
 try {
   await step("1. A new account's dashboard is empty", async () => {
-    const dashboard = await ada.client.dashboard.get();
-    check(dashboard.projects === 0, `no projects (${dashboard.projects})`);
+    const dashboard = await ada.client.desk.get();
+    check(dashboard.shelves === 0, `no projects (${dashboard.shelves})`);
     check(zero(dashboard.totals), `every total is 0 (${JSON.stringify(dashboard.totals)})`);
     check(dashboard.mostBorrowed.length === 0 && dashboard.latestBorrows.length === 0 && dashboard.latestReturns.length === 0, "no cards, borrows, or returns");
   });
 
   await step("2. After the demo export is sorted, the dashboard has the key's cards, its latest borrows, and the projects' totals", async () => {
-    demo = await ada.client.projects.create({ name: "Demo", demo: true });
-    work = await ada.client.projects.create({ name: "Work" });
+    demo = await ada.client.shelves.create({ name: "Demo", demo: true });
+    work = await ada.client.shelves.create({ name: "Work" });
     const sorted = await sortEnds(ada.client, (await upload(ada.client, demo.id, phrasings, "demo-export.json")).id);
     check(sorted.status === "sorted", `the demo export is sorted (${sorted.status})`);
-    const dashboard = await ada.client.dashboard.get();
-    check(dashboard.projects === 2, `two projects (${dashboard.projects})`);
+    const dashboard = await ada.client.desk.get();
+    check(dashboard.shelves === 2, `two projects (${dashboard.shelves})`);
     const sums = await projectSums(ada.client);
     check(sameTotals(dashboard.totals, sums), `the totals ${JSON.stringify(dashboard.totals)} are the projects' counts added up ${JSON.stringify(sums)}`);
     check(dashboard.totals.cards === key.skills.length && dashboard.totals.borrowed === key.skills.length, `${key.skills.length} cards, all borrowed`);
     const most = dashboard.mostBorrowed.map((card) => `${card.skill} ${card.count}`);
     const want = key.skills.map((skill) => `${skill.name} ${skill.count}`);
     check(most.join() === want.join(), `most borrowed first, ties to the later last borrow, as the key orders them: ${most.join(", ")}`);
-    check(dashboard.mostBorrowed.every((card) => card.project.id === demo.id && card.project.name === "Demo" && card.project.demo && card.status === "borrowed"), "each names its project, a demo project, and is borrowed");
+    check(dashboard.mostBorrowed.every((card) => card.shelf.id === demo.id && card.shelf.name === "Demo" && card.shelf.demo && card.status === "borrowed"), "each names its project, a demo project, and is borrowed");
     const latest = dashboard.latestBorrows.map((borrow) => named(borrow.sourceId));
     const wantLatest = keyedByTime().slice(0, 10);
     check(latest.join() === wantLatest.map((b) => b.id).join(), `the 10 latest borrows, newest first, as the key dates them: ${latest.join(" ")}`);
     check(
-      dashboard.latestBorrows.every((borrow, i) => borrow.card.skill === wantLatest[i]?.skill && borrow.text === phrasings[Number(wantLatest[i]!.id.slice(1)) - 1]!.text && borrow.project.id === demo.id),
+      dashboard.latestBorrows.every((borrow, i) => borrow.card.skill === wantLatest[i]?.skill && borrow.text === phrasings[Number(wantLatest[i]!.id.slice(1)) - 1]!.text && borrow.shelf.id === demo.id),
       "each is the export's phrasing word for word, on the key's card, in the demo project",
     );
     check(dashboard.latestReturns.length === 0, "nothing is returned yet");
@@ -153,7 +153,7 @@ try {
     const { rep } = await ada.client.reps.start(cardA!.id);
     const checked = await ada.client.reps.check(rep.id, { answer: "My own answer." });
     check(checked.card.status === "returned", `card A passed its cold rep and is ${checked.card.status}`);
-    const dashboard = await ada.client.dashboard.get();
+    const dashboard = await ada.client.desk.get();
     const [returned, ...others] = dashboard.latestReturns;
     check(others.length === 0 && returned?.id === cardA!.id && returned.status === "returned", `the latest returns hold card A alone (${dashboard.latestReturns.map((c) => c.skill).join(", ")})`);
     check(returned?.returnedAt === checked.rep.checkedAt, `stamped when its rep passed (${returned?.returnedAt})`);
@@ -170,7 +170,7 @@ try {
     const made = await ada.client.uploads.create(demo.id, { source: read.source, fileName: "conversations.json" });
     await ada.client.uploads.append(made.id, read.phrasings);
     await sortEnds(ada.client, (await ada.client.uploads.finish(made.id)).id);
-    const dashboard = await ada.client.dashboard.get();
+    const dashboard = await ada.client.desk.get();
     const again = dashboard.mostBorrowed.find((card) => card.id === cardA!.id);
     check(again?.status === "borrowed_again" && again.count === key.skills[0]!.count + 1 && dashboard.mostBorrowed[0]?.id === cardA!.id, `card A is borrowed again, with ${again?.count} borrows, at the head of the most borrowed`);
     check(dashboard.latestBorrows[0]?.text === newer && dashboard.latestBorrows[0]?.card.id === cardA!.id && dashboard.latestBorrows[0]?.card.status === "borrowed_again", "its newer borrow leads the latest borrows");
@@ -180,15 +180,15 @@ try {
   });
 
   await step("5. The dashboard is the account's own: an API key reads it, another account sees none of it, and no one logged out does", async () => {
-    const mine = await ada.client.dashboard.get();
+    const mine = await ada.client.desk.get();
     const { key: apiKey } = await ada.client.keys.create({ name: "Script" });
-    const viaKey = await createClient({ baseUrl: app.url, apiKey }).dashboard.get();
+    const viaKey = await createClient({ baseUrl: app.url, apiKey }).desk.get();
     check(JSON.stringify(viaKey) === JSON.stringify(mine), "an API key reads the same dashboard as the session");
     const bea = app.browser();
     await bea.client.auth.signUp({ name: "Bea Example", email: "bea@example.com", password: "difference engine" });
-    const hers = await bea.client.dashboard.get();
-    check(hers.projects === 0 && zero(hers.totals) && !hers.mostBorrowed.length && !hers.latestBorrows.length && !hers.latestReturns.length, "another account's dashboard is empty");
-    const status = await createClient({ baseUrl: app.url }).dashboard.get().then(() => 200, (error) => (error instanceof ApiError ? error.status : 0));
+    const hers = await bea.client.desk.get();
+    check(hers.shelves === 0 && zero(hers.totals) && !hers.mostBorrowed.length && !hers.latestBorrows.length && !hers.latestReturns.length, "another account's dashboard is empty");
+    const status = await createClient({ baseUrl: app.url }).desk.get().then(() => 200, (error) => (error instanceof ApiError ? error.status : 0));
     check(status === 401, `logged out, it's a 401 (${status})`);
   });
 
@@ -209,7 +209,7 @@ try {
 
       await empty.getByRole("button", { name: "Try the demo project" }).click();
       await page.waitForURL(/\/app\/projects\/[^/]+\/upload\?/);
-      const [made] = await learner.client.projects.list();
+      const [made] = await learner.client.shelves.list();
       check(made?.demo === true, `it made "${made?.name}", flagged demo: ${made?.demo}`);
       await page.getByText("They're sorted into Demo's cards.").waitFor({ timeout: 30_000 });
       const compared = await compareWithKey(learner.client, made!.id);
@@ -237,7 +237,7 @@ try {
       await first.fill("Bootcamp");
       await page.locator(".block").getByRole("button", { name: "Upload a chat export" }).click();
       await page.locator(".drop-zone").waitFor();
-      const [made] = await learner.client.projects.list();
+      const [made] = await learner.client.shelves.list();
       check(made?.name === "Bootcamp" && !made.demo, `it made "${made?.name}"`);
       check(new URL(page.url()).pathname === `/app/projects/${made!.id}/upload`, `and went to its upload page (${new URL(page.url()).pathname})`);
     },
@@ -248,7 +248,7 @@ try {
     "8. After one returned card, the dashboard page lists that return, and its totals match the projects' counts",
     async () => {
       const { page, learner, apiCalls, errors } = cy!;
-      const [cardA] = await learner.client.cards.list((await learner.client.projects.list())[0]!.id);
+      const [cardA] = await learner.client.cards.list((await learner.client.shelves.list())[0]!.id);
       const cardAt = `${app.url}/app/cards/${cardA!.id}`;
       const takeOffered = page.locator(".block").getByRole("button", { name: "Take a cold rep" });
       await page.goto(`${app.url}/app`);
@@ -287,7 +287,7 @@ try {
       apiCalls.length = 0;
       await page.goto(`${app.url}/app`);
       await page.locator(".block .latest-returns table.rows").waitFor();
-      const dashboard = await learner.client.dashboard.get();
+      const dashboard = await learner.client.desk.get();
       const sums = await projectSums(learner.client);
       check(dashboard.latestReturns.length === 1 && dashboard.latestReturns[0]!.skill === key.skills[0]!.name, `the API lists card A's return (${dashboard.latestReturns.map((c) => c.skill).join(", ")})`);
 
@@ -336,7 +336,7 @@ try {
       const page = await context.newPage();
       await page.goto(`${app.url}/app`);
       await page.locator(".block .latest-borrows .rail").first().waitFor();
-      const dashboard = await learner.client.dashboard.get();
+      const dashboard = await learner.client.desk.get();
       const local = (iso: string) => new Date(Date.parse(iso) + 14 * 3_600_000).toISOString().slice(0, 10);
       const dates = await page.locator(".block .latest-borrows .stamp time").evaluateAll((all) => all.map((t) => t.textContent));
       check(dates.join() === dashboard.latestBorrows.map((b) => local(b.time)).join(), `the rail's stamps are dates at UTC+14 (${dates.slice(0, 3).join(", ")}, …)`);

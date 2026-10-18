@@ -73,7 +73,7 @@ const seen: string[] = [...phrasings.map((p) => p.text), known.wrong, known.righ
 try {
   const ada = app.browser();
   await ada.client.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
-  const demo = await ada.client.projects.create({ name: "Demo", demo: true });
+  const demo = await ada.client.shelves.create({ name: "Demo", demo: true });
   await sortEnds(ada.client, (await upload(ada.client, demo.id, phrasings, "demo-export.json")).id);
   const [A] = await ada.client.cards.list(demo.id);
   const card = await ada.client.cards.get(A!.id);

@@ -15,7 +15,7 @@
 // the step.
 // Run: bun run check:uploads
 
-import { ApiError, createClient, readExport, type Phrasing, type Project, type Upload } from "@asked-before/sdk";
+import { ApiError, createClient, readExport, type Phrasing, type Shelf, type Upload } from "@asked-before/sdk";
 import { join } from "node:path";
 import { compareWithKey, keySorter, sortEnds } from "./lib/answer-key";
 import { startApp } from "./lib/app";
@@ -62,12 +62,12 @@ const MINUTE = 60 * 1000;
 const at = (ms: number) => new Date(ms).toISOString();
 const phrasing = (sourceId: string, text = "how do i undo my last git commit", time = "2026-01-02T03:04:05.000Z"): Phrasing => ({ sourceId, text, time });
 
-let work: Project;
-let bootcamp: Project;
+let work: Shelf;
+let bootcamp: Shelf;
 let first: Upload;
 
 /** Uploads phrasings into a project as the page does: create, chunks of `size`, finish. */
-async function upload(project: Project, phrasings: Phrasing[], size = 2000): Promise<Upload> {
+async function upload(project: Shelf, phrasings: Phrasing[], size = 2000): Promise<Upload> {
   const made = await ada.client.uploads.create(project.id, { source: "chatgpt", fileName: "conversations.json" });
   for (let i = 0; i < phrasings.length; i += size) await ada.client.uploads.append(made.id, phrasings.slice(i, i + size));
   return ada.client.uploads.finish(made.id);
@@ -77,11 +77,11 @@ try {
   await step("1. Create an upload in a project: it's receiving, and empty", async () => {
     await ada.client.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
     await bea.client.auth.signUp({ name: "Bea Example", email: "bea@example.com", password: "difference engine" });
-    work = await ada.client.projects.create({ name: "Work" });
-    bootcamp = await ada.client.projects.create({ name: "Bootcamp" });
+    work = await ada.client.shelves.create({ name: "Work" });
+    bootcamp = await ada.client.shelves.create({ name: "Bootcamp" });
     first = await ada.client.uploads.create(work.id, { source: "chatgpt", fileName: "chatgpt-export.zip" });
     check(
-      first.projectId === work.id && first.source === "chatgpt" && first.fileName === "chatgpt-export.zip" && first.status === "receiving",
+      first.shelfId === work.id && first.source === "chatgpt" && first.fileName === "chatgpt-export.zip" && first.status === "receiving",
       `made ${first.fileName}, ${first.source}, ${first.status}`,
     );
     check(first.messages === 0 && first.phrasings === 0 && first.offered === 0 && first.error === null && first.finishedAt === null, `it holds ${counts(first)}`);
@@ -106,7 +106,7 @@ try {
     check(late?.status === 409, `appending after finishing: ${say(late)}`);
     const twice = await failure(ada.client.uploads.finish(first.id));
     check(twice?.status === 409, `finishing twice: ${say(twice)}`);
-    const project = await ada.client.projects.get(work.id);
+    const project = await ada.client.shelves.get(work.id);
     check(project.lastUploadAt === first.createdAt, `the project's last upload is ${project.lastUploadAt}`);
   });
 
@@ -207,7 +207,7 @@ try {
   });
 
   await step("10. An upload left unfinished strands nothing: uploading the export again sorts what it held", async () => {
-    const side = await ada.client.projects.create({ name: "Side project" });
+    const side = await ada.client.shelves.create({ name: "Side project" });
     const left = await ada.client.uploads.create(side.id, { source: "chatgpt", fileName: "conversations.json" });
     await ada.client.uploads.append(left.id, demo.phrasings.slice(0, 10));
     // The tab closed before it finished, so the learner uploads the export again.

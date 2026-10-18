@@ -79,7 +79,7 @@ let listed: { name: string; inputSchema: { properties?: Record<string, unknown> 
 try {
   const ada = app.browser().client;
   await ada.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
-  const work = await ada.projects.create({ name: "Work" });
+  const work = await ada.shelves.create({ name: "Work" });
   const { key } = await ada.keys.create({ name: "Claude Code" });
 
   // A marketplace install copies the plugin's directory and nothing else, so the copy sits where no node_modules can be reached.
