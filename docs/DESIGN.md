@@ -362,7 +362,7 @@ The system is flat. Nothing has a shadow; depth comes from 1px hairlines, from t
 
 **The Plate Counts Rule.** A plate holds a count from the library, never a status code or a label. A "404" plate on the not-found page, which counted nothing and ran past the outer margin, was the mistake.
 
-**The Plate Holds Rule.** Every state of a screen keeps its one plate, inside the block's padding: waiting and error too. A plate that drops out of a short state, or hangs past the block's foot, is wrong.
+**The Plate Holds Rule.** Once a screen has its count, every state keeps its one plate, inside the block's padding: waiting and error too. Until then, while a screen waits for the count itself (its first load, or a file being read) or fails to get it, there's no plate, since the Plate Counts Rule leaves nothing to put on one. A plate that drops out of a short state once its count is known, such as a project's card that failed to come, or hangs past the block's foot, is wrong.
 
 ## Shapes
 

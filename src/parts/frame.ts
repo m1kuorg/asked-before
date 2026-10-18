@@ -39,10 +39,11 @@ export function failure(error: unknown, onRetry: () => void): HTMLElement[] {
 }
 
 /**
- * Fetches what a screen shows: a waiting line after `keep` (the heading and
- * the plate, which every state holds) while `request` runs, then `show` with
- * the result, or the error and a retry. Nothing is drawn once `signal` has
- * aborted, which the router does when the learner leaves the screen.
+ * Fetches what a screen shows: a waiting line after `keep` (the heading, and
+ * the plate if the screen has its count already) while `request` runs, then
+ * `show` with the result, or the error and a retry. Nothing is drawn once
+ * `signal` has aborted, which the router does when the learner leaves the
+ * screen.
  */
 export async function load<T>(
   block: HTMLElement,
