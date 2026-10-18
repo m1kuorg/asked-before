@@ -285,10 +285,8 @@ try {
     await Bun.sleep(1000);
     check(small.model.requests.length === asked, `after its first batch's answer came back, no more were asked (${small.model.requests.length - asked} more)`);
     const gone = await failure(small.client.uploads.get(sorting.id));
-    // After Wrangler's banner, a line is either Wrangler's own, which says the same of each request, or the Worker's.
-    const lines = small.app.log().split(/Ready on \S+\n/)[1]?.trim().split("\n") ?? [];
-    const odd = lines.filter((line) => !line.startsWith("[wrangler:") && !/^(GET|POST|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));
-    check(gone?.status === 404 && odd.length === 0, `its upload is ${say(gone)}, and the app logged its requests and nothing else${odd.length ? `: ${odd.slice(0, 3).join(" | ")}` : ""}`);
+    const { others } = small.app.workerLog();
+    check(gone?.status === 404 && others.length === 0, `its upload is ${say(gone)}, and the app logged its requests and nothing else${others.length ? `: ${others.slice(0, 3).join(" | ")}` : ""}`);
   });
 
   await step("12. A sort a hard kill cuts off carries on when the app starts again on the same state", async () => {
