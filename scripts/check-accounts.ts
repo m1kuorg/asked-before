@@ -301,12 +301,11 @@ await step("11. A cookie request that changes something needs the page's Origin 
 });
 
 await step("12. The app logs only the method, path, status, and duration", async () => {
-  const lines = app.log().trim().split("\n").slice(1);
-  const odd = lines.filter((line) => !/^(GET|HEAD|POST|PUT|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));
-  check(lines.length > 50 && odd.length === 0, `${lines.length} request lines${odd.length ? `, and these others: ${odd.slice(0, 3).join(" | ")}` : ""}`);
+  const { requests, others } = app.workerLog();
+  check(requests.length > 50 && others.length === 0, `${requests.length} request lines${others.length ? `, and these others: ${others.slice(0, 3).join(" | ")}` : ""}`);
   const secrets = [ADA.email, ADA.name, ADA.password, BEA.email, BEA.password, "Day job", "Sneaky"];
   const leaked = secrets.filter((text) => app.log().toLowerCase().includes(text.toLowerCase()));
-  check(leaked.length === 0, `no email, name, password, or shelf name in the logs${leaked.length ? `: ${leaked.join(", ")}` : ""}`);
+  check(leaked.length === 0, `no email, name, password, or shelf name anywhere in Wrangler's output${leaked.length ? `: ${leaked.join(", ")}` : ""}`);
 });
 
 await step("13. Signing up and logging in are throttled per IP address", async () => {

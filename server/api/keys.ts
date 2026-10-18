@@ -19,15 +19,15 @@ const sessionOnly = { sessionOnly: true };
 
 export const keys = defineRoutes({
   "/api/v1/keys": {
-    GET: authed((_req, auth) => Response.json({ keys: listKeys(auth.userId) }), sessionOnly),
-    POST: authed(async (req, auth) => {
+    GET: authed(async (_req, { db, auth }) => Response.json({ keys: await listKeys(db, auth.userId) }), sessionOnly),
+    POST: authed(async (req, { db, auth }) => {
       const { name } = await readJson(req, NewKey);
-      return Response.json(createKey(auth.userId, name), { status: 201 });
+      return Response.json(await createKey(db, auth.userId, name), { status: 201 });
     }, sessionOnly),
   },
   "/api/v1/keys/:keyId": {
-    DELETE: authed((req, auth) => {
-      if (!revokeKey(auth.userId, req.params.keyId)) throw new HttpError(404, "There's no such API key.");
+    DELETE: authed(async (_req, { db, params, auth }) => {
+      if (!(await revokeKey(db, auth.userId, params.keyId))) throw new HttpError(404, "There's no such API key.");
       return new Response(null, { status: 204 });
     }, sessionOnly),
   },

@@ -36,33 +36,33 @@ const SUPERSEDED = "A newer cold rep on this card has started, so this one can't
 
 export const reps = defineRoutes({
   "/api/v1/cards/:cardId/reps": {
-    POST: authed(async (req, auth) => {
-      const card = repSource(auth.userId, req.params.cardId);
+    POST: authed(async (_req, { env, db, params, auth }) => {
+      const card = await repSource(db, auth.userId, params.cardId);
       if (!card) throw new HttpError(404, "There's no such card.");
       const withLesson = card.lesson === null;
-      const written = await writeRep(auth.userId, { skill: card.skill, phrasings: card.phrasings, earlierProblems: card.earlierProblems, withLesson });
-      const added = addRep(req.params.cardId, written.problem, written.lesson);
+      const written = await writeRep(env, auth.userId, { skill: card.skill, phrasings: card.phrasings, earlierProblems: card.earlierProblems, withLesson });
+      const added = await addRep(db, params.cardId, written.problem, written.lesson);
       if (!added) throw new HttpError(404, "There's no such card.");
       const showLesson = withLesson || card.lastVerdict !== "pass";
       return Response.json({ rep: added.rep, lesson: showLesson ? added.lesson : null } satisfies StartedRep, { status: 201 });
     }),
   },
   "/api/v1/reps/:repId/check": {
-    POST: authed(async (req, auth) => {
+    POST: authed(async (req, { env, db, params, auth }) => {
       const { answer } = await readJson(req, Answer);
       if (answer.length > MAX_ANSWER) throw new HttpError(413, `An answer can have at most ${MAX_ANSWER.toLocaleString("en-US")} characters.`);
-      const found = findRep(auth.userId, req.params.repId);
+      const found = await findRep(db, auth.userId, params.repId);
       if (!found) throw new HttpError(404, "There's no such cold rep.");
       if (found.state === "checked") throw new HttpError(409, CHECKED);
       if (found.state === "superseded") throw new HttpError(409, SUPERSEDED);
-      const { verdict, reason } = await judge(auth.userId, { skill: found.skill, problem: found.rep.problem, answer });
-      const rep = recordCheck(found.rep.id, { answer, verdict, reason });
+      const { verdict, reason } = await judge(env, auth.userId, { skill: found.skill, problem: found.rep.problem, answer });
+      const rep = await recordCheck(db, found.rep.id, { answer, verdict, reason });
       if (!rep) {
-        const now = findRep(auth.userId, req.params.repId);
+        const now = await findRep(db, auth.userId, params.repId);
         if (!now) throw new HttpError(404, "There's no such cold rep.");
         throw new HttpError(409, now.state === "superseded" ? SUPERSEDED : CHECKED);
       }
-      const card = findCard(auth.userId, found.cardId);
+      const card = await findCard(db, auth.userId, found.cardId);
       if (!card) throw new HttpError(404, "There's no such card.");
       return Response.json({ rep, card } satisfies CheckedRep);
     }),

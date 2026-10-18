@@ -9,6 +9,6 @@ import { getDesk } from "../store/desk";
 
 export const desk = defineRoutes({
   "/api/v1/desk": {
-    GET: authed((_req, auth) => Response.json(getDesk(auth.userId) satisfies Desk)),
+    GET: authed(async (_req, { db, auth }) => Response.json((await getDesk(db, auth.userId)) satisfies Desk)),
   },
 });

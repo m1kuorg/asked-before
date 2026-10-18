@@ -76,7 +76,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         who: SESSION,
         does: "All your data as one JSON value: the account, and each shelf with its uploads, every phrasing, and its cards with their lessons and cold reps. No API key or password is in it.",
       },
-      { method: "DELETE", path: "/account", sdk: "account.delete", who: SESSION, does: "Deletes the account and everything in it with { password }, and ends every session: 204. A wrong password is a 403." },
+      { method: "DELETE", path: "/account", sdk: "account.delete", who: SESSION, does: "Deletes the account and everything in it with { password }, and ends every session: 204. A wrong password is a 403. What it deletes stays in the backups of Cloudflare, Asked Before's host, for up to 30 days." },
     ],
   },
   {
@@ -127,7 +127,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/uploads/:uploadId/finish",
         sdk: "uploads.finish",
         who: KEY,
-        does: "Finishes the upload and starts its shelf's sort: the upload, waiting. Get the upload again to follow the sort. Finishing it twice is a 409.",
+        does: "Finishes the upload and starts its shelf's sort: the upload, waiting, or failed in the rare case its sort didn't start, which a retry starts again. Get the upload again to follow the sort. Finishing it twice is a 409.",
       },
       {
         method: "POST",

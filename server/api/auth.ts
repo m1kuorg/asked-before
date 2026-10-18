@@ -9,9 +9,10 @@ import type { Account, Session } from "@asked-before/sdk";
 import { z } from "zod";
 import { authed, clearSessionCookie, sameOrigin, startSession } from "../auth";
 import { defineRoutes, HttpError, readJson } from "../http";
+import { hashPassword, NO_ACCOUNT_HASH, verifyPassword } from "../passwords";
 import { deleteSession } from "../store/sessions";
+import { throttle } from "../store/throttle";
 import { createUser, findLogin, getAccount } from "../store/users";
-import { throttle } from "../throttle";
 
 /** The app's home, the Desk, where signing up or logging in goes when `next` is missing or outside the app. */
 const APP_HOME = "/app/desk";
@@ -52,9 +53,6 @@ const LogIn = z.strictObject({
 
 const WRONG_LOGIN = "Wrong email or password.";
 
-/** Verified when the email has no account, so that logging in takes as long either way. */
-const NO_ACCOUNT_HASH = await Bun.password.hash("no account has this password");
-
 /** `next` when it's a path inside the app, or else the app's home. */
 function appPath(next: string | undefined): string {
   if (next === undefined || !next.startsWith("/")) return APP_HOME;
@@ -64,47 +62,53 @@ function appPath(next: string | undefined): string {
   return inside ? url.pathname + url.search + url.hash : APP_HOME;
 }
 
+/** The caller's address, as Cloudflare saw it, for the throttle. */
+const callerAddress = (req: Request) => req.headers.get("cf-connecting-ip") ?? "unknown";
+
 export const auth = defineRoutes({
   "/api/v1/auth/signup": {
-    async POST(req, server) {
-      sameOrigin(req);
-      throttle(server.requestIP(req)?.address ?? "unknown");
+    async POST(req, ctx) {
+      sameOrigin(req, ctx.config);
+      await throttle(ctx.db, callerAddress(req));
       const { name, email, password, next } = await readJson(req, SignUp);
-      const account = createUser({ name, email, passwordHash: await Bun.password.hash(password) });
-      if (!account) throw new HttpError(409, "That email already has an account. Log in instead.");
-      startSession(req, account.id);
-      return Response.json({ account, next: appPath(next) } satisfies Session, { status: 201 });
+      const passwordHash = hashPassword(password);
+      const created = await createUser(ctx.db, { name, email, passwordHash });
+      if (!created) throw new HttpError(409, "That email already has an account. Log in instead.");
+      const session = await startSession(req, ctx, { userId: created.id, passwordHash });
+      if (!session) throw new HttpError(401, "Log in first.");
+      return Response.json({ account: session.account, next: appPath(next) } satisfies Session, {
+        status: 201,
+        headers: { "set-cookie": session.setCookie },
+      });
     },
   },
 
   "/api/v1/auth/login": {
-    async POST(req, server) {
-      sameOrigin(req);
-      throttle(server.requestIP(req)?.address ?? "unknown");
+    async POST(req, ctx) {
+      sameOrigin(req, ctx.config);
+      await throttle(ctx.db, callerAddress(req));
       const { email, password, next } = await readJson(req, LogIn);
-      const login = findLogin(email);
-      const matches = await Bun.password.verify(password, login?.passwordHash ?? NO_ACCOUNT_HASH);
-      const account = login && matches ? getAccount(login.id) : null;
-      if (!account) throw new HttpError(401, WRONG_LOGIN);
-      startSession(req, account.id);
-      return Response.json({ account, next: appPath(next) } satisfies Session);
+      const login = await findLogin(ctx.db, email);
+      const matches = verifyPassword(password, login?.passwordHash ?? NO_ACCOUNT_HASH);
+      const session = login && matches ? await startSession(req, ctx, { userId: login.id, passwordHash: login.passwordHash }) : null;
+      if (!session) throw new HttpError(401, WRONG_LOGIN);
+      return Response.json({ account: session.account, next: appPath(next) } satisfies Session, { headers: { "set-cookie": session.setCookie } });
     },
   },
 
   "/api/v1/auth/logout": {
     POST: authed(
-      (req, auth) => {
-        if (auth.via === "session") deleteSession(auth.sessionId);
-        clearSessionCookie(req);
-        return new Response(null, { status: 204 });
+      async (_req, { db, config, auth }) => {
+        if (auth.via === "session") await deleteSession(db, auth.sessionId);
+        return new Response(null, { status: 204, headers: { "set-cookie": clearSessionCookie(config) } });
       },
       { sessionOnly: true },
     ),
   },
 
   "/api/v1/auth/me": {
-    GET: authed((_req, auth) => {
-      const account = getAccount(auth.userId);
+    GET: authed(async (_req, { db, auth }) => {
+      const account = await getAccount(db, auth.userId);
       if (!account) throw new HttpError(401, "Log in first.");
       return Response.json(account satisfies Account);
     }),

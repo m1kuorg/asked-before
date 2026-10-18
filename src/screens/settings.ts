@@ -5,7 +5,9 @@
 // confirmation), and the setup snippets that connect an agent, with this
 // server's address filled in. Then your data (m1kuorg/basics#49): all of it
 // downloaded as one JSON file, and deleting the account, which takes the
-// password and then a confirmation, and logs out to the landing page.
+// password and then a confirmation, and logs out to the landing page. Both
+// say that the host keeps deleted data in its backups for up to 30 days
+// (D1's Time Travel, which can't be turned off; m1kuorg/basics#63).
 
 import type { Account, AccountData, ApiKey, CreatedApiKey } from "@asked-before/sdk";
 import { connectSnippets, PLACEHOLDERS } from "../../packages/mcp/src/connect";
@@ -23,7 +25,7 @@ export function mountSettings(root: HTMLElement, props: ScreenProps) {
   const { block } = frame(root, [
     el("p", undefined, "Your name shows in the navigation, and your email is how you log in."),
     el("p", undefined, "An API key lets a script or an agent reach your shelves without your password. Make one for each, so you can revoke one alone."),
-    el("p", undefined, "Your data is yours: download all of it, or delete your account and leave nothing behind."),
+    el("p", undefined, "Your data is yours: download all of it, or delete your account and everything in it."),
   ]);
   const loggedIn = el("p", undefined, loggedInAs(props.account));
   block.append(
@@ -235,7 +237,7 @@ function yourData({ client }: ScreenProps) {
     el(
       "p",
       undefined,
-      "Download everything Asked Before keeps for you as one JSON file: your account, your shelves and their uploads, every phrasing, and your cards with their lessons and cold reps. Your API keys and password aren't in it.",
+      "Download everything Asked Before keeps for you as one JSON file: your account, your shelves and their uploads, every phrasing, and your cards with their lessons and cold reps. Your API keys and password aren't in it. Anything you delete stays in the backups of Cloudflare, Asked Before's host, for up to 30 days.",
     ),
     sent,
   );
@@ -291,7 +293,11 @@ function deleteAccount({ client }: ScreenProps) {
   });
   return section(
     "Delete your account",
-    el("p", undefined, "Deleting your account deletes everything Asked Before keeps for you. It can't be undone, so download your data first if you want to keep it."),
+    el(
+      "p",
+      undefined,
+      "Deleting your account deletes everything Asked Before keeps for you, though it stays in the backups of Cloudflare, Asked Before's host, for up to 30 days. It can't be undone, so download your data first if you want to keep it.",
+    ),
     sent,
   );
 }
