@@ -6,10 +6,10 @@
 // security headers, and logs the method, path, status, and duration, never
 // anything from a body and never an error itself.
 
-import type { D1Database } from "@cloudflare/workers-types";
 import { z } from "zod";
 import { readConfig, type Config, type Env } from "./config";
 import { SECURITY_HEADERS } from "./security";
+import type { Db } from "./store/db";
 
 /** An answer other than 2xx. Its message is shown to the caller, so it never holds phrasing text. */
 export class HttpError extends Error {
@@ -34,7 +34,7 @@ export type Context<P extends string = string> = {
   /** The Worker's bindings, for the model's key and the sort's Durable Object. */
   env: Env;
   /** The database, for the store's functions; nothing outside server/store/ queries it. */
-  db: D1Database;
+  db: Db;
   config: Config;
 };
 

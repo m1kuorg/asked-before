@@ -7,10 +7,10 @@
 // and one cut off mid-batch runs again. A deleted shelf or account leaves
 // nothing to sort, so its alarms stop.
 
-import type { D1Database } from "@cloudflare/workers-types";
 import { DurableObject } from "cloudflare:workers";
 import type { Env, ShelfSort } from "../server/config";
 import { sortNextBatch } from "../server/sort";
+import type { Db } from "../server/store/db";
 
 export class Sorter extends DurableObject<Env> implements ShelfSort {
   /**
@@ -44,9 +44,9 @@ export class Sorter extends DurableObject<Env> implements ShelfSort {
 }
 
 /** A database whose every query fails, as one out of reach would: the check's "database" fault. */
-function outOfReach(): D1Database {
+function outOfReach(): Db {
   const fail = () => {
     throw new Error("D1_ERROR: the check's fault: the database is out of reach.");
   };
-  return { prepare: fail, batch: fail, exec: fail } as unknown as D1Database;
+  return { prepare: fail, batch: fail, exec: fail } as unknown as Db;
 }
