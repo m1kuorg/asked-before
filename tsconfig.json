@@ -6,7 +6,5 @@
     "types": ["bun"]
   },
   "include": ["scripts", "packages"],
-  // check:docs reads the route table and the sort's window from server/,
-  // whose sort isn't on Workers yet; it comes back with m1kuorg/basics#64.
-  "exclude": ["node_modules", "packages/*/dist", "scripts/check-docs.ts"]
+  "exclude": ["node_modules", "packages/*/dist"]
 }
