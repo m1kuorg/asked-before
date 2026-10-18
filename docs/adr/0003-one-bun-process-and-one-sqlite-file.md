@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # One Bun process and one SQLite file

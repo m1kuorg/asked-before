@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # The page is a client of the public API
