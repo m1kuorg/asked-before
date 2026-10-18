@@ -1,23 +1,28 @@
-// Checks downloading and deleting your data (m1kuorg/basics#49) end to end,
-// on a fresh copy of the app whose model is a stand-in in this script,
-// never in the app: it sorts as the demo export's answer key does, and
-// answers the one cold rep and check queued for it. Through the SDK, after
-// the demo shelf and one returned card: the download holds the account
-// and every shelf, upload, phrasing (on a card, unsorted, or waiting for
-// its sort), card, and cold rep, matching the API and the phrasings sent,
-// and nothing of another account's, no key, and no password; only a session
-// may download it. Deleting the account needs the password, deletes
-// everything in it (read in the database too), ends every session, and
-// leaves logging in failing, with another account's data untouched. Then,
-// in a real browser at 1920×1080, the settings page: the download saved as
-// one JSON file, the same as the SDK's; deleting, which asks for the
-// password and a confirmation, refuses a wrong password, keeps everything
-// on Escape or Keep it, and then deletes and logs out to the landing page.
-// It prints ids, counts, and the app's messages, never a phrasing, saves
-// screenshots, and exits 1 if any check fails, naming the step.
+// Checks downloading and deleting your data (m1kuorg/basics#49), on Workers
+// since m1kuorg/basics#63, end to end on a fresh copy of the app under
+// `wrangler dev`, whose model is a stand-in in this script, never in the
+// app: it sorts as the demo export's answer key does, and answers the one
+// cold rep and check queued for it. Through the SDK, after the demo shelf
+// and one returned card: the download holds the account and every shelf,
+// upload, phrasing (on a card, unsorted, or waiting for its sort), card,
+// and cold rep, matching the API and the phrasings sent, and nothing of
+// another account's, no key, and no password; only a session may download
+// it. Deleting the account needs the password, deletes everything in it
+// (read in the database too), ends every session, and leaves logging in
+// failing, with another account's data untouched. The download is read in
+// one D1 batch, as Wrangler's local traces show, and a big account, 8,000
+// phrasings of the longest length, downloads whole and deletes whole. Then,
+// in a real browser at 1920×1080, the settings page: both sections saying
+// that the host keeps deleted data in its backups for up to 30 days; the
+// download saved as one JSON file, the same as the SDK's; deleting, which
+// asks for the password and a confirmation, refuses a wrong password, keeps
+// everything on Escape or Keep it, and then deletes and logs out to the
+// landing page. It prints ids, counts, and the app's messages, never a
+// phrasing, saves screenshots, and exits 1 if any check fails, naming the
+// step.
 // Run: bun run check:data [screenshot dir]
 
-import { ApiError, createClient, type AccountData, type Client, type Phrasing, type Upload } from "@asked-before/sdk";
+import { ApiError, createClient, MAX_CHUNK, MAX_PHRASING_LENGTH, type AccountData, type Client, type Phrasing, type Upload } from "@asked-before/sdk";
 import { Database } from "bun:sqlite";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -59,6 +64,21 @@ async function failure(call: Promise<unknown>): Promise<ApiError | null> {
 }
 const say = (error: ApiError | null) => (error ? `${error.status} "${error.message}"` : "no error");
 const same = (a: unknown, b: unknown) => Bun.deepEquals(a, b, true);
+
+/**
+ * The D1 calls a download made, by name, in order, read from the traces
+ * that `wrangler dev` keeps locally (its Local Explorer): "d1_first" for
+ * the session, then one "d1_batch" for the data, however much it holds.
+ */
+async function downloadsD1Calls(download: () => Promise<unknown>): Promise<string[]> {
+  const traces = `${app.url}/cdn-cgi/local/explorer/api/local/observability`;
+  await fetch(`${traces}/clear`, { method: "POST" });
+  await download();
+  const sql = "SELECT name FROM spans WHERE kind = 'd1' AND trace_id IN (SELECT trace_id FROM logs WHERE message LIKE '%GET /api/v1/account/export 200%') ORDER BY start_ms";
+  const answer = (await (await fetch(`${traces}/query`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sql }) })).json()) as { result: { rows: [string][] } };
+  return answer.result.rows.map(([name]) => name);
+}
+const ONE_BATCH = ["d1_first", "d1_batch"];
 
 // Rep and check requests nobody queued an answer for are refused, so nothing here reaches the real model.
 const model = await startModelStub(sortsByKey((request, raw, body) => refuse()(request, raw, body)));
@@ -178,8 +198,11 @@ async function matchesApi(client: Client, data: AccountData) {
 }
 
 await step("1. The download holds the account, and every shelf, upload, phrasing, card, and cold rep, matching the API", async () => {
-  const data = await ada.client.account.export();
+  let data!: AccountData;
+  const calls = await downloadsD1Calls(async () => (data = await ada.client.account.export()));
   await matchesApi(ada.client, data);
+  const cards = data.shelves.flatMap((p) => p.cards).length;
+  check(same(calls, ONE_BATCH), `it's read in one batch, for ${data.shelves.length} shelves and ${cards} cards: ${calls.join(", ")}`);
 
   const demoData = data.shelves.find((p) => p.id === demo.id)!;
   check(demoData.demo === true, "the demo shelf says it's demo data");
@@ -197,7 +220,7 @@ await step("1. The download holds the account, and every shelf, upload, phrasing
   const text = JSON.stringify(data);
   check(!text.includes(beaWork.id) && !text.includes(BEA.email) && beaAsks.every((p) => !text.includes(p.text)), "nothing of Bea's is in it");
   check(!text.includes(adaKey.key.split("_")[2]!) && !text.includes(adaKey.id), "no API key is in it");
-  check(!/\$argon2/.test(text) && !text.includes(ADA.password), "no password or its hash is in it");
+  check(!/\$scrypt\$/.test(text) && !text.includes(ADA.password), "no password or its hash is in it");
 });
 
 await step("2. Only a session downloads the data: a key gets 403, and no one at all 401", async () => {
@@ -286,9 +309,45 @@ await step("4. Deleted, the account and everything in it are gone, every session
   await again.client.account.delete({ password: ADA.password });
 });
 
-await step("5. The app logged none of the phrasings, and no password", async () => {
+// Dee: one shelf holding 8,000 phrasings of the longest length, some of their characters past ASCII, sent MAX_CHUNK at a time and left waiting for their sort.
+const DEE = { name: "Dee Example", email: "dee@example.com", password: "a fourth long password" };
+const BIG = 4 * MAX_CHUNK;
+const long: Phrasing[] = Array.from({ length: BIG }, (_, i) => {
+  const head = `Question ${i + 1}, asked at length: café, naïve, 日本語, `;
+  return { sourceId: `long-${i + 1}`, text: head + "x".repeat(MAX_PHRASING_LENGTH - head.length), time: new Date(Date.UTC(2024, 0, 1) + i * 60_000).toISOString() };
+});
+
+await step("5. A big account's download comes whole, in one batch, and deleting it deletes it all", async () => {
+  const dee = app.browser();
+  await dee.client.auth.signUp(DEE);
+  const shelf = await dee.client.shelves.create({ name: "Everything" });
+  const receiving = await dee.client.uploads.create(shelf.id, { source: "chatgpt", fileName: "conversations.json" });
+  for (let i = 0; i < long.length; i += MAX_CHUNK) await dee.client.uploads.append(receiving.id, long.slice(i, i + MAX_CHUNK));
+
+  const started = performance.now();
+  let text = "";
+  const calls = await downloadsD1Calls(async () => (text = await (await fetch(`${app.url}/api/v1/account/export`, { headers: { cookie: dee.cookie() } })).text()));
+  const took = Math.round(performance.now() - started);
+  check(same(calls, ONE_BATCH), `it's read in one batch: ${calls.join(", ")}`);
+  const data = JSON.parse(text) as AccountData;
+  const held = new Map(data.shelves[0]?.phrasings.map((p) => [p.sourceId, p]));
+  const whole = long.every((p) => held.get(p.sourceId)?.text === p.text && held.get(p.sourceId)?.time === p.time);
+  check(held.size === BIG && whole, `all ${BIG.toLocaleString("en-US")} phrasings of ${MAX_PHRASING_LENGTH.toLocaleString("en-US")} characters, word for word: ${(Buffer.byteLength(text) / 1e6).toFixed(1)} MB in ${took} ms`);
+  check(same(withoutTime(data), withoutTime(await dee.client.account.export())), "the SDK downloads the same");
+
+  await dee.client.account.delete({ password: DEE.password });
+  const store = new Database(app.databasePath, { readonly: true, strict: true });
+  try {
+    const left = store.query<{ n: number }, [string, string]>("SELECT (SELECT count(*) FROM phrasings WHERE shelf_id = ?1) + (SELECT count(*) FROM upload_messages WHERE upload_id = ?2) AS n").get(shelf.id, receiving.id)!.n;
+    check(left === 0, `deleted, none of its phrasings or messages is left: ${left}`);
+  } finally {
+    store.close();
+  }
+});
+
+await step("6. The app logged none of the phrasings, and no password", async () => {
   const log = app.log();
-  const texts = [...demoPhrasings, ...lone, ...waiting, ...beaAsks].map((p) => p.text);
+  const texts = [...demoPhrasings, ...lone, ...waiting, ...beaAsks, ...long].map((p) => p.text);
   check(texts.every((text) => !log.includes(text)) && !log.includes(ADA.password), `${texts.length} phrasings and the password are nowhere in ${log.split("\n").length} lines of log`);
   check(/DELETE \/api\/v1\/account 204/.test(log) && /GET \/api\/v1\/account\/export 200/.test(log), "the log has the download and the delete, by method, path, and status");
 });
@@ -326,13 +385,16 @@ page.on("console", (message) => {
 page.on("pageerror", (error) => consoleErrors.push(error.message));
 
 const section = (name: string) => page.locator("section", { has: page.getByRole("heading", { name, exact: true, level: 2 }) });
+/** What the data and delete sections say of D1's Time Travel, which keeps deleted data and can't be turned off. */
+const BACKUPS = /stays in the backups of Cloudflare, Asked Before's host, for up to 30 days/;
 const stillThere = async () => (await cy.client.auth.me()).email === CY.email && (await cy.client.shelves.list()).length === 1;
 
 try {
-  await step("6. In settings, Download your data saves one JSON file, the same as the SDK's", async () => {
+  await step("7. In settings, Download your data saves one JSON file, the same as the SDK's", async () => {
     await page.goto(`${app.url}/app/settings`);
     const data = section("Your data");
     await data.waitFor();
+    check(BACKUPS.test((await data.textContent()) ?? ""), `it says: "${BACKUPS.source}"`);
     const [download] = await Promise.all([page.waitForEvent("download"), data.getByRole("button", { name: "Download your data" }).click()]);
     const today = await page.evaluate(() => new Date().toLocaleDateString("en-CA"));
     const name = download.suggestedFilename();
@@ -344,9 +406,10 @@ try {
     await screenshot("data-downloaded");
   });
 
-  await step("7. Deleting in the page needs the password and a confirmation; a wrong one, Escape, and Keep it delete nothing", async () => {
+  await step("8. Deleting in the page needs the password and a confirmation; a wrong one, Escape, and Keep it delete nothing", async () => {
     const del = section("Delete your account");
     await del.scrollIntoViewIfNeeded();
+    check(BACKUPS.test((await del.textContent()) ?? ""), `it says so too: "${BACKUPS.source}"`);
     const password = del.getByLabel("Your password");
     await password.fill("the wrong password");
     await del.getByRole("button", { name: "Delete your account" }).click();
@@ -378,7 +441,7 @@ try {
     check((await del.getByRole("button", { name: "Delete your account" }).isEnabled()) && (await stillThere()), "Keep it keeps it too, and the form takes another try");
   });
 
-  await step("8. Deleted in the page, Cy is logged out to the landing page, and logging in fails", async () => {
+  await step("9. Deleted in the page, Cy is logged out to the landing page, and logging in fails", async () => {
     const del = section("Delete your account");
     await del.getByRole("button", { name: "Delete your account" }).click();
     await del.locator(".confirm").getByRole("button", { name: "Delete everything" }).click();
@@ -403,7 +466,7 @@ try {
     check(beaBefore !== null && same(withoutTime(beaAfter), withoutTime(beaBefore)), "Bea's data is still untouched");
   });
 
-  await step("9. The page reached the server only through /api/v1, within its security policy", async () => {
+  await step("10. The page reached the server only through /api/v1, within its security policy", async () => {
     const outside = apiCalls.filter((call) => !call.split(" ")[1]!.startsWith("/api/v1/"));
     check(apiCalls.includes("GET /api/v1/account/export") && apiCalls.includes("DELETE /api/v1/account"), "it downloaded and deleted through the API");
     check(outside.length === 0, `${apiCalls.length} API calls, ${outside.length} outside /api/v1`);

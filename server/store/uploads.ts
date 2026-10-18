@@ -12,7 +12,7 @@
 import type { Phrasing, Source, Upload, UploadPage } from "@asked-before/sdk";
 import { iso, newId, slices, type Db } from "./db";
 
-type Row = {
+export type UploadRow = {
   id: string;
   shelf_id: string;
   source: Source;
@@ -38,13 +38,16 @@ const SELECT = `
 /** The account's upload, as ?1 (the account) and ?2 (the upload). */
 const ONE_UPLOAD = `${SELECT} WHERE u.id = ?2 AND sh.user_id = ?1`;
 
+/** Every upload of the account's (?1), oldest first (ids are time-ordered), for the download (store/account-data.ts). */
+export const ACCOUNT_UPLOADS = `${SELECT} WHERE sh.user_id = ?1 ORDER BY u.id`;
+
 /** Whether upload ?2 is the account's (?1). */
 const OWNED = "EXISTS (SELECT 1 FROM uploads u JOIN shelves sh ON sh.id = u.shelf_id WHERE u.id = ?2 AND sh.user_id = ?1)";
 
 /** An upload after a change to it, or why there was none: the account has no such upload, or its status doesn't allow the change. */
 export type UploadChange = { upload: Upload } | { refused: "missing" | "status" };
 
-const toUpload = (row: Row): Upload => ({
+export const toUpload = (row: UploadRow): Upload => ({
   id: row.id,
   shelfId: row.shelf_id,
   source: row.source,
@@ -59,14 +62,14 @@ const toUpload = (row: Row): Upload => ({
 });
 
 export async function getUpload(db: Db, userId: string, uploadId: string): Promise<Upload | null> {
-  const row = await db.prepare(ONE_UPLOAD).bind(userId, uploadId).first<Row>();
+  const row = await db.prepare(ONE_UPLOAD).bind(userId, uploadId).first<UploadRow>();
   return row && toUpload(row);
 }
 
 /** The new upload, receiving, made and read back in one batch; or null when the account has no such shelf. */
 export async function createUpload(db: Db, userId: string, shelfId: string, source: Source, fileName: string): Promise<Upload | null> {
   const id = newId();
-  const [, read] = await db.batch<Row>([
+  const [, read] = await db.batch<UploadRow>([
     db
       .prepare("INSERT INTO uploads (id, shelf_id, source, file_name, created_at) SELECT ?2, id, ?4, ?5, ?6 FROM shelves WHERE id = ?3 AND user_id = ?1")
       .bind(userId, id, shelfId, source, fileName, Date.now()),
@@ -85,13 +88,13 @@ export async function listUploads(db: Db, userId: string, shelfId: string, limit
       .bind(userId, shelfId, cursor ?? null, limit + 1),
   ]);
   if (!owned!.results.length) return null;
-  const rows = page!.results as Row[];
+  const rows = page!.results as UploadRow[];
   const uploads = rows.slice(0, limit).map(toUpload);
   return { uploads, next: rows.length > limit ? uploads.at(-1)!.id : null };
 }
 
 /** The upload as a change left it, read in the change's own batch: missing, refused for its status, or changed. */
-const changed = (row: Row | undefined, done: boolean): UploadChange => (!row ? { refused: "missing" } : done ? { upload: toUpload(row) } : { refused: "status" });
+const changed = (row: UploadRow | undefined, done: boolean): UploadChange => (!row ? { refused: "missing" } : done ? { upload: toUpload(row) } : { refused: "status" });
 
 /**
  * Adds a chunk to an upload that's still receiving, in one batch: each
@@ -127,13 +130,13 @@ export async function appendPhrasings(db: Db, userId: string, uploadId: string, 
     ]),
     db.prepare(ONE_UPLOAD).bind(userId, uploadId),
   ]);
-  const row = results.at(-1)!.results[0] as Row | undefined;
+  const row = results.at(-1)!.results[0] as UploadRow | undefined;
   return changed(row, row?.status === "receiving");
 }
 
 /** Ends an upload's receiving, leaving it waiting to be sorted (server/sort.ts). Refused for its status when it was finished already. */
 export async function finishUpload(db: Db, userId: string, uploadId: string): Promise<UploadChange> {
-  const [update, read] = await db.batch<Row>([
+  const [update, read] = await db.batch<UploadRow>([
     db.prepare(`UPDATE uploads SET status = 'waiting', finished_at = ?3 WHERE id = ?2 AND status = 'receiving' AND ${OWNED}`).bind(userId, uploadId, Date.now()),
     db.prepare(ONE_UPLOAD).bind(userId, uploadId),
   ]);
@@ -142,7 +145,7 @@ export async function finishUpload(db: Db, userId: string, uploadId: string): Pr
 
 /** Sets a failed upload waiting to be sorted again, from its first phrasing not yet offered. Refused for its status when it didn't fail. */
 export async function retryUpload(db: Db, userId: string, uploadId: string): Promise<UploadChange> {
-  const [update, read] = await db.batch<Row>([
+  const [update, read] = await db.batch<UploadRow>([
     db.prepare(`UPDATE uploads SET status = 'waiting', error = NULL WHERE id = ?2 AND status = 'failed' AND ${OWNED}`).bind(userId, uploadId),
     db.prepare(ONE_UPLOAD).bind(userId, uploadId),
   ]);
