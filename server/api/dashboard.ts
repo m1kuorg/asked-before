@@ -5,10 +5,10 @@
 import type { Dashboard } from "@asked-before/sdk";
 import { authed } from "../auth";
 import { defineRoutes } from "../http";
-import { getDashboard } from "../store/dashboard";
+import { getDesk } from "../store/desk";
 
 export const dashboard = defineRoutes({
   "/api/v1/dashboard": {
-    GET: authed((_req, auth) => Response.json(getDashboard(auth.userId) satisfies Dashboard)),
+    GET: authed((_req, auth) => Response.json(getDesk(auth.userId) satisfies Dashboard)),
   },
 });

@@ -29,18 +29,18 @@ CREATE TABLE api_keys (
 );
 CREATE INDEX api_keys_by_user ON api_keys(user_id);
 
-CREATE TABLE projects (
+CREATE TABLE shelves (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   demo INTEGER NOT NULL DEFAULT 0 CHECK (demo IN (0, 1)),
   created_at INTEGER NOT NULL
 );
-CREATE INDEX projects_by_user ON projects(user_id);
+CREATE INDEX shelves_by_user ON shelves(user_id);
 
 CREATE TABLE uploads (
   id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  shelf_id TEXT NOT NULL REFERENCES shelves(id) ON DELETE CASCADE,
   source TEXT NOT NULL CHECK (source IN ('chatgpt', 'claude')),
   file_name TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'receiving'
@@ -49,7 +49,7 @@ CREATE TABLE uploads (
   created_at INTEGER NOT NULL,
   finished_at INTEGER
 );
-CREATE INDEX uploads_by_project ON uploads(project_id);
+CREATE INDEX uploads_by_shelf ON uploads(shelf_id);
 
 -- Every one of your messages an upload was sent, by its source id, once:
 -- its count is the upload's messages, so a chunk sent twice counts once.
@@ -62,16 +62,16 @@ CREATE TABLE upload_messages (
 
 CREATE TABLE cards (
   id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  shelf_id TEXT NOT NULL REFERENCES shelves(id) ON DELETE CASCADE,
   skill TEXT NOT NULL COLLATE NOCASE,
   lesson TEXT,                             -- written with the card's first rep
   created_at INTEGER NOT NULL,
-  UNIQUE (project_id, skill)
+  UNIQUE (shelf_id, skill)
 );
 
 CREATE TABLE phrasings (
   id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  shelf_id TEXT NOT NULL REFERENCES shelves(id) ON DELETE CASCADE,
   origin TEXT NOT NULL CHECK (origin IN ('export', 'capture')),
   upload_id TEXT REFERENCES uploads(id) ON DELETE CASCADE,   -- empty for a capture
   source_id TEXT NOT NULL,                 -- the export's message id, or a generated one for a capture
@@ -80,7 +80,7 @@ CREATE TABLE phrasings (
   card_id TEXT REFERENCES cards(id) ON DELETE SET NULL,      -- empty while unsorted
   offered_at INTEGER,                      -- when a sort last saw it; empty until then
   created_at INTEGER NOT NULL,
-  UNIQUE (project_id, source_id),
+  UNIQUE (shelf_id, source_id),
   CHECK ((origin = 'export') = (upload_id IS NOT NULL))
 );
 CREATE INDEX phrasings_by_card ON phrasings(card_id);
@@ -112,7 +112,7 @@ CREATE TABLE usage (
 CREATE VIEW card_status AS
 SELECT
   card_id,
-  project_id,
+  shelf_id,
   borrows,
   first_borrow_at,
   last_borrow_at,
@@ -125,7 +125,7 @@ SELECT
 FROM (
   SELECT
     c.id AS card_id,
-    c.project_id,
+    c.shelf_id,
     (SELECT count(*) FROM phrasings p WHERE p.card_id = c.id) AS borrows,
     (SELECT min(p.time) FROM phrasings p WHERE p.card_id = c.id) AS first_borrow_at,
     (SELECT max(p.time) FROM phrasings p WHERE p.card_id = c.id) AS last_borrow_at,

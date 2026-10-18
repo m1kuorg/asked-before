@@ -1,6 +1,6 @@
 // Uploads and the phrasings they bring. Every query joins up to the
-// project's owner, so another account's upload reads as missing. Appending
-// stores only the phrasings whose source id the project doesn't hold yet,
+// shelf's owner, so another account's upload reads as missing. Appending
+// stores only the phrasings whose source id the shelf doesn't hold yet,
 // which is what keeps a re-uploaded export from counting a borrow twice,
 // and counts each of the upload's messages once, by its source id, so a
 // chunk sent twice doesn't count twice either. A phrasing held by an upload
@@ -9,11 +9,11 @@
 
 import type { Phrasing, Source, Upload, UploadPage } from "@asked-before/sdk";
 import { db, iso, newId } from "./db";
-import { ownsProject } from "./projects";
+import { ownsShelf } from "./shelves";
 
 type Row = {
   id: string;
-  project_id: string;
+  shelf_id: string;
   source: Source;
   file_name: string;
   status: Upload["status"];
@@ -27,12 +27,12 @@ type Row = {
 
 const SELECT = `
   SELECT
-    u.id, u.project_id, u.source, u.file_name, u.status, u.error, u.created_at, u.finished_at,
+    u.id, u.shelf_id, u.source, u.file_name, u.status, u.error, u.created_at, u.finished_at,
     (SELECT count(*) FROM upload_messages m WHERE m.upload_id = u.id) AS messages,
     (SELECT count(*) FROM phrasings f WHERE f.upload_id = u.id) AS phrasings,
     (SELECT count(*) FROM phrasings f WHERE f.upload_id = u.id AND f.offered_at IS NOT NULL) AS offered
   FROM uploads u
-  JOIN projects p ON p.id = u.project_id`;
+  JOIN shelves sh ON sh.id = u.shelf_id`;
 
 /** An upload after a change to it, or why there was none: the account has no such upload, or its status doesn't allow the change. */
 export type UploadChange = { upload: Upload } | { refused: "missing" | "status" };
@@ -41,7 +41,7 @@ const changed = (userId: string, uploadId: string): UploadChange => ({ upload: g
 
 const toUpload = (row: Row): Upload => ({
   id: row.id,
-  projectId: row.project_id,
+  projectId: row.shelf_id,
   source: row.source,
   fileName: row.file_name,
   status: row.status,
@@ -54,17 +54,17 @@ const toUpload = (row: Row): Upload => ({
 });
 
 export function getUpload(userId: string, uploadId: string): Upload | null {
-  const row = db.query(`${SELECT} WHERE u.id = $uploadId AND p.user_id = $userId`).get({ userId, uploadId }) as Row | null;
+  const row = db.query(`${SELECT} WHERE u.id = $uploadId AND sh.user_id = $userId`).get({ userId, uploadId }) as Row | null;
   return row && toUpload(row);
 }
 
-/** The new upload, receiving; or null when the account has no such project. */
-export function createUpload(userId: string, projectId: string, source: Source, fileName: string): Upload | null {
-  if (!ownsProject(userId, projectId)) return null;
+/** The new upload, receiving; or null when the account has no such shelf. */
+export function createUpload(userId: string, shelfId: string, source: Source, fileName: string): Upload | null {
+  if (!ownsShelf(userId, shelfId)) return null;
   const id = newId();
-  db.query("INSERT INTO uploads (id, project_id, source, file_name, created_at) VALUES ($id, $projectId, $source, $fileName, $now)").run({
+  db.query("INSERT INTO uploads (id, shelf_id, source, file_name, created_at) VALUES ($id, $shelfId, $source, $fileName, $now)").run({
     id,
-    projectId,
+    shelfId,
     source,
     fileName,
     now: Date.now(),
@@ -72,28 +72,28 @@ export function createUpload(userId: string, projectId: string, source: Source, 
   return getUpload(userId, id);
 }
 
-/** A page of the project's uploads, newest first (ids are time-ordered); or null when the account has no such project. */
-export function listUploads(userId: string, projectId: string, limit: number, cursor: string | undefined): UploadPage | null {
-  if (!ownsProject(userId, projectId)) return null;
+/** A page of the shelf's uploads, newest first (ids are time-ordered); or null when the account has no such shelf. */
+export function listUploads(userId: string, shelfId: string, limit: number, cursor: string | undefined): UploadPage | null {
+  if (!ownsShelf(userId, shelfId)) return null;
   const rows = db
-    .query(`${SELECT} WHERE u.project_id = $projectId AND p.user_id = $userId AND ($cursor IS NULL OR u.id < $cursor) ORDER BY u.id DESC LIMIT $take`)
-    .all({ userId, projectId, cursor: cursor ?? null, take: limit + 1 }) as Row[];
+    .query(`${SELECT} WHERE u.shelf_id = $shelfId AND sh.user_id = $userId AND ($cursor IS NULL OR u.id < $cursor) ORDER BY u.id DESC LIMIT $take`)
+    .all({ userId, shelfId, cursor: cursor ?? null, take: limit + 1 }) as Row[];
   const uploads = rows.slice(0, limit).map(toUpload);
   return { uploads, next: rows.length > limit ? uploads.at(-1)!.id : null };
 }
 
-// A phrasing the project holds already stays where it is, unless its upload is still receiving: no sort has seen it, so it moves to this upload.
+// A phrasing the shelf holds already stays where it is, unless its upload is still receiving: no sort has seen it, so it moves to this upload.
 const insertPhrasing = db.query(`
-  INSERT INTO phrasings (id, project_id, origin, upload_id, source_id, text, time, created_at)
-  VALUES ($id, $projectId, 'export', $uploadId, $sourceId, $text, $time, $now)
-  ON CONFLICT (project_id, source_id) DO UPDATE SET upload_id = excluded.upload_id
+  INSERT INTO phrasings (id, shelf_id, origin, upload_id, source_id, text, time, created_at)
+  VALUES ($id, $shelfId, 'export', $uploadId, $sourceId, $text, $time, $now)
+  ON CONFLICT (shelf_id, source_id) DO UPDATE SET upload_id = excluded.upload_id
   WHERE (SELECT status FROM uploads WHERE id = phrasings.upload_id) = 'receiving'
 `);
 const countMessage = db.query("INSERT INTO upload_messages (upload_id, source_id) VALUES ($uploadId, $sourceId) ON CONFLICT DO NOTHING");
 
 /**
  * Adds a chunk to an upload that's still receiving: each phrasing counts
- * once toward its messages, and those new to the project, or held by an
+ * once toward its messages, and those new to the shelf, or held by an
  * upload still receiving, become its own. Refused for its status once it's
  * finished, and so takes no more.
  */
@@ -104,7 +104,7 @@ export function appendPhrasings(userId: string, uploadId: string, phrasings: Phr
   const now = Date.now();
   db.transaction(() => {
     for (const { sourceId, text, time } of phrasings) {
-      insertPhrasing.run({ id: newId(), projectId: upload.projectId, uploadId, sourceId, text, time: Date.parse(time), now });
+      insertPhrasing.run({ id: newId(), shelfId: upload.projectId, uploadId, sourceId, text, time: Date.parse(time), now });
       countMessage.run({ uploadId, sourceId });
     }
   })();
@@ -128,7 +128,7 @@ export function retryUpload(userId: string, uploadId: string): UploadChange {
 }
 
 /**
- * Deletes an upload and its phrasings. A card of its project left with
+ * Deletes an upload and its phrasings. A card of its shelf left with
  * fewer than two borrows goes too, with its reps, and its remaining
  * phrasing becomes unsorted. False when the account has no such upload.
  */
@@ -137,7 +137,7 @@ export function deleteUpload(userId: string, uploadId: string): boolean {
     const upload = getUpload(userId, uploadId);
     if (!upload) return false;
     db.query("DELETE FROM uploads WHERE id = $uploadId").run({ uploadId });
-    db.query("DELETE FROM cards WHERE project_id = $projectId AND (SELECT count(*) FROM phrasings f WHERE f.card_id = cards.id) < 2").run({ projectId: upload.projectId });
+    db.query("DELETE FROM cards WHERE shelf_id = $shelfId AND (SELECT count(*) FROM phrasings f WHERE f.card_id = cards.id) < 2").run({ shelfId: upload.projectId });
     return true;
   })();
 }
