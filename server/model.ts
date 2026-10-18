@@ -1,14 +1,18 @@
-// The one Anthropic client, shared by every route that asks the model. Every
+// The one way the app asks the model, for every route and the sort. Every
 // request is a structured output from claude-haiku-5-5 with effort set
 // explicitly. A request made for an account first spends one of its daily
 // model requests (store/usage.ts), or fails with 429. A route lets a
-// ModelError propagate; serve() answers it with 502 { error }. Requests are
-// streamed, so a long answer (a sort batch of hundreds of phrasings) has
-// room to finish; only the final message is read.
+// ModelError propagate; answer() (server/http.ts) answers it with 502
+// { error }. Requests are streamed, so a long answer (a sort batch of
+// hundreds of phrasings) has room to finish; only the final message is
+// read. The key, the database, and the cap come from the Worker's env,
+// passed in by the handler or the sort's Durable Object, since a Worker has
+// none at module scope.
 
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type { z } from "zod";
+import { readConfig, type Env } from "./config";
 import { HttpError } from "./http";
 import { spendModelRequest } from "./store/usage";
 
@@ -30,22 +34,22 @@ export class ModelError extends HttpError {
   }
 }
 
-let client: Anthropic | undefined;
-
 export async function askStructured<S extends z.ZodType>(
+  /** The Worker's bindings: the key, and the database the daily cap is counted in. */
+  env: Env,
+  /** The account the request is for, which spends one of its daily model requests. */
+  userId: string,
   system: string,
   userText: string,
   schema: S,
   /** Each caller tunes its own on the demo export. */
   effort: Effort,
-  /** The account the request is for, which spends one of its daily model requests. */
-  userId: string,
 ): Promise<z.infer<S>> {
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!env.ANTHROPIC_API_KEY) {
     throw new ModelError("The server has no ANTHROPIC_API_KEY. Set it in .env, as the README says.");
   }
-  spendModelRequest(userId);
-  client ??= new Anthropic();
+  await spendModelRequest(env.DB, userId, readConfig(env).dailyModelRequests);
+  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, baseURL: env.ANTHROPIC_BASE_URL || undefined });
   const format = zodOutputFormat(schema);
 
   // The stream is sent the schema without its parse(): the stream helper

@@ -27,6 +27,8 @@ export type App = {
   browser: () => Browser;
   /** Stops the app and deletes its state, unless `state` was given. */
   stop: () => Promise<void>;
+  /** Kills Wrangler and its workerd at once, by their process group, as a crash would, with no chance to finish anything; then as stop(). */
+  kill: () => Promise<void>;
 };
 
 export type Browser = {
@@ -97,8 +99,8 @@ export async function startApp(env: Record<string, string> = {}, { state, port, 
   };
   const collected = Promise.all([collect(proc.stdout), collect(proc.stderr)]);
 
-  const stop = async () => {
-    kill("SIGTERM");
+  const stop = async (signal: NodeJS.Signals = "SIGTERM") => {
+    kill(signal);
     const ended = await Promise.race([proc.exited.then(() => true), Bun.sleep(5_000).then(() => false)]);
     if (!ended) kill("SIGKILL");
     await proc.exited;
@@ -120,7 +122,7 @@ export async function startApp(env: Record<string, string> = {}, { state, port, 
   }
   const url = new URL(match[1]!).origin;
 
-  return { url, databasePath: join(persist, d1!), log: () => log, browser: () => browser(url), stop };
+  return { url, databasePath: join(persist, d1!), log: () => log, browser: () => browser(url), stop: () => stop(), kill: () => stop("SIGKILL") };
 }
 
 /** The node that runs Wrangler, once it's checked to be 22 or later, as Wrangler needs. */

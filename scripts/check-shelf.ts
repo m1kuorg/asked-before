@@ -322,6 +322,8 @@ try {
     await remove.click();
     await page.locator(".block .confirm").getByRole("button", { name: "Delete the upload" }).click();
     await page.locator(".block table.rows tbody tr").nth(1).waitFor({ state: "detached" });
+    // The page reloads the history after a delete, showing its waiting line until the list is back.
+    await page.locator(".block table.rows").waitFor();
     const left = await uploadRows();
     check(left.length === 1 && left[0]?.added === String(half), `the history lists only the first upload: ${JSON.stringify(left)}`);
 

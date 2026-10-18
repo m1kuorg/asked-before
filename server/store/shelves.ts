@@ -39,10 +39,6 @@ const toShelf = (row: Row): Shelf => ({
   lastUploadAt: row.last_upload_at === null ? null : iso(row.last_upload_at),
 });
 
-/** Whether the account has the shelf. */
-export const ownsShelf = async (db: Db, userId: string, shelfId: string) =>
-  (await db.prepare("SELECT 1 FROM shelves WHERE id = ?2 AND user_id = ?1").bind(userId, shelfId).first()) !== null;
-
 /** The account's shelves, oldest first. */
 export async function listShelves(db: Db, userId: string): Promise<Shelf[]> {
   const { results } = await db.prepare(`${SELECT} WHERE sh.user_id = ?1 GROUP BY sh.id ORDER BY sh.created_at, sh.id`).bind(userId).all<Row>();
