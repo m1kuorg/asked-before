@@ -67,7 +67,7 @@ const schema = (path: string) =>
   read(path, (store) => JSON.stringify(store.query("SELECT type, name, tbl_name, sql FROM sqlite_schema ORDER BY type, name").all()));
 
 // The spec's tables (m1kuorg/basics#40, Store), with the uploads' messages, the card_status view, and the migrations the database records.
-const SCHEMA = ["api_keys", "card_status", "cards", "migrations", "phrasings", "projects", "reps", "sessions", "upload_messages", "uploads", "usage", "users"];
+const SCHEMA = ["api_keys", "card_status", "cards", "migrations", "phrasings", "reps", "sessions", "shelves", "upload_messages", "uploads", "usage", "users"];
 
 /** What an account's download holds, in counts, to say what survived. */
 function held(data: AccountData): string {
@@ -187,8 +187,8 @@ try {
   });
 
   await step("5. A migration that fails applies nothing, and the app doesn't start until it's gone", async () => {
-    const broken = join(copy, "server", "store", "migrations", "0003-archive-projects.sql");
-    const archive = "ALTER TABLE projects ADD COLUMN archived INTEGER NOT NULL DEFAULT 0;\n";
+    const broken = join(copy, "server", "store", "migrations", "0003-archive-shelves.sql");
+    const archive = "ALTER TABLE shelves ADD COLUMN archived INTEGER NOT NULL DEFAULT 0;\n";
     const failings = [
       { what: "a statement that fails", sql: `${archive}SELECT * FROM no_such_table;\n`, says: "no such table: no_such_table" },
       { what: "a rep left on no card", sql: `${archive}INSERT INTO reps (id, card_id, problem, created_at) VALUES ('stray', 'no-such-card', 'A rep on no card.', 0);\n`, says: "reps" },
@@ -199,8 +199,8 @@ try {
         async (app) => (await app.stop(), "it started"),
         (error: Error) => error.message.split("\n").find((line) => line.includes("0003-")) ?? error.message,
       );
-      check(said.includes("Migration 0003-archive-projects.sql failed") && said.includes(says), `with ${what}, the app stops: ${said.trim()}`);
-      const columns = read(databasePath, (store) => store.query<{ name: string }, []>("SELECT name FROM pragma_table_info('projects')").all().map((c) => c.name));
+      check(said.includes("Migration 0003-archive-shelves.sql failed") && said.includes(says), `with ${what}, the app stops: ${said.trim()}`);
+      const columns = read(databasePath, (store) => store.query<{ name: string }, []>("SELECT name FROM pragma_table_info('shelves')").all().map((c) => c.name));
       const stray = read(databasePath, (store) => store.query<{ n: number }, []>("SELECT count(*) AS n FROM reps WHERE id = 'stray'").get()!.n);
       check(recorded(databasePath).join() === "1 0001-schema.sql,2 0002-pin-cards.sql" && !columns.includes("archived") && stray === 0, `and the database is as migration 2 left it: ${recorded(databasePath).join(", ")}, ${columns.includes("archived") ? "an" : "no"} archived column, ${stray} stray rep(s)`);
     }

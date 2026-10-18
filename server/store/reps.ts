@@ -1,6 +1,6 @@
 // Cold reps, as the store keeps them (m1kuorg/basics#46): what a card's
 // next rep is written from, adding a rep with the card's lesson, and
-// recording a check once. Every query joins up to the project's owner, so
+// recording a check once. Every query joins up to the shelf's owner, so
 // another account's card or rep reads as missing. A rep is open while it's
 // unchecked and the latest on its card: starting a newer one leaves it
 // unchecked for good. Ids are time-ordered, so the latest rep is the one
@@ -46,7 +46,7 @@ export type RepSource = {
 /** The card's skill, lesson, phrasings, earlier problems, and latest verdict; or null when the account has no such card. */
 export function repSource(userId: string, cardId: string): RepSource | null {
   const card = db
-    .query("SELECT c.skill, c.lesson FROM cards c JOIN projects p ON p.id = c.project_id WHERE c.id = $cardId AND p.user_id = $userId")
+    .query("SELECT c.skill, c.lesson FROM cards c JOIN shelves sh ON sh.id = c.shelf_id WHERE c.id = $cardId AND sh.user_id = $userId")
     .get({ userId, cardId }) as { skill: string; lesson: string | null } | null;
   if (!card) return null;
   const phrasings = db.query("SELECT text FROM phrasings WHERE card_id = $cardId ORDER BY time, id").all({ cardId }) as { text: string }[];
@@ -89,8 +89,8 @@ export function findRep(userId: string, repId: string): FoundRep | null {
   const row = db
     .query(
       `SELECT ${REP_COLUMNS.split(", ").map((c) => `r.${c}`).join(", ")}, r.card_id, c.skill, ${NEWER} AS superseded
-       FROM reps r JOIN cards c ON c.id = r.card_id JOIN projects p ON p.id = c.project_id
-       WHERE r.id = $repId AND p.user_id = $userId`,
+       FROM reps r JOIN cards c ON c.id = r.card_id JOIN shelves sh ON sh.id = c.shelf_id
+       WHERE r.id = $repId AND sh.user_id = $userId`,
     )
     .get({ userId, repId }) as (RepRow & { card_id: string; skill: string; superseded: number }) | null;
   if (!row) return null;

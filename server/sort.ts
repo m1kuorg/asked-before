@@ -178,13 +178,13 @@ export async function sortCapture(userId: string, projectId: string, capture: So
 /** Sorts one upload, batch by batch, until no phrasing of it is left unoffered or it's gone. */
 async function sortUpload(upload: store.SortUpload): Promise<void> {
   for (;;) {
-    const { fresh, window } = store.nextBatch(upload.id, upload.projectId, config.sortBatchSize);
+    const { fresh, window } = store.nextBatch(upload.id, upload.shelfId, config.sortBatchSize);
     if (!fresh.length) return;
-    const cards = store.sortCards(upload.projectId);
+    const cards = store.sortCards(upload.shelfId);
     const batch = [...fresh, ...window];
     // With no card to join and one phrasing alone, nothing can be placed, so the model isn't asked.
     const placement = cards.length || batch.length > 1 ? await askPlacement(upload.userId, cards, batch, SORT_EFFORT) : NOTHING;
-    if (!store.applyPlacement(upload.id, upload.projectId, placement, batch.map((p) => p.id))) return;
+    if (!store.applyPlacement(upload.id, upload.shelfId, placement, batch.map((p) => p.id))) return;
   }
 }
 
@@ -219,5 +219,5 @@ export function sortProject(projectId: string): void {
 
 /** At startup: carries on every sort a restart cut off, and starts the ones that were waiting. */
 export function resumeSorts(): void {
-  for (const projectId of store.projectsToSort()) sortProject(projectId);
+  for (const projectId of store.shelvesToSort()) sortProject(projectId);
 }

@@ -263,7 +263,7 @@ await step("4. Deleted, the account and everything in it are gone, every session
       sessions: left("sessions", "user_id", [before.account.id]),
       api_keys: left("api_keys", "user_id", [before.account.id]),
       usage: left("usage", "user_id", [before.account.id]),
-      projects: left("projects", "id", projects.map((p) => p.id)),
+      shelves: left("shelves", "id", projects.map((p) => p.id)),
       uploads: left("uploads", "id", projects.flatMap((p) => p.uploads.map((u) => u.id))),
       upload_messages: left("upload_messages", "upload_id", projects.flatMap((p) => p.uploads.map((u) => u.id))),
       phrasings: left("phrasings", "id", projects.flatMap((p) => p.phrasings.map((f) => f.id))),
@@ -271,7 +271,7 @@ await step("4. Deleted, the account and everything in it are gone, every session
       reps: left("reps", "id", projects.flatMap((p) => p.cards.flatMap((c) => c.reps.map((r) => r.id)))),
     };
     const held = Object.entries(counts).filter(([, n]) => n > 0);
-    check(held.length === 0, `no row is left in users, sessions, keys, usage, projects, uploads, phrasings, cards, or reps${held.length ? `: ${JSON.stringify(Object.fromEntries(held))}` : ""}`);
+    check(held.length === 0, `no row is left in users, sessions, keys, usage, shelves, uploads, phrasings, cards, or reps${held.length ? `: ${JSON.stringify(Object.fromEntries(held))}` : ""}`);
   } finally {
     store.close();
   }

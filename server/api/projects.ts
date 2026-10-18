@@ -6,7 +6,7 @@ import type { Project } from "@asked-before/sdk";
 import { z } from "zod";
 import { authed } from "../auth";
 import { defineRoutes, HttpError, readJson } from "../http";
-import { createProject, deleteProject, getProject, listProjects, renameProject } from "../store/projects";
+import { createShelf, deleteShelf, getShelf, listShelves, renameShelf } from "../store/shelves";
 
 const ProjectName = z
   .string({ error: "A project needs a name." })
@@ -24,25 +24,25 @@ const found = (project: Project | null): Project => {
 
 export const projects = defineRoutes({
   "/api/v1/projects": {
-    GET: authed((_req, auth) => Response.json({ projects: listProjects(auth.userId) })),
+    GET: authed((_req, auth) => Response.json({ projects: listShelves(auth.userId) })),
     POST: authed(async (req, auth) => {
       const { name, demo = false } = await readJson(req, NewProject);
-      return Response.json(createProject(auth.userId, name, demo), { status: 201 });
+      return Response.json(createShelf(auth.userId, name, demo), { status: 201 });
     }),
   },
 
   "/api/v1/projects/:projectId": {
-    GET: authed((req, auth) => Response.json(found(getProject(auth.userId, req.params.projectId)))),
+    GET: authed((req, auth) => Response.json(found(getShelf(auth.userId, req.params.projectId)))),
     PATCH: authed(
       async (req, auth) => {
         const { name } = await readJson(req, Rename);
-        return Response.json(found(renameProject(auth.userId, req.params.projectId, name)));
+        return Response.json(found(renameShelf(auth.userId, req.params.projectId, name)));
       },
       { sessionOnly: true },
     ),
     DELETE: authed(
       (req, auth) => {
-        if (!deleteProject(auth.userId, req.params.projectId)) throw new HttpError(404, "There's no such project.");
+        if (!deleteShelf(auth.userId, req.params.projectId)) throw new HttpError(404, "There's no such project.");
         return new Response(null, { status: 204 });
       },
       { sessionOnly: true },
