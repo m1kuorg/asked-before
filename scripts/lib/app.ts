@@ -24,7 +24,7 @@ export type App = {
   log: () => string;
   /** A client for one browser: it keeps the session cookie and sends the page's Origin, as the page's requests do. */
   browser: () => Browser;
-  /** Stops the app and deletes its database. */
+  /** Stops the app and deletes its database, unless `env` named one. */
   stop: () => Promise<void>;
 };
 
@@ -34,12 +34,16 @@ export type Browser = {
   cookie: () => string;
 };
 
-/** Starts the app. `env` adds to or overrides the environment, such as DAILY_MODEL_REQUESTS. */
-export async function startApp(env: Record<string, string> = {}): Promise<App> {
+/**
+ * Starts the app. `env` adds to or overrides the environment, such as
+ * DAILY_MODEL_REQUESTS; a DATABASE_PATH there starts it on that database,
+ * and keeps it. `root` is the app's folder: this repo, or a copy of it.
+ */
+export async function startApp(env: Record<string, string> = {}, root = ROOT): Promise<App> {
   const dir = await mkdtemp(join(tmpdir(), "asked-before-check-"));
-  const databasePath = join(dir, "app.sqlite");
+  const databasePath = env.DATABASE_PATH ?? join(dir, "app.sqlite");
   const proc = Bun.spawn(["bun", "server.ts"], {
-    cwd: ROOT,
+    cwd: root,
     // PUBLIC_URL is emptied so that a value in .env can't point the app's origin elsewhere.
     env: { ...process.env, PORT: "0", PUBLIC_URL: "", DATABASE_PATH: databasePath, ...env },
     stdout: "pipe",
@@ -51,14 +55,14 @@ export async function startApp(env: Record<string, string> = {}): Promise<App> {
     const decoder = new TextDecoder();
     for await (const chunk of stream) log += decoder.decode(chunk, { stream: true });
   };
-  void collect(proc.stdout);
-  void collect(proc.stderr);
+  const collected = Promise.all([collect(proc.stdout), collect(proc.stderr)]);
 
   const deadline = Date.now() + 15_000;
   let match;
   while (!(match = log.match(/Asked Before is on (\S+)/))) {
     if (proc.exitCode !== null || Date.now() > deadline) {
       proc.kill();
+      await collected;
       await rm(dir, { recursive: true, force: true });
       throw new Error(`The app didn't start:\n${log}`);
     }
@@ -77,6 +81,14 @@ export async function startApp(env: Record<string, string> = {}): Promise<App> {
       await rm(dir, { recursive: true, force: true });
     },
   };
+}
+
+/** A port nothing on this computer is listening on, for an app that must keep one address. */
+export function freePort(): number {
+  const probe = Bun.serve({ port: 0, fetch: () => new Response() });
+  const { port } = probe;
+  probe.stop(true);
+  return port!;
 }
 
 /** A client for one browser on the app at `url`; check:container uses it on a container's app. */
