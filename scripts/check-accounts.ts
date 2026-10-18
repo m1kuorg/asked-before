@@ -301,12 +301,8 @@ await step("11. A cookie request that changes something needs the page's Origin 
 });
 
 await step("12. The app logs only the method, path, status, and duration", async () => {
-  // After Wrangler's banner, a line is either Wrangler's own, which says
-  // the same of each request, or the Worker's.
-  const lines = app.log().split(/Ready on \S+\n/)[1]?.trim().split("\n") ?? [];
-  const ours = lines.filter((line) => !line.startsWith("[wrangler:"));
-  const odd = ours.filter((line) => !/^(GET|HEAD|POST|PUT|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));
-  check(ours.length > 50 && odd.length === 0, `${ours.length} request lines${odd.length ? `, and these others: ${odd.slice(0, 3).join(" | ")}` : ""}`);
+  const { requests, others } = app.workerLog();
+  check(requests.length > 50 && others.length === 0, `${requests.length} request lines${others.length ? `, and these others: ${others.slice(0, 3).join(" | ")}` : ""}`);
   const secrets = [ADA.email, ADA.name, ADA.password, BEA.email, BEA.password, "Day job", "Sneaky"];
   const leaked = secrets.filter((text) => app.log().toLowerCase().includes(text.toLowerCase()));
   check(leaked.length === 0, `no email, name, password, or shelf name anywhere in Wrangler's output${leaked.length ? `: ${leaked.join(", ")}` : ""}`);

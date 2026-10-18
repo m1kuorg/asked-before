@@ -11,18 +11,20 @@
 // a card show borrowed again the moment it's returned. Finishing an upload
 // answers with it waiting to be sorted, and starts the shelf's sort in its
 // Durable Object (worker/sorter.ts, server/sort.ts), which records its
-// progress and any failure on the upload. Retrying a failed sort carries on
-// from the first phrasing it hadn't offered; anything but a failed upload
-// is a 409. Deleting an upload deletes its phrasings, and any card left
-// with fewer than two borrows, whose remaining phrasing becomes unsorted; a
-// sort under way on it stops.
+// progress and any failure on the upload; when that start fails, the
+// upload answers failed, so a retry starts it again. Retrying a failed
+// sort carries on from the first phrasing it hadn't offered; anything but
+// a failed upload is a 409. Deleting an upload deletes its phrasings, and
+// any card left with fewer than two borrows, whose remaining phrasing
+// becomes unsorted; a sort under way on it stops.
 
 import { MAX_CHUNK, MAX_PHRASING_LENGTH, type Upload } from "@asked-before/sdk";
 import { z } from "zod";
 import { authed } from "../auth";
 import type { Env } from "../config";
 import { defineRoutes, HttpError, readJson, readPage } from "../http";
-import { appendPhrasings, createUpload, deleteUpload, finishUpload, getUpload, listUploads, retryUpload, type UploadChange } from "../store/uploads";
+import type { Db } from "../store/db";
+import { appendPhrasings, createUpload, deleteUpload, failUnstarted, finishUpload, getUpload, listUploads, retryUpload, type UploadChange } from "../store/uploads";
 
 /** How far past the server's clock a phrasing may be dated, for a clock that runs a little fast. */
 const AHEAD_MS = 5 * 60 * 1000;
@@ -70,10 +72,19 @@ const changed = (change: UploadChange, conflict: string): Upload => {
   throw change.refused === "missing" ? new HttpError(404, NO_UPLOAD) : new HttpError(409, conflict);
 };
 
-/** Starts the upload's shelf's sort, or wakes the one under way to take this upload after its own (server/sort.ts). */
-const sort = async (env: Env, upload: Upload) => {
-  await env.SORTER.getByName(upload.shelfId).start();
-  return Response.json(upload);
+/**
+ * Starts the upload's shelf's sort, or wakes the one under way to take this
+ * upload after its own (server/sort.ts), and answers the upload. When the
+ * shelf's Durable Object can't be started, the upload fails, saying so,
+ * rather than wait for a sort that never comes: a retry starts it again.
+ */
+const startSortAndAnswer = async (env: Env, db: Db, userId: string, upload: Upload) => {
+  try {
+    await env.SORTER.getByName(upload.shelfId).start();
+    return Response.json(upload);
+  } catch {
+    return Response.json(found(await failUnstarted(db, userId, upload.id, "The sort didn't start. Try again.")));
+  }
 };
 
 export const uploads = defineRoutes({
@@ -118,9 +129,9 @@ export const uploads = defineRoutes({
     }),
   },
   "/api/v1/uploads/:uploadId/finish": {
-    POST: authed(async (_req, { env, db, params, auth }) => sort(env, changed(await finishUpload(db, auth.userId, params.uploadId), "This upload is finished already."))),
+    POST: authed(async (_req, { env, db, params, auth }) => startSortAndAnswer(env, db, auth.userId, changed(await finishUpload(db, auth.userId, params.uploadId), "This upload is finished already."))),
   },
   "/api/v1/uploads/:uploadId/retry": {
-    POST: authed(async (_req, { env, db, params, auth }) => sort(env, changed(await retryUpload(db, auth.userId, params.uploadId), "Only a sort that failed can be tried again."))),
+    POST: authed(async (_req, { env, db, params, auth }) => startSortAndAnswer(env, db, auth.userId, changed(await retryUpload(db, auth.userId, params.uploadId), "Only a sort that failed can be tried again."))),
   },
 });

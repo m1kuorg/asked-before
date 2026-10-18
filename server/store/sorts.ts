@@ -52,6 +52,23 @@ export async function startNext(db: Db, shelfId: string): Promise<SortUpload | n
     .first<SortUpload>();
 }
 
+/**
+ * The shelves with an upload waiting or sorting that has made no progress
+ * since `before`: its latest progress is the last batch of it offered, or
+ * else its finish.
+ */
+export async function stalledShelves(db: Db, before: number): Promise<string[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT DISTINCT shelf_id AS shelfId FROM uploads u
+       WHERE status IN ('waiting', 'sorting')
+         AND coalesce((SELECT max(offered_at) FROM phrasings WHERE upload_id = u.id), finished_at) < ?1`,
+    )
+    .bind(before)
+    .all<{ shelfId: string }>();
+  return results.map((row) => row.shelfId);
+}
+
 /** The window: up to `size` of the shelf's most recent unsorted phrasings, which a sort has seen but nothing yet matched. */
 const windowOf = (db: Db, shelfId: string, size: number) =>
   db

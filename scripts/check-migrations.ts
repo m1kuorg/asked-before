@@ -27,7 +27,7 @@ import { cp, mkdtemp, readdir, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { phrasings, sortEnds, upload } from "./lib/answer-key";
-import { browser, freePort, startApp } from "./lib/app";
+import { browser, databaseIn, freePort, startApp } from "./lib/app";
 import { refuse, startModelStub } from "./lib/model-stub";
 import { known, repReply, sortsByKey, verdictReply } from "./lib/reps";
 
@@ -155,9 +155,9 @@ const work = await mkdtemp(join(tmpdir(), "asked-before-migrations-"));
 /** Ada's local state, kept across every start on it. */
 const state = join(work, "state");
 const databaseOf = (folder: string) => {
-  const file = [...new Bun.Glob("v3/d1/miniflare-D1DatabaseObject/*.sqlite").scanSync(folder)].find((f) => !f.endsWith("metadata.sqlite"));
-  if (!file) throw new Error(`No local D1 database in ${folder}.`);
-  return join(folder, file);
+  const path = databaseIn(folder);
+  if (!path) throw new Error(`No local D1 database in ${folder}.`);
+  return path;
 };
 
 // Sorts end as the answer key sorts, and rep and check requests get the answers queued for them.

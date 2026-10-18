@@ -19,10 +19,12 @@ const ROOT = join(import.meta.dir, "..", "..");
 export type App = {
   /** The app's origin, as "http://localhost:51234". */
   url: string;
-  /** The local D1 database's SQLite file, for the few checks that read it with bun:sqlite, read-only. */
+  /** The local D1 database's SQLite file, for the few checks that read it with bun:sqlite, read-only; check:captures' one write, aging a capture past the ten-minute window, is the documented exception (docs/code-map.md). */
   databasePath: string;
   /** Everything Wrangler has printed so far, the Worker's own lines among its own. */
   log: () => string;
+  /** The lines after Wrangler's banner that aren't Wrangler's own: the Worker's request lines (method, path, status, and duration), and any others, such as an uncaught error. */
+  workerLog: () => { requests: string[]; others: string[] };
   /** A client for one browser: it keeps the session cookie and sends the page's Origin, as the page's requests do. */
   browser: () => Browser;
   /** Stops the app and deletes its state, unless `state` was given. */
@@ -75,12 +77,15 @@ export async function startApp(env: Record<string, string> = {}, { state, port, 
   if ((await build.exited) !== 0) await fail("The pages didn't build", await new Response(build.stderr).text());
   const migrate = wrangler(["d1", "migrations", "apply", "DB", "--local"]);
   if ((await migrate.exited) !== 0) await fail("The migrations failed", (await new Response(migrate.stdout).text()) + (await new Response(migrate.stderr).text()));
-  const d1 = [...new Bun.Glob("v3/d1/miniflare-D1DatabaseObject/*.sqlite").scanSync(persist)].find((file) => !file.endsWith("metadata.sqlite"));
-  if (!d1) await fail("The migrations made no database", persist);
+  const databasePath = databaseIn(persist);
+  if (!databasePath) await fail("The migrations made no database", persist);
 
   // PUBLIC_URL is emptied so that a value in .env can't point the app's origin elsewhere.
   const vars = Object.entries({ PUBLIC_URL: "", ...env }).flatMap(([name, value]) => ["--var", `${name}:${value}`]);
-  const proc = wrangler(["dev", "--port", String(port ?? 0), "--inspector-port", "0", "--show-interactive-dev-session=false", "--assets", pages, ...vars]);
+  // --test-scheduled only quiets Wrangler's warning that the cron doesn't run locally, which could land among the
+  // Worker's lines. A check runs the cron at /cdn-cgi/local/scheduled: /__scheduled, the flag's own path, is the
+  // static assets' here, since only /api/* reaches the Worker first.
+  const proc = wrangler(["dev", "--port", String(port ?? 0), "--inspector-port", "0", "--show-interactive-dev-session=false", "--test-scheduled", "--assets", pages, ...vars]);
   const kill = (signal: NodeJS.Signals) => {
     try {
       process.kill(-proc.pid, signal);
@@ -122,7 +127,20 @@ export async function startApp(env: Record<string, string> = {}, { state, port, 
   }
   const url = new URL(match[1]!).origin;
 
-  return { url, databasePath: join(persist, d1!), log: () => log, browser: () => browser(url), stop: () => stop(), kill: () => stop("SIGKILL") };
+  const workerLog = () => {
+    // After the banner, a line is either Wrangler's own, which says the same of each request, or the Worker's.
+    const lines = (log.split(/Ready on \S+\n/)[1]?.trim().split("\n") ?? []).filter((line) => !line.startsWith("[wrangler:"));
+    const request = (line: string) => /^(GET|HEAD|POST|PUT|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line);
+    return { requests: lines.filter(request), others: lines.filter((line) => !request(line)) };
+  };
+
+  return { url, databasePath: databasePath!, log: () => log, workerLog, browser: () => browser(url), stop: () => stop(), kill: () => stop("SIGKILL") };
+}
+
+/** The local D1 database's SQLite file in a state folder, or null when no migrations have been applied there. */
+export function databaseIn(state: string): string | null {
+  const file = [...new Bun.Glob("v3/d1/miniflare-D1DatabaseObject/*.sqlite").scanSync(state)].find((name) => !name.endsWith("metadata.sqlite"));
+  return file ? join(state, file) : null;
 }
 
 /** The node that runs Wrangler, once it's checked to be 22 or later, as Wrangler needs. */

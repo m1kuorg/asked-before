@@ -28,7 +28,7 @@ cp .env.example .env        # then set ANTHROPIC_API_KEY=...
 bun run dev
 ```
 
-`bun run dev` builds the pages into `dist/`, applies the schema's migrations to a local database in `.wrangler/`, and starts the app with `wrangler dev`. Then open the address it prints, <http://localhost:8787> unless that port is taken, sign up, and make a shelf. A new learner can try the demo shelf, made from a made-up demo export and labeled as demo data, before finding their own export. Only the Worker reads the key, and `.env` is gitignored; a key exported in your shell works too, and wins over `.env`.
+`bun run dev` builds the pages into `dist/`, applies the schema's migrations to a local database in `.wrangler/`, and starts the app with `wrangler dev`. Then open the address it prints, <http://localhost:8787> unless that port is taken, sign up, and make a shelf. A new learner can try the demo shelf, made from a made-up demo export and labeled as demo data, before finding their own export. The Worker isn't the only reader of the key: Wrangler gives it to the Worker from `.env`, and Bun loads the same file into the check scripts, which read the key too, to check for it before calling the real model and to pass it on to the `wrangler dev` they start. `.env` is gitignored; a key exported in your shell works too, and wins over `.env`.
 
 Your local data stays in `.wrangler/` from one run to the next; delete that folder to start again with an empty database. Wrangler reloads the Worker when its code changes, but not the pages: run `bun run build:pages` to see a change to them.
 
@@ -72,7 +72,7 @@ The other checks:
 | `bun run check:uploads` | The uploads endpoints, and uploading the same export twice | |
 | `bun run check:upload-page` | The upload page: the preview, what it sends, a zip read under the content security policy, failures, and the demo action | Chromium |
 | `bun run check:sort` | Sorting the demo export three ways, against the answer key; `bun run check:sort 10` for 10 runs | Key |
-| `bun run check:sort-rules` | The sort's rules and the cards endpoints, with the model stubbed, and a sort that carries on after `wrangler dev` is killed mid-sort | |
+| `bun run check:sort-rules` | The sort's rules and the cards endpoints, with the model stubbed, a sort that carries on after `wrangler dev` is killed mid-sort, and sorts that fail to start or stall, which a retry or the cron starts again | |
 | `bun run check:sort-page` | The upload page's sort progress, failure, retry, and daily cap, with the model stubbed | Chromium |
 | `bun run check:shelf` | A shelf's card stack, statuses, unsorted phrasings, and upload history | Chromium |
 | `bun run check:reps` | Five cold reps on card A: lessons, problems, and verdicts | Key |

@@ -10,6 +10,7 @@
 import { DurableObject } from "cloudflare:workers";
 import type { Env, ShelfSort } from "../server/config";
 import { sortNextBatch } from "../server/sort";
+import type { Db } from "../server/store/db";
 
 export class Sorter extends DurableObject<Env> implements ShelfSort {
   /**
@@ -18,12 +19,34 @@ export class Sorter extends DurableObject<Env> implements ShelfSort {
    * alarm runs at a time.
    */
   async start(): Promise<void> {
+    if (this.env.SORTER_FAULT === "start") throw new Error("The check's fault: the sort doesn't start.");
     await this.ctx.storage.setAlarm(Date.now());
   }
 
-  /** One batch of the shelf's sort; a failure is recorded on its upload rather than thrown. */
+  /**
+   * One batch of the shelf's sort; a failure is recorded on its upload
+   * rather than thrown. Nothing escapes it, not even a database failure
+   * that keeps the failure from being recorded: that's logged nowhere,
+   * since an error may hold anything, and the runtime doesn't retry it.
+   * The upload stays waiting or sorting until the shelf's sort is started
+   * again, by the cron (server/sort.ts's resumeStalledSorts) if nothing
+   * else.
+   */
   override async alarm(): Promise<void> {
     const shelfId = this.ctx.id.name;
-    if (shelfId && (await sortNextBatch(this.env, shelfId))) await this.ctx.storage.setAlarm(Date.now());
+    const env = this.env.SORTER_FAULT === "database" ? { ...this.env, DB: outOfReach() } : this.env;
+    try {
+      if (shelfId && (await sortNextBatch(env, shelfId))) await this.ctx.storage.setAlarm(Date.now());
+    } catch {
+      // Left as it stands, for the cron.
+    }
   }
+}
+
+/** A database whose every query fails, as one out of reach would: the check's "database" fault. */
+function outOfReach(): Db {
+  const fail = () => {
+    throw new Error("D1_ERROR: the check's fault: the database is out of reach.");
+  };
+  return { prepare: fail, batch: fail, exec: fail } as unknown as Db;
 }

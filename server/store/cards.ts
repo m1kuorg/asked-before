@@ -7,6 +7,7 @@
 import type { Card, CardDetail, StoredPhrasing, UnsortedPage } from "@asked-before/sdk";
 import { iso, type Db } from "./db";
 import { REP_COLUMNS, toRep, type RepRow } from "./reps";
+import { ownsShelf } from "./shelves";
 
 export type CardRow = {
   id: string;
@@ -45,13 +46,10 @@ export const toCard = (row: CardRow): Card => ({
 export type PhrasingRow = { id: string; source_id: string; text: string; time: number };
 export const toPhrasing = (row: PhrasingRow): StoredPhrasing => ({ id: row.id, sourceId: row.source_id, text: row.text, time: iso(row.time) });
 
-/** Whether the account (?1) has shelf ?2. */
-const OWNS_SHELF = "SELECT 1 FROM shelves WHERE id = ?2 AND user_id = ?1";
-
 /** The shelf's cards, most borrowed first, ties to the later last borrow; or null when the account has no such shelf. */
 export async function listCards(db: Db, userId: string, shelfId: string): Promise<Card[] | null> {
   const [owned, cards] = await db.batch([
-    db.prepare(OWNS_SHELF).bind(userId, shelfId),
+    ownsShelf(db, userId, shelfId),
     db.prepare(`${SELECT} WHERE c.shelf_id = ?2 AND sh.user_id = ?1 ORDER BY s.borrows DESC, s.last_borrow_at DESC, c.id`).bind(userId, shelfId),
   ]);
   return owned!.results.length ? (cards!.results as CardRow[]).map(toCard) : null;
@@ -84,7 +82,7 @@ export async function getCard(db: Db, userId: string, cardId: string): Promise<C
  */
 export async function listUnsorted(db: Db, userId: string, shelfId: string, limit: number, cursor: string | undefined): Promise<UnsortedPage | null> {
   const [owned, page] = await db.batch([
-    db.prepare(OWNS_SHELF).bind(userId, shelfId),
+    ownsShelf(db, userId, shelfId),
     db
       .prepare(
         `SELECT f.id, f.source_id, f.text, f.time FROM phrasings f
