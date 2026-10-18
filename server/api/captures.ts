@@ -21,6 +21,7 @@ import { authed } from "../auth";
 import { defineRoutes, HttpError, readJson } from "../http";
 import { sortCapture } from "../sort";
 import { captureOf, draft, lookUp, storeCapture } from "../store/captures";
+import type { Db } from "../store/db";
 
 const NO_SHELF = "There's no such shelf.";
 
@@ -29,28 +30,28 @@ const NewCapture = z.strictObject(
   { error: "A capture is { text } and nothing else." },
 );
 
-const answer = (userId: string, phrasingId: string, alreadyCaptured: boolean) => {
-  const capture = captureOf(userId, phrasingId, alreadyCaptured);
+const answer = async (db: Db, userId: string, phrasingId: string, alreadyCaptured: boolean) => {
+  const capture = await captureOf(db, userId, phrasingId, alreadyCaptured);
   if (!capture) throw new HttpError(404, NO_SHELF);
   return Response.json(capture satisfies Capture, { status: alreadyCaptured ? 200 : 201 });
 };
 
 export const captures = defineRoutes({
   "/api/v1/shelves/:shelfId/captures": {
-    POST: authed(async (req, auth) => {
+    POST: authed(async (req, { env, db, params, auth }) => {
       const text = (await readJson(req, NewCapture)).text.trim();
       if (text.length > MAX_PHRASING_LENGTH) throw new HttpError(413, `A capture can have at most ${MAX_PHRASING_LENGTH.toLocaleString("en-US")} characters.`);
-      const { shelfId } = req.params;
+      const { shelfId } = params;
       const capture = draft(text);
-      const found = lookUp(auth.userId, shelfId, capture);
+      const found = await lookUp(db, auth.userId, shelfId, capture);
       if (!found) throw new HttpError(404, NO_SHELF);
-      if ("earlier" in found) return answer(auth.userId, found.earlier, true);
+      if ("earlier" in found) return answer(db, auth.userId, found.earlier, true);
       const placement = found.cardId
         ? { joins: [{ cardId: found.cardId, phrasingIds: [capture.id] }], newCards: [] }
-        : await sortCapture(auth.userId, shelfId, capture);
-      const stored = storeCapture(auth.userId, shelfId, capture, placement);
+        : await sortCapture(env, auth.userId, shelfId, capture);
+      const stored = await storeCapture(db, auth.userId, shelfId, capture, placement);
       if (!stored) throw new HttpError(404, NO_SHELF);
-      return answer(auth.userId, stored.id, stored.alreadyCaptured);
+      return answer(db, auth.userId, stored.id, stored.alreadyCaptured);
     }),
   },
 });

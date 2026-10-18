@@ -5,13 +5,15 @@
 // and counts each of the upload's messages once, by its source id, so a
 // chunk sent twice doesn't count twice either. A phrasing held by an upload
 // still receiving (one whose tab closed before it finished, say) moves to
-// the upload sending it again, so that upload's sort places it.
+// the upload sending it again, so that upload's sort places it. Each change
+// is one batch, its status check folded into its writes, read back at the
+// end of the same batch.
 
 import type { Phrasing, Source, Upload, UploadPage } from "@asked-before/sdk";
-import { db, iso, newId } from "./db";
+import { iso, newId, slices, type Db } from "./db";
 import { ownsShelf } from "./shelves";
 
-type Row = {
+export type UploadRow = {
   id: string;
   shelf_id: string;
   source: Source;
@@ -34,12 +36,22 @@ const SELECT = `
   FROM uploads u
   JOIN shelves sh ON sh.id = u.shelf_id`;
 
+/** The account's upload, as ?1 (the account) and ?2 (the upload). */
+const ONE_UPLOAD = `${SELECT} WHERE u.id = ?2 AND sh.user_id = ?1`;
+
+/** Every upload of the account's (?1), oldest first (ids are time-ordered), for the download (store/account-data.ts). */
+export const ACCOUNT_UPLOADS = `${SELECT} WHERE sh.user_id = ?1 ORDER BY u.id`;
+
+/** The account's (?1) upload ?2, with its shelf and status: one row, or none when the account has no such upload. */
+const OWN_UPLOAD = "SELECT u.id, u.shelf_id, u.status FROM uploads u JOIN shelves sh ON sh.id = u.shelf_id WHERE u.id = ?2 AND sh.user_id = ?1";
+
+/** Whether upload ?2 is the account's (?1). */
+const OWNED = `EXISTS (${OWN_UPLOAD})`;
+
 /** An upload after a change to it, or why there was none: the account has no such upload, or its status doesn't allow the change. */
 export type UploadChange = { upload: Upload } | { refused: "missing" | "status" };
 
-const changed = (userId: string, uploadId: string): UploadChange => ({ upload: getUpload(userId, uploadId)! });
-
-const toUpload = (row: Row): Upload => ({
+export const toUpload = (row: UploadRow): Upload => ({
   id: row.id,
   shelfId: row.shelf_id,
   source: row.source,
@@ -53,91 +65,127 @@ const toUpload = (row: Row): Upload => ({
   finishedAt: row.finished_at === null ? null : iso(row.finished_at),
 });
 
-export function getUpload(userId: string, uploadId: string): Upload | null {
-  const row = db.query(`${SELECT} WHERE u.id = $uploadId AND sh.user_id = $userId`).get({ userId, uploadId }) as Row | null;
+export async function getUpload(db: Db, userId: string, uploadId: string): Promise<Upload | null> {
+  const row = await db.prepare(ONE_UPLOAD).bind(userId, uploadId).first<UploadRow>();
   return row && toUpload(row);
 }
 
-/** The new upload, receiving; or null when the account has no such shelf. */
-export function createUpload(userId: string, shelfId: string, source: Source, fileName: string): Upload | null {
-  if (!ownsShelf(userId, shelfId)) return null;
+/** The new upload, receiving, made and read back in one batch; or null when the account has no such shelf. */
+export async function createUpload(db: Db, userId: string, shelfId: string, source: Source, fileName: string): Promise<Upload | null> {
   const id = newId();
-  db.query("INSERT INTO uploads (id, shelf_id, source, file_name, created_at) VALUES ($id, $shelfId, $source, $fileName, $now)").run({
-    id,
-    shelfId,
-    source,
-    fileName,
-    now: Date.now(),
-  });
-  return getUpload(userId, id);
+  const [, read] = await db.batch<UploadRow>([
+    db
+      .prepare("INSERT INTO uploads (id, shelf_id, source, file_name, created_at) SELECT ?2, id, ?4, ?5, ?6 FROM shelves WHERE id = ?3 AND user_id = ?1")
+      .bind(userId, id, shelfId, source, fileName, Date.now()),
+    db.prepare(ONE_UPLOAD).bind(userId, id),
+  ]);
+  const row = read?.results[0];
+  return row ? toUpload(row) : null;
 }
 
 /** A page of the shelf's uploads, newest first (ids are time-ordered); or null when the account has no such shelf. */
-export function listUploads(userId: string, shelfId: string, limit: number, cursor: string | undefined): UploadPage | null {
-  if (!ownsShelf(userId, shelfId)) return null;
-  const rows = db
-    .query(`${SELECT} WHERE u.shelf_id = $shelfId AND sh.user_id = $userId AND ($cursor IS NULL OR u.id < $cursor) ORDER BY u.id DESC LIMIT $take`)
-    .all({ userId, shelfId, cursor: cursor ?? null, take: limit + 1 }) as Row[];
+export async function listUploads(db: Db, userId: string, shelfId: string, limit: number, cursor: string | undefined): Promise<UploadPage | null> {
+  const [owned, page] = await db.batch([
+    ownsShelf(db, userId, shelfId),
+    db
+      .prepare(`${SELECT} WHERE u.shelf_id = ?2 AND sh.user_id = ?1 AND (?3 IS NULL OR u.id < ?3) ORDER BY u.id DESC LIMIT ?4`)
+      .bind(userId, shelfId, cursor ?? null, limit + 1),
+  ]);
+  if (!owned!.results.length) return null;
+  const rows = page!.results as UploadRow[];
   const uploads = rows.slice(0, limit).map(toUpload);
   return { uploads, next: rows.length > limit ? uploads.at(-1)!.id : null };
 }
 
-// A phrasing the shelf holds already stays where it is, unless its upload is still receiving: no sort has seen it, so it moves to this upload.
-const insertPhrasing = db.query(`
-  INSERT INTO phrasings (id, shelf_id, origin, upload_id, source_id, text, time, created_at)
-  VALUES ($id, $shelfId, 'export', $uploadId, $sourceId, $text, $time, $now)
-  ON CONFLICT (shelf_id, source_id) DO UPDATE SET upload_id = excluded.upload_id
-  WHERE (SELECT status FROM uploads WHERE id = phrasings.upload_id) = 'receiving'
-`);
-const countMessage = db.query("INSERT INTO upload_messages (upload_id, source_id) VALUES ($uploadId, $sourceId) ON CONFLICT DO NOTHING");
+/** The upload as a change left it, read in the change's own batch: missing, refused for its status, or changed. */
+const changed = (row: UploadRow | undefined, done: boolean): UploadChange => (!row ? { refused: "missing" } : done ? { upload: toUpload(row) } : { refused: "status" });
 
 /**
- * Adds a chunk to an upload that's still receiving: each phrasing counts
- * once toward its messages, and those new to the shelf, or held by an
- * upload still receiving, become its own. Refused for its status once it's
- * finished, and so takes no more.
+ * Adds a chunk to an upload that's still receiving, in one batch: each
+ * phrasing counts once toward its messages, and those new to the shelf, or
+ * held by an upload still receiving, become its own. The chunk goes in as
+ * json_each lists, each of its rows [id, sourceId, text, time], and only
+ * while the upload is the account's and still receiving: once it's
+ * finished it takes no more, and the change is refused for its status.
  */
-export function appendPhrasings(userId: string, uploadId: string, phrasings: Phrasing[]): UploadChange {
-  const upload = getUpload(userId, uploadId);
-  if (!upload) return { refused: "missing" };
-  if (upload.status !== "receiving") return { refused: "status" };
+export async function appendPhrasings(db: Db, userId: string, uploadId: string, phrasings: Phrasing[]): Promise<UploadChange> {
   const now = Date.now();
-  db.transaction(() => {
-    for (const { sourceId, text, time } of phrasings) {
-      insertPhrasing.run({ id: newId(), shelfId: upload.shelfId, uploadId, sourceId, text, time: Date.parse(time), now });
-      countMessage.run({ uploadId, sourceId });
-    }
-  })();
-  return changed(userId, uploadId);
+  const lists = slices(phrasings.map(({ sourceId, text, time }) => [newId(), sourceId, text, Date.parse(time)]));
+  const results = await db.batch([
+    ...lists.flatMap((list) => [
+      // A phrasing the shelf holds already stays where it is, unless its upload is still receiving: no sort has seen it, so it moves to this upload.
+      db
+        .prepare(
+          `INSERT INTO phrasings (id, shelf_id, origin, upload_id, source_id, text, time, created_at)
+           SELECT j.value ->> 0, u.shelf_id, 'export', u.id, j.value ->> 1, j.value ->> 2, j.value ->> 3, ?4
+           FROM (${OWN_UPLOAD}) u, json_each(?3) j WHERE u.status = 'receiving'
+           ON CONFLICT (shelf_id, source_id) DO UPDATE SET upload_id = excluded.upload_id
+           WHERE (SELECT status FROM uploads WHERE id = phrasings.upload_id) = 'receiving'`,
+        )
+        .bind(userId, uploadId, list, now),
+      db
+        .prepare(
+          `INSERT INTO upload_messages (upload_id, source_id)
+           SELECT u.id, j.value ->> 1 FROM (${OWN_UPLOAD}) u, json_each(?3) j WHERE u.status = 'receiving'
+           ON CONFLICT DO NOTHING`,
+        )
+        .bind(userId, uploadId, list),
+    ]),
+    db.prepare(ONE_UPLOAD).bind(userId, uploadId),
+  ]);
+  const row = results.at(-1)!.results[0] as UploadRow | undefined;
+  return changed(row, row?.status === "receiving");
 }
 
 /** Ends an upload's receiving, leaving it waiting to be sorted (server/sort.ts). Refused for its status when it was finished already. */
-export function finishUpload(userId: string, uploadId: string): UploadChange {
-  if (!getUpload(userId, uploadId)) return { refused: "missing" };
-  const done = db
-    .query("UPDATE uploads SET status = 'waiting', finished_at = $now WHERE id = $uploadId AND status = 'receiving'")
-    .run({ uploadId, now: Date.now() }).changes;
-  return done ? changed(userId, uploadId) : { refused: "status" };
+export async function finishUpload(db: Db, userId: string, uploadId: string): Promise<UploadChange> {
+  const [update, read] = await db.batch<UploadRow>([
+    db.prepare(`UPDATE uploads SET status = 'waiting', finished_at = ?3 WHERE id = ?2 AND status = 'receiving' AND ${OWNED}`).bind(userId, uploadId, Date.now()),
+    db.prepare(ONE_UPLOAD).bind(userId, uploadId),
+  ]);
+  return changed(read!.results[0], update!.meta.changes > 0);
 }
 
 /** Sets a failed upload waiting to be sorted again, from its first phrasing not yet offered. Refused for its status when it didn't fail. */
-export function retryUpload(userId: string, uploadId: string): UploadChange {
-  if (!getUpload(userId, uploadId)) return { refused: "missing" };
-  const done = db.query("UPDATE uploads SET status = 'waiting', error = NULL WHERE id = $uploadId AND status = 'failed'").run({ uploadId }).changes;
-  return done ? changed(userId, uploadId) : { refused: "status" };
+export async function retryUpload(db: Db, userId: string, uploadId: string): Promise<UploadChange> {
+  const [update, read] = await db.batch<UploadRow>([
+    db.prepare(`UPDATE uploads SET status = 'waiting', error = NULL WHERE id = ?2 AND status = 'failed' AND ${OWNED}`).bind(userId, uploadId),
+    db.prepare(ONE_UPLOAD).bind(userId, uploadId),
+  ]);
+  return changed(read!.results[0], update!.meta.changes > 0);
 }
 
 /**
- * Deletes an upload and its phrasings. A card of its shelf left with
- * fewer than two borrows goes too, with its reps, and its remaining
- * phrasing becomes unsorted. False when the account has no such upload.
+ * Fails an upload whose sort didn't start, saying why, while it still
+ * waits for it, so a retry can start it again. The upload as it stands
+ * then, perhaps sorting by now; or null when the account has no such upload.
  */
-export function deleteUpload(userId: string, uploadId: string): boolean {
-  return db.transaction(() => {
-    const upload = getUpload(userId, uploadId);
-    if (!upload) return false;
-    db.query("DELETE FROM uploads WHERE id = $uploadId").run({ uploadId });
-    db.query("DELETE FROM cards WHERE shelf_id = $shelfId AND (SELECT count(*) FROM phrasings f WHERE f.card_id = cards.id) < 2").run({ shelfId: upload.shelfId });
-    return true;
-  })();
+export async function failUnstarted(db: Db, userId: string, uploadId: string, error: string): Promise<Upload | null> {
+  const [, read] = await db.batch<UploadRow>([
+    db.prepare(`UPDATE uploads SET status = 'failed', error = ?3 WHERE id = ?2 AND status = 'waiting' AND ${OWNED}`).bind(userId, uploadId, error),
+    db.prepare(ONE_UPLOAD).bind(userId, uploadId),
+  ]);
+  const row = read!.results[0];
+  return row ? toUpload(row) : null;
+}
+
+/**
+ * Deletes an upload and its phrasings, in one batch. A card of its shelf
+ * left with fewer than two borrows goes too, with its reps, and its
+ * remaining phrasing becomes unsorted. False when the account has no such
+ * upload.
+ */
+export async function deleteUpload(db: Db, userId: string, uploadId: string): Promise<boolean> {
+  const [, deleted] = await db.batch([
+    // First the cards its going leaves under two borrows, counting only the phrasings that stay.
+    db
+      .prepare(
+        `DELETE FROM cards
+         WHERE shelf_id = (SELECT shelf_id FROM (${OWN_UPLOAD}))
+           AND (SELECT count(*) FROM phrasings f WHERE f.card_id = cards.id AND f.upload_id IS NOT ?2) < 2`,
+      )
+      .bind(userId, uploadId),
+    db.prepare(`DELETE FROM uploads WHERE id = ?2 AND ${OWNED}`).bind(userId, uploadId),
+  ]);
+  return deleted!.meta.changes > 0;
 }

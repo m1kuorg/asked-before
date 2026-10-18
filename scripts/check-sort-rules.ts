@@ -10,17 +10,23 @@
 // breaks a rule is asked again with the error, then fails the sort with no
 // card made. A failed sort resumes on retry from the first phrasing not yet
 // offered; sorts run one at a time on a shelf and side by side across
-// shelves; deleting a shelf stops its sort; a restart carries on the
-// sort it cut off; and past the daily cap, the next model request gets 429,
-// which the upload records. It prints each step's checks, ids, and skill
-// names, never phrasing text, and exits 1 if any fails, naming the step.
+// shelves; deleting a shelf stops its sort; after a hard kill of the app
+// mid-sort, starting it again on the same state carries on the sort it cut
+// off, from its shelf's Durable Object's stored alarm; a sort whose
+// Durable Object fails to start (SORTER_FAULT) fails its upload, which a
+// retry sorts; a database failure in its alarm escapes nothing, leaving
+// its upload waiting with no alarm, which the Worker's cron, run through
+// Wrangler's local route for it, starts again once it has stalled; and
+// past the daily cap, the next model request gets 429, which the upload
+// records. It prints each step's checks, ids, and skill names, never
+// phrasing text, and exits 1 if any fails, naming the step.
 // Run: bun run check:sort-rules
 
-import { ApiError, createClient, type Client, type Phrasing, type Shelf } from "@asked-before/sdk";
+import { ApiError, createClient, type Client, type Phrasing, type Shelf, type Upload } from "@asked-before/sdk";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { startApp, type App } from "./lib/app";
+import { browser, freePort, startApp, type App } from "./lib/app";
 import { allUnsorted, compareWithKey, key, keySorter, named, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { hold, refuse, reply, sortRequest, startModelStub, type ModelStub } from "./lib/model-stub";
 
@@ -51,6 +57,8 @@ async function failure(call: Promise<unknown>): Promise<ApiError | null> {
 const say = (error: ApiError | null) => (error ? `${error.status} "${error.message}"` : "no error");
 
 const apps: App[] = [];
+/** Apps a step started on a state of its own and stopped itself, whose logs are checked too. */
+const ended: App[] = [];
 const models: ModelStub[] = [];
 /** A copy of the app whose model is a stand-in answering as the key does, and a learner signed up on it. */
 async function copy(env: Record<string, string> = {}) {
@@ -277,17 +285,16 @@ try {
     await Bun.sleep(1000);
     check(small.model.requests.length === asked, `after its first batch's answer came back, no more were asked (${small.model.requests.length - asked} more)`);
     const gone = await failure(small.client.uploads.get(sorting.id));
-    const odd = small.app.log().trim().split("\n").slice(1).filter((line) => !/^(GET|POST|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));
-    check(gone?.status === 404 && odd.length === 0, `its upload is ${say(gone)}, and the app logged its requests and nothing else${odd.length ? `: ${odd.slice(0, 3).join(" | ")}` : ""}`);
+    const { others } = small.app.workerLog();
+    check(gone?.status === 404 && others.length === 0, `its upload is ${say(gone)}, and the app logged its requests and nothing else${others.length ? `: ${others.slice(0, 3).join(" | ")}` : ""}`);
   });
 
-  await step("12. A sort a restart cuts off carries on when the app starts again", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "asked-before-restart-"));
-    const env = { DATABASE_PATH: join(dir, "app.sqlite") };
+  await step("12. A sort a hard kill cuts off carries on when the app starts again on the same state", async () => {
+    const state = await mkdtemp(join(tmpdir(), "asked-before-restart-"));
     const model = await startModelStub(reply(keySorter));
     models.push(model);
     try {
-      const before = await startApp({ ANTHROPIC_BASE_URL: model.url, ...env });
+      const before = await startApp({ ANTHROPIC_BASE_URL: model.url }, { state });
       const learner = before.browser().client;
       await learner.auth.signUp({ name: "Cy Example", email: "cy@example.com", password: "jacquard loom" });
       const shelf = await learner.shelves.create({ name: "Restarted" });
@@ -295,9 +302,10 @@ try {
       model.queue(held.answer);
       const cut = await upload(learner, shelf.id, phrasings);
       await held.reached;
-      await before.stop();
+      // Wrangler and workerd get SIGKILL mid-batch, with the model's answer still to come.
+      await before.kill();
       held.release(refuse());
-      const after = await startApp({ ANTHROPIC_BASE_URL: model.url, ...env });
+      const after = await startApp({ ANTHROPIC_BASE_URL: model.url }, { state });
       apps.push(after);
       const again = after.browser().client;
       await again.auth.logIn({ email: "cy@example.com", password: "jacquard loom" });
@@ -306,12 +314,100 @@ try {
       const { problems } = await compareWithKey(again, shelf.id);
       check(problems.length === 0, problems.length ? problems.join("; ") : "and its cards match the key");
     } finally {
-      await rm(dir, { recursive: true, force: true });
+      await rm(state, { recursive: true, force: true });
+    }
+  });
+
+  await step("13. A sort that fails to start fails its upload, so a retry sorts it", async () => {
+    const state = await mkdtemp(join(tmpdir(), "asked-before-unstarted-"));
+    const port = freePort();
+    const model = await startModelStub(reply(keySorter));
+    models.push(model);
+    // One address across both starts, so the learner keeps her session.
+    const dee = browser(`http://localhost:${port}`).client;
+    // SORTER_FAULT=start makes every start() of the sort's Durable Object throw.
+    let app: App | undefined = await startApp({ ANTHROPIC_BASE_URL: model.url, SORTER_FAULT: "start" }, { state, port });
+    try {
+      await dee.auth.signUp({ name: "Dee Example", email: "dee@example.com", password: "punched cards" });
+      const shelf = await dee.shelves.create({ name: "Unstarted" });
+      const finished = await upload(dee, shelf.id, phrasings).catch((error: ApiError) => error);
+      const [made] = (await dee.uploads.list(shelf.id)).uploads;
+      check(
+        !(finished instanceof ApiError) && finished.status === "failed" && finished.error === "The sort didn't start. Try again." && finished.offered === 0,
+        finished instanceof ApiError ? `the finish failed: ${say(finished)}, and the upload is ${made?.status}` : `the finish answers ${finished.status}, "${finished.error}"`,
+      );
+      check(model.requests.length === 0, `the model wasn't asked (${model.requests.length} requests)`);
+      ended.push(app);
+      await app.stop();
+      app = undefined;
+      app = await startApp({ ANTHROPIC_BASE_URL: model.url }, { state, port });
+      ended.push(app);
+      const retried = await failure(dee.uploads.retry(made!.id));
+      check(retried === null, `once start() works, the learner's retry is taken: ${say(retried)}`);
+      const end = await sortEnds(dee, made!.id);
+      const { problems } = await compareWithKey(dee, shelf.id);
+      check(end.status === "sorted" && problems.length === 0, `the upload ends ${end.status}, ${problems.length ? problems.join("; ") : "its cards matching the key"}`);
+    } finally {
+      await app?.stop();
+      await rm(state, { recursive: true, force: true });
+    }
+  });
+
+  // Step 14 leaves this state for step 15: an upload waiting with no alarm set, and Eve's session for this address.
+  const stranded = await mkdtemp(join(tmpdir(), "asked-before-stranded-"));
+  const strandedAt = { state: stranded, port: freePort() };
+  const strandedModel = await startModelStub(reply(keySorter));
+  models.push(strandedModel);
+  const eve = browser(`http://localhost:${strandedAt.port}`).client;
+  let waiting: Upload | undefined;
+  await step("14. A database failure in the sort's alarm escapes nothing, and leaves its upload waiting", async () => {
+    // SORTER_FAULT=database makes every query the sort's Durable Object's alarm makes fail, as a database out of reach would.
+    const app = await startApp({ ANTHROPIC_BASE_URL: strandedModel.url, SORTER_FAULT: "database" }, strandedAt);
+    ended.push(app);
+    try {
+      await eve.auth.signUp({ name: "Eve Example", email: "eve@example.com", password: "tabulating machine" });
+      const shelf = await eve.shelves.create({ name: "Stranded" });
+      const finished = await upload(eve, shelf.id, phrasings);
+      // The alarm is set for now; a few seconds is time for it to run, and for the runtime to retry one that threw.
+      await Bun.sleep(3000);
+      const { others } = app.workerLog();
+      check(others.length === 0, `the app logged its requests and nothing else${others.length ? `: ${others.slice(0, 3).join(" | ")}` : ""}`);
+      waiting = await eve.uploads.get(finished.id);
+      check(waiting.status === "waiting" && strandedModel.requests.length === 0, `the upload is ${waiting.status}, and the model wasn't asked (${strandedModel.requests.length} requests)`);
+    } finally {
+      await app.stop();
+    }
+  });
+
+  await step("15. The cron starts a sort left waiting with no alarm once it has stalled, and it ends as the key sorts", async () => {
+    const app = await startApp({ ANTHROPIC_BASE_URL: strandedModel.url }, strandedAt);
+    ended.push(app);
+    try {
+      const upload = waiting!;
+      /** Runs the Worker's cron, as if at `time`, through Wrangler's local route for it. */
+      const cron = (time: number) => fetch(`${app.url}/cdn-cgi/local/scheduled?cron=${encodeURIComponent("*/5 * * * *")}&time=${time}`);
+      await Bun.sleep(1000);
+      const idle = await eve.uploads.get(upload.id);
+      check(idle.status === "waiting" && strandedModel.requests.length === 0, `started again on its state, the app leaves it ${idle.status}, with no alarm set (${strandedModel.requests.length} requests)`);
+      const now = await cron(Date.now());
+      await Bun.sleep(1000);
+      const early = await eve.uploads.get(upload.id);
+      check(now.ok && early.status === "waiting" && strandedModel.requests.length === 0, `the cron, run now, leaves an upload finished seconds ago alone: ${now.status} "${await now.text()}", ${early.status}`);
+      const later = await cron(Date.now() + 10 * 60 * 1000);
+      check(later.ok, `run as if 10 minutes later, the cron answers ${later.status} "${await later.text()}"`);
+      const end = await sortEnds(eve, upload.id, 15_000);
+      const { problems } = await compareWithKey(eve, upload.shelfId);
+      check(end.status === "sorted" && problems.length === 0, `the upload ends ${end.status}, ${problems.length ? problems.join("; ") : "its cards matching the key"}`);
+      const { others } = app.workerLog();
+      check(others.length === 0, `the app logged its requests and nothing else${others.length ? `: ${others.slice(0, 3).join(" | ")}` : ""}`);
+    } finally {
+      await app.stop();
+      await rm(stranded, { recursive: true, force: true });
     }
   });
 
   const capped = await copy({ DAILY_MODEL_REQUESTS: "2" });
-  await step("13. Past the daily cap, the next model request gets 429, and the upload says so", async () => {
+  await step("16. Past the daily cap, the next model request gets 429, and the upload says so", async () => {
     const shelf = await capped.client.shelves.create({ name: "Capped" });
     const first = await sortEnds(capped.client, (await upload(capped.client, shelf.id, phrasings.slice(0, half))).id);
     const second = await sortEnds(capped.client, (await upload(capped.client, shelf.id, phrasings.slice(half))).id);
@@ -323,9 +419,9 @@ try {
     check(retried.status === "failed" && /today's 2 model requests/.test(retried.error ?? ""), `retried the same day, it fails again: "${retried.error}"`);
   });
 
-  await step("14. The logs hold no phrasing", async () => {
-    const leaked = apps.filter((app) => [...phrasings.map((p) => p.text), "squash my last three commits into one"].some((text) => app.log().includes(text)));
-    check(leaked.length === 0, `${apps.length} apps' logs, ${leaked.length} holding a phrasing`);
+  await step("17. The logs hold no phrasing", async () => {
+    const leaked = [...apps, ...ended].filter((app) => [...phrasings.map((p) => p.text), "squash my last three commits into one"].some((text) => app.log().includes(text)));
+    check(leaked.length === 0, `${apps.length + ended.length} apps' logs, ${leaked.length} holding a phrasing`);
   });
 } finally {
   await Promise.all(apps.map((app) => app.stop()));

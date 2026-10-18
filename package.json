@@ -6,8 +6,10 @@
     "packages/*"
   ],
   "scripts": {
-    "start": "bun run server.ts",
+    "dev": "bun run build:pages && wrangler d1 migrations apply DB --local < /dev/null && wrangler dev --var PUBLIC_URL:",
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p worker && tsc --noEmit -p src",
     "journey": "bun run scripts/journey.ts",
+    "check:smoke": "bun run scripts/check-smoke.ts",
     "check:accounts": "bun run scripts/check-accounts.ts",
     "check:shell": "bun run scripts/check-shell.ts",
     "check:readers": "bun run scripts/check-readers.ts",
@@ -32,8 +34,8 @@
     "check:plugin": "bun run scripts/check-plugin.ts",
     "check:docs": "bun run scripts/check-docs.ts",
     "check:sdk": "bun run scripts/check-sdk.ts",
-    "check:container": "bun run scripts/check-container.ts",
     "check:migrations": "bun run scripts/check-migrations.ts",
+    "build:pages": "bun run scripts/build-pages.ts",
     "build:plugin": "bun run scripts/build-plugin.ts",
     "build:sdk": "bun run --cwd packages/sdk build"
   },
@@ -43,9 +45,12 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261018.1",
     "@modelcontextprotocol/client": "^2.3.1",
     "@types/bun": "^1.4.3",
+    "@types/node": "^26.6.5",
     "playwright": "^1.64.1",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "wrangler": "^4.151.1"
   }
 }

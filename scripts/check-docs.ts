@@ -13,11 +13,14 @@
 // exits 1 if any check fails, naming the step.
 // Run: bun run check:docs [screenshot dir]
 
-import { mkdir, mkdtemp, readdir, rm } from "node:fs/promises";
+import { mkdir, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
 import { connectSnippets } from "../packages/mcp/src/connect";
+import { apiRoutes } from "../server/api";
+import { readConfig, type Env } from "../server/config";
+import { CAPTURE_WINDOW } from "../server/sort";
 import { key, keySorter } from "./lib/answer-key";
 import { startApp } from "./lib/app";
 import { reply, startModelStub } from "./lib/model-stub";
@@ -43,13 +46,8 @@ async function step(name: string, run: () => Promise<void>) {
   }
 }
 
-// The server's route table and settings, read with their defaults, on a database of their own.
-const scratch = await mkdtemp(join(tmpdir(), "asked-before-docs-"));
-process.env.DATABASE_PATH = join(scratch, "routes.sqlite");
-delete process.env.SORT_BATCH_SIZE;
-const { apiRoutes } = await import("../server/api");
-const { config } = await import("../server/config");
-const { CAPTURE_WINDOW } = await import("../server/sort");
+// The server's settings with their defaults, as a Worker with no vars set reads them.
+const config = readConfig({} as Env);
 const routes = Object.entries(apiRoutes)
   .flatMap(([path, methods]) => Object.keys(methods).map((method) => `${method} ${path.replace(/^\/api\/v1/, "")}`))
   .sort();
@@ -150,7 +148,6 @@ try {
   await browser.close();
   await app.stop();
   model.stop();
-  await rm(scratch, { recursive: true, force: true });
 }
 
 console.log(`\nscreenshots in ${OUT}`);

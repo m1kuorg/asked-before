@@ -3,9 +3,9 @@
 // account's shelf reads as missing.
 
 import type { Shelf } from "@asked-before/sdk";
-import { db, iso, newId } from "./db";
+import { iso, newId, type Db } from "./db";
 
-type Row = {
+export type ShelfRow = {
   id: string;
   name: string;
   demo: 0 | 1;
@@ -27,7 +27,13 @@ const SELECT = `
   FROM shelves sh
   LEFT JOIN card_status s ON s.shelf_id = sh.id`;
 
-const toShelf = (row: Row): Shelf => ({
+/** Whether the account has the shelf, as a statement for a batch: one row when it does, none when it doesn't. */
+export const ownsShelf = (db: Db, userId: string, shelfId: string) => db.prepare("SELECT 1 FROM shelves WHERE id = ?1 AND user_id = ?2").bind(shelfId, userId);
+
+/** One shelf of the account's, as ?1 (the account) and ?2 (the shelf). */
+const ONE_SHELF = `${SELECT} WHERE sh.user_id = ?1 AND sh.id = ?2 GROUP BY sh.id`;
+
+export const toShelf = (row: ShelfRow): Shelf => ({
   id: row.id,
   name: row.name,
   demo: row.demo === 1,
@@ -36,42 +42,43 @@ const toShelf = (row: Row): Shelf => ({
   lastUploadAt: row.last_upload_at === null ? null : iso(row.last_upload_at),
 });
 
-/** Whether the account has the shelf. */
-export const ownsShelf = (userId: string, shelfId: string) =>
-  db.query("SELECT 1 FROM shelves WHERE id = $shelfId AND user_id = $userId").get({ userId, shelfId }) !== null;
+/** The account's (?1) shelves, oldest first, as the API lists them and the download (store/account-data.ts) reads them. */
+export const ACCOUNT_SHELVES = `${SELECT} WHERE sh.user_id = ?1 GROUP BY sh.id ORDER BY sh.created_at, sh.id`;
 
 /** The account's shelves, oldest first. */
-export function listShelves(userId: string): Shelf[] {
-  const rows = db.query(`${SELECT} WHERE sh.user_id = $userId GROUP BY sh.id ORDER BY sh.created_at, sh.id`).all({ userId }) as Row[];
-  return rows.map(toShelf);
+export async function listShelves(db: Db, userId: string): Promise<Shelf[]> {
+  const { results } = await db.prepare(ACCOUNT_SHELVES).bind(userId).all<ShelfRow>();
+  return results.map(toShelf);
 }
 
-export function getShelf(userId: string, shelfId: string): Shelf | null {
-  const row = db
-    .query(`${SELECT} WHERE sh.user_id = $userId AND sh.id = $shelfId GROUP BY sh.id`)
-    .get({ userId, shelfId }) as Row | null;
+export async function getShelf(db: Db, userId: string, shelfId: string): Promise<Shelf | null> {
+  const row = await db.prepare(ONE_SHELF).bind(userId, shelfId).first<ShelfRow>();
   return row && toShelf(row);
 }
 
-export function createShelf(userId: string, name: string, demo: boolean): Shelf {
+/** The new shelf, made and read back in one batch; null when the account is gone. */
+export async function createShelf(db: Db, userId: string, name: string, demo: boolean): Promise<Shelf | null> {
   const id = newId();
-  db.query("INSERT INTO shelves (id, user_id, name, demo, created_at) VALUES ($id, $userId, $name, $demo, $now)").run({
-    id,
-    userId,
-    name,
-    demo: demo ? 1 : 0,
-    now: Date.now(),
-  });
-  return getShelf(userId, id)!;
+  const [, read] = await db.batch<ShelfRow>([
+    db.prepare("INSERT INTO shelves (id, user_id, name, demo, created_at) SELECT ?2, id, ?3, ?4, ?5 FROM users WHERE id = ?1").bind(userId, id, name, demo ? 1 : 0, Date.now()),
+    db.prepare(ONE_SHELF).bind(userId, id),
+  ]);
+  const row = read?.results[0];
+  return row ? toShelf(row) : null;
 }
 
-/** The renamed shelf, or null when the account has no such shelf. */
-export function renameShelf(userId: string, shelfId: string, name: string): Shelf | null {
-  db.query("UPDATE shelves SET name = $name WHERE id = $shelfId AND user_id = $userId").run({ userId, shelfId, name });
-  return getShelf(userId, shelfId);
+/** The renamed shelf, renamed and read back in one batch, or null when the account has no such shelf. */
+export async function renameShelf(db: Db, userId: string, shelfId: string, name: string): Promise<Shelf | null> {
+  const [, read] = await db.batch<ShelfRow>([
+    db.prepare("UPDATE shelves SET name = ?3 WHERE id = ?2 AND user_id = ?1").bind(userId, shelfId, name),
+    db.prepare(ONE_SHELF).bind(userId, shelfId),
+  ]);
+  const row = read?.results[0];
+  return row ? toShelf(row) : null;
 }
 
 /** Deletes the shelf and, by cascade, everything in it. False when the account has no such shelf. */
-export function deleteShelf(userId: string, shelfId: string): boolean {
-  return db.query("DELETE FROM shelves WHERE id = $shelfId AND user_id = $userId").run({ userId, shelfId }).changes > 0;
+export async function deleteShelf(db: Db, userId: string, shelfId: string): Promise<boolean> {
+  const { meta } = await db.prepare("DELETE FROM shelves WHERE id = ?2 AND user_id = ?1").bind(userId, shelfId).run();
+  return meta.changes > 0;
 }

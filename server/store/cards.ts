@@ -1,12 +1,13 @@
 // Cards and unsorted phrasings, as the API reads them. A card's count,
 // stamps, and status come from the card_status view, never from a stored
 // number. Every query joins up to the shelf's owner, so another account's
-// shelf or card reads as missing.
+// shelf or card reads as missing. What one answer shows is read in one
+// batch, so a sort landing meanwhile can't half appear in it.
 
 import type { Card, CardDetail, StoredPhrasing, UnsortedPage } from "@asked-before/sdk";
-import { db, iso } from "./db";
-import { ownsShelf } from "./shelves";
+import { iso, type Db } from "./db";
 import { REP_COLUMNS, toRep, type RepRow } from "./reps";
+import { ownsShelf } from "./shelves";
 
 export type CardRow = {
   id: string;
@@ -46,29 +47,32 @@ export type PhrasingRow = { id: string; source_id: string; text: string; time: n
 export const toPhrasing = (row: PhrasingRow): StoredPhrasing => ({ id: row.id, sourceId: row.source_id, text: row.text, time: iso(row.time) });
 
 /** The shelf's cards, most borrowed first, ties to the later last borrow; or null when the account has no such shelf. */
-export function listCards(userId: string, shelfId: string): Card[] | null {
-  if (!ownsShelf(userId, shelfId)) return null;
-  const rows = db
-    .query(`${SELECT} WHERE c.shelf_id = $shelfId AND sh.user_id = $userId ORDER BY s.borrows DESC, s.last_borrow_at DESC, c.id`)
-    .all({ userId, shelfId }) as CardRow[];
-  return rows.map(toCard);
+export async function listCards(db: Db, userId: string, shelfId: string): Promise<Card[] | null> {
+  const [owned, cards] = await db.batch([
+    ownsShelf(db, userId, shelfId),
+    db.prepare(`${SELECT} WHERE c.shelf_id = ?2 AND sh.user_id = ?1 ORDER BY s.borrows DESC, s.last_borrow_at DESC, c.id`).bind(userId, shelfId),
+  ]);
+  return owned!.results.length ? (cards!.results as CardRow[]).map(toCard) : null;
 }
 
-const cardRow = (userId: string, cardId: string) => db.query(`${SELECT} WHERE c.id = $cardId AND sh.user_id = $userId`).get({ userId, cardId }) as CardRow | null;
+const cardRow = (db: Db, userId: string, cardId: string) => db.prepare(`${SELECT} WHERE c.id = ?2 AND sh.user_id = ?1`).bind(userId, cardId);
 
 /** One card with its status, as a list shows it; or null when the account has no such card. */
-export function findCard(userId: string, cardId: string): Card | null {
-  const row = cardRow(userId, cardId);
+export async function findCard(db: Db, userId: string, cardId: string): Promise<Card | null> {
+  const row = await cardRow(db, userId, cardId).first<CardRow>();
   return row && toCard(row);
 }
 
 /** One card with its lesson, its borrows oldest first, and its reps oldest first; or null when the account has no such card. */
-export function getCard(userId: string, cardId: string): CardDetail | null {
-  const row = cardRow(userId, cardId);
+export async function getCard(db: Db, userId: string, cardId: string): Promise<CardDetail | null> {
+  const [card, borrows, reps] = await db.batch([
+    cardRow(db, userId, cardId),
+    db.prepare("SELECT id, source_id, text, time FROM phrasings WHERE card_id = ?1 ORDER BY time, id").bind(cardId),
+    db.prepare(`SELECT ${REP_COLUMNS} FROM reps WHERE card_id = ?1 ORDER BY created_at, id`).bind(cardId),
+  ]);
+  const row = card!.results[0] as CardRow | undefined;
   if (!row) return null;
-  const borrows = db.query("SELECT id, source_id, text, time FROM phrasings WHERE card_id = $cardId ORDER BY time, id").all({ cardId }) as PhrasingRow[];
-  const reps = db.query(`SELECT ${REP_COLUMNS} FROM reps WHERE card_id = $cardId ORDER BY created_at, id`).all({ cardId }) as RepRow[];
-  return { ...toCard(row), lesson: row.lesson, borrows: borrows.map(toPhrasing), reps: reps.map(toRep) };
+  return { ...toCard(row), lesson: row.lesson, borrows: (borrows!.results as PhrasingRow[]).map(toPhrasing), reps: (reps!.results as RepRow[]).map(toRep) };
 }
 
 /**
@@ -76,16 +80,20 @@ export function getCard(userId: string, cardId: string): CardDetail | null {
  * has seen that aren't on a card. One still waiting for its sort isn't
  * unsorted yet. Null when the account has no such shelf.
  */
-export function listUnsorted(userId: string, shelfId: string, limit: number, cursor: string | undefined): UnsortedPage | null {
-  if (!ownsShelf(userId, shelfId)) return null;
-  const rows = db
-    .query(
-      `SELECT f.id, f.source_id, f.text, f.time FROM phrasings f
-       WHERE f.shelf_id = $shelfId AND f.card_id IS NULL AND f.offered_at IS NOT NULL
-         AND ($cursor IS NULL OR (f.time, f.id) < (SELECT time, id FROM phrasings WHERE id = $cursor AND shelf_id = $shelfId))
-       ORDER BY f.time DESC, f.id DESC LIMIT $take`,
-    )
-    .all({ shelfId, cursor: cursor ?? null, take: limit + 1 }) as PhrasingRow[];
+export async function listUnsorted(db: Db, userId: string, shelfId: string, limit: number, cursor: string | undefined): Promise<UnsortedPage | null> {
+  const [owned, page] = await db.batch([
+    ownsShelf(db, userId, shelfId),
+    db
+      .prepare(
+        `SELECT f.id, f.source_id, f.text, f.time FROM phrasings f
+         WHERE f.shelf_id = ?2 AND f.card_id IS NULL AND f.offered_at IS NOT NULL
+           AND (?3 IS NULL OR (f.time, f.id) < (SELECT time, id FROM phrasings WHERE id = ?3 AND shelf_id = ?2))
+         ORDER BY f.time DESC, f.id DESC LIMIT ?4`,
+      )
+      .bind(userId, shelfId, cursor ?? null, limit + 1),
+  ]);
+  if (!owned!.results.length) return null;
+  const rows = page!.results as PhrasingRow[];
   const phrasings = rows.slice(0, limit).map(toPhrasing);
   return { phrasings, next: rows.length > limit ? phrasings.at(-1)!.id : null };
 }

@@ -1,10 +1,11 @@
 // The sort (m1kuorg/basics#44, ADR 0002): places an upload's phrasings onto
 // its shelf's cards, or onto new cards, or leaves them unsorted. It runs
-// in the server process, one upload at a time per shelf, in batches of
-// SORT_BATCH_SIZE phrasings no sort has seen, each sent with as many of the
-// shelf's most recent unsorted phrasings, so a later borrow can still turn
-// an earlier one into a card. Later batches see the cards earlier ones made.
-// An unsorted phrasing older than that window is only compared again if it
+// in each shelf's Durable Object (worker/sorter.ts), one upload at a time
+// per shelf and one batch per alarm, in batches of SORT_BATCH_SIZE
+// phrasings no sort has seen, each sent with as many of the shelf's most
+// recent unsorted phrasings, so a later borrow can still turn an earlier
+// one into a card. Later batches see the cards earlier ones made. An
+// unsorted phrasing older than that window is only compared again if it
 // falls inside a later batch's window: a known limit.
 //
 // The model sees the cards as short ids, skills, and three sample phrasings,
@@ -13,15 +14,16 @@
 // new skills. Code checks the answer, asks again with the error up to
 // twice, and otherwise fails the sort rather than make a bad card. Progress
 // and failures are recorded on the upload, and a failed sort is retried
-// from the first phrasing not yet offered. Every request spends one of the
-// account's daily model requests (server/model.ts).
+// from the first phrasing not yet offered. A batch a restart or a deploy
+// cuts off runs again. Every request spends one of the account's daily
+// model requests (server/model.ts).
 //
 // A capture (m1kuorg/basics#50) is placed by the same request and checks,
 // at a lower effort, against the cards and a shorter window, and keeps
 // only where the capture goes (sortCapture).
 
 import { z } from "zod";
-import { config } from "./config";
+import { readConfig, type Env } from "./config";
 import { HttpError } from "./http";
 import { askStructured, ModelError, type Effort } from "./model";
 import * as store from "./store/sorts";
@@ -73,14 +75,14 @@ export const cut = (text: string) => text.slice(0, MAX_TEXT);
  * and checks its answer; one that fails a check is asked again with the
  * error added, up to twice, and then the sort fails with that error.
  */
-export async function askPlacement(userId: string, cards: SortCard[], phrasings: SortPhrasing[], effort: Effort): Promise<Placement> {
+export async function askPlacement(env: Env, userId: string, cards: SortCard[], phrasings: SortPhrasing[], effort: Effort): Promise<Placement> {
   const request = JSON.stringify({
     cards: cards.map((card, i) => ({ id: `c${i + 1}`, skill: card.skill, samples: card.samples.map(cut) })),
     phrasings: phrasings.map((phrasing, i) => ({ id: `p${i + 1}`, text: cut(phrasing.text) })),
   });
   let note = "";
   for (let attempt = 1; ; attempt++) {
-    const reply = await askStructured(SYSTEM, request + note, Reply, effort, userId);
+    const reply = await askStructured(env, userId, SYSTEM, request + note, Reply, effort);
     try {
       return check(reply, cards, phrasings);
     } catch (error) {
@@ -162,12 +164,12 @@ export const CAPTURE_EFFORT: Effort = "low";
 export const CAPTURE_WINDOW = 50;
 
 /** Asks the sort where a capture goes, and keeps only that: the card it joins, or the new card it makes. */
-export async function sortCapture(userId: string, shelfId: string, capture: SortPhrasing): Promise<Placement> {
-  const cards = store.sortCards(shelfId);
-  const batch = [capture, ...store.unsortedWindow(shelfId, CAPTURE_WINDOW)];
+export async function sortCapture(env: Env, userId: string, shelfId: string, capture: SortPhrasing): Promise<Placement> {
+  const { cards, window } = await store.captureView(env.DB, shelfId, CAPTURE_WINDOW);
+  const batch = [capture, ...window];
   // With no card to join and nothing unsorted, it can only wait unsorted, so the model isn't asked.
   if (!cards.length && batch.length === 1) return NOTHING;
-  const { joins, newCards } = await askPlacement(userId, cards, batch, CAPTURE_EFFORT);
+  const { joins, newCards } = await askPlacement(env, userId, cards, batch, CAPTURE_EFFORT);
   const holds = (ids: string[]) => ids.includes(capture.id);
   return {
     joins: joins.filter((join) => holds(join.phrasingIds)).map((join) => ({ cardId: join.cardId, phrasingIds: [capture.id] })),
@@ -175,49 +177,49 @@ export async function sortCapture(userId: string, shelfId: string, capture: Sort
   };
 }
 
-/** Sorts one upload, batch by batch, until no phrasing of it is left unoffered or it's gone. */
-async function sortUpload(upload: store.SortUpload): Promise<void> {
-  for (;;) {
-    const { fresh, window } = store.nextBatch(upload.id, upload.shelfId, config.sortBatchSize);
-    if (!fresh.length) return;
-    const cards = store.sortCards(upload.shelfId);
-    const batch = [...fresh, ...window];
-    // With no card to join and one phrasing alone, nothing can be placed, so the model isn't asked.
-    const placement = cards.length || batch.length > 1 ? await askPlacement(upload.userId, cards, batch, SORT_EFFORT) : NOTHING;
-    if (!store.applyPlacement(upload.id, upload.shelfId, placement, batch.map((p) => p.id))) return;
+/**
+ * One batch of the shelf's sort, for one alarm of its Durable Object: it
+ * takes the shelf's next upload, one cut off first, and places up to
+ * SORT_BATCH_SIZE of its phrasings no sort has seen, then marks it sorted
+ * once none is left. A failure, a model's or the daily cap's 429 or a
+ * check that failed three times, is recorded on the upload, which a retry
+ * carries on. Whether the shelf has an upload still to sort, so the
+ * Durable Object runs again; none when the shelf or the account is gone,
+ * which ends its sort quietly.
+ */
+export async function sortNextBatch(env: Env, shelfId: string): Promise<boolean> {
+  const upload = await store.startNext(env.DB, shelfId);
+  if (!upload) return false;
+  try {
+    const { fresh, window, cards } = await store.nextBatch(env.DB, upload, readConfig(env).sortBatchSize);
+    // With none of its phrasings left to offer, the upload is sorted; with no card to join and one phrasing alone, nothing can be placed. Either way the model isn't asked.
+    const batch = fresh.length ? [...fresh, ...window] : [];
+    const ask = batch.length > 0 && (cards.length > 0 || batch.length > 1);
+    const placement = ask ? await askPlacement(env, upload.userId, cards, batch, SORT_EFFORT) : NOTHING;
+    return await store.applyPlacement(env.DB, upload, placement, batch.map((p) => p.id));
+  } catch (error) {
+    // Its message is safe to show. The upload records it; the logs carry requests only.
+    return store.markFailed(env.DB, upload, error instanceof HttpError ? error.message : "The sort failed on the server.");
   }
 }
 
-const sorting = new Set<string>();
+/** How long an upload waits or sorts with no progress before the cron starts its shelf's sort again. */
+export const STALLED_MS = 10 * 60 * 1000;
 
 /**
- * Sorts the shelf's waiting uploads in the background, one at a time.
- * While a sort runs, calling it again changes nothing: the running sort
- * takes the next waiting upload after its own. A sort whose shelf is
- * deleted stops after its current request.
+ * The Worker's cron (worker/index.ts), every five minutes: starts the sort
+ * again on each shelf with an upload waiting or sorting that has made no
+ * progress in the STALLED_MS before `now`, as when the request that
+ * finished it died before starting its sort, or its alarm's database
+ * failed. Starting a sort that's under way only wakes it again once its
+ * batch is done. Nothing escapes it and nothing is logged: a shelf it
+ * couldn't start is tried again on the next run.
  */
-export function sortShelf(shelfId: string): void {
-  if (sorting.has(shelfId)) return;
-  sorting.add(shelfId);
-  void (async () => {
-    try {
-      for (let upload; (upload = store.nextUpload(shelfId)); ) {
-        store.markSorting(upload.id);
-        try {
-          await sortUpload(upload);
-          store.markSorted(upload.id);
-        } catch (error) {
-          // A model failure, the daily cap's 429, or a check that failed three times: its message is safe to show. The upload records it; the logs carry requests only.
-          store.markFailed(upload.id, error instanceof HttpError ? error.message : "The sort failed on the server.");
-        }
-      }
-    } finally {
-      sorting.delete(shelfId);
-    }
-  })();
-}
-
-/** At startup: carries on every sort a restart cut off, and starts the ones that were waiting. */
-export function resumeSorts(): void {
-  for (const shelfId of store.shelvesToSort()) sortShelf(shelfId);
+export async function resumeStalledSorts(env: Env, now: number): Promise<void> {
+  try {
+    const shelves = await store.stalledShelves(env.DB, now - STALLED_MS);
+    await Promise.allSettled(shelves.map(async (shelfId) => env.SORTER.getByName(shelfId).start()));
+  } catch {
+    // The database failed; the next run reads it again.
+  }
 }
