@@ -1,5 +1,5 @@
 -- Migration 2: the per-IP throttle on signing up and logging in
--- (server/throttle.ts), kept here since a Worker holds nothing in memory
+-- (server/store/throttle.ts), kept here since a Worker holds nothing in memory
 -- between requests (m1kuorg/basics#61). One row per address, for the window
 -- its tries are counted in; signing up and logging in sweep the ended ones.
 

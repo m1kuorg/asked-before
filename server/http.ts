@@ -127,9 +127,10 @@ async function route(req: Request, env: Env, routes: RouteTable, pathname: strin
  */
 export async function answer(req: Request, env: Env, routes: RouteTable): Promise<Response> {
   const started = performance.now();
-  const { pathname } = new URL(req.url);
+  let pathname = "/api/";
   let response: Response;
   try {
+    pathname = new URL(req.url).pathname;
     response = await route(req, env, routes, pathname);
   } catch (error) {
     response = answerError(error);

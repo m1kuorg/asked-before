@@ -275,7 +275,7 @@ await step("10. Deleting a shelf deletes it and everything on it", async () => {
   // reps, so only the database can show they went with it. Without
   // cascades, or with foreign keys off, they stay.
   if (!held) {
-    console.log("skip what it held goes with it, until step 9 runs");
+    console.log("skip what it held goes with it, since step 9 was skipped: its uploads, cards, and reps come to Workers with m1kuorg/basics#62 and m1kuorg/basics#63");
     return;
   }
   const store = new Database(app.databasePath, { readonly: true, strict: true });

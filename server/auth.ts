@@ -9,7 +9,7 @@ import type { Account } from "@asked-before/sdk";
 import type { Config } from "./config";
 import { HttpError, type Context, type Handler } from "./http";
 import { useKey } from "./store/keys";
-import { findSession, SESSION_DAYS, startSession as storeSession } from "./store/sessions";
+import { createSession, findSession, SESSION_DAYS } from "./store/sessions";
 
 export type Auth =
   | { via: "session"; userId: string; sessionId: string }
@@ -83,7 +83,7 @@ export async function startSession(
   { db, config }: Pick<Context, "db" | "config">,
   login: { userId: string; passwordHash: string },
 ): Promise<{ account: Account; setCookie: string } | null> {
-  const started = await storeSession(db, { ...login, earlier: sessionToken(req, config) });
+  const started = await createSession(db, { ...login, earlier: sessionToken(req, config) });
   return started && { account: started.account, setCookie: sessionCookie(config, started.token, SESSION_DAYS * 24 * 60 * 60) };
 }
 
