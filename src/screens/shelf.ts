@@ -1,6 +1,6 @@
-// One project (m1kuorg/basics#45): its card stack, set in the proof of
+// One shelf (m1kuorg/basics#45): its card stack, set in the proof of
 // concept's Centre Rail (public/styles/stack.css). The margin names the
-// project, with its demo-data label, then keys its cards A, B, C, … most
+// shelf, with its demo-data label, then keys its cards A, B, C, … most
 // borrowed first, ties to the later last borrow, as the API lists them. The
 // block holds the chosen card: its skill, its count and months, its plate,
 // and every phrasing word for word beside its stamp, one rail per year of
@@ -12,7 +12,7 @@
 // the day it was stamped returned, its keys already seated; a card borrowed
 // again says so under its key and its rail, and its keys drop again.
 //
-// The project's other views live in the query, and the margin leads to
+// The shelf's other views live in the query, and the margin leads to
 // them: ?view=unsorted lists the phrasings nothing else asks yet, newest
 // first, a page at a time, and ?view=uploads the upload history: each
 // upload's date, source, your messages, and the new ones, with its delete,
@@ -28,8 +28,8 @@ import { failure, frame, load, plate, waiting } from "../parts/frame";
 import { count, demoLabel, privacyLine, SOURCES, stamp } from "../parts/library";
 import { rows } from "../parts/rows";
 
-const projectPath = (projectId: string) => `/app/projects/${encodeURIComponent(projectId)}`;
-const uploadPath = (projectId: string) => `${projectPath(projectId)}/upload`;
+const shelfPath = (shelfId: string) => `/app/shelves/${encodeURIComponent(shelfId)}`;
+const uploadPath = (shelfId: string) => `${shelfPath(shelfId)}/upload`;
 const cardPath = (cardId: string) => `/app/cards/${encodeURIComponent(cardId)}`;
 
 type View = "cards" | "unsorted" | "uploads";
@@ -47,26 +47,26 @@ function keyLetter(index: number): string {
   return letters;
 }
 
-export function mountProject(root: HTMLElement, { client, params, query, navigate, signal }: ScreenProps<"projectId">) {
+export function mountShelf(root: HTMLElement, { client, params, query, navigate, signal }: ScreenProps<"shelfId">) {
   const { margin, block } = frame(root);
-  const projectId = params.projectId;
+  const shelfId = params.shelfId;
   const view: View = VIEWS[query.get("view") ?? ""] ?? "cards";
   const yearCut = el("p", undefined, "A cut in the rail marks a new year of asking.");
   const privacy = privacyLine();
-  const base = () => Promise.all([client.shelves.get(projectId), client.cards.list(projectId)]);
-  const named = (project: Shelf) => (document.title = `${project.name} · Asked Before`);
+  const base = () => Promise.all([client.shelves.get(shelfId), client.cards.list(shelfId)]);
+  const named = (shelf: Shelf) => (document.title = `${shelf.name} · Asked Before`);
 
   if (view === "unsorted") {
     const heading = el("h1", undefined, "Unsorted phrasings");
     load(block, {
       keep: [heading],
       line: "Finding the unsorted phrasings…",
-      request: () => Promise.all([base(), client.cards.unsorted(projectId, { limit: PAGE })]),
+      request: () => Promise.all([base(), client.cards.unsorted(shelfId, { limit: PAGE })]),
       signal,
-      show: ([[project, cards], first]) => {
-        named(project);
-        drawMargin(project, cards);
-        unsorted(project, heading, { items: first.phrasings, next: first.next });
+      show: ([[shelf, cards], first]) => {
+        named(shelf);
+        drawMargin(shelf, cards);
+        unsorted(shelf, heading, { items: first.phrasings, next: first.next });
       },
     });
     return;
@@ -79,12 +79,12 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
       load(block, {
         keep: [heading],
         line: "Finding the uploads…",
-        request: () => Promise.all([base(), client.uploads.list(projectId, { limit: PAGE })]),
+        request: () => Promise.all([base(), client.uploads.list(shelfId, { limit: PAGE })]),
         signal,
-        show: ([[project, cards], first]) => {
-          named(project);
-          drawMargin(project, cards);
-          uploads(project, heading, { items: first.uploads, next: first.next }, show);
+        show: ([[shelf, cards], first]) => {
+          named(shelf);
+          drawMargin(shelf, cards);
+          uploads(shelf, heading, { items: first.uploads, next: first.next }, show);
         },
       });
     void show();
@@ -93,31 +93,31 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
 
   load(block, {
     keep: [el("h1", undefined, "Shelf")],
-    line: "Finding the project's cards…",
+    line: "Finding the shelf's cards…",
     request: async () => {
-      const [project, cards] = await base();
+      const [shelf, cards] = await base();
       const chosen = cards.find((card) => card.id === query.get("card")) ?? cards[0];
       // With no cards, the uploads say why: none yet, a sort under way, or nothing asked twice.
-      const [detail, latest] = await Promise.all([chosen && client.cards.get(chosen.id), chosen ? null : client.uploads.list(projectId, { limit: PAGE })]);
-      return { project, cards, chosen: detail, uploads: latest?.uploads ?? [] };
+      const [detail, latest] = await Promise.all([chosen && client.cards.get(chosen.id), chosen ? null : client.uploads.list(shelfId, { limit: PAGE })]);
+      return { shelf, cards, chosen: detail, uploads: latest?.uploads ?? [] };
     },
     signal,
-    show: ({ project, cards, chosen, uploads }) => {
-      named(project);
-      if (!chosen) return noCards(project, uploads);
-      stack(project, cards, chosen);
+    show: ({ shelf, cards, chosen, uploads }) => {
+      named(shelf);
+      if (!chosen) return noCards(shelf, uploads);
+      stack(shelf, cards, chosen);
     },
   });
 
   /**
-   * The margin every view shares: the project's name and demo-data label
+   * The margin every view shares: the shelf's name and demo-data label
    * (unless the block's heading carries them), the way to its views, its
    * keys, most borrowed first, and the privacy line. A key chooses its card;
    * outside the stack it goes there.
    */
-  function drawMargin(project: Shelf, cards: Card[], choose?: (card: Card, index: number) => void, { withName = true } = {}): HTMLButtonElement[] {
+  function drawMargin(shelf: Shelf, cards: Card[], choose?: (card: Card, index: number) => void, { withName = true } = {}): HTMLButtonElement[] {
     const keys = cards.map((card, index) => {
-      const key = button("", () => (choose ? choose(card, index) : navigate(`${projectPath(project.id)}?card=${encodeURIComponent(card.id)}`)), card.status === "returned" ? "margin-key is-returned" : "margin-key");
+      const key = button("", () => (choose ? choose(card, index) : navigate(`${shelfPath(shelf.id)}?card=${encodeURIComponent(card.id)}`)), card.status === "returned" ? "margin-key is-returned" : "margin-key");
       const skill = el("span", undefined, card.skill);
       // The strike is read by no one, so a returned key also says so in words; a key borrowed again says it under its skill.
       if (card.status === "returned") skill.append(el("span", "visually-hidden", ", returned"));
@@ -126,23 +126,23 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
       return key;
     });
     const views: [string, string, boolean][] = [
-      ["Cards", projectPath(project.id), view === "cards"],
-      ["Unsorted phrasings", `${projectPath(project.id)}?view=unsorted`, view === "unsorted"],
-      ["Upload history", `${projectPath(project.id)}?view=uploads`, view === "uploads"],
-      ["Upload a chat export", uploadPath(project.id), false],
+      ["Cards", shelfPath(shelf.id), view === "cards"],
+      ["Unsorted phrasings", `${shelfPath(shelf.id)}?view=unsorted`, view === "unsorted"],
+      ["Upload history", `${shelfPath(shelf.id)}?view=uploads`, view === "uploads"],
+      ["Upload a chat export", uploadPath(shelf.id), false],
     ];
     const ways = el(
       "ul",
-      "project-views",
+      "shelf-views",
       ...views.map(([text, href, here]) => {
         const way = link(text, href);
         if (here) way.setAttribute("aria-current", "page");
         return el("li", undefined, way);
       }),
     );
-    ways.setAttribute("aria-label", `In ${project.name}`);
-    const name = el("p", "project-name", project.name);
-    if (project.demo) name.append(demoLabel());
+    ways.setAttribute("aria-label", `In ${shelf.name}`);
+    const name = el("p", "shelf-name", shelf.name);
+    if (shelf.demo) name.append(demoLabel());
     margin.replaceChildren(
       ...(withName ? [name] : []),
       ways,
@@ -152,9 +152,9 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
     return keys;
   }
 
-  /** The plate outside the stack: the project's count of cards. */
-  function cardsPlate(project: Shelf) {
-    return plate(project.counts.cards, project.counts.cards === 1 ? "card" : "cards");
+  /** The plate outside the stack: the shelf's count of cards. */
+  function cardsPlate(shelf: Shelf) {
+    return plate(shelf.counts.cards, shelf.counts.cards === 1 ? "card" : "cards");
   }
 
   /**
@@ -188,24 +188,24 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
     return { redraw: () => redraw(shown) };
   }
 
-  /** The project's unsorted phrasings, newest first: each word for word, with its stamp. */
-  function unsorted(project: Shelf, heading: HTMLElement, first: Paged<StoredPhrasing>) {
-    const lede = el("p", undefined, `Your phrasings in ${project.name} that nothing else asks yet. Each waits here until a later one asks the same thing, and then they become a card.`);
-    const plateOf = cardsPlate(project);
+  /** The shelf's unsorted phrasings, newest first: each word for word, with its stamp. */
+  function unsorted(shelf: Shelf, heading: HTMLElement, first: Paged<StoredPhrasing>) {
+    const lede = el("p", undefined, `Your phrasings in ${shelf.name} that nothing else asks yet. Each waits here until a later one asks the same thing, and then they become a card.`);
+    const plateOf = cardsPlate(shelf);
     paged(
       first,
-      (cursor) => client.cards.unsorted(project.id, { limit: PAGE, cursor }).then((page) => ({ items: page.phrasings, next: page.next })),
+      (cursor) => client.cards.unsorted(shelf.id, { limit: PAGE, cursor }).then((page) => ({ items: page.phrasings, next: page.next })),
       (items, tail) => {
         const list = items.length
           ? rows({
-              caption: `Unsorted phrasings in ${project.name}, newest first`,
+              caption: `Unsorted phrasings in ${shelf.name}, newest first`,
               items,
               columns: [
                 { label: "Phrasing", cell: (p) => phrasing(p.text) },
                 { label: "Sent", numeric: true, className: "is-date", cell: (p) => stamp(p.time) },
               ],
             })
-          : emptyState("Nothing is unsorted", `Every phrasing sorted into ${project.name} so far is on a card.`);
+          : emptyState("Nothing is unsorted", `Every phrasing sorted into ${shelf.name} so far is on a card.`);
         block.replaceChildren(heading, lede, plateOf, list, ...tail);
       },
     );
@@ -215,20 +215,20 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
    * The upload history, newest first: each upload's date, which leads to
    * its own page and its sort, its source, your messages, and the new ones.
    * Deleting one asks first, in place under its row, then shows the
-   * project as it's left, with `reload`.
+   * shelf as it's left, with `reload`.
    */
-  function uploads(project: Shelf, heading: HTMLElement, first: Paged<Upload>, reload: () => Promise<void>) {
-    const lede = el("p", undefined, `Each chat export uploaded into ${project.name}, newest first, with how many of your messages it held and how many of them were new.`);
-    const plateOf = cardsPlate(project);
+  function uploads(shelf: Shelf, heading: HTMLElement, first: Paged<Upload>, reload: () => Promise<void>) {
+    const lede = el("p", undefined, `Each chat export uploaded into ${shelf.name}, newest first, with how many of your messages it held and how many of them were new.`);
+    const plateOf = cardsPlate(shelf);
     let deleting: string | null = null;
     const dateOf = (upload: Upload) => stamp(upload.createdAt).textContent!;
     const list = paged(
       first,
-      (cursor) => client.uploads.list(project.id, { limit: PAGE, cursor }).then((page) => ({ items: page.uploads, next: page.next })),
+      (cursor) => client.uploads.list(shelf.id, { limit: PAGE, cursor }).then((page) => ({ items: page.uploads, next: page.next })),
       (items, tail) => {
         const shown = items.length
           ? rows({
-              caption: `Uploads into ${project.name}, newest first`,
+              caption: `Uploads into ${shelf.name}, newest first`,
               items,
               columns: [
                 { label: "Uploaded", cell: uploaded },
@@ -241,8 +241,8 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
             })
           : emptyState(
               "No uploads yet",
-              "Upload a chat export into this project, and every question you asked more than once becomes a card.",
-              link("Upload a chat export", uploadPath(project.id), "button"),
+              "Upload a chat export onto this shelf, and every question you asked more than once becomes a card.",
+              link("Upload a chat export", uploadPath(shelf.id), "button"),
             );
         block.replaceChildren(heading, lede, plateOf, shown, ...tail);
       },
@@ -250,7 +250,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
 
     /** The upload's date, leading to its own page. */
     function uploaded(upload: Upload) {
-      const date = link("", `${uploadPath(project.id)}?upload=${encodeURIComponent(upload.id)}`);
+      const date = link("", `${uploadPath(shelf.id)}?upload=${encodeURIComponent(upload.id)}`);
       date.replaceChildren(stamp(upload.createdAt));
       return el("span", "row-title", date);
     }
@@ -274,8 +274,8 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
       return confirmDelete({
         title: `Delete the upload of ${dateOf(upload)}?`,
         body: n
-          ? `This deletes the ${count(n)} ${n === 1 ? "phrasing" : "phrasings"} ${upload.fileName} brought into ${project.name}, and any card left with fewer than two borrows, with its cold reps; a card's last phrasing goes back to unsorted. It can't be undone.`
-          : `${upload.fileName} brought nothing new into ${project.name}, so only the upload goes. It can't be undone.`,
+          ? `This deletes the ${count(n)} ${n === 1 ? "phrasing" : "phrasings"} ${upload.fileName} brought into ${shelf.name}, and any card left with fewer than two borrows, with its cold reps; a card's last phrasing goes back to unsorted. It can't be undone.`
+          : `${upload.fileName} brought nothing new into ${shelf.name}, so only the upload goes. It can't be undone.`,
         action: "Delete the upload",
         onConfirm: async () => {
           await client.uploads.delete(upload.id);
@@ -292,33 +292,33 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
   }
 
   /**
-   * A project with no cards yet: its name heads the block, over a plate of
+   * A shelf with no cards yet: its name heads the block, over a plate of
    * none, and the empty state says why, from its latest uploads: there are
    * none, one is still being sorted, or nothing was asked twice yet.
    */
-  function noCards(project: Shelf, uploads: Upload[]) {
-    const heading = el("div", "heading", el("h1", undefined, project.name));
-    if (project.demo) heading.append(demoLabel());
-    drawMargin(project, [], undefined, { withName: false });
+  function noCards(shelf: Shelf, uploads: Upload[]) {
+    const heading = el("div", "heading", el("h1", undefined, shelf.name));
+    if (shelf.demo) heading.append(demoLabel());
+    drawMargin(shelf, [], undefined, { withName: false });
     const sorting = uploads.find((u) => u.status === "waiting" || u.status === "sorting");
     const why = !uploads.length
-      ? emptyState("No cards yet", "Upload a chat export into this project, and every question you asked more than once becomes a card.", link("Upload a chat export", uploadPath(project.id), "button"))
+      ? emptyState("No cards yet", "Upload a chat export onto this shelf, and every question you asked more than once becomes a card.", link("Upload a chat export", uploadPath(shelf.id), "button"))
       : sorting
-        ? emptyState("No cards yet", `Your upload into ${project.name} is still being sorted. Its cards show here once the sort is done.`, link("See its sort", `${uploadPath(project.id)}?upload=${encodeURIComponent(sorting.id)}`, "button"))
+        ? emptyState("No cards yet", `Your upload into ${shelf.name} is still being sorted. Its cards show here once the sort is done.`, link("See its sort", `${uploadPath(shelf.id)}?upload=${encodeURIComponent(sorting.id)}`, "button"))
         : emptyState(
             "No cards yet",
-            `Nothing in ${project.name} has been asked more than once yet. A phrasing waits as unsorted until a later one asks the same thing.`,
-            link("See the unsorted phrasings", `${projectPath(project.id)}?view=unsorted`, "button"),
-            link("Upload a chat export", uploadPath(project.id), "button secondary"),
+            `Nothing in ${shelf.name} has been asked more than once yet. A phrasing waits as unsorted until a later one asks the same thing.`,
+            link("See the unsorted phrasings", `${shelfPath(shelf.id)}?view=unsorted`, "button"),
+            link("Upload a chat export", uploadPath(shelf.id), "button secondary"),
           );
     block.replaceChildren(heading, plate(0, "cards"), why);
   }
 
-  /** The stack: the project's keys in the margin, and the chosen card in the block. */
-  function stack(project: Shelf, cards: Card[], first: CardDetail) {
+  /** The stack: the shelf's keys in the margin, and the chosen card in the block. */
+  function stack(shelf: Shelf, cards: Card[], first: CardDetail) {
     const details = new Map<string, CardDetail>([[first.id, first]]);
     let chosen = first.id;
-    const keys = drawMargin(project, cards, (card, index) => void choose(card, index));
+    const keys = drawMargin(shelf, cards, (card, index) => void choose(card, index));
     const index = cards.findIndex((card) => card.id === first.id);
     mark(index);
     showCard(first, keyLetter(index));
@@ -330,7 +330,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
     async function choose(card: Card, index: number) {
       chosen = card.id;
       mark(index);
-      history.replaceState(null, "", `${projectPath(project.id)}?card=${encodeURIComponent(card.id)}`);
+      history.replaceState(null, "", `${shelfPath(shelf.id)}?card=${encodeURIComponent(card.id)}`);
       try {
         const detail = details.get(card.id) ?? (await client.cards.get(card.id));
         details.set(card.id, detail);

@@ -1,4 +1,4 @@
-// The app's top navigation: the product name, Dashboard, Projects, and
+// The app's top navigation: the product name, Desk, Shelves, and
 // Settings, with the current one filled white; then the account and Log out.
 
 import type { Account } from "@asked-before/sdk";
@@ -7,8 +7,8 @@ import { client } from "./client";
 import type { Section } from "./router";
 
 const PLACES: [Section, string, string][] = [
-  ["dashboard", "Dashboard", "/app"],
-  ["projects", "Projects", "/app/projects"],
+  ["desk", "Desk", "/app/desk"],
+  ["shelves", "Shelves", "/app/shelves"],
   ["settings", "Settings", "/app/settings"],
 ];
 
@@ -31,7 +31,7 @@ export function mountNav(before: HTMLElement, account: Account) {
   const nav = el(
     "nav",
     undefined,
-    link("Asked Before", "/app", "nav-name"),
+    link("Asked Before", "/app/desk", "nav-name"),
     el("ul", undefined, ...links.map(([, a]) => el("li", undefined, a))),
     el("div", "nav-end", name, logOut),
   );

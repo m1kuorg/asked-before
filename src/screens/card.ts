@@ -3,7 +3,7 @@
 // the head of the block, its count on the plate after its status, and the
 // rep either side of a centre hairline, with what you were told on the left
 // (the verdict, the lesson) and what you do on the right (the problem and
-// the answer box). The margin names the card's project, its borrows and
+// the answer box). The margin names the card's shelf, its borrows and
 // months, and its status. Under the rep, the card's phrasings on the rail
 // with their stamps, closed by its return stamp, then its earlier cold
 // reps, newest first, each with its problem and verdict.
@@ -11,7 +11,7 @@
 // Opening a card takes its rep up where it stands: an open rep (the latest,
 // unchecked) is shown again, after the reason of a failed one before it;
 // otherwise the card shows with Take a cold rep, which starts a fresh one,
-// so opening a card to look at it spends no model request. The dashboard's
+// so opening a card to look at it spends no model request. The Desk's
 // "Take a cold rep on <skill>" comes with ?rep=start instead, and starts the
 // fresh one at once. The card's
 // first rep brings the lesson; a failed rep shows its reason and the lesson
@@ -29,7 +29,7 @@ import { failure, frame, load, plate, waiting } from "../parts/frame";
 import { demoLabel, privacyLine, stamp } from "../parts/library";
 import { rows } from "../parts/rows";
 
-const projectPath = (projectId: string) => `/app/projects/${encodeURIComponent(projectId)}`;
+const shelfPath = (shelfId: string) => `/app/shelves/${encodeURIComponent(shelfId)}`;
 
 /** A titled section whose text keeps the model's line breaks as paragraphs. */
 function section(className: string, title: string, text: string): HTMLElement {
@@ -48,7 +48,7 @@ function told(failed: Rep | null, lesson: string | null): HTMLElement[] {
 
 export function mountCard(root: HTMLElement, { client, params, query, navigate, signal }: ScreenProps<"cardId">) {
   const { margin, block } = frame(root);
-  // The dashboard's "Take a cold rep on <skill>" asks for the rep with ?rep=start. The address drops it at once,
+  // The Desk's "Take a cold rep on <skill>" asks for the rep with ?rep=start. The address drops it at once,
   // so going back, forward, or reloading opens the card as any visit does, spending no model request.
   const startRep = query.get("rep") === "start";
   if (startRep) history.replaceState(history.state, "", location.pathname);
@@ -58,13 +58,13 @@ export function mountCard(root: HTMLElement, { client, params, query, navigate, 
     line: "Finding the card…",
     request: async () => {
       const card = await client.cards.get(params.cardId);
-      return { card, project: await client.shelves.get(card.shelfId) };
+      return { card, shelf: await client.shelves.get(card.shelfId) };
     },
     signal,
-    show: ({ card, project }) => setCard(card, project),
+    show: ({ card, shelf }) => setCard(card, shelf),
   });
 
-  function setCard(first: CardDetail, project: Shelf) {
+  function setCard(first: CardDetail, shelf: Shelf) {
     let card = first;
     document.title = `${card.skill} · Asked Before`;
     const step = el("div");
@@ -74,8 +74,8 @@ export function mountCard(root: HTMLElement, { client, params, query, navigate, 
     let closing: HTMLElement | null = null;
     let earlier: HTMLElement | null = null;
 
-    const name = el("p", "project-name", link(project.name, projectPath(project.id)));
-    if (project.demo) name.append(demoLabel());
+    const name = el("p", "shelf-name", link(shelf.name, shelfPath(shelf.id)));
+    if (shelf.demo) name.append(demoLabel());
     margin.replaceChildren(
       name,
       el("p", undefined, `Borrowed ${card.count} times, ${months(card)}.`),
@@ -191,7 +191,7 @@ export function mountCard(root: HTMLElement, { client, params, query, navigate, 
           submit.remove();
           const passed = section("verdict", "Returned", checked.rep.reason ?? "");
           passed.append(el("p", "stamp", "Stamped returned ", stamp(checked.rep.checkedAt!)));
-          const back = button("Back to the stack", () => navigate(`${projectPath(card.shelfId)}?card=${encodeURIComponent(card.id)}`));
+          const back = button("Back to the stack", () => navigate(`${shelfPath(card.shelfId)}?card=${encodeURIComponent(card.id)}`));
           step.replaceChildren(shown, box, passed, back);
           back.focus({ preventScroll: true });
         });

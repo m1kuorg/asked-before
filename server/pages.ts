@@ -2,8 +2,8 @@
 // bundler, with the scripts, styles, and fonts it links, and served from
 // memory, so its answers carry the security headers like every other
 // (Bun's own HTML routes can't take headers). The public pages are the
-// landing page, the docs, log in, and sign up; the app is one page at /app
-// that routes every path under it on the client (src/app/router.ts), and
+// landing page, the docs, log in, and sign up; the app is one page that
+// routes every path under /app/ on the client (src/app/router.ts), and
 // sends a logged-out visitor to log in and back. A path nothing routes gets
 // the not-found page. The demo export is served as a file; the answer key
 // and the known answers never are.
@@ -20,7 +20,6 @@ const PAGES: Record<string, string> = {
   "/docs": "docs.html",
   "/login": "login.html",
   "/signup": "signup.html",
-  "/app": "app.html",
   "/app/*": "app.html",
 };
 

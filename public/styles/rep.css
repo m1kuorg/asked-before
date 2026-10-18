@@ -146,8 +146,8 @@
 /* The card page (src/screens/card.ts): the rep, as above, then the card's phrasings on the rail and its earlier cold reps. */
 
 #app[data-screen="card"] {
-  /* The card's project, and beside it a demo project's label. */
-  .project-name {
+  /* The card's shelf, and beside it a demo shelf's label. */
+  .shelf-name {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;

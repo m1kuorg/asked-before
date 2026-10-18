@@ -1,4 +1,4 @@
-// The app's page entry, served at /app and every path under it. It asks who
+// The app's page entry, served at every path under /app/. It asks who
 // is logged in (a 401 goes to log in and back), draws the top navigation,
 // and hands every app path to the router.
 

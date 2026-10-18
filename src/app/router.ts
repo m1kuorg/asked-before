@@ -7,7 +7,7 @@
 
 import type { Account, Client } from "@asked-before/sdk";
 
-/** The names of a path's `:params`, such as "projectId" for "/app/projects/:projectId". */
+/** The names of a path's `:params`, such as "shelfId" for "/app/shelves/:shelfId". */
 export type Params<P extends string> = P extends `${string}:${infer Name}/${infer Rest}`
   ? Name | Params<`/${Rest}`>
   : P extends `${string}:${infer Name}`
@@ -33,7 +33,7 @@ export type ScreenProps<P extends string = never> = {
 export type Screen<P extends string = never> = (root: HTMLElement, props: ScreenProps<P>) => void | Promise<void>;
 
 /** The part of the navigation a route belongs to. */
-export type Section = "dashboard" | "projects" | "settings";
+export type Section = "desk" | "shelves" | "settings";
 
 export type Route = {
   /** The screen's name, set as #app's data-screen. */
@@ -53,7 +53,7 @@ export const route = <P extends string>(name: string, path: P, section: Section 
   screen: screen as Screen<string>,
 });
 
-export const isAppPath = (pathname: string) => pathname === "/app" || pathname.startsWith("/app/");
+export const isAppPath = (pathname: string) => pathname.startsWith("/app/");
 
 function safeDecode(segment: string): string | null {
   try {

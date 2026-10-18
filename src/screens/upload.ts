@@ -1,4 +1,4 @@
-// Upload a chat export into a project (m1kuorg/basics#43). The margin says
+// Upload a chat export onto a shelf (m1kuorg/basics#43). The margin says
 // how to request an export from ChatGPT and from Claude. A file dropped or
 // chosen is read here, on this computer, by the SDK's reader; its preview
 // counts your own messages and any left out for length, with the privacy
@@ -10,7 +10,7 @@
 // so far, and a sort that fails shows its error and a retry, which carries
 // on from where it stopped.
 //
-// The demo action, startDemoProject(), makes a project flagged demo and
+// The demo action, startDemoShelf(), makes a shelf flagged demo and
 // comes here with ?export=demo, which reads the demo export with the same
 // reader and uploads it through the same endpoints at once.
 
@@ -27,14 +27,14 @@ const WATCH_MS = 1000;
 
 const plural = (n: number, one: string, many: string) => `${count(n)} ${n === 1 ? one : many}`;
 
-/** The demo action: a project flagged demo, then its upload page, which uploads the demo export into it. */
-export async function startDemoProject(client: Client, navigate: ScreenProps["navigate"]): Promise<void> {
-  const project = await client.shelves.create({ name: "Demo", demo: true });
-  navigate(`${uploadPath(project.id)}?export=demo`);
+/** The demo action: a shelf flagged demo, then its upload page, which uploads the demo export onto it. */
+export async function startDemoShelf(client: Client, navigate: ScreenProps["navigate"]): Promise<void> {
+  const shelf = await client.shelves.create({ name: "Demo", demo: true });
+  navigate(`${uploadPath(shelf.id)}?export=demo`);
 }
 
-const uploadPath = (projectId: string) => `/app/projects/${encodeURIComponent(projectId)}/upload`;
-const projectPath = (projectId: string) => `/app/projects/${encodeURIComponent(projectId)}`;
+const uploadPath = (shelfId: string) => `/app/shelves/${encodeURIComponent(shelfId)}/upload`;
+const shelfPath = (shelfId: string) => `/app/shelves/${encodeURIComponent(shelfId)}`;
 
 function instructions(): HTMLElement[] {
   return [
@@ -46,27 +46,27 @@ function instructions(): HTMLElement[] {
   ];
 }
 
-export function mountUpload(root: HTMLElement, { client, params, query, navigate, signal }: ScreenProps<"projectId">) {
+export function mountUpload(root: HTMLElement, { client, params, query, navigate, signal }: ScreenProps<"shelfId">) {
   const { block } = frame(root, instructions());
   const heading = el("h1", undefined, "Upload a chat export");
   const uploadId = query.get("upload");
 
   load(block, {
     keep: [heading],
-    line: "Finding the project…",
-    request: () => Promise.all([client.shelves.get(params.projectId), uploadId ? client.uploads.get(uploadId) : null]),
+    line: "Finding the shelf…",
+    request: () => Promise.all([client.shelves.get(params.shelfId), uploadId ? client.uploads.get(uploadId) : null]),
     signal,
-    show: ([project, upload]) => {
-      document.title = `Upload into ${project.name} · Asked Before`;
-      const into = el("p", undefined, `Into ${project.name}.`);
-      if (project.demo) into.append(" ", demoLabel());
+    show: ([shelf, upload]) => {
+      document.title = `Upload into ${shelf.name} · Asked Before`;
+      const into = el("p", undefined, `Into ${shelf.name}.`);
+      if (shelf.demo) into.append(" ", demoLabel());
       const top = [heading, into];
       const draw = (...children: Node[]) => {
         if (!signal.aborted) block.replaceChildren(...top, ...children);
       };
 
-      if (upload && upload.shelfId === project.id) return done(upload);
-      if (query.get("export") === "demo" && project.demo) return void demo();
+      if (upload && upload.shelfId === shelf.id) return done(upload);
+      if (query.get("export") === "demo" && shelf.demo) return void demo();
       choose();
 
       /** The drop zone, under the notice of a file that couldn't be read, if any. */
@@ -132,7 +132,7 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
           const progress = () => draw(counted, waiting(`Sending your messages: ${count(sent)} of ${count(total)} sent…`));
           progress();
           try {
-            made ??= await client.uploads.create(project.id, { source: read.source, fileName });
+            made ??= await client.uploads.create(shelf.id, { source: read.source, fileName });
             while (sent < total) {
               await client.uploads.append(made.id, read.phrasings.slice(sent, sent + MAX_CHUNK));
               sent = Math.min(sent + MAX_CHUNK, total);
@@ -140,7 +140,7 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
             }
             const finished = await client.uploads.finish(made.id);
             if (signal.aborted) return;
-            navigate(`${uploadPath(project.id)}?upload=${encodeURIComponent(finished.id)}`, { replace: true });
+            navigate(`${uploadPath(shelf.id)}?upload=${encodeURIComponent(finished.id)}`, { replace: true });
           } catch (error) {
             draw(counted, ...failure(error, attempt));
           }
@@ -159,14 +159,14 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
         const already = upload.messages - upload.phrasings;
         const said =
           upload.phrasings > 0
-            ? `${upload.fileName} held ${count(upload.messages)} of your messages${already > 0 ? `, ${count(already)} of them in ${project.name} already` : ""}.`
+            ? `${upload.fileName} held ${count(upload.messages)} of your messages${already > 0 ? `, ${count(already)} of them in ${shelf.name} already` : ""}.`
             : upload.messages === 1
-              ? `The one message in ${upload.fileName} was in ${project.name} already, so nothing new was added.`
-              : `All ${count(upload.messages)} of your messages in ${upload.fileName} were in ${project.name} already, so nothing new was added.`;
+              ? `The one message in ${upload.fileName} was in ${shelf.name} already, so nothing new was added.`
+              : `All ${count(upload.messages)} of your messages in ${upload.fileName} were in ${shelf.name} already, so nothing new was added.`;
         draw(
           plate(count(upload.phrasings), upload.phrasings === 1 ? "new phrasing" : "new phrasings"),
           el("section", "upload-done", el("p", undefined, said), ...lines),
-          el("div", "actions", link(`Go to ${project.name}`, projectPath(project.id), "button"), link("Upload another export", uploadPath(project.id), "button secondary")),
+          el("div", "actions", link(`Go to ${shelf.name}`, shelfPath(shelf.id), "button"), link("Upload another export", uploadPath(shelf.id), "button secondary")),
         );
       }
 
@@ -177,11 +177,11 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
           case "receiving":
             return [el("p", undefined, "This upload stopped before all its messages arrived. Upload the export again: nothing already sent is counted twice.")];
           case "waiting":
-            return [upload.phrasings === 0 ? el("p", undefined, "There's nothing new to sort.") : waiting(`${one ? "It waits" : "They wait"} to be sorted into ${project.name}'s cards…`)];
+            return [upload.phrasings === 0 ? el("p", undefined, "There's nothing new to sort.") : waiting(`${one ? "It waits" : "They wait"} to be sorted into ${shelf.name}'s cards…`)];
           case "sorting":
-            return [waiting(`Sorting ${one ? "it" : "them"} into ${project.name}'s cards: ${count(upload.offered)} of ${count(upload.phrasings)} sorted…`)];
+            return [waiting(`Sorting ${one ? "it" : "them"} into ${shelf.name}'s cards: ${count(upload.offered)} of ${count(upload.phrasings)} sorted…`)];
           case "sorted":
-            return [el("p", undefined, upload.phrasings === 0 ? "There was nothing new to sort." : `${one ? "It's" : "They're"} sorted into ${project.name}'s cards.`)];
+            return [el("p", undefined, upload.phrasings === 0 ? "There was nothing new to sort." : `${one ? "It's" : "They're"} sorted into ${shelf.name}'s cards.`)];
           case "failed": {
             const lines: Node[] = [notice(upload.error ?? "The sort failed.")];
             if (upload.offered > 0) lines.push(el("p", undefined, `${count(upload.offered)} of ${count(upload.phrasings)} were sorted before it stopped. Trying again carries on from there.`));
