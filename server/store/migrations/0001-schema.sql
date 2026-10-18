@@ -1,10 +1,9 @@
--- The whole schema (m1kuorg/basics#40, Store), applied by server/store/db.ts
--- at every startup. Tables are create-if-missing: nothing has shipped, so
--- they change in place, and a migration mechanism arrives with the first
--- deployment. The view is dropped and made again, so its edits always apply.
+-- Migration 1: the spec's whole schema (m1kuorg/basics#40, Store), as it
+-- stood when migrations arrived (m1kuorg/basics#54). server/store/db.ts
+-- applies it once, to a fresh database; a later change is a new migration.
 -- Times are Unix milliseconds. Every child row is deleted with its parent.
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,              -- trimmed and lowercased
@@ -12,15 +11,15 @@ CREATE TABLE IF NOT EXISTS users (
   created_at INTEGER NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS sessions (
+CREATE TABLE sessions (
   id TEXT PRIMARY KEY,                     -- SHA-256 of the cookie's token, in hex
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at INTEGER NOT NULL,
   expires_at INTEGER NOT NULL
 );
-CREATE INDEX IF NOT EXISTS sessions_by_user ON sessions(user_id);
+CREATE INDEX sessions_by_user ON sessions(user_id);
 
-CREATE TABLE IF NOT EXISTS api_keys (
+CREATE TABLE api_keys (
   id TEXT PRIMARY KEY,                     -- the <id> in ab_<id>_<secret>
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
@@ -28,18 +27,18 @@ CREATE TABLE IF NOT EXISTS api_keys (
   created_at INTEGER NOT NULL,
   last_used_at INTEGER                     -- written at most once a minute
 );
-CREATE INDEX IF NOT EXISTS api_keys_by_user ON api_keys(user_id);
+CREATE INDEX api_keys_by_user ON api_keys(user_id);
 
-CREATE TABLE IF NOT EXISTS projects (
+CREATE TABLE projects (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   demo INTEGER NOT NULL DEFAULT 0 CHECK (demo IN (0, 1)),
   created_at INTEGER NOT NULL
 );
-CREATE INDEX IF NOT EXISTS projects_by_user ON projects(user_id);
+CREATE INDEX projects_by_user ON projects(user_id);
 
-CREATE TABLE IF NOT EXISTS uploads (
+CREATE TABLE uploads (
   id TEXT PRIMARY KEY,
   project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   source TEXT NOT NULL CHECK (source IN ('chatgpt', 'claude')),
@@ -50,18 +49,18 @@ CREATE TABLE IF NOT EXISTS uploads (
   created_at INTEGER NOT NULL,
   finished_at INTEGER
 );
-CREATE INDEX IF NOT EXISTS uploads_by_project ON uploads(project_id);
+CREATE INDEX uploads_by_project ON uploads(project_id);
 
 -- Every one of your messages an upload was sent, by its source id, once:
 -- its count is the upload's messages, so a chunk sent twice counts once.
 -- The new ones among them are the upload's phrasings.
-CREATE TABLE IF NOT EXISTS upload_messages (
+CREATE TABLE upload_messages (
   upload_id TEXT NOT NULL REFERENCES uploads(id) ON DELETE CASCADE,
   source_id TEXT NOT NULL,
   PRIMARY KEY (upload_id, source_id)
 ) WITHOUT ROWID;
 
-CREATE TABLE IF NOT EXISTS cards (
+CREATE TABLE cards (
   id TEXT PRIMARY KEY,
   project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   skill TEXT NOT NULL COLLATE NOCASE,
@@ -70,7 +69,7 @@ CREATE TABLE IF NOT EXISTS cards (
   UNIQUE (project_id, skill)
 );
 
-CREATE TABLE IF NOT EXISTS phrasings (
+CREATE TABLE phrasings (
   id TEXT PRIMARY KEY,
   project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   origin TEXT NOT NULL CHECK (origin IN ('export', 'capture')),
@@ -84,10 +83,10 @@ CREATE TABLE IF NOT EXISTS phrasings (
   UNIQUE (project_id, source_id),
   CHECK ((origin = 'export') = (upload_id IS NOT NULL))
 );
-CREATE INDEX IF NOT EXISTS phrasings_by_card ON phrasings(card_id);
-CREATE INDEX IF NOT EXISTS phrasings_by_upload ON phrasings(upload_id);
+CREATE INDEX phrasings_by_card ON phrasings(card_id);
+CREATE INDEX phrasings_by_upload ON phrasings(upload_id);
 
-CREATE TABLE IF NOT EXISTS reps (
+CREATE TABLE reps (
   id TEXT PRIMARY KEY,
   card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
   problem TEXT NOT NULL,
@@ -97,9 +96,9 @@ CREATE TABLE IF NOT EXISTS reps (
   created_at INTEGER NOT NULL,
   checked_at INTEGER
 );
-CREATE INDEX IF NOT EXISTS reps_by_card ON reps(card_id);
+CREATE INDEX reps_by_card ON reps(card_id);
 
-CREATE TABLE IF NOT EXISTS usage (
+CREATE TABLE usage (
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   day TEXT NOT NULL,                       -- UTC, yyyy-mm-dd
   model_requests INTEGER NOT NULL DEFAULT 0,
@@ -110,7 +109,6 @@ CREATE TABLE IF NOT EXISTS usage (
 -- caller. It compares timestamps, not dates: borrowed while no rep has passed,
 -- returned while its last borrow is at or before its last pass, and borrowed
 -- again once a borrow comes after that pass.
-DROP VIEW IF EXISTS card_status;
 CREATE VIEW card_status AS
 SELECT
   card_id,
