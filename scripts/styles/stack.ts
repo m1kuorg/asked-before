@@ -5,8 +5,10 @@
 // mid-drop; card A returned and card B borrowed again, from the API's own
 // answers with their status rewritten here, never in the app (real reps would
 // need the model, so faking them keeps this check fast); the waiting and error
-// states, with the cards' request held and answered here; the unsorted
-// phrasings; and the upload history with a delete being confirmed. Then the
+// states, with the cards' request held and answered here, and no plate,
+// since the count is what they wait for; a card that fails to come, keeping
+// the plate of its count; the unsorted phrasings; and the upload history
+// with a delete being confirmed, then failing under the plate. Then the
 // faces, the key drop, focus, pressing, widths, a narrow screen, and reduced
 // motion.
 
@@ -156,11 +158,22 @@ export default async function stack(kit: Kit) {
   };
   await page.route(`**/api/v1/projects/${demo.id}/cards`, fail);
   await kit.open(page, at, ".block .is-waiting");
-  await kit.shoot(page, "stack-waiting");
+  await kit.shoot(page, "stack-waiting", { plate: false });
   release();
   await page.locator(".block .error").waitFor();
-  await kit.shoot(page, "stack-error");
+  await kit.shoot(page, "stack-error", { plate: false });
   await page.unroute(`**/api/v1/projects/${demo.id}/cards`, fail);
+
+  // A card that fails to come, chosen from the margin: the stack already counts its borrows, so the plate holds.
+  const cardFails = (route: Route) => route.fulfill({ status: 500, json: { error: "The server failed." } });
+  await page.route(`**/api/v1/cards/${cardB!.id}`, cardFails);
+  await kit.open(page, at, ".block .rail");
+  await page.locator(".margin .margin-key").nth(1).click();
+  await page.locator(".block .error").waitFor();
+  const kept = await page.locator(".block .plate b").allTextContents();
+  check(kept.join() === String(cardB!.count), `a card that fails to come keeps its plate of ${cardB!.count} (${kept.join() || "none"})`);
+  await kit.shoot(page, "stack-card-error", { plate: true });
+  await page.unroute(`**/api/v1/cards/${cardB!.id}`, cardFails);
 
   // The project's other views.
   await kit.open(page, `${at}?view=unsorted`, ".block table.rows");
@@ -170,6 +183,12 @@ export default async function stack(kit: Kit) {
   await page.getByRole("button", { name: /^Delete the upload of / }).click();
   await page.locator(".block .confirm").waitFor();
   await kit.shoot(page, "project-uploads-confirm");
+  const deleteFails = (route: Route) => (route.request().method() === "DELETE" ? route.fulfill({ status: 500, json: { error: "The server failed." } }) : route.fallback());
+  await page.route("**/api/v1/uploads/*", deleteFails);
+  await page.locator(".block .confirm").getByRole("button", { name: "Delete the upload" }).click();
+  await page.locator(".block .confirm .error").waitFor();
+  await kit.shoot(page, "project-uploads-delete-failed", { plate: true });
+  await page.unroute("**/api/v1/uploads/*", deleteFails);
 
   // A focused control, from the keyboard, and a pressed one.
   await kit.open(page, at, ".block .rail");

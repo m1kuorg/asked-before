@@ -12,8 +12,9 @@
 // card and the stack show it returned with today's date, and opening it
 // again asks the model nothing. On card B, with the model held and
 // refused: starting and checking a rep show the library's waiting words,
-// then an error with a retry, which works; a reload takes the open rep up
-// again without asking the model. It prints
+// then an error with a retry, which works; a reload, or the dashboard's
+// start (?rep=start), takes the open rep up again without asking the model.
+// It prints
 // ids, counts, and the page's words, never phrasing text, and exits 1 if
 // any check fails, naming the step.
 // It needs ANTHROPIC_API_KEY, and makes 4 model calls.
@@ -203,13 +204,17 @@ try {
     check((await body(".block .lesson")) === "Card B's lesson, from the stand-in." && (await body(".block .problem")).startsWith("You committed to the wrong branch"), "the retry brings the lesson and the problem");
   });
 
-  await step("7. A reload takes the open rep up again, without asking the model", async () => {
+  await step("7. A reload, or the dashboard's start, takes the open rep up again, without asking the model", async () => {
     const before = model.requests.length;
     await page.reload();
     await page.locator(".block .problem").waitFor();
     check((await take().count()) === 0, "no Take a cold rep while a rep is open");
     check((await body(".block .problem")).startsWith("You committed to the wrong branch") && (await body(".block .lesson")) === "Card B's lesson, from the stand-in.", "the same problem and lesson");
     check(model.requests.length === before && (await ada.client.cards.get(B.id)).reps.length === 1, `no model request (${model.requests.length - before}), and still one rep`);
+    await page.goto(`${cardAt(B)}?rep=start`);
+    await page.locator(".block .problem").waitFor();
+    check((await body(".block .problem")).startsWith("You committed to the wrong branch") && page.url() === cardAt(B), `the dashboard's start (?rep=start) shows the open rep's problem, and the address drops it (${new URL(page.url()).search || "no query"})`);
+    check(model.requests.length === before && (await ada.client.cards.get(B.id)).reps.length === 1, `it starts no second rep: ${model.requests.length - before} model requests, still one rep`);
   });
 
   await step("8. Checking waits with the answer locked; a failed check, and a failed next rep, each show the error and a retry", async () => {
