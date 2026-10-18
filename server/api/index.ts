@@ -1,9 +1,7 @@
 // The public API's route table, version 1, composed here and only here.
 // Each area of the spec's API table is its own module, built by its own
 // ticket. Anything else under /api/, a path or a method, is a 404
-// (server/http.ts). On Workers (m1kuorg/basics#60), an area joins the table
-// once it's ported; Account's data download and delete come with
-// m1kuorg/basics#63 (server/api/account.ts).
+// (server/http.ts). On Workers (m1kuorg/basics#60), every area is ported.
 
 import type { RouteTable } from "../http";
 import { account } from "./account";
