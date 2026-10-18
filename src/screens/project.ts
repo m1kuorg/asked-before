@@ -18,7 +18,7 @@
 // upload's date, source, your messages, and the new ones, with its delete,
 // after a confirmation that names everything that goes.
 
-import type { Card, CardDetail, Project, StoredPhrasing, Upload } from "@asked-before/sdk";
+import type { Card, CardDetail, Shelf, StoredPhrasing, Upload } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
 import { months, PLATE_CAPTION, phrasing, railEnd, rails } from "../parts/card";
 import { confirmDelete } from "../parts/confirm";
@@ -53,8 +53,8 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
   const view: View = VIEWS[query.get("view") ?? ""] ?? "cards";
   const yearCut = el("p", undefined, "A cut in the rail marks a new year of asking.");
   const privacy = privacyLine();
-  const base = () => Promise.all([client.projects.get(projectId), client.cards.list(projectId)]);
-  const named = (project: Project) => (document.title = `${project.name} · Asked Before`);
+  const base = () => Promise.all([client.shelves.get(projectId), client.cards.list(projectId)]);
+  const named = (project: Shelf) => (document.title = `${project.name} · Asked Before`);
 
   if (view === "unsorted") {
     const heading = el("h1", undefined, "Unsorted phrasings");
@@ -92,7 +92,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
   }
 
   load(block, {
-    keep: [el("h1", undefined, "Project")],
+    keep: [el("h1", undefined, "Shelf")],
     line: "Finding the project's cards…",
     request: async () => {
       const [project, cards] = await base();
@@ -115,7 +115,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
    * keys, most borrowed first, and the privacy line. A key chooses its card;
    * outside the stack it goes there.
    */
-  function drawMargin(project: Project, cards: Card[], choose?: (card: Card, index: number) => void, { withName = true } = {}): HTMLButtonElement[] {
+  function drawMargin(project: Shelf, cards: Card[], choose?: (card: Card, index: number) => void, { withName = true } = {}): HTMLButtonElement[] {
     const keys = cards.map((card, index) => {
       const key = button("", () => (choose ? choose(card, index) : navigate(`${projectPath(project.id)}?card=${encodeURIComponent(card.id)}`)), card.status === "returned" ? "margin-key is-returned" : "margin-key");
       const skill = el("span", undefined, card.skill);
@@ -153,7 +153,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
   }
 
   /** The plate outside the stack: the project's count of cards. */
-  function cardsPlate(project: Project) {
+  function cardsPlate(project: Shelf) {
     return plate(project.counts.cards, project.counts.cards === 1 ? "card" : "cards");
   }
 
@@ -189,7 +189,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
   }
 
   /** The project's unsorted phrasings, newest first: each word for word, with its stamp. */
-  function unsorted(project: Project, heading: HTMLElement, first: Paged<StoredPhrasing>) {
+  function unsorted(project: Shelf, heading: HTMLElement, first: Paged<StoredPhrasing>) {
     const lede = el("p", undefined, `Your phrasings in ${project.name} that nothing else asks yet. Each waits here until a later one asks the same thing, and then they become a card.`);
     const plateOf = cardsPlate(project);
     paged(
@@ -217,7 +217,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
    * Deleting one asks first, in place under its row, then shows the
    * project as it's left, with `reload`.
    */
-  function uploads(project: Project, heading: HTMLElement, first: Paged<Upload>, reload: () => Promise<void>) {
+  function uploads(project: Shelf, heading: HTMLElement, first: Paged<Upload>, reload: () => Promise<void>) {
     const lede = el("p", undefined, `Each chat export uploaded into ${project.name}, newest first, with how many of your messages it held and how many of them were new.`);
     const plateOf = cardsPlate(project);
     let deleting: string | null = null;
@@ -296,7 +296,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
    * none, and the empty state says why, from its latest uploads: there are
    * none, one is still being sorted, or nothing was asked twice yet.
    */
-  function noCards(project: Project, uploads: Upload[]) {
+  function noCards(project: Shelf, uploads: Upload[]) {
     const heading = el("div", "heading", el("h1", undefined, project.name));
     if (project.demo) heading.append(demoLabel());
     drawMargin(project, [], undefined, { withName: false });
@@ -315,7 +315,7 @@ export function mountProject(root: HTMLElement, { client, params, query, navigat
   }
 
   /** The stack: the project's keys in the margin, and the chosen card in the block. */
-  function stack(project: Project, cards: Card[], first: CardDetail) {
+  function stack(project: Shelf, cards: Card[], first: CardDetail) {
     const details = new Map<string, CardDetail>([[first.id, first]]);
     let chosen = first.id;
     const keys = drawMargin(project, cards, (card, index) => void choose(card, index));

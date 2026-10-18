@@ -21,7 +21,7 @@
 // request; the answer stays locked while it's checked, so a retry checks
 // what's on screen.
 
-import type { CardDetail, Project, Rep } from "@asked-before/sdk";
+import type { CardDetail, Shelf, Rep } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
 import { borrowedAgain, flagged, months, PLATE_CAPTION, railEnd, rails } from "../parts/card";
 import { button, el, link } from "../parts/dom";
@@ -58,13 +58,13 @@ export function mountCard(root: HTMLElement, { client, params, query, navigate, 
     line: "Finding the card…",
     request: async () => {
       const card = await client.cards.get(params.cardId);
-      return { card, project: await client.projects.get(card.projectId) };
+      return { card, project: await client.shelves.get(card.shelfId) };
     },
     signal,
     show: ({ card, project }) => setCard(card, project),
   });
 
-  function setCard(first: CardDetail, project: Project) {
+  function setCard(first: CardDetail, project: Shelf) {
     let card = first;
     document.title = `${card.skill} · Asked Before`;
     const step = el("div");
@@ -191,7 +191,7 @@ export function mountCard(root: HTMLElement, { client, params, query, navigate, 
           submit.remove();
           const passed = section("verdict", "Returned", checked.rep.reason ?? "");
           passed.append(el("p", "stamp", "Stamped returned ", stamp(checked.rep.checkedAt!)));
-          const back = button("Back to the stack", () => navigate(`${projectPath(card.projectId)}?card=${encodeURIComponent(card.id)}`));
+          const back = button("Back to the stack", () => navigate(`${projectPath(card.shelfId)}?card=${encodeURIComponent(card.id)}`));
           step.replaceChildren(shown, box, passed, back);
           back.focus({ preventScroll: true });
         });

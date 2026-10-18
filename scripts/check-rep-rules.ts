@@ -17,7 +17,7 @@
 // exits 1 if any check fails, naming the step.
 // Run: bun run check:rep-rules
 
-import { ApiError, createClient, MAX_CHUNK, type Card, type Client, type Phrasing, type Project, type Rep } from "@asked-before/sdk";
+import { ApiError, createClient, MAX_CHUNK, type Card, type Client, type Phrasing, type Shelf, type Rep } from "@asked-before/sdk";
 import { Database } from "bun:sqlite";
 import { key, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
@@ -94,7 +94,7 @@ async function uploadExport(client: Client, projectId: string, source: "chatgpt"
   return sortEnds(client, made.id);
 }
 
-let demo: Project;
+let demo: Shelf;
 /** When card A was first stamped returned. */
 let returnedAt: string | null = null;
 let A: Card;
@@ -105,7 +105,7 @@ const reps: Rep[] = [];
 
 try {
   await step("1. The demo project, sorted as the answer key sorts it", async () => {
-    demo = await ada.client.projects.create({ name: "Demo", demo: true });
+    demo = await ada.client.shelves.create({ name: "Demo", demo: true });
     const sorted = await sortEnds(ada.client, (await upload(ada.client, demo.id, phrasings, "demo-export.json")).id);
     [A, B, C] = (await ada.client.cards.list(demo.id)) as [Card, Card, Card];
     check(sorted.status === "sorted" && A.skill === known.skill && A.status === "borrowed", `card A is "${A.skill}", ${A.status}, ${A.count} borrows`);
@@ -157,7 +157,7 @@ try {
     check(card.returnedAt?.slice(0, 10) === today(), `the stamp is today, ${today()}`);
     const listed = (await ada.client.cards.list(demo.id)).find((c) => c.id === A.id);
     check(listed?.status === "returned" && listed.returnedAt === rep.checkedAt, `the stack lists it ${listed?.status}`);
-    const { counts } = await ada.client.projects.get(demo.id);
+    const { counts } = await ada.client.shelves.get(demo.id);
     check(counts.returned === 1 && counts.borrowed === key.skills.length - 1 && counts.borrowedAgain === 0, `the project counts ${JSON.stringify(counts)}`);
   });
 
@@ -195,7 +195,7 @@ try {
     check(sorted.status === "sorted" && card.count === key.skills[0]!.count + 1 && card.borrows.at(-1)?.text === newer, `the phrasing joins card A: ${card.count} borrows`);
     check(card.status === "borrowed_again" && card.returnedAt === returnedAt && Date.parse(card.lastBorrowAt) > Date.parse(card.returnedAt!), `card A is ${card.status}: borrowed ${card.lastBorrowAt}, after its return stamp ${card.returnedAt}`);
     const listed = (await ada.client.cards.list(demo.id)).find((c) => c.id === A.id);
-    const { counts } = await ada.client.projects.get(demo.id);
+    const { counts } = await ada.client.shelves.get(demo.id);
     check(listed?.status === "borrowed_again" && counts.borrowedAgain === 1 && counts.returned === 0, `the stack lists it ${listed?.status}; the project counts ${JSON.stringify(counts)}`);
     const { card: after } = await answer(ada.client, reps[4]!.id, known.right, "pass", "You reset the commit and keep your edits in your files.");
     check(after.status === "returned" && Date.parse(after.returnedAt!) > Date.parse(card.lastBorrowAt), `a fresh pass returns it again, stamped ${after.returnedAt}`);
@@ -271,7 +271,7 @@ try {
     try {
       const cy = capped.browser();
       await cy.client.auth.signUp({ name: "Cy Example", email: "cy@example.com", password: "jacquard loom" });
-      const project = await cy.client.projects.create({ name: "Demo", demo: true });
+      const project = await cy.client.shelves.create({ name: "Demo", demo: true });
       await sortEnds(cy.client, (await upload(cy.client, project.id, phrasings)).id);
       const [first] = await cy.client.cards.list(project.id);
       await start(cy.client, first!.id, "A capped problem.", "A capped lesson.");
@@ -289,7 +289,7 @@ try {
 
   await step("12. Deleting an upload that leaves a card under two borrows deletes the card and its reps", async () => {
     const half = 13;
-    const work = await ada.client.projects.create({ name: "Work" });
+    const work = await ada.client.shelves.create({ name: "Work" });
     await sortEnds(ada.client, (await upload(ada.client, work.id, phrasings.slice(0, half), "march.json")).id);
     const second = await sortEnds(ada.client, (await upload(ada.client, work.id, phrasings.slice(half), "september.json")).id);
     const inFirst = (ids: string[]) => ids.filter((id) => Number(id.slice(1)) <= half).length;

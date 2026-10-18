@@ -90,7 +90,7 @@ const mcps: Client[] = [];
 try {
   const ada = app.browser().client;
   await ada.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
-  const demo = await ada.projects.create({ name: "Demo", demo: true });
+  const demo = await ada.shelves.create({ name: "Demo", demo: true });
   await sortEnds(ada, (await upload(ada, demo.id, phrasings, "demo-export.json")).id);
   demoSorted = true;
   const { key: apiKey } = await ada.keys.create({ name: "Claude Code" });
@@ -193,7 +193,7 @@ try {
     check(twice.isError && /checked already/.test(twice.text), `checking the rep again: ${twice.text}`);
     const missing = await call(mcp, "start_cold_rep", { card_id: "no-such-card" });
     check(missing.isError && missing.text === "There's no such card.", `a card that isn't there: ${missing.text}`);
-    await ada.projects.create({ name: "Work" });
+    await ada.shelves.create({ name: "Work" });
     const unnamed = await call(mcp, "record_question", { question: "how do I squash commits" });
     check(unnamed.isError && /Say which project/.test(unnamed.text) && /"Demo", "Work"|"Work", "Demo"/.test(unnamed.text) && unnamed.text.includes(MCP_ENV.project), `no project and no default: ${unnamed.text}`);
     const nope = await call(mcp, "list_cards", { project: "Bootcamp" });

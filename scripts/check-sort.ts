@@ -60,7 +60,7 @@ try {
         const problems: string[] = [];
         let lines: string[] = [];
         try {
-          const project = await s.client.projects.create({ name: `${s.name}, run ${run}` });
+          const project = await s.client.shelves.create({ name: `${s.name}, run ${run}` });
           const ends = await s.run(s.client, project.id);
           for (const end of ends) if (end.status !== "sorted") problems.push(`an upload's sort ${end.status}: ${end.error}`);
           if (!problems.length) {

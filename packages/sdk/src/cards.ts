@@ -1,5 +1,5 @@
-// Cards: list a project's cards with their status, get one card with its
-// borrows and reps, and list a project's unsorted phrasings
+// Cards: list a shelf's cards with their status, get one card with its
+// borrows and reps, and list a shelf's unsorted phrasings
 // (m1kuorg/basics#44). A card is one skill you asked about more than once;
 // the sort makes it from your phrasings, and its count, stamps, and status
 // all come from those phrasings' own times and its reps, never from the model.
@@ -12,7 +12,7 @@ export type CardStatus = "borrowed" | "returned" | "borrowed_again";
 
 export type Card = {
   id: string;
-  projectId: string;
+  shelfId: string;
   /** What its phrasings ask how to do, such as "Undo a git commit". */
   skill: string;
   status: CardStatus;
@@ -41,12 +41,12 @@ export type Borrow = StoredPhrasing;
 /** A card with its lesson (null until its first cold rep), every borrow, oldest first, and its reps, oldest first. */
 export type CardDetail = Card & { lesson: string | null; borrows: Borrow[]; reps: Rep[] };
 
-/** One page of a project's unsorted phrasings, newest first: those a sort has seen that aren't on a card, because nothing else so far asks the same thing. Pass `next` as the cursor for the page after; it's null on the last. */
+/** One page of a shelf's unsorted phrasings, newest first: those a sort has seen that aren't on a card, because nothing else so far asks the same thing. Pass `next` as the cursor for the page after; it's null on the last. */
 export type UnsortedPage = { phrasings: StoredPhrasing[]; next: string | null };
 
 export const cards = (request: Requester) => ({
-  /** The project's cards, most borrowed first, ties to the later last borrow. */
-  list: (projectId: string) => request<{ cards: Card[] }>("GET", path`/projects/${projectId}/cards`).then((body) => body.cards),
+  /** The shelf's cards, most borrowed first, ties to the later last borrow. */
+  list: (shelfId: string) => request<{ cards: Card[] }>("GET", path`/shelves/${shelfId}/cards`).then((body) => body.cards),
   get: (cardId: string) => request<CardDetail>("GET", path`/cards/${cardId}`),
-  unsorted: (projectId: string, page: PageOptions = {}) => request<UnsortedPage>("GET", paged(path`/projects/${projectId}/unsorted`, page)),
+  unsorted: (shelfId: string, page: PageOptions = {}) => request<UnsortedPage>("GET", paged(path`/shelves/${shelfId}/unsorted`, page)),
 });

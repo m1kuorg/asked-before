@@ -56,9 +56,9 @@ export default async function shell(kit: Kit) {
   await kit.shoot(page, "projects-failed");
   await page.unroute("**/api/v1/projects", hold);
 
-  const work = await learner.client.projects.create({ name: "Work" });
-  await learner.client.projects.create({ name: "Bootcamp: evening classes in data analysis at the community college", demo: true });
-  await learner.client.projects.create({ name: "Side projects" });
+  const work = await learner.client.shelves.create({ name: "Work" });
+  await learner.client.shelves.create({ name: "Bootcamp: evening classes in data analysis at the community college", demo: true });
+  await learner.client.shelves.create({ name: "Side projects" });
   await page.getByRole("button", { name: "Try again" }).click();
   await page.locator("table.rows").waitFor();
   check((await page.locator("table.rows tbody tr").count()) === 3, "after the retry, the list holds the three projects");

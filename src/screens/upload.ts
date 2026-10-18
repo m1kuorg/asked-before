@@ -14,7 +14,7 @@
 // comes here with ?export=demo, which reads the demo export with the same
 // reader and uploads it through the same endpoints at once.
 
-import { ExportError, MAX_CHUNK, MAX_PHRASING_LENGTH, readExport, type Client, type Project, type ReadExport, type Upload } from "@asked-before/sdk";
+import { ExportError, MAX_CHUNK, MAX_PHRASING_LENGTH, readExport, type Client, type Shelf, type ReadExport, type Upload } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
 import { button, el, link } from "../parts/dom";
 import { dropZone } from "../parts/drop-zone";
@@ -29,7 +29,7 @@ const plural = (n: number, one: string, many: string) => `${count(n)} ${n === 1 
 
 /** The demo action: a project flagged demo, then its upload page, which uploads the demo export into it. */
 export async function startDemoProject(client: Client, navigate: ScreenProps["navigate"]): Promise<void> {
-  const project = await client.projects.create({ name: "Demo", demo: true });
+  const project = await client.shelves.create({ name: "Demo", demo: true });
   navigate(`${uploadPath(project.id)}?export=demo`);
 }
 
@@ -54,7 +54,7 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
   load(block, {
     keep: [heading],
     line: "Finding the project…",
-    request: () => Promise.all([client.projects.get(params.projectId), uploadId ? client.uploads.get(uploadId) : null]),
+    request: () => Promise.all([client.shelves.get(params.projectId), uploadId ? client.uploads.get(uploadId) : null]),
     signal,
     show: ([project, upload]) => {
       document.title = `Upload into ${project.name} · Asked Before`;
@@ -65,7 +65,7 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
         if (!signal.aborted) block.replaceChildren(...top, ...children);
       };
 
-      if (upload && upload.projectId === project.id) return done(upload);
+      if (upload && upload.shelfId === project.id) return done(upload);
       if (query.get("export") === "demo" && project.demo) return void demo();
       choose();
 

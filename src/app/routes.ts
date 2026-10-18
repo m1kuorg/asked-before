@@ -15,7 +15,7 @@ import { route } from "./router";
 export const ROUTES = [
   route("dashboard", "/app", "dashboard", "Dashboard", mountDashboard),
   route("projects", "/app/projects", "projects", "Projects", mountProjects),
-  route("project", "/app/projects/:projectId", "projects", "Project", mountProject),
+  route("project", "/app/projects/:projectId", "projects", "Shelf", mountProject),
   route("upload", "/app/projects/:projectId/upload", "projects", "Upload a chat export", mountUpload),
   route("card", "/app/cards/:cardId", "projects", "Card", mountCard),
   route("settings", "/app/settings", "settings", "Settings", mountSettings),

@@ -73,7 +73,7 @@ async function send(projectId: string, file: string) {
   await page.waitForURL(/[?&]upload=/);
 }
 
-const project = await learner.client.projects.create({ name: "Bootcamp" });
+const project = await learner.client.shelves.create({ name: "Bootcamp" });
 const held = hold();
 model.queue(reply(keySorter), held.answer);
 

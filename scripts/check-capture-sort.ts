@@ -55,7 +55,7 @@ for (let run = 1; run <= runs; run++) {
   try {
     const { client } = app.browser();
     await client.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
-    const demo = await client.projects.create({ name: "Demo", demo: true });
+    const demo = await client.shelves.create({ name: "Demo", demo: true });
     await sortEnds(client, (await upload(client, demo.id, phrasings, "demo-export.json")).id);
     demoSorted = true;
     console.log(`\nRun ${run} of ${runs}`);

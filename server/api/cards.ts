@@ -1,25 +1,25 @@
-// Cards: list a project's cards with their status, list its unsorted
+// Cards: list a shelf's cards with their status, list its unsorted
 // phrasings a page at a time, and get one card with its borrows and reps
 // (m1kuorg/basics#44). The sort (server/sort.ts) makes the cards; these
-// only read them. Another account's project or card is a 404.
+// only read them. Another account's shelf or card is a 404.
 
 import { authed } from "../auth";
 import { defineRoutes, HttpError, readPage } from "../http";
 import { getCard, listCards, listUnsorted } from "../store/cards";
 
 export const cards = defineRoutes({
-  "/api/v1/projects/:projectId/cards": {
+  "/api/v1/shelves/:shelfId/cards": {
     GET: authed((req, auth) => {
-      const cards = listCards(auth.userId, req.params.projectId);
-      if (!cards) throw new HttpError(404, "There's no such project.");
+      const cards = listCards(auth.userId, req.params.shelfId);
+      if (!cards) throw new HttpError(404, "There's no such shelf.");
       return Response.json({ cards });
     }),
   },
-  "/api/v1/projects/:projectId/unsorted": {
+  "/api/v1/shelves/:shelfId/unsorted": {
     GET: authed((req, auth) => {
       const { limit, cursor } = readPage(req);
-      const page = listUnsorted(auth.userId, req.params.projectId, limit, cursor);
-      if (!page) throw new HttpError(404, "There's no such project.");
+      const page = listUnsorted(auth.userId, req.params.shelfId, limit, cursor);
+      if (!page) throw new HttpError(404, "There's no such shelf.");
       return Response.json(page);
     }),
   },

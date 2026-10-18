@@ -84,14 +84,14 @@ async function sorted(client: Client, projectId: string, list: Phrasing[], fileN
 
 // Ada: the demo project, its card A returned by one passed cold rep, and a Work project with
 // one unsorted phrasing and an upload still receiving, whose phrasing waits for its sort.
-const demo = await ada.client.projects.create({ name: "Demo export", demo: true });
+const demo = await ada.client.shelves.create({ name: "Demo export", demo: true });
 const demoUpload = await sorted(ada.client, demo.id, demoPhrasings, "export.json");
 const cardA = (await ada.client.cards.list(demo.id))[0]!;
 model.queue(repReply("A stand-in's problem.", "A stand-in's lesson."), verdictReply("pass", "A stand-in's reason."));
 const rep = (await ada.client.reps.start(cardA.id)).rep;
 const passed = await ada.client.reps.check(rep.id, { answer: known.right });
 
-const work = await ada.client.projects.create({ name: "Work" });
+const work = await ada.client.shelves.create({ name: "Work" });
 const lone = (await smallExport([{ text: "How do I rotate a PDF page?", time: new Date("2026-09-01T10:00:00Z") }])).phrasings;
 await sorted(ada.client, work.id, lone, "lone.json");
 const receiving = await ada.client.uploads.create(work.id, { source: "claude", fileName: "half-sent.json" });
@@ -101,7 +101,7 @@ sent.set(receiving.id, waiting);
 const adaKey = await ada.client.keys.create({ name: "Laptop" });
 
 // Bea: one project of her own.
-const beaWork = await bea.client.projects.create({ name: "Bea's work" });
+const beaWork = await bea.client.shelves.create({ name: "Bea's work" });
 const beaAsks = (await smallExport([
   { text: "How do I center a div?", time: new Date("2026-08-01T09:00:00Z") },
   { text: "What's the way to center a div horizontally?", time: new Date("2026-08-03T09:00:00Z") },
@@ -136,10 +136,10 @@ async function allUnsorted(client: Client, projectId: string) {
 async function matchesApi(client: Client, data: AccountData) {
   check(same(data.account, await client.auth.me()), `the account is the current account: ${data.account.email}`);
   check(!Number.isNaN(Date.parse(data.exportedAt)) && Math.abs(Date.now() - Date.parse(data.exportedAt)) < 60_000, `it says when it was made: ${data.exportedAt}`);
-  const listed = await client.projects.list();
-  check(same(data.projects.map((p) => p.id), listed.map((p) => p.id)), `every project, oldest first: ${data.projects.map((p) => p.name).join(", ")}`);
+  const listed = await client.shelves.list();
+  check(same(data.shelves.map((p) => p.id), listed.map((p) => p.id)), `every project, oldest first: ${data.shelves.map((p) => p.name).join(", ")}`);
 
-  for (const project of data.projects) {
+  for (const project of data.shelves) {
     const { uploads, phrasings, cards, ...shown } = project;
     const name = `"${project.name}"`;
     check(same(shown, listed.find((p) => p.id === project.id)), `${name} is as projects.list shows it: ${project.counts.cards} cards, ${project.counts.returned} returned`);
@@ -181,7 +181,7 @@ await step("1. The download holds the account, and every project, upload, phrasi
   const data = await ada.client.account.export();
   await matchesApi(ada.client, data);
 
-  const demoData = data.projects.find((p) => p.id === demo.id)!;
+  const demoData = data.shelves.find((p) => p.id === demo.id)!;
   check(demoData.demo === true, "the demo project says it's demo data");
   check(demoData.phrasings.length === demoPhrasings.length && demoData.uploads[0]?.id === demoUpload.id, `the demo project holds the demo export's ${demoPhrasings.length} phrasings`);
   const a = demoData.cards.find((c) => c.id === cardA.id);
@@ -190,7 +190,7 @@ await step("1. The download holds the account, and every project, upload, phrasi
   check(a?.reps.length === 1 && held?.verdict === "pass" && held.answer === known.right && held.reason === "A stand-in's reason." && held.problem === "A stand-in's problem.", "card A's one cold rep holds its problem, the answer, the pass, and the reason");
   check(a?.lesson === "A stand-in's lesson.", "card A holds its lesson");
 
-  const workData = data.projects.find((p) => p.id === work.id)!;
+  const workData = data.shelves.find((p) => p.id === work.id)!;
   const pending = workData.phrasings.find((p) => p.uploadId === receiving.id);
   check(pending !== undefined && pending.cardId === null, "the phrasing still waiting for its sort is there too");
 
@@ -209,7 +209,7 @@ await step("2. Only a session downloads the data: a key gets 403, and no one at 
   check(raw.status === 200 && /^application\/json/.test(raw.headers.get("content-type") ?? "") && raw.headers.get("cache-control") === "no-store", `the answer is JSON, never cached: ${raw.status}, ${raw.headers.get("content-type")}, ${raw.headers.get("cache-control")}`);
 
   const beas = await bea.client.account.export();
-  check(beas.projects.length === 1 && beas.projects[0]!.id === beaWork.id && beas.account.email === BEA.email, `Bea's download holds only her own project: ${beas.projects.map((p) => p.name).join(", ")}`);
+  check(beas.shelves.length === 1 && beas.shelves[0]!.id === beaWork.id && beas.account.email === BEA.email, `Bea's download holds only her own project: ${beas.shelves.map((p) => p.name).join(", ")}`);
   await matchesApi(bea.client, beas);
 });
 
@@ -233,7 +233,7 @@ await step("3. Deleting the account needs a session, from the page's origin, and
     body: JSON.stringify({ password: ADA.password }),
   });
   check(forged.status === 403, `from another site's page: ${forged.status} ${JSON.stringify(await forged.json().catch(() => null))}`);
-  check((await ada.client.auth.me()).email === ADA.email && (await ada.client.projects.list()).length === 2, "none of them deleted anything");
+  check((await ada.client.auth.me()).email === ADA.email && (await ada.client.shelves.list()).length === 2, "none of them deleted anything");
 });
 
 await step("4. Deleted, the account and everything in it are gone, every session ends, and logging in fails", async () => {
@@ -247,7 +247,7 @@ await step("4. Deleted, the account and everything in it are gone, every session
   check(here?.status === 401, `this browser is logged out: ${say(here)}`);
   const elsewhere = await failure(other.client.auth.me());
   check(elsewhere?.status === 401, `another browser is logged out: ${say(elsewhere)}`);
-  const key = await failure(withKey(adaKey.key).projects.list());
+  const key = await failure(withKey(adaKey.key).shelves.list());
   check(key?.status === 401, `the account's API key: ${say(key)}`);
   const login = await failure(app.browser().client.auth.logIn({ email: ADA.email, password: ADA.password }));
   check(login?.status === 401, `logging in: ${say(login)}`);
@@ -257,7 +257,7 @@ await step("4. Deleted, the account and everything in it are gone, every session
   try {
     const left = (table: string, column: string, ids: string[]) =>
       ids.length ? (store.query(`SELECT count(*) AS n FROM ${table} WHERE ${column} IN (${ids.map(() => "?").join(", ")})`).get(...ids) as { n: number }).n : 0;
-    const projects = before.projects;
+    const projects = before.shelves;
     const counts = {
       users: left("users", "id", [before.account.id]),
       sessions: left("sessions", "user_id", [before.account.id]),
@@ -277,12 +277,12 @@ await step("4. Deleted, the account and everything in it are gone, every session
   }
 
   const beaAfter = await bea.client.account.export();
-  check(beaBefore !== null && same(withoutTime(beaAfter), withoutTime(beaBefore)), `Bea's data is untouched: ${beaAfter.projects.map((p) => `${p.name}, ${p.phrasings.length} phrasings`).join("; ")}`);
+  check(beaBefore !== null && same(withoutTime(beaAfter), withoutTime(beaBefore)), `Bea's data is untouched: ${beaAfter.shelves.map((p) => `${p.name}, ${p.phrasings.length} phrasings`).join("; ")}`);
   check((await app.browser().client.auth.logIn({ email: BEA.email, password: BEA.password })).account.email === BEA.email, "Bea still logs in");
 
   const again = app.browser();
   const fresh = await again.client.auth.signUp(ADA);
-  check(fresh.account.id !== before.account.id && (await again.client.projects.list()).length === 0 && (await again.client.keys.list()).length === 0, "Ada's email can sign up again, to an empty account");
+  check(fresh.account.id !== before.account.id && (await again.client.shelves.list()).length === 0 && (await again.client.keys.list()).length === 0, "Ada's email can sign up again, to an empty account");
   await again.client.account.delete({ password: ADA.password });
 });
 
@@ -297,7 +297,7 @@ await step("5. The app logged none of the phrasings, and no password", async () 
 const CY = { name: "Cy Example", email: "cy@example.com", password: "a third long password" };
 const cy = app.browser();
 await cy.client.auth.signUp(CY);
-const cyNotes = await cy.client.projects.create({ name: "Notes" });
+const cyNotes = await cy.client.shelves.create({ name: "Notes" });
 const cyAsks = (await smallExport([{ text: "How do I split a PDF?", time: new Date("2026-07-01T08:00:00Z") }])).phrasings;
 await sorted(cy.client, cyNotes.id, cyAsks, "cy.json");
 
@@ -326,7 +326,7 @@ page.on("console", (message) => {
 page.on("pageerror", (error) => consoleErrors.push(error.message));
 
 const section = (name: string) => page.locator("section", { has: page.getByRole("heading", { name, exact: true, level: 2 }) });
-const stillThere = async () => (await cy.client.auth.me()).email === CY.email && (await cy.client.projects.list()).length === 1;
+const stillThere = async () => (await cy.client.auth.me()).email === CY.email && (await cy.client.shelves.list()).length === 1;
 
 try {
   await step("6. In settings, Download your data saves one JSON file, the same as the SDK's", async () => {
@@ -338,7 +338,7 @@ try {
     const name = download.suggestedFilename();
     check(name === `asked-before-${today}.json`, `the file is named for today, in the learner's own time zone: ${name}`);
     const file = JSON.parse(await Bun.file((await download.path())!).text()) as AccountData;
-    check(same(withoutTime(file), withoutTime(await cy.client.account.export())), `it holds what the SDK downloads: ${file.projects.map((p) => `${p.name}, ${p.phrasings.length} phrasings`).join("; ")}`);
+    check(same(withoutTime(file), withoutTime(await cy.client.account.export())), `it holds what the SDK downloads: ${file.shelves.map((p) => `${p.name}, ${p.phrasings.length} phrasings`).join("; ")}`);
     const said = await data.locator("[role=status]").textContent();
     check(said?.includes(name) ?? false, `the section says so: "${said}"`);
     await screenshot("data-downloaded");

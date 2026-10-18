@@ -51,6 +51,6 @@ export function accountData(userId: string): AccountData | null {
         return { ...card, lesson, reps };
       }),
     }));
-    return { exportedAt: iso(Date.now()), account, projects: shelves };
+    return { exportedAt: iso(Date.now()), account, shelves };
   })();
 }

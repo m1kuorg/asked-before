@@ -20,7 +20,7 @@
 // It needs ANTHROPIC_API_KEY, and makes 4 model calls.
 // Run: bun run check:card-page [screenshot dir]
 
-import type { Card, Project } from "@asked-before/sdk";
+import type { Card, Shelf } from "@asked-before/sdk";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -54,7 +54,7 @@ const browser = await chromium.launch();
 
 const ada = app.browser();
 await ada.client.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
-const demo: Project = await ada.client.projects.create({ name: "Demo", demo: true });
+const demo: Shelf = await ada.client.shelves.create({ name: "Demo", demo: true });
 await sortEnds(ada.client, (await upload(ada.client, demo.id, phrasings, "demo-export.json")).id);
 const [A, B] = (await ada.client.cards.list(demo.id)) as [Card, Card];
 

@@ -58,6 +58,6 @@ export function paged(path: string, { limit, cursor }: PageOptions): string {
   return query.size ? `${path}?${query}` : path;
 }
 
-/** A path with every interpolated value encoded as one segment: path`/projects/${id}`. */
+/** A path with every interpolated value encoded as one segment: path`/shelves/${id}`. */
 export const path = (strings: TemplateStringsArray, ...values: string[]) =>
   String.raw({ raw: strings }, ...values.map(encodeURIComponent));

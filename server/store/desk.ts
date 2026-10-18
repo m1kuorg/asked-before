@@ -3,7 +3,7 @@
 // the card_status view, as the shelves' own counts do, so the totals add
 // up to theirs. Every query is scoped by the owner.
 
-import type { Dashboard, DashboardBorrow, DashboardCard, DashboardProject } from "@asked-before/sdk";
+import type { Desk, DeskBorrow, DeskCard, DeskShelf } from "@asked-before/sdk";
 import { CARD_COLUMNS, CARD_TABLES, toCard, type CardRow } from "./cards";
 import { db, iso } from "./db";
 import { STATUS_COUNTS } from "./shelves";
@@ -13,11 +13,11 @@ const LIST = 10;
 
 type ShelfColumns = { shelf_name: string; shelf_demo: 0 | 1 };
 
-const shelfOf = (row: { shelf_id: string } & ShelfColumns): DashboardProject => ({ id: row.shelf_id, name: row.shelf_name, demo: row.shelf_demo === 1 });
+const shelfOf = (row: { shelf_id: string } & ShelfColumns): DeskShelf => ({ id: row.shelf_id, name: row.shelf_name, demo: row.shelf_demo === 1 });
 
 const CARDS = `SELECT ${CARD_COLUMNS}, sh.name AS shelf_name, sh.demo AS shelf_demo ${CARD_TABLES} WHERE sh.user_id = $userId`;
 
-const toDeskCard = (row: CardRow & ShelfColumns): DashboardCard => ({ ...toCard(row), project: shelfOf(row) });
+const toDeskCard = (row: CardRow & ShelfColumns): DeskCard => ({ ...toCard(row), shelf: shelfOf(row) });
 
 type BorrowRow = {
   id: string;
@@ -26,11 +26,11 @@ type BorrowRow = {
   time: number;
   card_id: string;
   skill: string;
-  status: DashboardBorrow["card"]["status"];
+  status: DeskBorrow["card"]["status"];
   shelf_id: string;
 } & ShelfColumns;
 
-export function getDesk(userId: string): Dashboard {
+export function getDesk(userId: string): Desk {
   const { shelves } = db.query("SELECT count(*) AS shelves FROM shelves WHERE user_id = $userId").get({ userId }) as { shelves: number };
   const totals = db
     .query(
@@ -38,7 +38,7 @@ export function getDesk(userId: string): Dashboard {
        FROM card_status s JOIN shelves sh ON sh.id = s.shelf_id
        WHERE sh.user_id = $userId`,
     )
-    .get({ userId }) as Dashboard["totals"];
+    .get({ userId }) as Desk["totals"];
 
   const mostBorrowed = db
     .query(`${CARDS} AND s.status <> 'returned' ORDER BY s.borrows DESC, s.last_borrow_at DESC, c.id LIMIT ${LIST}`)
@@ -62,17 +62,17 @@ export function getDesk(userId: string): Dashboard {
     .all({ userId }) as BorrowRow[];
 
   return {
-    projects: shelves,
+    shelves,
     totals,
     mostBorrowed: mostBorrowed.map(toDeskCard),
     latestBorrows: latestBorrows.map(
-      (row): DashboardBorrow => ({
+      (row): DeskBorrow => ({
         id: row.id,
         sourceId: row.source_id,
         text: row.text,
         time: iso(row.time),
         card: { id: row.card_id, skill: row.skill, status: row.status },
-        project: shelfOf(row),
+        shelf: shelfOf(row),
       }),
     ),
     latestReturns: latestReturns.map(toDeskCard),

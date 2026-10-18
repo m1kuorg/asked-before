@@ -21,7 +21,7 @@ const DEMO = join(ROOT, "demo", "export.json");
 
 export default async function upload(kit: Kit) {
   const { check, learner } = kit;
-  const project = await learner.client.projects.create({ name: "Bootcamp" });
+  const project = await learner.client.shelves.create({ name: "Bootcamp" });
   const at = `/app/projects/${project.id}/upload`;
   const page = await kit.page({ loggedIn: true });
   const uploadButton = page.locator(".block").getByRole("button", { name: /^Upload / });

@@ -18,7 +18,7 @@
 // if any check fails, naming the step.
 // Run: bun run check:project [screenshot dir]
 
-import { ApiError, createClient, type Project, type Upload } from "@asked-before/sdk";
+import { ApiError, createClient, type Shelf, type Upload } from "@asked-before/sdk";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -140,7 +140,7 @@ async function failure(call: Promise<unknown>): Promise<ApiError | null> {
 }
 const say = (error: ApiError | null) => (error ? `${error.status} "${error.message}"` : "no error");
 
-let demo: Project;
+let demo: Shelf;
 
 try {
   await step("1. The demo project's stack: cards A to E in the key's order, card A in the block, labeled as demo data", async () => {
@@ -149,7 +149,7 @@ try {
     await page.locator(".block .upload-done p", { hasText: /sorted into Demo's cards\.$/ }).waitFor({ timeout: 60_000 });
     await page.getByRole("link", { name: "Go to Demo" }).click();
     await page.locator(".margin .margin-key").first().waitFor();
-    [demo] = (await ada.client.projects.list()) as [Project];
+    [demo] = (await ada.client.shelves.list()) as [Shelf];
     check(demo.demo && new URL(page.url()).pathname === `/app/projects/${demo.id}`, `on the demo project's page (${new URL(page.url()).pathname})`);
 
     const keys = await marginKeys();
@@ -259,7 +259,7 @@ try {
     check((await page.locator(".block").getByRole("button", { name: "Show more" }).count()) === 0, "one page holds them all");
 
     // A project with more unsorted phrasings than a page holds: phrasings of the learner's that the key sorts nowhere.
-    const scratch = await ada.client.projects.create({ name: "Scratch" });
+    const scratch = await ada.client.shelves.create({ name: "Scratch" });
     const loose = Array.from({ length: 60 }, (_, i) => ({ sourceId: `loose-${i}`, text: `how do i do thing number ${i}`, time: new Date(Date.UTC(2026, 0, 1, 0, i)).toISOString() }));
     const made = await upload(ada.client, scratch.id, loose);
     await sortEnds(ada.client, made.id);
@@ -291,10 +291,10 @@ try {
   // The demo export in two halves, as two uploads: the second brings the rest of every card's borrows.
   const half = 13;
   const firstHalf = phrasings.slice(0, half);
-  let work: Project;
+  let work: Shelf;
   let second: Upload;
   await step("6. Delete the second of two uploads, after its confirmation: its borrows go, and any card left under two", async () => {
-    work = await ada.client.projects.create({ name: "Work" });
+    work = await ada.client.shelves.create({ name: "Work" });
     const first = await upload(ada.client, work.id, firstHalf, "march.json");
     await sortEnds(ada.client, first.id);
     second = await upload(ada.client, work.id, phrasings.slice(half), "september.json");
@@ -363,7 +363,7 @@ try {
   });
 
   await step("8. A project with no cards says why: nothing uploaded, a sort under way, or nothing asked twice yet", async () => {
-    const empty = await ada.client.projects.create({ name: "Day job" });
+    const empty = await ada.client.shelves.create({ name: "Day job" });
     const at = `${app.url}/app/projects/${empty.id}`;
     const said = async () => {
       await page.goto(at);

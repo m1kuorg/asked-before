@@ -8,7 +8,7 @@
 // is a tool error carrying Asked Before's message. Nothing goes to stdout
 // but the protocol.
 
-import { ApiError, createClient, MAX_PHRASING_LENGTH, type Card, type CardStatus, type Project } from "@asked-before/sdk";
+import { ApiError, createClient, MAX_PHRASING_LENGTH, type Card, type CardStatus, type Shelf } from "@asked-before/sdk";
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { z } from "zod";
@@ -31,7 +31,7 @@ When the learner asks you how to do something, record their question with record
 const STATUS: Record<CardStatus, string> = { borrowed: "borrowed", returned: "returned", borrowed_again: "borrowed again" };
 
 /** A card as a tool gives it: the SDK's Card, less its project's id, which the tool gives once. */
-type CardOutput = Omit<Card, "projectId">;
+type CardOutput = Omit<Card, "shelfId">;
 const CardOut = z.object({
   id: z.string(),
   skill: z.string(),
@@ -52,8 +52,8 @@ const day = (iso: string) => iso.slice(0, 10);
 const times = (n: number) => (n === 1 ? "once" : `${n} times`);
 const status = (card: Card) => (card.status === "returned" ? `returned ${day(card.returnedAt!)}` : STATUS[card.status]);
 const cardLine = (card: Card) => `"${card.skill}": borrowed ${times(card.count)}, first ${day(card.firstBorrowAt)}, last ${day(card.lastBorrowAt)}; ${status(card)}. Card id ${card.id}.`;
-const cardOut = ({ projectId, ...card }: Card): CardOutput => card;
-const projectRef = ({ id, name }: Project) => ({ id, name });
+const cardOut = ({ shelfId, ...card }: Card): CardOutput => card;
+const projectRef = ({ id, name }: Shelf) => ({ id, name });
 
 /** A tool's answer: a text for the agent, and the same facts as structured content. */
 const toolResult = <T extends Record<string, unknown>>(text: string, structuredContent: T) => ({ content: [{ type: "text" as const, text }], structuredContent });
@@ -69,13 +69,13 @@ async function callApi<T>(call: () => Promise<T>): Promise<T> {
   }
 }
 
-const listNames = (projects: Project[]) => (projects.length ? projects.map((p) => `"${p.name}"`).join(", ") : "none yet");
+const listNames = (projects: Shelf[]) => (projects.length ? projects.map((p) => `"${p.name}"`).join(", ") : "none yet");
 /** The project with the id `wanted`, or else with that name, ignoring case. */
-const projectNamed = (projects: Project[], wanted: string) => projects.find((p) => p.id === wanted) ?? projects.find((p) => p.name.toLowerCase() === wanted.toLowerCase());
+const projectNamed = (projects: Shelf[], wanted: string) => projects.find((p) => p.id === wanted) ?? projects.find((p) => p.name.toLowerCase() === wanted.toLowerCase());
 
 /** The project a call names, by id or name, or else the default one. */
-async function projectFor(given: string | undefined): Promise<Project> {
-  const projects = await callApi(() => api.projects.list());
+async function projectFor(given: string | undefined): Promise<Shelf> {
+  const projects = await callApi(() => api.shelves.list());
   const wanted = given?.trim() || defaultProject;
   if (!wanted) throw new Error(`Say which project: the learner's projects are ${listNames(projects)}. Or set ${MCP_ENV.project} to pick a default.`);
   const found = projectNamed(projects, wanted);
@@ -100,11 +100,11 @@ function build(): McpServer {
       annotations: { readOnlyHint: true },
     },
     async () => {
-      const projects = await callApi(() => api.projects.list());
+      const projects = await callApi(() => api.shelves.list());
       const fallback = defaultProject ? projectNamed(projects, defaultProject) : undefined;
       const lines = projects.map(
         (p) =>
-          `- "${p.name}"${p.demo ? " (demo data)" : ""}: ${p.counts.cards} cards, ${p.counts.borrowed} borrowed, ${p.counts.returned} returned, ${p.counts.borrowedAgain} borrowed again. Project id ${p.id}.`,
+          `- "${p.name}"${p.demo ? " (demo data)" : ""}: ${p.counts.cards} cards, ${p.counts.borrowed} borrowed, ${p.counts.returned} returned, ${p.counts.borrowedAgain} borrowed again. Shelf id ${p.id}.`,
       );
       const which = fallback ? `The default project is "${fallback.name}".` : "No default project is set, so name one in each call.";
       return toolResult(projects.length ? `The learner's projects:\n${lines.join("\n")}\n${which}` : "The learner has no projects yet. They make one in Asked Before.", {

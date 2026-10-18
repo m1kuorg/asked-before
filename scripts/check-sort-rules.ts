@@ -16,7 +16,7 @@
 // names, never phrasing text, and exits 1 if any fails, naming the step.
 // Run: bun run check:sort-rules
 
-import { ApiError, createClient, type Client, type Phrasing, type Project } from "@asked-before/sdk";
+import { ApiError, createClient, type Client, type Phrasing, type Shelf } from "@asked-before/sdk";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -74,13 +74,13 @@ const main = await copy();
 const ada = main.client;
 const bea = main.app.browser().client;
 await bea.auth.signUp({ name: "Bea Example", email: "bea@example.com", password: "difference engine" });
-let work: Project;
+let work: Shelf;
 let failedUpload = "";
 const cardNamed = async (client: Client, projectId: string, skill: string) => (await client.cards.list(projectId)).find((c) => c.skill === skill);
 
 try {
   await step("1. Before a sort, a project has no cards and nothing unsorted, and another account's are a 404", async () => {
-    work = await ada.projects.create({ name: "Work" });
+    work = await ada.shelves.create({ name: "Work" });
     const cards = await ada.cards.list(work.id);
     const unsorted = await ada.cards.unsorted(work.id);
     check(cards.length === 0 && unsorted.phrasings.length === 0 && unsorted.next === null, `${cards.length} cards, ${unsorted.phrasings.length} unsorted`);
@@ -229,7 +229,7 @@ try {
 
   const small = await copy({ SORT_BATCH_SIZE: "10" });
   await step("9. With a batch size of 10, a sort that fails midway resumes on retry from the first phrasing not yet offered", async () => {
-    const project = await small.client.projects.create({ name: "Bootcamp" });
+    const project = await small.client.shelves.create({ name: "Bootcamp" });
     small.model.queue(reply(keySorter), refuse());
     const failed = await sortEnds(small.client, (await upload(small.client, project.id, phrasings)).id);
     check(failed.status === "failed" && failed.offered === 10 && failed.error === "The model request failed (400).", `batch 2 failed: ${failed.status}, ${failed.offered} of ${failed.phrasings} offered, "${failed.error}"`);
@@ -246,8 +246,8 @@ try {
   });
 
   await step("10. Sorts run one at a time in a project, and side by side across projects", async () => {
-    const one = await small.client.projects.create({ name: "One" });
-    const other = await small.client.projects.create({ name: "Other" });
+    const one = await small.client.shelves.create({ name: "One" });
+    const other = await small.client.shelves.create({ name: "Other" });
     const before = small.model.requests.length;
     const held = hold();
     small.model.queue(held.answer);
@@ -266,13 +266,13 @@ try {
   });
 
   await step("11. Deleting a project stops its sort", async () => {
-    const doomed = await small.client.projects.create({ name: "Doomed" });
+    const doomed = await small.client.shelves.create({ name: "Doomed" });
     const held = hold();
     small.model.queue(held.answer);
     const sorting = await upload(small.client, doomed.id, phrasings);
     await held.reached;
     const asked = small.model.requests.length;
-    await small.client.projects.delete(doomed.id);
+    await small.client.shelves.delete(doomed.id);
     held.release(reply(keySorter));
     await Bun.sleep(1000);
     check(small.model.requests.length === asked, `after its first batch's answer came back, no more were asked (${small.model.requests.length - asked} more)`);
@@ -290,7 +290,7 @@ try {
       const before = await startApp({ ANTHROPIC_BASE_URL: model.url, ...env });
       const learner = before.browser().client;
       await learner.auth.signUp({ name: "Cy Example", email: "cy@example.com", password: "jacquard loom" });
-      const project = await learner.projects.create({ name: "Restarted" });
+      const project = await learner.shelves.create({ name: "Restarted" });
       const held = hold();
       model.queue(held.answer);
       const cut = await upload(learner, project.id, phrasings);
@@ -312,7 +312,7 @@ try {
 
   const capped = await copy({ DAILY_MODEL_REQUESTS: "2" });
   await step("13. Past the daily cap, the next model request gets 429, and the upload says so", async () => {
-    const project = await capped.client.projects.create({ name: "Capped" });
+    const project = await capped.client.shelves.create({ name: "Capped" });
     const first = await sortEnds(capped.client, (await upload(capped.client, project.id, phrasings.slice(0, half))).id);
     const second = await sortEnds(capped.client, (await upload(capped.client, project.id, phrasings.slice(half))).id);
     check(first.status === "sorted" && second.status === "sorted" && capped.model.requests.length === 2, `two sorts spend the day's 2 requests: ${first.status}, ${second.status}`);

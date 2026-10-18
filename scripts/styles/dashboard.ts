@@ -21,7 +21,7 @@ export default async function dashboard(kit: Kit) {
   try {
     await states(kit, made);
   } finally {
-    for (const id of made) await learner.client.projects.delete(id);
+    for (const id of made) await learner.client.shelves.delete(id);
   }
 }
 
@@ -55,14 +55,14 @@ async function states(kit: Kit, made: string[]) {
   await page.unroute("**/api/v1/dashboard", hold);
 
   // A project, but no cards yet.
-  const work = await learner.client.projects.create({ name: "Work" });
+  const work = await learner.client.shelves.create({ name: "Work" });
   made.push(work.id);
   await block.getByRole("button", { name: "Try again" }).click();
   await block.locator(".empty", { hasText: "Open one of your projects" }).waitFor();
   await kit.shoot(page, "dashboard-no-cards");
 
   // The demo export, sorted as the key sorts it; card A passes a cold rep, and card B passes one, then a newer borrow of its skill makes it borrowed again.
-  const demo = await learner.client.projects.create({ name: "Demo", demo: true });
+  const demo = await learner.client.shelves.create({ name: "Demo", demo: true });
   made.push(demo.id);
   const sorted = await sortEnds(learner.client, (await upload(learner.client, demo.id, phrasings, "demo-export.json")).id);
   const [A, B] = await learner.client.cards.list(demo.id);

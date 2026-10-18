@@ -75,7 +75,7 @@ const ada = app.browser();
 await ada.client.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
 
 try {
-  const demo = await ada.client.projects.create({ name: "Demo", demo: true });
+  const demo = await ada.client.shelves.create({ name: "Demo", demo: true });
   await sortEnds(ada.client, (await upload(ada.client, demo.id, phrasings, "demo-export.json")).id);
   const [cardA] = await ada.client.cards.list(demo.id);
 
@@ -139,7 +139,7 @@ try {
   });
 
   await step("5. With no cards and nothing unsorted, a capture waits unsorted without the model; one asking the same makes a card of the two", async () => {
-    const work = await ada.client.projects.create({ name: "Work" });
+    const work = await ada.client.shelves.create({ name: "Work" });
     const before = model.requests.length;
     const one = await ada.client.captures.create(work.id, { text: "rename a local git branch" });
     check(model.requests.length === before && one.card === null, `${model.requests.length - before} model requests; card ${one.card?.skill ?? null}`);
@@ -156,7 +156,7 @@ try {
     check(captured.card?.skill === "Rename a git branch" && captured.card.count === 2 && captured.card.status === "borrowed", `it made "${captured.card?.skill}", ${captured.card?.count} borrows, ${captured.card?.status}`);
     const unsorted = await ada.client.cards.unsorted(work.id);
     check(unsorted.phrasings.length === 0, `${unsorted.phrasings.length} unsorted left`);
-    await ada.client.projects.delete(work.id);
+    await ada.client.shelves.delete(work.id);
   });
 
   await step("6. A sort answer that breaks a rule is asked again with the error; a model failure stores nothing, so the capture can be sent again", async () => {
@@ -185,13 +185,13 @@ try {
   });
 
   await step("7. A project deleted while its capture is with the model is a 404, and keeps nothing", async () => {
-    const gone = await ada.client.projects.create({ name: "Gone soon" });
+    const gone = await ada.client.shelves.create({ name: "Gone soon" });
     await ada.client.captures.create(gone.id, { text: "how do I list docker containers" });
     const held = hold();
     model.queue(held.answer);
     const pending = failure(ada.client.captures.create(gone.id, { text: "show running docker containers" }));
     await held.reached;
-    await ada.client.projects.delete(gone.id);
+    await ada.client.shelves.delete(gone.id);
     held.release(reply({ joins: [], newSkills: [] }));
     const refused = await pending;
     check(refused?.status === 404, `the capture: ${say(refused)}`);
@@ -272,7 +272,7 @@ try {
     try {
       const { client } = capped.browser();
       await client.auth.signUp({ name: "Cy Example", email: "cy@example.com", password: "jacquard loom" });
-      const work = await client.projects.create({ name: "Work" });
+      const work = await client.shelves.create({ name: "Work" });
       await client.captures.create(work.id, { text: "what does chmod 755 mean" });
       model.queue(reply({ joins: [], newSkills: [] }));
       await client.captures.create(work.id, { text: "how do I make a script executable" });
