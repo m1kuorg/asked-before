@@ -126,7 +126,7 @@ const ada = browser(`http://localhost:${port}`);
 
 /** Starts the app (the repo's, or `root`'s) on the database, runs `run` against it, and stops it. */
 async function onDatabase(run: () => Promise<void>, root?: string) {
-  const app = await startApp(env, root);
+  const app = await startApp(env, { root });
   try {
     await run();
   } finally {
@@ -195,7 +195,7 @@ try {
     ];
     for (const { what, sql, says } of failings) {
       await Bun.write(broken, sql);
-      const said = await startApp(env, copy).then(
+      const said = await startApp(env, { root: copy }).then(
         async (app) => (await app.stop(), "it started"),
         (error: Error) => error.message.split("\n").find((line) => line.includes("0003-")) ?? error.message,
       );
@@ -212,7 +212,7 @@ try {
   });
 
   await step("6. On a fresh database, the copy applies every migration, in order", async () => {
-    const fresh = await startApp({ ANTHROPIC_BASE_URL: model.url }, copy);
+    const fresh = await startApp({ ANTHROPIC_BASE_URL: model.url }, { root: copy });
     try {
       check(recorded(fresh.databasePath).join() === "1 0001-schema.sql,2 0002-pin-cards.sql", `it records ${recorded(fresh.databasePath).join(", ")}`);
       check(schema(fresh.databasePath) === schema(databasePath), "its schema is the migrated database's, table for table");
