@@ -5,7 +5,7 @@
 
 import type { Account } from "@asked-before/sdk";
 import { randomToken, sha256, type Db } from "./db";
-import { toAccount, type AccountRow } from "./users";
+import { ACCOUNT, toAccount, type AccountRow } from "./users";
 
 export const SESSION_DAYS = 30;
 const SESSION_MS = SESSION_DAYS * 24 * 60 * 60 * 1000;
@@ -31,7 +31,7 @@ export async function createSession(
     db
       .prepare("INSERT INTO sessions (id, user_id, created_at, expires_at) SELECT ?3, id, ?4, ?5 FROM users WHERE id = ?1 AND password_hash = ?2")
       .bind(userId, passwordHash, sha256(token), now, now + SESSION_MS),
-    db.prepare("SELECT id, name, email, created_at FROM users WHERE id = ?1 AND password_hash = ?2").bind(userId, passwordHash),
+    db.prepare(`${ACCOUNT} AND password_hash = ?2`).bind(userId, passwordHash),
   ]);
   const row = read?.results[0];
   return row ? { token, account: toAccount(row) } : null;
