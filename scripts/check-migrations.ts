@@ -75,7 +75,7 @@ function held(data: AccountData): string {
   const cards = data.shelves.flatMap((p) => p.cards);
   const reps = cards.flatMap((c) => c.reps);
   const A = cards.find((c) => c.skill === known.skill);
-  return `${data.shelves.length} project(s), ${data.shelves.flatMap((p) => p.uploads).length} upload(s), ${all.length} phrasings (${all.filter((p) => p.cardId).length} on ${cards.length} cards), ${reps.length} rep(s), card A ${A?.status ?? "missing"}`;
+  return `${data.shelves.length} shelf(s), ${data.shelves.flatMap((p) => p.uploads).length} upload(s), ${all.length} phrasings (${all.filter((p) => p.cardId).length} on ${cards.length} cards), ${reps.length} rep(s), card A ${A?.status ?? "missing"}`;
 }
 
 /** An account's download without the time it was made, to compare one with another. */

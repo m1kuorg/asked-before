@@ -65,21 +65,21 @@ async function step(name: string, run: () => Promise<void>) {
 const text = async (selector: string) => ((await page.locator(selector).first().textContent()) ?? "").replace(/\s+/g, " ").trim();
 const uploadId = () => new URL(page.url()).searchParams.get("upload") ?? "";
 
-/** Chooses a file on the project's upload page and sends it, as a learner would. */
-async function send(projectId: string, file: string) {
-  await page.goto(`${app.url}/app/projects/${projectId}/upload`);
+/** Chooses a file on the shelf's upload page and sends it, as a learner would. */
+async function send(shelfId: string, file: string) {
+  await page.goto(`${app.url}/app/shelves/${shelfId}/upload`);
   await page.locator(".drop-zone input[type=file]").setInputFiles(file);
   await page.locator(".block").getByRole("button", { name: /^Upload \d+ (message|messages)$/ }).click();
   await page.waitForURL(/[?&]upload=/);
 }
 
-const project = await learner.client.shelves.create({ name: "Bootcamp" });
+const shelf = await learner.client.shelves.create({ name: "Bootcamp" });
 const held = hold();
 model.queue(reply(keySorter), held.answer);
 
 try {
   await step("1. Uploading the demo export shows the sort's progress, in the library's words", async () => {
-    await send(project.id, DEMO);
+    await send(shelf.id, DEMO);
     await held.reached;
     await page.locator(".block .is-waiting", { hasText: "10 of 27" }).waitFor();
     const line = await text(".block .is-waiting");
@@ -108,14 +108,14 @@ try {
     check(!(await page.locator(".block .is-waiting, .block .error").count()), `the page says "${await text(".block .upload-done p:last-child")}", with no waiting line or notice left`);
     const upload = await sortEnds(learner.client, uploadId());
     check(upload.status === "sorted" && upload.offered === 27, `the API has it ${upload.status}, ${upload.offered} offered`);
-    const { lines, problems } = await compareWithKey(learner.client, project.id);
+    const { lines, problems } = await compareWithKey(learner.client, shelf.id);
     console.log(lines.join("\n"));
     check(problems.length === 0, problems.length ? problems.join("; ") : "its cards match the answer key");
     check(model.requests.length === CAP, `the day's ${model.requests.length} of ${CAP} model requests are spent: two batches, the refused one, and the last`);
   });
 
   await step("4. Past the daily cap, the next model request gets 429, and the page shows it with a retry", async () => {
-    await send(project.id, CLAUDE);
+    await send(shelf.id, CLAUDE);
     await page.locator(".block .error").waitFor();
     const said = await text(".block .error");
     check(said === `You've used today's ${CAP} model requests. More open at midnight UTC.`, `the notice says "${said}"`);

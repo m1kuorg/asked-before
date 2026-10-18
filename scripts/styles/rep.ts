@@ -1,5 +1,5 @@
 // The cold rep's states on the real card page (public/styles/rep.css;
-// m1kuorg/basics#46): the demo export uploaded into a project and sorted
+// m1kuorg/basics#46): the demo export uploaded onto a shelf and sorted
 // as the answer key sorts it, then card A's rep, with the rep and check
 // requests answered by the styles check's model stand-in, queued here and
 // never in the app. Its states: the card opened, with Take a cold rep;
@@ -8,8 +8,8 @@
 // fresh problem; typing in the focused answer box; a pass, with its stamp
 // and the way back in the frame; the whole card page under it, with the
 // card's phrasings, its return stamp, and its earlier reps; and a narrow
-// screen. The project is deleted at the end, since the modules after this
-// one share the learner and expect no projects.
+// screen. The shelf is deleted at the end, since the modules after this
+// one share the learner and expect no shelves.
 
 import type { Page } from "playwright";
 import { phrasings, sortEnds, upload } from "../lib/answer-key";
@@ -34,19 +34,19 @@ const settle = (page: Page) => page.evaluate(() => Promise.all(document.getAnima
 
 export default async function rep(kit: Kit) {
   const { check, learner, model } = kit;
-  const project = await learner.client.shelves.create({ name: "Bootcamp" });
+  const shelf = await learner.client.shelves.create({ name: "Bootcamp" });
   try {
-    await states(kit, project.id);
+    await states(kit, shelf.id);
   } finally {
-    await learner.client.shelves.delete(project.id);
+    await learner.client.shelves.delete(shelf.id);
   }
 }
 
-async function states(kit: Kit, projectId: string) {
+async function states(kit: Kit, shelfId: string) {
   const { check, learner, model } = kit;
-  const sorted = await sortEnds(learner.client, (await upload(learner.client, projectId, phrasings, "bootcamp.json")).id);
-  const [A] = await learner.client.cards.list(projectId);
-  check(sorted.status === "sorted" && A !== undefined, `the demo export is sorted into a project, card A "${A?.skill}"`);
+  const sorted = await sortEnds(learner.client, (await upload(learner.client, shelfId, phrasings, "bootcamp.json")).id);
+  const [A] = await learner.client.cards.list(shelfId);
+  check(sorted.status === "sorted" && A !== undefined, `the demo export is sorted onto a shelf, card A "${A?.skill}"`);
   const at = `/app/cards/${A!.id}`;
   const page = await kit.page({ loggedIn: true });
   const textarea = page.locator(".answer-box textarea");

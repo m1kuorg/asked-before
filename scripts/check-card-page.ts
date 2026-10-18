@@ -1,6 +1,6 @@
 // Checks the card page and its cold rep (m1kuorg/basics#46) in a real
 // browser at 1920×1080, on a fresh copy of the app, each step checked again
-// through the SDK. The demo export is sorted into a demo project by a model
+// through the SDK. The demo export is sorted onto a demo shelf by a model
 // stand-in in this script that sorts as the answer key does; rep and check
 // requests go on to the real model, except where a step queues the
 // stand-in's own answer to show a waiting or failure state, never in the
@@ -12,7 +12,7 @@
 // card and the stack show it returned with today's date, and opening it
 // again asks the model nothing. On card B, with the model held and
 // refused: starting and checking a rep show the library's waiting words,
-// then an error with a retry, which works; a reload, or the dashboard's
+// then an error with a retry, which works; a reload, or the Desk's
 // start (?rep=start), takes the open rep up again without asking the model.
 // It prints
 // ids, counts, and the page's words, never phrasing text, and exits 1 if
@@ -104,7 +104,7 @@ try {
   await step("1. Open key A from the stack: its skill, count, months, phrasings, and status, and no model request until Take a cold rep, which brings the lesson and a problem", async () => {
     const want = key.skills[0]!;
     const before = model.requests.length;
-    await page.goto(`${app.url}/app/projects/${demo.id}`);
+    await page.goto(`${app.url}/app/shelves/${demo.id}`);
     await page.locator(".block").getByRole("link", { name: "Open key A" }).click();
     await page.waitForURL(cardAt(A));
     await page.locator(".block h1.skill").waitFor();
@@ -114,7 +114,7 @@ try {
     check((await text(".block h1.skill")) === want.name && (await text(".block .plate b")) === String(want.count) && (await text(".block .plate span")) === "times borrowed, not returned", `headed "${await text(".block h1.skill")}", its plate ${await text(".block .plate b")} ${await text(".block .plate span")}`);
     const notes = await page.locator(".margin p").allTextContents();
     check(notes.includes(`Borrowed ${want.count} times, ${want.firstMonth} to ${want.lastMonth}.`) && notes.includes("Not returned yet."), `the margin: ${notes.slice(1, 4).map((n) => `"${n}"`).join(", ")}`);
-    check((await text(".margin .project-name a")) === "Demo" && (await page.locator(".margin .project-name .demo-label").isVisible()), "the margin names the project, labeled as demo data");
+    check((await text(".margin .shelf-name a")) === "Demo" && (await page.locator(".margin .shelf-name .demo-label").isVisible()), "the margin names the shelf, labeled as demo data");
     const rows = await page.locator(".block .rail > li").evaluateAll((items) => items.map((li) => ({ text: li.querySelector(".phrasing")?.textContent ?? "", date: li.querySelector(".stamp time")?.textContent ?? "" })));
     const borrows = (await ada.client.cards.get(A.id)).borrows;
     check(rows.length === want.count && rows.every((r, i) => r.text === borrows[i]?.text && r.date === borrows[i]?.time.slice(0, 10)), `its ${rows.length} phrasings word for word, oldest first, each with its stamp (${rows.map((r) => r.date).join(", ")})`);
@@ -168,7 +168,7 @@ try {
 
   await step("4. Back on the stack, card A shows returned with today's date", async () => {
     await page.getByRole("button", { name: "Back to the stack" }).click();
-    await page.waitForURL(`${app.url}/app/projects/${demo.id}?card=${A.id}`);
+    await page.waitForURL(`${app.url}/app/shelves/${demo.id}?card=${A.id}`);
     await page.locator(".block .end-rule").waitFor();
     const struck = await page.locator(".margin .margin-key").first().evaluate((k) => k.classList.contains("is-returned") && getComputedStyle(k).textDecorationLine.includes("line-through"));
     check(struck, "key A is struck through");
@@ -204,7 +204,7 @@ try {
     check((await body(".block .lesson")) === "Card B's lesson, from the stand-in." && (await body(".block .problem")).startsWith("You committed to the wrong branch"), "the retry brings the lesson and the problem");
   });
 
-  await step("7. A reload, or the dashboard's start, takes the open rep up again, without asking the model", async () => {
+  await step("7. A reload, or the Desk's start, takes the open rep up again, without asking the model", async () => {
     const before = model.requests.length;
     await page.reload();
     await page.locator(".block .problem").waitFor();
@@ -213,7 +213,7 @@ try {
     check(model.requests.length === before && (await ada.client.cards.get(B.id)).reps.length === 1, `no model request (${model.requests.length - before}), and still one rep`);
     await page.goto(`${cardAt(B)}?rep=start`);
     await page.locator(".block .problem").waitFor();
-    check((await body(".block .problem")).startsWith("You committed to the wrong branch") && page.url() === cardAt(B), `the dashboard's start (?rep=start) shows the open rep's problem, and the address drops it (${new URL(page.url()).search || "no query"})`);
+    check((await body(".block .problem")).startsWith("You committed to the wrong branch") && page.url() === cardAt(B), `the Desk's start (?rep=start) shows the open rep's problem, and the address drops it (${new URL(page.url()).search || "no query"})`);
     check(model.requests.length === before && (await ada.client.cards.get(B.id)).reps.length === 1, `it starts no second rep: ${model.requests.length - before} model requests, still one rep`);
   });
 

@@ -9,8 +9,8 @@
 // it sends are only { sourceId, text, time }, with no assistant words and no
 // titles. Sending shows its progress, and a failed chunk (stubbed in this
 // script, never in the app) shows the error and a retry that finishes the
-// same upload. A new learner's demo action makes a project flagged demo and
-// uploads the demo export into it. The app's model is a stand-in in this
+// same upload. A new learner's demo action makes a shelf flagged demo and
+// uploads the demo export onto it. The app's model is a stand-in in this
 // script, answering as the demo export's answer key does (the sort's own
 // states are check:sort-page's). Each step is checked again through the
 // SDK, saves a screenshot, and prints its checks; it exits 1 if any fails,
@@ -82,14 +82,14 @@ async function step(name: string, run: () => Promise<void>, on: Page = page) {
   await on.screenshot({ path: join(OUT, `${++shot}-${name.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "")}.png`) });
 }
 
-const uploadsSent = (requests: Request[]) => requests.filter((r) => new URL(r.url()).pathname.match(/^\/api\/v1\/(projects\/[^/]+\/uploads|uploads\/)/) && r.method() === "POST");
+const uploadsSent = (requests: Request[]) => requests.filter((r) => new URL(r.url()).pathname.match(/^\/api\/v1\/(shelves\/[^/]+\/uploads|uploads\/)/) && r.method() === "POST");
 const text = async (selector: string, on: Page = page) => ((await on.locator(selector).first().textContent()) ?? "").replace(/\s+/g, " ").trim();
 const plate = (on: Page = page) => text(".block .plate b", on);
-const latest = async (learner: Learner, project: Shelf): Promise<Upload> => (await learner.client.uploads.list(project.id, { limit: 1 })).uploads[0]!;
+const latest = async (learner: Learner, shelf: Shelf): Promise<Upload> => (await learner.client.uploads.list(shelf.id, { limit: 1 })).uploads[0]!;
 
-/** Opens the project's upload page and chooses a file through the drop zone's input, as a learner would. */
-async function choose(project: Shelf, file: string | { name: string; mimeType: string; buffer: Buffer }, on: Page = page) {
-  await on.goto(`${app.url}/app/projects/${project.id}/upload`);
+/** Opens the shelf's upload page and chooses a file through the drop zone's input, as a learner would. */
+async function choose(shelf: Shelf, file: string | { name: string; mimeType: string; buffer: Buffer }, on: Page = page) {
+  await on.goto(`${app.url}/app/shelves/${shelf.id}/upload`);
   await on.locator(".drop-zone input[type=file]").setInputFiles(file);
 }
 
@@ -100,10 +100,10 @@ let work: Shelf;
 try {
   await step("1. The upload page says how to request each export, and reads nothing yet", async () => {
     work = await ada.learner.client.shelves.create({ name: "Work" });
-    await page.goto(`${app.url}/app/projects/${work.id}/upload`);
+    await page.goto(`${app.url}/app/shelves/${work.id}/upload`);
     await page.locator(".drop-zone").waitFor();
     check((await text(".block h1")) === "Upload a chat export", `headed "${await text(".block h1")}"`);
-    check((await text(".block")).includes("Into Work"), "it names the project it uploads into");
+    check((await text(".block")).includes("Into Work"), "it names the shelf it uploads into");
     const margin = await text(".margin");
     check(/ChatGPT/.test(margin) && /Data controls/.test(margin) && /Claude/.test(margin) && /Privacy/.test(margin) && /Export data/.test(margin), "the margin says where ChatGPT and Claude keep Export data");
     check((await text(".block .privacy-line")) === PRIVACY_LINE, "the privacy line is shown");
@@ -234,16 +234,16 @@ try {
 
   const bea = await learnerPage("bea@example.com");
   await step(
-    "10. A new learner's demo action makes a demo project and uploads the demo export into it",
+    "10. A new learner's demo action makes a demo shelf and uploads the demo export onto it",
     async () => {
-      await bea.page.goto(`${app.url}/app/projects`);
-      await bea.page.locator(".block .empty").getByRole("button", { name: "Try the demo project" }).click();
+      await bea.page.goto(`${app.url}/app/shelves`);
+      await bea.page.locator(".block .empty").getByRole("button", { name: "Try the demo shelf" }).click();
       await bea.page.locator(".block .upload-done").waitFor();
-      const [demoProject] = await bea.learner.client.shelves.list();
-      check(demoProject?.demo === true, `made "${demoProject?.name}", flagged demo: ${demoProject?.demo}`);
-      check(new URL(bea.page.url()).pathname === `/app/projects/${demoProject!.id}/upload`, `and went to its upload page: ${new URL(bea.page.url()).pathname}`);
+      const [demoShelf] = await bea.learner.client.shelves.list();
+      check(demoShelf?.demo === true, `made "${demoShelf?.name}", flagged demo: ${demoShelf?.demo}`);
+      check(new URL(bea.page.url()).pathname === `/app/shelves/${demoShelf!.id}/upload`, `and went to its upload page: ${new URL(bea.page.url()).pathname}`);
       check(await bea.page.locator(".block .demo-label").isVisible(), "labeled as demo data");
-      const upload = await latest(bea.learner, demoProject!);
+      const upload = await latest(bea.learner, demoShelf!);
       check(upload.phrasings === 27 && upload.source === "chatgpt" && upload.status !== "receiving", `its upload has ${upload.phrasings} new phrasings, ${upload.status}`);
       const appends = uploadsSent(bea.sent).filter((r) => r.url().endsWith("/phrasings"));
       check(appends.every((r) => (r.postDataJSON() as { phrasings: object[] }).phrasings.every((p) => Object.keys(p).sort().join() === "sourceId,text,time")), "through the same endpoints, with the same shape");

@@ -1,7 +1,7 @@
 ---
 version: 1
 slug: 'apps-src-index-tsx'
-primary_target: 'src/screens/project.ts'
+primary_target: 'src/screens/shelf.ts'
 related_targets: ['public/styles/stack.css']
 ---
 
@@ -9,7 +9,7 @@ related_targets: ['public/styles/stack.css']
 
 Scope: the card stack, the app's first screen. Visitor mode: Operate. The visitor sees which questions they keep borrowing and opens the top card to take its cold rep. Judges may only see it in a screen recording, so the top card's count must read within seconds at 1080p.
 
-Constraints: the demo-data label stays on screen while the demo export is loaded; the screen says only your own messages go to the model; no charts, streaks, scores, or dashboard.
+Constraints: the demo-data label stays on screen while the demo export is loaded; the screen says only your own messages go to the model; no charts, streaks, scores, or KPI tiles.
 
 ## Direction contract
 

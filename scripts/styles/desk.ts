@@ -1,13 +1,13 @@
-// The dashboard's states (public/styles/dashboard.css; m1kuorg/basics#47),
+// The Desk's states (public/styles/desk.css; m1kuorg/basics#47),
 // on the real page: a new learner's empty state, and its first upload
 // refused for want of a name, keeping its plate of 0; waiting and failed,
-// with the dashboard's request held and answered here, never in the app, and
-// no plate, since the count is what they wait for; a project with no cards
-// yet; then the demo export sorted into a demo project as the answer key
+// with the Desk's request held and answered here, never in the app, and
+// no plate, since the count is what they wait for; a shelf with no cards
+// yet; then the demo export sorted onto a demo shelf as the answer key
 // sorts it, card A returned and card B borrowed again by real cold reps (the
 // model stand-in's answers queued here) and a newer borrow of B's skill, so
 // every status shows: the first viewport, a focused cold rep link, the whole
-// page, and a narrow screen. Its projects are deleted at the end, since the
+// page, and a narrow screen. Its shelves are deleted at the end, since the
 // modules after this one share the learner and expect none.
 
 import type { Route } from "playwright";
@@ -15,7 +15,7 @@ import { key, phrasings, sortEnds, upload } from "../lib/answer-key";
 import { repReply, verdictReply } from "../lib/reps";
 import type { Kit } from "../lib/styles";
 
-export default async function dashboard(kit: Kit) {
+export default async function desk(kit: Kit) {
   const { learner } = kit;
   const made: string[] = [];
   try {
@@ -31,35 +31,35 @@ async function states(kit: Kit, made: string[]) {
   const block = page.locator(".block");
 
   // A new learner: the empty state, and the first upload's field refused for want of a name.
-  await kit.open(page, "/app", ".block .empty");
-  await kit.shoot(page, "dashboard-empty");
+  await kit.open(page, "/app/desk", ".block .empty");
+  await kit.shoot(page, "desk-empty");
   await block.getByRole("button", { name: "Upload a chat export" }).click();
-  await block.locator(".first-project .error").waitFor();
-  const invalid = await block.getByLabel("Or name your first project").evaluate((input) => `${input.getAttribute("aria-invalid")} ${getComputedStyle(input).borderTopWidth}`);
-  check(invalid === "true 3px", `the unnamed project's field is marked, its frame 3px (${invalid})`);
-  await kit.shoot(page, "dashboard-first-project-refused", { plate: true });
+  await block.locator(".first-shelf .error").waitFor();
+  const invalid = await block.getByLabel("Or name your first shelf").evaluate((input) => `${input.getAttribute("aria-invalid")} ${getComputedStyle(input).borderTopWidth}`);
+  check(invalid === "true 3px", `the unnamed shelf's field is marked, its frame 3px (${invalid})`);
+  await kit.shoot(page, "desk-first-shelf-refused", { plate: true });
 
-  // Waiting, then a failure and its retry, with the dashboard's request held and answered here, never in the app.
+  // Waiting, then a failure and its retry, with the Desk's request held and answered here, never in the app.
   let release = () => {};
   const held = new Promise<void>((resolve) => (release = resolve));
   const hold = async (route: Route) => {
     await held;
     await route.fulfill({ status: 500, json: { error: "The server failed." } });
   };
-  await page.route("**/api/v1/dashboard", hold);
-  await kit.open(page, "/app", ".block .is-waiting");
-  await kit.shoot(page, "dashboard-waiting", { plate: false });
+  await page.route("**/api/v1/desk", hold);
+  await kit.open(page, "/app/desk", ".block .is-waiting");
+  await kit.shoot(page, "desk-waiting", { plate: false });
   release();
   await block.locator(".error").waitFor();
-  await kit.shoot(page, "dashboard-failed", { plate: false });
-  await page.unroute("**/api/v1/dashboard", hold);
+  await kit.shoot(page, "desk-failed", { plate: false });
+  await page.unroute("**/api/v1/desk", hold);
 
-  // A project, but no cards yet.
+  // A shelf, but no cards yet.
   const work = await learner.client.shelves.create({ name: "Work" });
   made.push(work.id);
   await block.getByRole("button", { name: "Try again" }).click();
-  await block.locator(".empty", { hasText: "Open one of your projects" }).waitFor();
-  await kit.shoot(page, "dashboard-no-cards");
+  await block.locator(".empty", { hasText: "Open one of your shelves" }).waitFor();
+  await kit.shoot(page, "desk-no-cards");
 
   // The demo export, sorted as the key sorts it; card A passes a cold rep, and card B passes one, then a newer borrow of its skill makes it borrowed again.
   const demo = await learner.client.shelves.create({ name: "Demo", demo: true });
@@ -77,10 +77,10 @@ async function states(kit: Kit, made: string[]) {
   const newer = await upload(learner.client, demo.id, [{ sourceId: "styles-again", text: again.text, time: new Date(Date.parse(stamped) + 1000).toISOString() }]);
   await sortEnds(learner.client, newer.id);
   const statuses = (await learner.client.cards.list(demo.id)).map((card) => card.status);
-  check(sorted.status === "sorted" && statuses[0] === "returned" && statuses[1] === "borrowed_again", `the demo project's cards are ${statuses.join(", ")}`);
+  check(sorted.status === "sorted" && statuses[0] === "returned" && statuses[1] === "borrowed_again", `the demo shelf's cards are ${statuses.join(", ")}`);
 
-  await kit.open(page, "/app", ".block .latest-returns table.rows");
-  await kit.shoot(page, "dashboard");
+  await kit.open(page, "/app/desk", ".block .latest-returns table.rows");
+  await kit.shoot(page, "desk");
   check((await page.evaluate(() => document.getAnimations().length)) === 0, "the rail's keys are seated, with no drop");
   const ledgerRule = await page.locator(".margin .ledger-total").evaluate((line) => `${getComputedStyle(line).borderTopWidth} ${getComputedStyle(line).borderTopColor}`);
   check(ledgerRule === "1px rgb(26, 26, 26)", `All cards is ruled off by an iron hairline (${ledgerRule})`);
@@ -89,11 +89,11 @@ async function states(kit: Kit, made: string[]) {
   const take = block.locator(".take-rep");
   for (let i = 0; i < 40 && !(await take.evaluate((link) => link === document.activeElement)); i++) await page.keyboard.press("Tab");
   check(await take.evaluate((link) => link.matches(":focus-visible")), "the cold rep link takes the keyboard's focus, bracketed");
-  await kit.shoot(page, "dashboard-focus");
+  await kit.shoot(page, "desk-focus");
 
-  await kit.shoot(page, "dashboard-full", { fullPage: true });
+  await kit.shoot(page, "desk-full", { fullPage: true });
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await kit.open(page, "/app", ".block .latest-returns table.rows");
-  await kit.shoot(page, "dashboard-narrow", { fullPage: true });
+  await kit.open(page, "/app/desk", ".block .latest-returns table.rows");
+  await kit.shoot(page, "desk-narrow", { fullPage: true });
 }

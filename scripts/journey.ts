@@ -1,11 +1,11 @@
 // The app's whole journey (m1kuorg/basics#53), on a fresh copy of the app,
 // with the real model and nothing stubbed. In a real browser at 1920×1080, a
-// learner signs up from the landing page, makes a project, uploads the demo
+// learner signs up from the landing page, makes a shelf, uploads the demo
 // export through the upload page's file input, and sees it sorted; card A
 // on the stack matches the answer key, word for word; a cold rep on it fails
 // with the known wrong answer and the next passes with the known right one,
-// stamping it returned today; the dashboard lists that return; and Settings
-// makes an API key. Then, as a script would, the SDK lists the project's
+// stamping it returned today; the Desk lists that return; and Settings
+// makes an API key. Then, as a script would, the SDK lists the shelf's
 // cards with that key, and, as an agent would, the MCP server records a
 // rephrasing of card A's question, so its count goes up by one and it's
 // borrowed again, which the stack shows. Each step saves a screenshot and
@@ -55,7 +55,7 @@ const A = key.skills[0]!;
 const borrowsOfA = A.messageIds.map((id) => phrasings[Number(id.slice(1)) - 1]!).sort((a, b) => Date.parse(a.time) - Date.parse(b.time));
 const today = new Date().toISOString().slice(0, 10);
 const ADA = { name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" };
-const PROJECT = "Work";
+const SHELF = "Work";
 const REPHRASING = "how do I undo the commit I just made? I haven't pushed it yet";
 
 await mkdir(OUT, { recursive: true });
@@ -109,7 +109,7 @@ async function step(name: string, run: () => Promise<string>) {
 }
 
 let failed = false;
-let projectId = "";
+let shelfId = "";
 let cardA: Card | undefined;
 let apiKey = "";
 let mcp: Client | undefined;
@@ -124,21 +124,21 @@ try {
     await page.getByLabel("Email").fill(ADA.email);
     await page.getByLabel("Password").fill(ADA.password);
     await page.getByRole("button", { name: "Sign up" }).click();
-    await page.waitForURL(/\/app$/);
+    await page.waitForURL(/\/app\/desk$/);
     await page.locator(".block h1").waitFor();
-    expect((await text(".block h1")) === "Still borrowed", `signing up lands on "${await text(".block h1")}", not the dashboard`);
-    return "on the dashboard, with no cards yet";
+    expect((await text(".block h1")) === "Still borrowed", `signing up lands on "${await text(".block h1")}", not the Desk`);
+    return "on the Desk, with no cards yet";
   });
 
-  await step("Make a project", async () => {
-    await nav("Projects").click();
-    await page.getByLabel("New project").fill(PROJECT);
-    await page.getByRole("button", { name: "Create project" }).click();
-    await page.getByRole("link", { name: PROJECT, exact: true }).click();
-    await page.locator(".block h1", { hasText: PROJECT }).waitFor();
-    projectId = new URL(page.url()).pathname.split("/").at(-1)!;
-    expect((await text(".block .empty h2")) === "No cards yet", `the new project's page says "${await text(".block .empty h2")}"`);
-    return `${PROJECT}, with no cards yet`;
+  await step("Make a shelf", async () => {
+    await nav("Shelves").click();
+    await page.getByLabel("New shelf").fill(SHELF);
+    await page.getByRole("button", { name: "Add shelf" }).click();
+    await page.getByRole("link", { name: SHELF, exact: true }).click();
+    await page.locator(".block h1", { hasText: SHELF }).waitFor();
+    shelfId = new URL(page.url()).pathname.split("/").at(-1)!;
+    expect((await text(".block .empty h2")) === "No cards yet", `the new shelf's page says "${await text(".block .empty h2")}"`);
+    return `${SHELF}, with no cards yet`;
   });
 
   await step("Upload the demo export through the file input, and see it sorted", async () => {
@@ -149,12 +149,12 @@ try {
     const count = await text(".block .plate b");
     expect(count === String(phrasings.length), `the preview counts ${count} of your own messages, not ${phrasings.length}`);
     await upload.click();
-    await settles(`.block .upload-done p:text-is("They're sorted into ${PROJECT}'s cards.")`);
-    return `${count} of your own messages, sorted into ${PROJECT}'s cards`;
+    await settles(`.block .upload-done p:text-is("They're sorted into ${SHELF}'s cards.")`);
+    return `${count} of your own messages, sorted into ${SHELF}'s cards`;
   });
 
   await step("Card A on the stack matches the answer key", async () => {
-    await page.getByRole("link", { name: `Go to ${PROJECT}` }).click();
+    await page.getByRole("link", { name: `Go to ${SHELF}` }).click();
     await page.locator(".block h1.skill").waitFor();
     const skill = await text(".block h1.skill");
     expect(skill === A.name, `card A is "${skill}", the key's is "${A.name}"`);
@@ -191,11 +191,11 @@ try {
     return `"${await text(".verdict h2")}", ${stamp.toLowerCase()}`;
   });
 
-  await step("The dashboard lists the return", async () => {
-    await nav("Dashboard").click();
+  await step("The Desk lists the return", async () => {
+    await nav("Desk").click();
     await page.locator(".block .latest-returns tbody tr").first().waitFor();
     const [returned] = await page.locator(".block .latest-returns tbody tr").evaluateAll((all) => all.map((row) => [...row.querySelectorAll("td")].map((td) => (td.textContent ?? "").trim())));
-    expect(returned?.[0] === A.name && returned[1] === PROJECT && returned[2] === today, `the latest returns read ${JSON.stringify(returned)}`);
+    expect(returned?.[0] === A.name && returned[1] === SHELF && returned[2] === today, `the latest returns read ${JSON.stringify(returned)}`);
     const ledger = await page.locator(".margin .ledger > div").evaluateAll((all) => all.map((line) => `${line.querySelector("dt")?.textContent} ${line.querySelector("dd")?.textContent}`));
     expect(ledger.includes("Returned 1"), `the totals read ${ledger.join(", ")}`);
     return `${A.name} returned ${today}; ${ledger.join(", ")}`;
@@ -212,8 +212,8 @@ try {
     return `the key ${apiKey.split("_").slice(0, 2).join("_")}_…`;
   });
 
-  await step("The SDK lists the project's cards with the key", async () => {
-    const cards = await createClient({ baseUrl: app.url, apiKey }).cards.list(projectId);
+  await step("The SDK lists the shelf's cards with the key", async () => {
+    const cards = await createClient({ baseUrl: app.url, apiKey }).cards.list(shelfId);
     cardA = cards[0];
     expect(cardA?.skill === A.name && cardA.count === A.count && cardA.status === "returned", `the SDK lists card A as ${JSON.stringify(cardA && { skill: cardA.skill, count: cardA.count, status: cardA.status })}`);
     return `${cards.length} cards: ${cards.map((c) => `${c.skill} ${c.count} ${c.status}`).join("; ")}`;
@@ -223,12 +223,12 @@ try {
     const transport = new StdioClientTransport({ command: process.execPath, args: [join(ROOT, ENTRY_IN_CLONE)], env: { [MCP_ENV.url]: app.url, [MCP_ENV.apiKey]: apiKey }, stderr: "pipe" });
     mcp = new Client({ name: "journey", version: "0.0.0" });
     await mcp.connect(transport);
-    const result = await mcp.callTool({ name: "record_question", arguments: { question: REPHRASING, project: PROJECT } });
+    const result = await mcp.callTool({ name: "record_question", arguments: { question: REPHRASING, shelf: SHELF } });
     const data = result.structuredContent as { card: { id: string; count: number; status: string } | null } | undefined;
     const said = (result.content as { text?: string }[]).map((c) => c.text ?? "").join(" ");
     expect(result.isError !== true, `record_question failed: ${said}`);
     expect(data?.card?.id === cardA!.id && data.card.count === A.count + 1 && data.card.status === "borrowed_again", `the capture landed on ${JSON.stringify(data?.card ?? null)}, not card A with ${A.count + 1} borrows, borrowed again`);
-    await page.goto(`${app.url}/app/projects/${projectId}`);
+    await page.goto(`${app.url}/app/shelves/${shelfId}`);
     await page.locator(".block h1.skill").waitFor();
     const plate = `${await text(".block .plate b")} ${await text(".block .plate span")}`;
     expect(plate === `${A.count + 1} times borrowed, borrowed again`, `card A's plate says "${plate}"`);

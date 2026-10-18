@@ -1,7 +1,7 @@
 // The demo export and its answer key (demo/), for the sort's checks: the
 // export's phrasings as the SDK's reader reads them, named m1, m2, … in
 // export order as the key names them; uploading phrasings and waiting for
-// their sort, through the SDK; a project's cards and unsorted phrasings
+// their sort, through the SDK; a shelf's cards and unsorted phrasings
 // compared with the key, through the SDK; and keySorter, which answers a
 // sort request the way the key sorts the export, for the checks that stub
 // the model. It prints ids and skill names, never phrasing text.
@@ -30,9 +30,9 @@ const monthYear = new Intl.DateTimeFormat("en-US", { month: "long", year: "numer
 /** An ISO time's month, as the key writes it. */
 export const month = (iso: string) => monthYear.format(new Date(iso));
 
-/** Uploads phrasings into a project as the page does: create, append in chunks, finish, which starts the sort. */
-export async function upload(client: Client, projectId: string, list: Phrasing[], fileName = "conversations.json"): Promise<Upload> {
-  const made = await client.uploads.create(projectId, { source: "chatgpt", fileName });
+/** Uploads phrasings onto a shelf as the page does: create, append in chunks, finish, which starts the sort. */
+export async function upload(client: Client, shelfId: string, list: Phrasing[], fileName = "conversations.json"): Promise<Upload> {
+  const made = await client.uploads.create(shelfId, { source: "chatgpt", fileName });
   for (let i = 0; i < list.length; i += MAX_CHUNK) await client.uploads.append(made.id, list.slice(i, i + MAX_CHUNK));
   return client.uploads.finish(made.id);
 }
@@ -48,12 +48,12 @@ export async function sortEnds(client: Client, uploadId: string, timeoutMs = 240
   }
 }
 
-/** Every unsorted phrasing in a project, a page at a time, newest first. */
-export async function allUnsorted(client: Client, projectId: string, limit = 100): Promise<StoredPhrasing[]> {
+/** Every unsorted phrasing on a shelf, a page at a time, newest first. */
+export async function allUnsorted(client: Client, shelfId: string, limit = 100): Promise<StoredPhrasing[]> {
   const all: StoredPhrasing[] = [];
   let cursor: string | undefined;
   do {
-    const page = await client.cards.unsorted(projectId, { limit, cursor });
+    const page = await client.cards.unsorted(shelfId, { limit, cursor });
     all.push(...page.phrasings);
     cursor = page.next ?? undefined;
   } while (cursor);
@@ -63,15 +63,15 @@ export async function allUnsorted(client: Client, projectId: string, limit = 100
 export type Comparison = { lines: string[]; problems: string[] };
 
 /**
- * A project's cards against the key, through the SDK: in margin-key order,
+ * A shelf's cards against the key, through the SDK: in margin-key order,
  * each card's borrows are the key's, its count and months match, and each
  * borrow is the export's phrasing word for word with its own time; no
  * one-off is on a card, card A is named as the key names it, and the
  * unsorted phrasings are the one-offs.
  */
-export async function compareWithKey(client: Client, projectId: string): Promise<Comparison> {
+export async function compareWithKey(client: Client, shelfId: string): Promise<Comparison> {
   const problems: string[] = [];
-  const cards = await client.cards.list(projectId);
+  const cards = await client.cards.list(shelfId);
   const details = await Promise.all(cards.map((card) => client.cards.get(card.id)));
   const lines = details.map((card, i) => {
     const letter = String.fromCharCode(65 + i);
@@ -104,7 +104,7 @@ export async function compareWithKey(client: Client, projectId: string): Promise
   if (!demoTogether) problems.push(`the ${demoSkill.name} phrasings aren't alone on one card`);
   if (cards[0]?.skill !== demoSkill.name) problems.push(`card A is named "${cards[0]?.skill}", not "${demoSkill.name}"`);
 
-  const unsorted = (await allUnsorted(client, projectId)).map((p) => named(p.sourceId));
+  const unsorted = (await allUnsorted(client, shelfId)).map((p) => named(p.sourceId));
   const unsortedOk = sameIds(unsorted, key.oneOffs);
   if (!unsortedOk) problems.push(`unsorted holds [${idList(unsorted)}], the key's one-offs are [${idList(key.oneOffs)}]`);
 
