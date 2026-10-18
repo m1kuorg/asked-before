@@ -23,6 +23,8 @@ export type App = {
   databasePath: string;
   /** Everything Wrangler has printed so far, the Worker's own lines among its own. */
   log: () => string;
+  /** The lines after Wrangler's banner that aren't Wrangler's own: the Worker's request lines (method, path, status, and duration), and any others, such as an uncaught error. */
+  workerLog: () => { requests: string[]; others: string[] };
   /** A client for one browser: it keeps the session cookie and sends the page's Origin, as the page's requests do. */
   browser: () => Browser;
   /** Stops the app and deletes its state, unless `state` was given. */
@@ -122,7 +124,14 @@ export async function startApp(env: Record<string, string> = {}, { state, port, 
   }
   const url = new URL(match[1]!).origin;
 
-  return { url, databasePath: join(persist, d1!), log: () => log, browser: () => browser(url), stop: () => stop(), kill: () => stop("SIGKILL") };
+  const workerLog = () => {
+    // After the banner, a line is either Wrangler's own, which says the same of each request, or the Worker's.
+    const lines = (log.split(/Ready on \S+\n/)[1]?.trim().split("\n") ?? []).filter((line) => !line.startsWith("[wrangler:"));
+    const request = (line: string) => /^(GET|HEAD|POST|PUT|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line);
+    return { requests: lines.filter(request), others: lines.filter((line) => !request(line)) };
+  };
+
+  return { url, databasePath: join(persist, d1!), log: () => log, workerLog, browser: () => browser(url), stop: () => stop(), kill: () => stop("SIGKILL") };
 }
 
 /** The node that runs Wrangler, once it's checked to be 22 or later, as Wrangler needs. */
