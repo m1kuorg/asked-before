@@ -30,7 +30,7 @@ const SAMPLES: Record<string, (root: HTMLElement) => void> = {
     });
     const locked = field({ label: "Server address", name: "server", value: "https://asked-before.example" });
     locked.input.readOnly = true;
-    const row = form({ fields: [field({ label: "New project", name: "name", placeholder: "Such as Work or Bootcamp" }).element], submit: "Create project", layout: "row", onSubmit: refuse("A project needs a name.") });
+    const row = form({ fields: [field({ label: "New shelf", name: "name", placeholder: "Such as Work or Bootcamp" }).element], submit: "Add shelf", layout: "row", onSubmit: refuse("A shelf needs a name.") });
     const off = button("Revoke", () => {});
     off.disabled = true;
     block.append(el("h1", undefined, "Form fields"), column, locked.element, row, off);
@@ -70,7 +70,7 @@ const SAMPLES: Record<string, (root: HTMLElement) => void> = {
               })
             : null,
       }),
-      emptyState("No uploads yet", "Upload a chat export into this project, and every question you asked more than once becomes a card.", link("Upload a chat export", "#", "button"), link("Read how to get one", "#", "button secondary")),
+      emptyState("No uploads yet", "Upload a chat export onto this shelf, and every question you asked more than once becomes a card.", link("Upload a chat export", "#", "button"), link("Read how to get one", "#", "button secondary")),
     );
   },
 

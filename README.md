@@ -2,7 +2,7 @@
 
 It turns the questions you keep asking a chatbot into library cards, stamped once per borrow, and won't stamp a card returned until you pass a cold rep: a fresh problem of the same kind, solved without AI.
 
-You sign up, make a project for each part of your life, and upload a ChatGPT or Claude export into it. Your browser reads the export and sends only your own messages, with when you sent them; the chatbot's answers and your titles never leave your computer, and the model sees your words only, never your dates. Asked Before sorts them into cards, most borrowed first, and the dashboard shows what's still borrowed across your projects. A TypeScript SDK, an MCP server, and a Claude Code plugin let your scripts and coding agents reach the same cards, so a question you ask an agent lands on its card as you ask it.
+You sign up, make a shelf for each part of your life, and upload a ChatGPT or Claude export onto it. Your browser reads the export and sends only your own messages, with when you sent them; the chatbot's answers and your titles never leave your computer, and the model sees your words only, never your dates. Asked Before sorts them into cards, most borrowed first, and the Desk shows what's still borrowed across your shelves. A TypeScript SDK, an MCP server, and a Claude Code plugin let your scripts and coding agents reach the same cards, so a question you ask an agent lands on its card as you ask it.
 
 This branch, `feat/app`, holds the app. `main` holds the proof of concept submitted to the hackathon, a single page on a made-up demo export, until judging ends on October 30, 2026.
 
@@ -28,7 +28,7 @@ cp .env.example .env        # then set ANTHROPIC_API_KEY=...
 bun run start
 ```
 
-Then open <http://localhost:3000>, sign up, and make a project. A new learner can try the demo project, made from a made-up demo export and labeled as demo data, before finding their own export. Only the server reads the key, and `.env` is gitignored; a key exported in your shell works too, and wins over `.env`.
+Then open <http://localhost:3000>, sign up, and make a shelf. A new learner can try the demo shelf, made from a made-up demo export and labeled as demo data, before finding their own export. Only the server reads the key, and `.env` is gitignored; a key exported in your shell works too, and wins over `.env`.
 
 Everything else has a default, so the key is the only setting you need. `.env.example` lists them:
 
@@ -57,15 +57,15 @@ Then walk the whole product:
 bun run journey
 ```
 
-It needs the key, and makes 6 model calls in under a minute, with nothing stubbed. In Chromium at 1920×1080, it signs up from the landing page, makes a project, uploads the demo export through the upload page's file input, and checks card A against the demo export's answer key, word for word. It fails a cold rep on card A with a known wrong answer and passes the next with a known right one, sees the return on the dashboard, and makes an API key in Settings. Then it lists the cards through the SDK with that key, and records a rephrasing of card A's question through the MCP server, so card A's count goes up by one and it's borrowed again. It saves a screenshot of each step in your temp folder, or in `<dir>` with `bun run journey <dir>`.
+It needs the key, and makes 6 model calls in under a minute, with nothing stubbed. In Chromium at 1920×1080, it signs up from the landing page, makes a shelf, uploads the demo export through the upload page's file input, and checks card A against the demo export's answer key, word for word. It fails a cold rep on card A with a known wrong answer and passes the next with a known right one, sees the return on the Desk, and makes an API key in Settings. Then it lists the cards through the SDK with that key, and records a rephrasing of card A's question through the MCP server, so card A's count goes up by one and it's borrowed again. It saves a screenshot of each step in your temp folder, or in `<dir>` with `bun run journey <dir>`.
 
 The other checks:
 
 | Command | What it checks | Needs |
 | --- | --- | --- |
 | `bun run check:key` | The demo export's answer key against the export | |
-| `bun run check:accounts` | Accounts and projects through the SDK: sessions, `next`, 404s across accounts, the Origin rule, the logs, the throttle | |
-| `bun run check:shell` | The app's shell: sign up, the dashboard, projects, log out, and the redirect to log in and back | Chromium |
+| `bun run check:accounts` | Accounts and shelves through the SDK: sessions, `next`, 404s across accounts, the Origin rule, the logs, the throttle | |
+| `bun run check:shell` | The app's shell: sign up, the Desk, your shelves, log out, and the redirect to log in and back | Chromium |
 | `bun run check:landing` | The landing page's card against the answer key, and signing up and logging in from it | Chromium |
 | `bun run check:readers` | The SDK's export readers on every fixture, and on broken exports | |
 | `bun run check:uploads` | The uploads endpoints, and uploading the same export twice | |
@@ -73,11 +73,11 @@ The other checks:
 | `bun run check:sort` | Sorting the demo export three ways, against the answer key; `bun run check:sort 10` for 10 runs | Key |
 | `bun run check:sort-rules` | The sort's rules and the cards endpoints, with the model stubbed | |
 | `bun run check:sort-page` | The upload page's sort progress, failure, retry, and daily cap, with the model stubbed | Chromium |
-| `bun run check:project` | A project's card stack, statuses, unsorted phrasings, and upload history | Chromium |
+| `bun run check:shelf` | A shelf's card stack, statuses, unsorted phrasings, and upload history | Chromium |
 | `bun run check:reps` | Five cold reps on card A: lessons, problems, and verdicts | Key |
 | `bun run check:rep-rules` | The cold reps' rules through the SDK, with the model stubbed | |
 | `bun run check:card-page` | A card's page and its cold rep: card A with the real model, then waits and failures stubbed | Key, Chromium |
-| `bun run check:dashboard` | The dashboard through the SDK and in the page | Chromium |
+| `bun run check:desk` | The Desk through the SDK and in the page | Chromium |
 | `bun run check:settings` | API keys and the account, through the SDK and in the settings page | Chromium |
 | `bun run check:data` | Downloading and deleting your data | Chromium |
 | `bun run check:captures` | Captures' rules through the SDK, with the model stubbed | |
@@ -85,7 +85,7 @@ The other checks:
 | `bun run check:mcp` | The MCP server over stdio with the official client and a real key | Key |
 | `bun run check:plugin` | The Claude Code plugin: validated, its server's build fresh, and the build run from a copy as Claude Code runs it | `claude`, `node` |
 | `bun run check:docs` | The docs page against the server's route table, and the SDK's quickstart run on the demo export | Chromium |
-| `bun run check:sdk` | The SDK's build, used from a project outside the repo, in Bun and in Node | `node` |
+| `bun run check:sdk` | The SDK's build, used from a package outside the repo, in Bun and in Node | `node` |
 | `bun run check:styles` | The stylesheets at 1080p, surface by surface (`scripts/styles/`) | Chromium |
 | `bun run check:migrations` | The schema's migrations: a new one, added in a copy of the app, applied at startup to a database with data in it, which keeps its data; a failing one applying nothing; and a fresh database getting every one | |
 | `bun run check:container` | The container image: it builds, serves the app, keeps its data on the volume across a restart and a new container, applying each migration once, and its health check answers | Docker |
@@ -113,7 +113,7 @@ Without Docker, run `bun install --production` and `bun run start` with `DATABAS
 
 ## The SDK
 
-`@asked-before/sdk`, in `packages/sdk`, is a typed client for the HTTP API, version 1, with one method per endpoint, and the export readers the upload page uses, which read an export on your computer in Bun, Node, or a browser. The page reaches the server only through it. It isn't on npm; `bun run build:sdk` builds it to JavaScript with type declarations, for another project to add from your copy. Its [README](packages/sdk/README.md) has the quickstart, which reads an export, uploads it, and lists the cards. The docs page, at `/docs` on any Asked Before server, lists every endpoint with the credential it needs.
+`@asked-before/sdk`, in `packages/sdk`, is a typed client for the HTTP API, version 1, with one method per endpoint, and the export readers the upload page uses, which read an export on your computer in Bun, Node, or a browser. The page reaches the server only through it. It isn't on npm; `bun run build:sdk` builds it to JavaScript with type declarations, for your own code to add from your copy. Its [README](packages/sdk/README.md) has the quickstart, which reads an export, uploads it, and lists the cards. The docs page, at `/docs` on any Asked Before server, lists every endpoint with the credential it needs.
 
 ## Agents
 

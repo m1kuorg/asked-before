@@ -1,5 +1,5 @@
 // Proves cold reps with the real model (m1kuorg/basics#46), through the
-// SDK, on the demo skill, "Undo a git commit": card A of the demo project,
+// SDK, on the demo skill, "Undo a git commit": card A of the demo shelf,
 // on a fresh copy of the app. The sort is a stand-in in this script that
 // sorts as the answer key does (the sort has its own check); every rep and
 // check request goes on to the real model. Five reps in turn on card A,

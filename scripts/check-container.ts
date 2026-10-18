@@ -2,10 +2,10 @@
 // builds from the Dockerfile on the official Bun image, with its health
 // check run by Bun rather than curl. A container from it, on a fresh named
 // volume at /data and a free port, serves the app: the health endpoint and
-// the landing page answer, a learner signs up and makes a project, and the
+// the landing page answer, a learner signs up and makes a shelf, and the
 // SQLite file is on the volume. Docker's health check reports it healthy.
 // After a restart, and then in a new container on the same volume, the
-// learner's session and project are still there, and the database records
+// learner's session and shelf are still there, and the database records
 // each of the schema's migrations once. The container, its
 // volume, and the image are removed at the end. It makes no model calls, so
 // it needs no key; it needs Docker running. It exits 1 if any check fails,
@@ -124,7 +124,7 @@ try {
     check(status === "healthy", `its health is ${status}, after ${log.length} check(s) exiting ${[...new Set(log.map((l) => l.ExitCode))].join(", ")}`);
   });
 
-  await step("4. After a restart, the session and the project are still there", async () => {
+  await step("4. After a restart, the session and the shelf are still there", async () => {
     const restarted = await docker("restart", container);
     check(restarted.code === 0, `docker restart exits ${restarted.code}`);
     await answers();

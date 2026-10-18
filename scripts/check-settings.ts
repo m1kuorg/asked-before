@@ -67,7 +67,7 @@ const work = await ada.client.shelves.create({ name: "Work" });
 let laptop = "";
 let laptopId = "";
 
-await step("1. A key is made once, listed, and lists projects as a Bearer token", async () => {
+await step("1. A key is made once, listed, and lists shelves as a Bearer token", async () => {
   const made = await ada.client.keys.create({ name: "  Laptop  " });
   laptop = made.key;
   laptopId = made.id;
@@ -80,8 +80,8 @@ await step("1. A key is made once, listed, and lists projects as a Bearer token"
   check(listed.length === 1 && listed[0]!.id === made.id && listed[0]!.name === "Laptop", `the list holds it: ${listed.map((k) => k.name).join(", ")}`);
   check(listed.every((k) => !("key" in k) && !JSON.stringify(k).includes(made.key.slice(made.prefix.length + 1))), "the list never shows the secret again");
 
-  const projects = await withKey(laptop).shelves.list();
-  check(projects.length === 1 && projects[0]!.id === work.id, `the key lists Ada's projects: ${projects.map((p) => p.name).join(", ")}`);
+  const shelves = await withKey(laptop).shelves.list();
+  check(shelves.length === 1 && shelves[0]!.id === work.id, `the key lists Ada's shelves: ${shelves.map((p) => p.name).join(", ")}`);
   const me = await withKey(laptop).auth.me();
   check(me.email === ADA.email, `the key is Ada's: ${me.email}`);
   const used = (await ada.client.keys.list())[0]!;
@@ -111,7 +111,7 @@ await step("3. Revoked, a key gets 401 at once", async () => {
   const spare = await ada.client.keys.create({ name: "Spare" });
   await ada.client.keys.revoke(laptopId);
   const error = await failure(withKey(laptop).shelves.list());
-  check(error?.status === 401, `the revoked key lists projects: ${say(error)}`);
+  check(error?.status === 401, `the revoked key lists shelves: ${say(error)}`);
   const listed = await ada.client.keys.list();
   check(listed.length === 1 && listed[0]!.id === spare.id, `the list holds only the other key: ${listed.map((k) => k.name).join(", ")}`);
   check((await withKey(spare.key).shelves.list()).length === 1, "the other key still works");
@@ -123,7 +123,7 @@ await step("3. Revoked, a key gets 401 at once", async () => {
 await step("4. A key reads and adds, but gets 403 renaming or deleting, managing keys, or changing the account", async () => {
   const key = withKey(laptop);
   const made = await key.shelves.create({ name: "Made by a key" });
-  check(made.name === "Made by a key", `a key can make a project: "${made.name}"`);
+  check(made.name === "Made by a key", `a key can make a shelf: "${made.name}"`);
   const before = (await ada.client.keys.list())[0]!.lastUsedAt;
   await key.shelves.list();
   const after = (await ada.client.keys.list())[0]!.lastUsedAt;
@@ -131,8 +131,8 @@ await step("4. A key reads and adds, but gets 403 renaming or deleting, managing
 
   const keyIds = (await ada.client.keys.list()).map((k) => k.id);
   for (const [what, call] of [
-    ["renaming a project", () => key.shelves.rename(made.id, "Renamed by a key")],
-    ["deleting a project", () => key.shelves.delete(made.id)],
+    ["renaming a shelf", () => key.shelves.rename(made.id, "Renamed by a key")],
+    ["deleting a shelf", () => key.shelves.delete(made.id)],
     ["listing keys", () => key.keys.list()],
     ["making a key", () => key.keys.create({ name: "Another" })],
     ["revoking a key", () => key.keys.revoke(keyIds[0]!)],
@@ -143,12 +143,12 @@ await step("4. A key reads and adds, but gets 403 renaming or deleting, managing
     const error = await failure(call());
     check(error?.status === 403, `${what}: ${say(error)}`);
   }
-  check((await ada.client.shelves.get(made.id)).name === "Made by a key", "the project is still there, under its own name");
+  check((await ada.client.shelves.get(made.id)).name === "Made by a key", "the shelf is still there, under its own name");
   check((await ada.client.keys.list()).length === 1, "no key was made or revoked");
   check((await ada.client.auth.me()).name === ADA.name, "the account is unchanged");
   const revoked = `ab_${laptopId}_${"0".repeat(32)}`;
   const denied = await failure(withKey(revoked).shelves.delete(made.id));
-  check(denied?.status === 401, `a revoked key deleting a project is a 401, not a 403: ${say(denied)}`);
+  check(denied?.status === 401, `a revoked key deleting a shelf is a 401, not a 403: ${say(denied)}`);
 });
 
 await step("5. Change the name and the email, which is trimmed, lowercased, and not another account's", async () => {
@@ -231,7 +231,7 @@ const section = (name: string) => page.locator("section", { has: page.getByRole(
 const keyRow = (name: string) => page.locator("table.rows tbody tr", { has: page.getByText(name, { exact: true }) });
 
 try {
-  await step("7. In the settings page, a key is made and shown once, and the SDK lists projects with it", async () => {
+  await step("7. In the settings page, a key is made and shown once, and the SDK lists shelves with it", async () => {
     await page.goto(`${app.url}/app/settings`);
     await keyRow("Spare").waitFor();
     check((await page.locator(".block h1").textContent()) === "Settings", "the page is headed Settings");
@@ -250,8 +250,8 @@ try {
     check(neverUsed[3] === "Never", `it's never been used: ${JSON.stringify(neverUsed.slice(0, 4))}`);
     await screenshot(page, "key-shown");
 
-    const projects = await withKey(key).shelves.list();
-    check(projects.some((p) => p.id === work.id), `the SDK lists Ada's projects with it: ${projects.map((p) => p.name).join(", ")}`);
+    const shelves = await withKey(key).shelves.list();
+    check(shelves.some((p) => p.id === work.id), `the SDK lists Ada's shelves with it: ${shelves.map((p) => p.name).join(", ")}`);
 
     await page.reload();
     await keyRow("Claude Code").waitFor();
@@ -292,9 +292,9 @@ try {
     const other = app.browser();
     await other.client.auth.logIn({ email: ADA.email, password: ADA.password });
     const elsewhere = await (await contextWith(other.cookie())).newPage();
-    await elsewhere.goto(`${app.url}/app/projects`);
+    await elsewhere.goto(`${app.url}/app/shelves`);
     await elsewhere.locator("table.rows").waitFor();
-    check(true, "another browser is logged in and lists projects");
+    check(true, "another browser is logged in and lists shelves");
 
     await page.goto(`${app.url}/app/settings`);
     const password = section("Password");
@@ -317,10 +317,10 @@ try {
     check((await password.locator(".error").count()) === 0, "the refusal is gone");
     await screenshot(page, "password-changed");
 
-    await elsewhere.goto(`${app.url}/app/projects`);
+    await elsewhere.goto(`${app.url}/app/shelves`);
     await elsewhere.waitForURL(/\/login\?next=/);
     check(true, `the other browser is sent to log in: ${new URL(elsewhere.url()).pathname}`);
-    await page.locator("body > nav").getByRole("link", { name: "Projects", exact: true }).click();
+    await page.locator("body > nav").getByRole("link", { name: "Shelves", exact: true }).click();
     await page.locator("table.rows").waitFor();
     check(true, "this browser stays logged in");
     await ada.client.account.changePassword({ currentPassword: "a new and longer password", newPassword: ADA.password });
