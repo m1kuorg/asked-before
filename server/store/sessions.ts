@@ -24,14 +24,14 @@ export async function createSession(
 ): Promise<{ token: string; account: Account } | null> {
   const token = randomToken(32, "base64url");
   const now = Date.now();
-  const stillHolds = "SELECT 1 FROM users WHERE id = ?1 AND password_hash = ?2";
+  const stillHolds = "EXISTS (SELECT 1 FROM users WHERE id = ?1 AND password_hash = ?2)";
   const [, , , read] = await db.batch<AccountRow>([
     db.prepare("DELETE FROM sessions WHERE expires_at <= ?1").bind(now),
-    db.prepare(`DELETE FROM sessions WHERE id = ?3 AND EXISTS (${stillHolds})`).bind(userId, passwordHash, earlier === null ? null : sha256(earlier)),
+    db.prepare(`DELETE FROM sessions WHERE id = ?3 AND ${stillHolds}`).bind(userId, passwordHash, earlier === null ? null : sha256(earlier)),
     db
-      .prepare("INSERT INTO sessions (id, user_id, created_at, expires_at) SELECT ?3, id, ?4, ?5 FROM users WHERE id = ?1 AND password_hash = ?2")
+      .prepare(`INSERT INTO sessions (id, user_id, created_at, expires_at) SELECT ?3, ?1, ?4, ?5 WHERE ${stillHolds}`)
       .bind(userId, passwordHash, sha256(token), now, now + SESSION_MS),
-    db.prepare(`${ACCOUNT} AND password_hash = ?2`).bind(userId, passwordHash),
+    db.prepare(`${ACCOUNT} AND ${stillHolds}`).bind(userId, passwordHash),
   ]);
   const row = read?.results[0];
   return row ? { token, account: toAccount(row) } : null;
