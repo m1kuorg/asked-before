@@ -12,11 +12,11 @@
 // answers with it waiting to be sorted, and starts the shelf's sort in its
 // Durable Object (worker/sorter.ts, server/sort.ts), which records its
 // progress and any failure on the upload; when that start fails, the
-// upload answers failed, so a retry starts it again. Retrying a failed sort carries on
-// from the first phrasing it hadn't offered; anything but a failed upload
-// is a 409. Deleting an upload deletes its phrasings, and any card left
-// with fewer than two borrows, whose remaining phrasing becomes unsorted; a
-// sort under way on it stops.
+// upload answers failed, so a retry starts it again. Retrying a failed
+// sort carries on from the first phrasing it hadn't offered; anything but
+// a failed upload is a 409. Deleting an upload deletes its phrasings, and
+// any card left with fewer than two borrows, whose remaining phrasing
+// becomes unsorted; a sort under way on it stops.
 
 import { MAX_CHUNK, MAX_PHRASING_LENGTH, type Upload } from "@asked-before/sdk";
 import { z } from "zod";
