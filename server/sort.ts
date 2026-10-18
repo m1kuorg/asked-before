@@ -218,7 +218,7 @@ export const STALLED_MS = 10 * 60 * 1000;
 export async function resumeStalledSorts(env: Env, now: number): Promise<void> {
   try {
     const shelves = await store.stalledShelves(env.DB, now - STALLED_MS);
-    await Promise.allSettled(shelves.map((shelfId) => env.SORTER.getByName(shelfId).start()));
+    await Promise.allSettled(shelves.map(async (shelfId) => env.SORTER.getByName(shelfId).start()));
   } catch {
     // The database failed; the next run reads it again.
   }
