@@ -106,6 +106,8 @@ export async function startModelStub(otherwise: Answer): Promise<ModelStub> {
   const requests: ModelRequest[] = [];
   const queued: Answer[] = [];
   const server = Bun.serve({
+    // On the loopback address, which the Worker under wrangler dev reaches as the app did.
+    hostname: "127.0.0.1",
     port: 0,
     fetch: async (raw) => {
       const body = await raw.text();
