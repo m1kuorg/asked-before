@@ -29,7 +29,8 @@ async function step(name: string, run: () => Promise<void>) {
 
 /** Each security header, and what its value must hold. */
 const HEADERS: [string, RegExp][] = [
-  ["content-security-policy", /^default-src 'self'; worker-src 'self' blob:; .*frame-ancestors 'none'/],
+  // Only the app's own origin, workers too: the zip reader inflates in the page, so no blob: worker runs.
+  ["content-security-policy", /^default-src 'self'; worker-src 'self'; (?!.*blob:).*frame-ancestors 'none'/],
   ["x-content-type-options", /^nosniff$/],
   ["x-frame-options", /^DENY$/],
   ["referrer-policy", /^same-origin$/],
