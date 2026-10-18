@@ -14,13 +14,15 @@
 // mid-sort, starting it again on the same state carries on the sort it cut
 // off, from its shelf's Durable Object's stored alarm; a sort whose
 // Durable Object fails to start (SORTER_FAULT) fails its upload, which a
-// retry sorts; a database failure in its alarm escapes nothing; and past the daily cap, the next model request gets 429,
-// which the upload records. It
-// prints each step's checks, ids, and skill names, never phrasing text,
-// and exits 1 if any fails, naming the step.
+// retry sorts; a database failure in its alarm escapes nothing, leaving
+// its upload waiting with no alarm, which the Worker's cron, run through
+// Wrangler's local route for it, starts again once it has stalled; and
+// past the daily cap, the next model request gets 429, which the upload
+// records. It prints each step's checks, ids, and skill names, never
+// phrasing text, and exits 1 if any fails, naming the step.
 // Run: bun run check:sort-rules
 
-import { ApiError, createClient, type Client, type Phrasing, type Shelf } from "@asked-before/sdk";
+import { ApiError, createClient, type Client, type Phrasing, type Shelf, type Upload } from "@asked-before/sdk";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -353,31 +355,58 @@ try {
     }
   });
 
-  /** What step 14 leaves for step 15: a state whose upload waits with no alarm set, and the address its learner's session is for. */
-  const stranded = { state: await mkdtemp(join(tmpdir(), "asked-before-stranded-")), port: freePort(), upload: "", shelf: "" };
+  // Step 14 leaves this state for step 15: an upload waiting with no alarm set, and Eve's session for this address.
+  const stranded = await mkdtemp(join(tmpdir(), "asked-before-stranded-"));
+  const strandedAt = { state: stranded, port: freePort() };
   const strandedModel = await startModelStub(reply(keySorter));
   models.push(strandedModel);
-  const eve = browser(`http://localhost:${stranded.port}`).client;
+  const eve = browser(`http://localhost:${strandedAt.port}`).client;
+  let waiting: Upload | undefined;
   await step("14. A database failure in the sort's alarm escapes nothing, and leaves its upload waiting", async () => {
     // SORTER_FAULT=database makes every query the sort's Durable Object's alarm makes fail, as a database out of reach would.
-    const app = await startApp({ ANTHROPIC_BASE_URL: strandedModel.url, SORTER_FAULT: "database" }, { state: stranded.state, port: stranded.port });
+    const app = await startApp({ ANTHROPIC_BASE_URL: strandedModel.url, SORTER_FAULT: "database" }, strandedAt);
     ended.push(app);
     try {
       await eve.auth.signUp({ name: "Eve Example", email: "eve@example.com", password: "tabulating machine" });
       const shelf = await eve.shelves.create({ name: "Stranded" });
       const finished = await upload(eve, shelf.id, phrasings);
-      Object.assign(stranded, { upload: finished.id, shelf: shelf.id });
       // The alarm is set for now; a few seconds is time for it to run, and for the runtime to retry one that threw.
       await Bun.sleep(3000);
       const { others } = app.workerLog();
       check(others.length === 0, `the app logged its requests and nothing else${others.length ? `: ${others.slice(0, 3).join(" | ")}` : ""}`);
-      const now = await eve.uploads.get(finished.id);
-      check(now.status === "waiting" && strandedModel.requests.length === 0, `the upload is ${now.status}, and the model wasn't asked (${strandedModel.requests.length} requests)`);
+      waiting = await eve.uploads.get(finished.id);
+      check(waiting.status === "waiting" && strandedModel.requests.length === 0, `the upload is ${waiting.status}, and the model wasn't asked (${strandedModel.requests.length} requests)`);
     } finally {
       await app.stop();
     }
   });
-  await rm(stranded.state, { recursive: true, force: true });
+
+  await step("15. The cron starts a sort left waiting with no alarm once it has stalled, and it ends as the key sorts", async () => {
+    const app = await startApp({ ANTHROPIC_BASE_URL: strandedModel.url }, strandedAt);
+    ended.push(app);
+    try {
+      const upload = waiting!;
+      /** Runs the Worker's cron, as if at `time`, through Wrangler's local route for it. */
+      const cron = (time: number) => fetch(`${app.url}/cdn-cgi/local/scheduled?cron=${encodeURIComponent("*/5 * * * *")}&time=${time}`);
+      await Bun.sleep(1000);
+      const idle = await eve.uploads.get(upload.id);
+      check(idle.status === "waiting" && strandedModel.requests.length === 0, `started again on its state, the app leaves it ${idle.status}, with no alarm set (${strandedModel.requests.length} requests)`);
+      const now = await cron(Date.now());
+      await Bun.sleep(1000);
+      const early = await eve.uploads.get(upload.id);
+      check(now.ok && early.status === "waiting" && strandedModel.requests.length === 0, `the cron, run now, leaves an upload finished seconds ago alone: ${now.status} "${await now.text()}", ${early.status}`);
+      const later = await cron(Date.now() + 10 * 60 * 1000);
+      check(later.ok, `run as if 10 minutes later, the cron answers ${later.status} "${await later.text()}"`);
+      const end = await sortEnds(eve, upload.id, 15_000);
+      const { problems } = await compareWithKey(eve, upload.shelfId);
+      check(end.status === "sorted" && problems.length === 0, `the upload ends ${end.status}, ${problems.length ? problems.join("; ") : "its cards matching the key"}`);
+      const { others } = app.workerLog();
+      check(others.length === 0, `the app logged its requests and nothing else${others.length ? `: ${others.slice(0, 3).join(" | ")}` : ""}`);
+    } finally {
+      await app.stop();
+      await rm(stranded, { recursive: true, force: true });
+    }
+  });
 
   const capped = await copy({ DAILY_MODEL_REQUESTS: "2" });
   await step("16. Past the daily cap, the next model request gets 429, and the upload says so", async () => {

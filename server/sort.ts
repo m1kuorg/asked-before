@@ -202,3 +202,24 @@ export async function sortNextBatch(env: Env, shelfId: string): Promise<boolean>
     return store.markFailed(env.DB, upload, error instanceof HttpError ? error.message : "The sort failed on the server.");
   }
 }
+
+/** How long an upload waits or sorts with no progress before the cron starts its shelf's sort again. */
+export const STALLED_MS = 10 * 60 * 1000;
+
+/**
+ * The Worker's cron (worker/index.ts), every five minutes: starts the sort
+ * again on each shelf with an upload waiting or sorting that has made no
+ * progress in the STALLED_MS before `now`, as when the request that
+ * finished it died before starting its sort, or its alarm's database
+ * failed. Starting a sort that's under way only wakes it again once its
+ * batch is done. Nothing escapes it and nothing is logged: a shelf it
+ * couldn't start is tried again on the next run.
+ */
+export async function resumeStalledSorts(env: Env, now: number): Promise<void> {
+  try {
+    const shelves = await store.stalledShelves(env.DB, now - STALLED_MS);
+    await Promise.allSettled(shelves.map((shelfId) => env.SORTER.getByName(shelfId).start()));
+  } catch {
+    // The database failed; the next run reads it again.
+  }
+}

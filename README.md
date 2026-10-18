@@ -72,7 +72,7 @@ The other checks:
 | `bun run check:uploads` | The uploads endpoints, and uploading the same export twice | |
 | `bun run check:upload-page` | The upload page: the preview, what it sends, a zip read under the content security policy, failures, and the demo action | Chromium |
 | `bun run check:sort` | Sorting the demo export three ways, against the answer key; `bun run check:sort 10` for 10 runs | Key |
-| `bun run check:sort-rules` | The sort's rules and the cards endpoints, with the model stubbed, and a sort that carries on after `wrangler dev` is killed mid-sort | |
+| `bun run check:sort-rules` | The sort's rules and the cards endpoints, with the model stubbed, a sort that carries on after `wrangler dev` is killed mid-sort, and sorts that fail to start or stall, which a retry or the cron starts again | |
 | `bun run check:sort-page` | The upload page's sort progress, failure, retry, and daily cap, with the model stubbed | Chromium |
 | `bun run check:shelf` | A shelf's card stack, statuses, unsorted phrasings, and upload history | Chromium |
 | `bun run check:reps` | Five cold reps on card A: lessons, problems, and verdicts | Key |

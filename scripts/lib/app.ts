@@ -82,7 +82,10 @@ export async function startApp(env: Record<string, string> = {}, { state, port, 
 
   // PUBLIC_URL is emptied so that a value in .env can't point the app's origin elsewhere.
   const vars = Object.entries({ PUBLIC_URL: "", ...env }).flatMap(([name, value]) => ["--var", `${name}:${value}`]);
-  const proc = wrangler(["dev", "--port", String(port ?? 0), "--inspector-port", "0", "--show-interactive-dev-session=false", "--assets", pages, ...vars]);
+  // --test-scheduled only quiets Wrangler's warning that the cron doesn't run locally, which could land among the
+  // Worker's lines. A check runs the cron at /cdn-cgi/local/scheduled: /__scheduled, the flag's own path, is the
+  // static assets' here, since only /api/* reaches the Worker first.
+  const proc = wrangler(["dev", "--port", String(port ?? 0), "--inspector-port", "0", "--show-interactive-dev-session=false", "--test-scheduled", "--assets", pages, ...vars]);
   const kill = (signal: NodeJS.Signals) => {
     try {
       process.kill(-proc.pid, signal);
