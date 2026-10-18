@@ -127,7 +127,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/uploads/:uploadId/finish",
         sdk: "uploads.finish",
         who: KEY,
-        does: "Finishes the upload and starts its shelf's sort: the upload, waiting. Get the upload again to follow the sort. Finishing it twice is a 409.",
+        does: "Finishes the upload and starts its shelf's sort: the upload, waiting, or failed in the rare case its sort didn't start, which a retry starts again. Get the upload again to follow the sort. Finishing it twice is a 409.",
       },
       {
         method: "POST",

@@ -6,10 +6,10 @@
 // security headers, and logs the method, path, status, and duration, never
 // anything from a body and never an error itself.
 
-import type { D1Database } from "@cloudflare/workers-types";
 import { z } from "zod";
 import { readConfig, type Config, type Env } from "./config";
 import { SECURITY_HEADERS } from "./security";
+import type { Db } from "./store/db";
 
 /** An answer other than 2xx. Its message is shown to the caller, so it never holds phrasing text. */
 export class HttpError extends Error {
@@ -34,7 +34,7 @@ export type Context<P extends string = string> = {
   /** The Worker's bindings, for the model's key and the sort's Durable Object. */
   env: Env;
   /** The database, for the store's functions; nothing outside server/store/ queries it. */
-  db: D1Database;
+  db: Db;
   config: Config;
 };
 
@@ -78,7 +78,7 @@ export function readPage(req: Request): z.infer<typeof Page> {
  * cache. It's a copy, since a redirect's or a static asset's headers can't
  * be changed.
  */
-export function secure(response: Response, pathname: string): Response {
+function secure(response: Response, pathname: string): Response {
   const secured = new Response(response.body, response);
   for (const [name, value] of Object.entries(SECURITY_HEADERS)) secured.headers.set(name, value);
   if (pathname.startsWith("/api/")) secured.headers.set("cache-control", "no-store");
@@ -86,7 +86,7 @@ export function secure(response: Response, pathname: string): Response {
 }
 
 /** An HttpError keeps its status; anything else is a 500 that says nothing more. */
-export function answerError(error: unknown): Response {
+function answerError(error: unknown): Response {
   if (error instanceof HttpError) return Response.json({ error: error.message }, { status: error.status });
   return Response.json({ error: "The server failed." }, { status: 500 });
 }
@@ -129,10 +129,9 @@ async function route(req: Request, env: Env, routes: RouteTable, pathname: strin
  */
 export async function answer(req: Request, env: Env, routes: RouteTable): Promise<Response> {
   const started = performance.now();
-  let pathname = "/api/";
+  const { pathname } = new URL(req.url);
   let response: Response;
   try {
-    pathname = new URL(req.url).pathname;
     response = await route(req, env, routes, pathname);
   } catch (error) {
     response = answerError(error);

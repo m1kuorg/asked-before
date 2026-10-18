@@ -2,15 +2,19 @@
 // reaches it before the static assets (wrangler.jsonc). server/http.ts's
 // answer() routes it, answers every failure as JSON, adds the security
 // headers, and logs each request. Each shelf's sort runs in its Durable
-// Object, Sorter (worker/sorter.ts).
+// Object, Sorter (worker/sorter.ts), and a cron every five minutes starts
+// again any sort that has stalled, with an upload left waiting or sorting.
 
 import type { ExportedHandler } from "@cloudflare/workers-types";
 import { apiRoutes } from "../server/api";
 import type { Env } from "../server/config";
 import { answer } from "../server/http";
+import { resumeStalledSorts } from "../server/sort";
 
 export { Sorter } from "./sorter";
 
 export default {
   fetch: (req, env) => answer(req, env, apiRoutes),
+  // The cron (wrangler.jsonc) starts the stalled sorts again.
+  scheduled: (controller, env) => resumeStalledSorts(env, controller.scheduledTime),
 } satisfies ExportedHandler<Env>;

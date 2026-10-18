@@ -17,7 +17,7 @@ import { iso, type Db } from "./db";
 import { REP_COLUMNS, toRep, type RepRow } from "./reps";
 import { ACCOUNT_SHELVES, toShelf, type ShelfRow } from "./shelves";
 import { ACCOUNT_UPLOADS, toUpload, type UploadRow } from "./uploads";
-import { toAccount, type AccountRow } from "./users";
+import { ACCOUNT, toAccount, type AccountRow } from "./users";
 
 type DataRow = PhrasingRow & { shelf_id: string; origin: PhrasingData["origin"]; upload_id: string | null; card_id: string | null };
 
@@ -38,7 +38,7 @@ function groupBy<T, U>(rows: T[], key: (row: T) => string, map: (row: T) => U): 
 /** The account's data, or null when it has no account. */
 export async function accountData(db: Db, userId: string): Promise<AccountData | null> {
   const [account, shelves, uploads, phrasings, cards, reps] = await db.batch([
-    db.prepare("SELECT id, name, email, created_at FROM users WHERE id = ?1").bind(userId),
+    db.prepare(ACCOUNT).bind(userId),
     db.prepare(ACCOUNT_SHELVES).bind(userId),
     db.prepare(ACCOUNT_UPLOADS).bind(userId),
     db

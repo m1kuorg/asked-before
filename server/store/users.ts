@@ -6,6 +6,12 @@ import { iso, newId, type Db } from "./db";
 
 export type AccountRow = { id: string; name: string; email: string; created_at: number };
 
+/** An account's columns, as an AccountRow. */
+const ACCOUNT_COLUMNS = "id, name, email, created_at";
+
+/** Account ?1, as an AccountRow, for the account itself, a new session (store/sessions.ts), and the download (store/account-data.ts). */
+export const ACCOUNT = `SELECT ${ACCOUNT_COLUMNS} FROM users WHERE id = ?1`;
+
 export const toAccount = (row: AccountRow): Account => ({ id: row.id, name: row.name, email: row.email, createdAt: iso(row.created_at) });
 
 /** The new account, or null when the email already has one. */
@@ -14,7 +20,7 @@ export async function createUser(db: Db, input: { name: string; email: string; p
     .prepare(
       `INSERT INTO users (id, name, email, password_hash, created_at) VALUES (?1, ?2, ?3, ?4, ?5)
        ON CONFLICT (email) DO NOTHING
-       RETURNING id, name, email, created_at`,
+       RETURNING ${ACCOUNT_COLUMNS}`,
     )
     .bind(newId(), input.name, input.email, input.passwordHash, Date.now())
     .first<AccountRow>();
@@ -22,7 +28,7 @@ export async function createUser(db: Db, input: { name: string; email: string; p
 }
 
 export async function getAccount(db: Db, userId: string): Promise<Account | null> {
-  const row = await db.prepare("SELECT id, name, email, created_at FROM users WHERE id = ?1").bind(userId).first<AccountRow>();
+  const row = await db.prepare(ACCOUNT).bind(userId).first<AccountRow>();
   return row && toAccount(row);
 }
 
@@ -36,7 +42,7 @@ export async function updateAccount(db: Db, userId: string, change: { name?: str
   const row = await db
     .prepare(
       `UPDATE OR IGNORE users SET name = coalesce(?2, name), email = coalesce(?3, email) WHERE id = ?1
-       RETURNING id, name, email, created_at`,
+       RETURNING ${ACCOUNT_COLUMNS}`,
     )
     .bind(userId, change.name ?? null, change.email ?? null)
     .first<AccountRow>();

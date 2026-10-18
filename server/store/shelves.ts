@@ -27,6 +27,9 @@ const SELECT = `
   FROM shelves sh
   LEFT JOIN card_status s ON s.shelf_id = sh.id`;
 
+/** Whether the account has the shelf, as a statement for a batch: one row when it does, none when it doesn't. */
+export const ownsShelf = (db: Db, userId: string, shelfId: string) => db.prepare("SELECT 1 FROM shelves WHERE id = ?1 AND user_id = ?2").bind(shelfId, userId);
+
 /** One shelf of the account's, as ?1 (the account) and ?2 (the shelf). */
 const ONE_SHELF = `${SELECT} WHERE sh.user_id = ?1 AND sh.id = ?2 GROUP BY sh.id`;
 

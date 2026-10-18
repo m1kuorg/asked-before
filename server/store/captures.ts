@@ -9,6 +9,7 @@
 import type { Capture } from "@asked-before/sdk";
 import { findCard, toPhrasing, type PhrasingRow } from "./cards";
 import { newId, type Db } from "./db";
+import { ownsShelf } from "./shelves";
 import { placeBatch, type Placement } from "./sorts";
 
 /** A capture before it's stored: its id, your words, and the server's clock. */
@@ -34,7 +35,7 @@ const EARLIER = "SELECT id FROM phrasings WHERE shelf_id = ?1 AND origin = 'capt
 export async function lookUp(db: Db, userId: string, shelfId: string, capture: Draft): Promise<{ earlier: string } | { cardId: string | null } | null> {
   const words = comparable(capture.text);
   const [owned, earlier, borrows] = await db.batch([
-    db.prepare("SELECT 1 FROM shelves WHERE id = ?1 AND user_id = ?2").bind(shelfId, userId),
+    ownsShelf(db, userId, shelfId),
     db.prepare(EARLIER).bind(shelfId, words, capture.time - REPEAT_WINDOW),
     db.prepare("SELECT card_id, text FROM phrasings WHERE shelf_id = ?1 AND card_id IS NOT NULL ORDER BY time DESC, id DESC").bind(shelfId),
   ]);
