@@ -142,7 +142,7 @@ export function freePort(): number {
   return port!;
 }
 
-/** A client for one browser on the app at `url`; check:container uses it on a container's app. */
+/** A client for one browser on the app at `url`. */
 export function browser(url: string): Browser {
   const jar = new Map<string, string>();
   const cookie = () => [...jar].map(([name, value]) => `${name}=${value}`).join("; ");

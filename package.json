@@ -6,8 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "start": "bun run server.ts",
-    "dev": "bun run build:pages && wrangler d1 migrations apply DB --local < /dev/null && wrangler dev",
+    "dev": "bun run build:pages && wrangler d1 migrations apply DB --local < /dev/null && wrangler dev --var PUBLIC_URL:",
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p worker && tsc --noEmit -p src",
     "journey": "bun run scripts/journey.ts",
     "check:smoke": "bun run scripts/check-smoke.ts",
@@ -35,7 +34,6 @@
     "check:plugin": "bun run scripts/check-plugin.ts",
     "check:docs": "bun run scripts/check-docs.ts",
     "check:sdk": "bun run scripts/check-sdk.ts",
-    "check:container": "bun run scripts/check-container.ts",
     "check:migrations": "bun run scripts/check-migrations.ts",
     "build:pages": "bun run scripts/build-pages.ts",
     "build:plugin": "bun run scripts/build-plugin.ts",
