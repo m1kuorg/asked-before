@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "start": "bun run server.ts",
-    "dev": "bun run build:pages && wrangler d1 migrations apply DB --local && wrangler dev",
+    "dev": "bun run build:pages && wrangler d1 migrations apply DB --local < /dev/null && wrangler dev",
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p worker && tsc --noEmit -p src",
     "journey": "bun run scripts/journey.ts",
     "check:smoke": "bun run scripts/check-smoke.ts",
