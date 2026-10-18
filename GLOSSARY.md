@@ -15,16 +15,16 @@ One of your own messages to a chatbot, in your words, with the time you sent it.
 _Avoid_: Prompt, query
 
 **Upload**:
-One export loaded into a project. Only its phrasings leave your computer.
+One export loaded onto a shelf. Only its phrasings leave your computer.
 _Avoid_: Import, sync
 
 **Capture**:
 A phrasing an agent records as you ask it, rather than one read from an export.
 _Avoid_: Log, track
 
-**Project**:
-A named library of your history for one part of your life, such as Work or Bootcamp, holding its own uploads, cards, and reps. Projects never share cards.
-_Avoid_: Workspace, shelf, folder
+**Shelf**:
+One named part of your life's history, such as Work or Bootcamp, holding its own uploads, cards, and reps. Shelves never share cards.
+_Avoid_: Project, workspace, folder
 
 ### Cards
 
@@ -41,11 +41,11 @@ One time you asked, stamped with the date of the phrasing's own timestamp.
 _Avoid_: Occurrence, hit, repeat
 
 **Unsorted**:
-A project's phrasings that aren't on a card, because nothing else so far asks the same thing.
+A shelf's phrasings that aren't on a card, because nothing else so far asks the same thing.
 _Avoid_: Inbox, orphans, singletons
 
 **Sort**:
-Placing new phrasings onto a project's cards, or into new cards, or leaving them unsorted.
+Placing new phrasings onto a shelf's cards, or into new cards, or leaving them unsorted.
 _Avoid_: Regroup, classify, cluster
 
 ### Reps
@@ -65,3 +65,7 @@ _Avoid_: Done, mastered, learned
 **Borrowed again**:
 A returned card with a borrow dated after its return stamp, which needs a fresh cold rep.
 _Avoid_: Relapsed, overdue, expired
+
+**Desk**:
+The circulation desk: the cards still borrowed across your shelves, with your latest borrows and returns.
+_Avoid_: Dashboard, overview
