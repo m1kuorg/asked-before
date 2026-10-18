@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # Sort new phrasings into existing cards
