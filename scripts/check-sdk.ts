@@ -1,7 +1,7 @@
 // Checks the SDK's build (m1kuorg/basics#53) as someone outside the repo
 // uses it. `bun run build:sdk` emits JavaScript and type declarations into
 // packages/sdk/dist, and the package's exports and types point at them. A
-// scratch project outside the repo adds the built package from its folder,
+// scratch package outside the repo adds the built package from its folder,
 // as the SDK's README says, and gets dist, not the TypeScript sources. The
 // quickstart typechecks there against the declarations alone, under both
 // bundler and Node module resolution, and runs in Bun and in Node against a
@@ -64,7 +64,7 @@ try {
     check(entry?.types === "./dist/index.d.ts" && entry?.default === "./dist/index.js" && manifest.types === "./dist/index.d.ts", `its exports are ${JSON.stringify(manifest.exports)}, its types ${manifest.types}`);
   });
 
-  await step("2. A project outside the repo adds the built package from its folder, and gets dist", async () => {
+  await step("2. A package outside the repo adds the built package from its folder, and gets dist", async () => {
     await Bun.write(join(scratch, "package.json"), JSON.stringify({ name: "scratch", private: true, type: "module" }, null, 2));
     const added = await run(["bun", "add", SDK], scratch);
     check(added.code === 0, `bun add ${SDK} exits ${added.code}${added.code ? `: ${lastLine(added.err || added.out)}` : ""}`);
@@ -91,7 +91,7 @@ try {
   await step("4. The quickstart runs in Bun and in Node against the app, uploading the demo export and listing the answer key's cards", async () => {
     const ada = app.browser().client;
     await ada.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
-    const { key: apiKey } = await ada.keys.create({ name: "Scratch project" });
+    const { key: apiKey } = await ada.keys.create({ name: "Scratch package" });
     const want = key.skills.map((skill) => `${skill.name}: borrowed ${skill.count} times, borrowed`);
     for (const runtime of ["bun", "node"]) {
       const quickstart = await run([runtime, "quickstart.ts", join(ROOT, "demo", "export.json")], scratch, { ASKED_BEFORE_URL: app.url, ASKED_BEFORE_API_KEY: apiKey });

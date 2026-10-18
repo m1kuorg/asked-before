@@ -1,16 +1,16 @@
 // Checks captures (m1kuorg/basics#50) through the SDK, on a fresh copy of
 // the app whose model is a stand-in in this script, never in the app: it
 // sorts the demo export's upload as the answer key does, and answers each
-// capture's sort with the reply queued for it. On the demo project: a
+// capture's sort with the reply queued for it. On the demo shelf: a
 // capture with a card's phrasing word for word, ignoring case and spacing,
 // joins that card without the model; the same words again within ten
 // minutes return that capture with no new borrow, and after ten minutes
 // add one; a rephrasing is one sort request at low effort, holding the
 // cards and the capture with the recent unsorted, never a time, and joins
-// its card; a question nothing asks waits unsorted; in an empty project
+// its card; a question nothing asks waits unsorted; in an empty shelf
 // the model isn't asked, and a second capture asking the same thing makes
 // a card of the two. Then the sort's checks (an answer breaking a rule is
-// asked again), a model failure or a deleted project storing nothing, a
+// asked again), a model failure or a deleted shelf storing nothing, a
 // capture after a return stamp making the card borrowed again, an API key,
 // 404, 401, 400 and 413, an answer moving only the capture, the 50 most
 // recent unsorted, the daily cap's 429, and logs without the words.
@@ -75,7 +75,7 @@ const ada = app.browser();
 await ada.client.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
 
 try {
-  const demo = await ada.client.projects.create({ name: "Demo", demo: true });
+  const demo = await ada.client.shelves.create({ name: "Demo", demo: true });
   await sortEnds(ada.client, (await upload(ada.client, demo.id, phrasings, "demo-export.json")).id);
   const [cardA] = await ada.client.cards.list(demo.id);
 
@@ -92,7 +92,7 @@ try {
 
   await step("2. The same words again within ten minutes return that capture, with no new borrow; after ten minutes they add one", async () => {
     const before = model.requests.length;
-    const response = await fetch(`${app.url}/api/v1/projects/${demo.id}/captures`, {
+    const response = await fetch(`${app.url}/api/v1/shelves/${demo.id}/captures`, {
       method: "POST",
       headers: { "content-type": "application/json", origin: app.url, cookie: ada.cookie() },
       body: JSON.stringify({ text: "how do i undo my last git commit" }),
@@ -118,7 +118,7 @@ try {
     const sent = model.requests.slice(before);
     check(sent.length === 1 && kindOf(sent[0]!) === "sort" && sent[0]!.body.output_config?.effort === "low", `${sent.length} model request: a ${sent[0] && kindOf(sent[0])} at effort ${sent[0]?.body.output_config?.effort}`);
     const request = sortRequest(sent[0]!);
-    check(request.cards.length === 5 && request.cards.every((c) => c.samples.length <= 3), `it sent the project's ${request.cards.length} cards, each with up to 3 samples`);
+    check(request.cards.length === 5 && request.cards.every((c) => c.samples.length <= 3), `it sent the shelf's ${request.cards.length} cards, each with up to 3 samples`);
     const names = sentNames(sent[0]!);
     check(names[0] === "new" && names.length === 1 + key.oneOffs.length && key.oneOffs.every((id) => names.includes(id)), `and the capture first, then the unsorted: ${names.join(" ")}`);
     check(timeless(sent[0]!, captured.phrasing.time), "it held only short ids, skills, samples, and texts: no time");
@@ -127,7 +127,7 @@ try {
     check(stored.borrows.at(-1)?.id === captured.phrasing.id && stored.borrows.at(-1)?.text === text, "card A's latest borrow is the capture, word for word");
   });
 
-  await step("4. A question nothing asks yet waits unsorted, newest of the project's unsorted, and makes no card", async () => {
+  await step("4. A question nothing asks yet waits unsorted, newest of the shelf's unsorted, and makes no card", async () => {
     const text = "how do I tune a ukulele by ear";
     const before = model.requests.length;
     model.queue(reply({ joins: [], newSkills: [] }));
@@ -135,11 +135,11 @@ try {
     check(model.requests.length === before + 1 && captured.card === null && !captured.alreadyCaptured, `${model.requests.length - before} model request; card ${captured.card?.skill ?? null}`);
     const unsorted = await ada.client.cards.unsorted(demo.id);
     check(unsorted.phrasings[0]?.id === captured.phrasing.id && unsorted.phrasings[0]?.text === text, "it's the newest unsorted phrasing, word for word");
-    check((await ada.client.cards.list(demo.id)).length === 5, "the project still has 5 cards");
+    check((await ada.client.cards.list(demo.id)).length === 5, "the shelf still has 5 cards");
   });
 
   await step("5. With no cards and nothing unsorted, a capture waits unsorted without the model; one asking the same makes a card of the two", async () => {
-    const work = await ada.client.projects.create({ name: "Work" });
+    const work = await ada.client.shelves.create({ name: "Work" });
     const before = model.requests.length;
     const one = await ada.client.captures.create(work.id, { text: "rename a local git branch" });
     check(model.requests.length === before && one.card === null, `${model.requests.length - before} model requests; card ${one.card?.skill ?? null}`);
@@ -156,7 +156,7 @@ try {
     check(captured.card?.skill === "Rename a git branch" && captured.card.count === 2 && captured.card.status === "borrowed", `it made "${captured.card?.skill}", ${captured.card?.count} borrows, ${captured.card?.status}`);
     const unsorted = await ada.client.cards.unsorted(work.id);
     check(unsorted.phrasings.length === 0, `${unsorted.phrasings.length} unsorted left`);
-    await ada.client.projects.delete(work.id);
+    await ada.client.shelves.delete(work.id);
   });
 
   await step("6. A sort answer that breaks a rule is asked again with the error; a model failure stores nothing, so the capture can be sent again", async () => {
@@ -184,14 +184,14 @@ try {
     check(!sent.alreadyCaptured && sent.card === null && model.requests.length === before + 1, `sent again, it's sorted afresh: already captured ${sent.alreadyCaptured}, unsorted`);
   });
 
-  await step("7. A project deleted while its capture is with the model is a 404, and keeps nothing", async () => {
-    const gone = await ada.client.projects.create({ name: "Gone soon" });
+  await step("7. A shelf deleted while its capture is with the model is a 404, and keeps nothing", async () => {
+    const gone = await ada.client.shelves.create({ name: "Gone soon" });
     await ada.client.captures.create(gone.id, { text: "how do I list docker containers" });
     const held = hold();
     model.queue(held.answer);
     const pending = failure(ada.client.captures.create(gone.id, { text: "show running docker containers" }));
     await held.reached;
-    await ada.client.projects.delete(gone.id);
+    await ada.client.shelves.delete(gone.id);
     held.release(reply({ joins: [], newSkills: [] }));
     const refused = await pending;
     check(refused?.status === 404, `the capture: ${say(refused)}`);
@@ -208,7 +208,7 @@ try {
     check(captured.card?.id === cardA!.id && captured.card.status === "borrowed_again" && captured.card.returnedAt === card.returnedAt, `then a capture of its words: ${captured.card?.status}, return stamp kept`);
   });
 
-  await step("9. An API key may capture; another account's project is a 404, no account a 401, a bad body a 400, a long one a 413", async () => {
+  await step("9. An API key may capture; another account's shelf is a 404, no account a 401, a bad body a 400, a long one a 413", async () => {
     const { key: apiKey } = await ada.client.keys.create({ name: "Agent" });
     const agent = createClient({ baseUrl: app.url, apiKey });
     model.queue(reply({ joins: [], newSkills: [] }));
@@ -218,8 +218,8 @@ try {
     const bea = app.browser().client;
     await bea.auth.signUp({ name: "Bea Example", email: "bea@example.com", password: "difference engine" });
     const theirs = await failure(bea.captures.create(demo.id, { text: "how do i undo my last git commit" }));
-    check(theirs?.status === 404, `Bea capturing into Ada's project: ${say(theirs)}`);
-    const nobody = await fetch(`${app.url}/api/v1/projects/${demo.id}/captures`, { method: "POST", headers: { "content-type": "application/json" }, body: '{"text":"hello"}' });
+    check(theirs?.status === 404, `Bea capturing into Ada's shelf: ${say(theirs)}`);
+    const nobody = await fetch(`${app.url}/api/v1/shelves/${demo.id}/captures`, { method: "POST", headers: { "content-type": "application/json" }, body: '{"text":"hello"}' });
     check(nobody.status === 401, `no session or key: ${nobody.status}`);
 
     for (const [what, body] of [
@@ -253,7 +253,7 @@ try {
     check(captured.card?.id === cardA!.id && captured.card.count === before + 1, `the capture joined card A, now ${captured.card?.count}`);
     const unsorted = (await allUnsorted(ada.client, demo.id)).map((p) => named(p.sourceId));
     const cards = await ada.client.cards.list(demo.id);
-    check(["m7", "m9", "m25"].every((m) => unsorted.includes(m)) && cards.length === 5, `m7, m9, and m25 still wait unsorted, and the project still has ${cards.length} cards`);
+    check(["m7", "m9", "m25"].every((m) => unsorted.includes(m)) && cards.length === 5, `m7, m9, and m25 still wait unsorted, and the shelf still has ${cards.length} cards`);
   });
 
   await step("11. A capture is compared with the 50 most recent unsorted phrasings", async () => {
@@ -272,7 +272,7 @@ try {
     try {
       const { client } = capped.browser();
       await client.auth.signUp({ name: "Cy Example", email: "cy@example.com", password: "jacquard loom" });
-      const work = await client.projects.create({ name: "Work" });
+      const work = await client.shelves.create({ name: "Work" });
       await client.captures.create(work.id, { text: "what does chmod 755 mean" });
       model.queue(reply({ joins: [], newSkills: [] }));
       await client.captures.create(work.id, { text: "how do I make a script executable" });

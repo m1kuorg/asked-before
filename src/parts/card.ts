@@ -1,4 +1,4 @@
-// A card's pieces that the project page's stack and the card page both set
+// A card's pieces that the shelf page's stack and the card page both set
 // (public/styles/stack.css): its phrasings on the rail, one rail per year
 // of borrows, with a stamp per borrow in the learner's own time zone; what
 // closes the rail once it's returned; the plate's caption after its status;

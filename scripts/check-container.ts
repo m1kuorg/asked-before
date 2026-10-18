@@ -2,10 +2,10 @@
 // builds from the Dockerfile on the official Bun image, with its health
 // check run by Bun rather than curl. A container from it, on a fresh named
 // volume at /data and a free port, serves the app: the health endpoint and
-// the landing page answer, a learner signs up and makes a project, and the
+// the landing page answer, a learner signs up and makes a shelf, and the
 // SQLite file is on the volume. Docker's health check reports it healthy.
 // After a restart, and then in a new container on the same volume, the
-// learner's session and project are still there, and the database records
+// learner's session and shelf are still there, and the database records
 // each of the schema's migrations once. The container, its
 // volume, and the image are removed at the end. It makes no model calls, so
 // it needs no key; it needs Docker running. It exits 1 if any check fails,
@@ -110,7 +110,7 @@ try {
     const landing = await fetch(url);
     check(landing.status === 200 && (await landing.text()).includes("<html"), `the landing page answers ${landing.status}`);
     await ada.client.auth.signUp(ADA);
-    const work = await ada.client.projects.create({ name: "Work" });
+    const work = await ada.client.shelves.create({ name: "Work" });
     check(work.name === "Work", `Ada signs up and makes "${work.name}"`);
     const files = (await docker("exec", container, "ls", DATA)).out.split("\n");
     check(files.includes("asked-before.sqlite"), `the database is on the volume at ${DATA}: ${files.join(", ")}`);
@@ -124,12 +124,12 @@ try {
     check(status === "healthy", `its health is ${status}, after ${log.length} check(s) exiting ${[...new Set(log.map((l) => l.ExitCode))].join(", ")}`);
   });
 
-  await step("4. After a restart, the session and the project are still there", async () => {
+  await step("4. After a restart, the session and the shelf are still there", async () => {
     const restarted = await docker("restart", container);
     check(restarted.code === 0, `docker restart exits ${restarted.code}`);
     await answers();
     const me = await ada.client.auth.me();
-    const names = (await ada.client.projects.list()).map((p) => p.name);
+    const names = (await ada.client.shelves.list()).map((p) => p.name);
     check(me.email === ADA.email && names.join() === "Work", `still logged in as ${me.email}, with ${names.join(", ")}`);
     check((await healthy()) === "healthy", "and healthy again");
   });
@@ -139,7 +139,7 @@ try {
     await start(`${RUN}-2`);
     await answers();
     const me = await ada.client.auth.me();
-    const names = (await ada.client.projects.list()).map((p) => p.name);
+    const names = (await ada.client.shelves.list()).map((p) => p.name);
     check(me.email === ADA.email && names.join() === "Work", `logged in as ${me.email}, with ${names.join(", ")}`);
     const lines = (await docker("logs", container)).out.split("\n").slice(1);
     const odd = lines.filter((line) => !/^(GET|HEAD|POST|PUT|PATCH|DELETE) \/\S* \d{3} \d+ms$/.test(line));

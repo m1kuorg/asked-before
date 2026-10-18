@@ -21,10 +21,10 @@
       "sensitive": true,
       "required": true
     },
-    "project": {
+    "shelf": {
       "type": "string",
-      "title": "Default project",
-      "description": "Optional: the project, by name or id, that questions go to when the agent names none",
+      "title": "Default shelf",
+      "description": "Optional: the shelf, by name or id, that questions go to when the agent names none",
       "default": ""
     }
   }

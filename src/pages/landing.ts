@@ -83,7 +83,7 @@ function rails(borrows: { text: string; at: string }[]): HTMLElement[] {
   });
 }
 
-/** The sign-up form, as the sign-up page has it: a weak password or an email in use gets the server's message, and signing up goes to the dashboard. */
+/** The sign-up form, as the sign-up page has it: a weak password or an email in use gets the server's message, and signing up goes to the Desk. */
 function signUp(): { form: HTMLFormElement; name: HTMLInputElement } {
   const name = field({ label: "Name", name: "name", autocomplete: "name" });
   const email = field({ label: "Email", name: "email", type: "email", autocomplete: "email" });
@@ -152,7 +152,7 @@ function steps(): HTMLElement {
     "Three steps",
     [
       "A question you've asked only once waits as unsorted, and becomes a card when you ask it again.",
-      "Upload next month's export into the same project, and the phrasings already there are skipped.",
+      "Upload next month's export onto the same shelf, and the phrasings already there are skipped.",
     ],
     { items: items("ol", "landing-steps", [
       [
@@ -184,7 +184,7 @@ function agents(): HTMLElement {
   return section(
     "landing-agents",
     "In your coding agent",
-    ["Your agent reaches your projects with an API key you make in Settings, where each agent's setup has your server address filled in."],
+    ["Your agent reaches your shelves with an API key you make in Settings, where each agent's setup has your server address filled in."],
     {
       body: [
         el(
@@ -212,7 +212,7 @@ function close(): HTMLElement {
         el(
           "p",
           undefined,
-          "An account keeps your projects, their cards, and every return stamp. Your first visit offers a demo project made from the demo export, so you can try every step before you find your own export.",
+          "An account keeps your shelves, their cards, and every return stamp. Your first visit offers a demo shelf made from the demo export, so you can try every step before you find your own export.",
         ),
         signUpForm.form,
         el("p", undefined, "Already signed up? ", link("Log in", "/login")),

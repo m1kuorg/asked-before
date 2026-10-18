@@ -13,13 +13,13 @@ Contents:
 
 | Tool | What it does |
 | --- | --- |
-| `list_projects` | Lists your projects, each with its cards and how many are borrowed, returned, and borrowed again, and says which is the default. |
-| `list_cards` | Lists a project's cards, most borrowed first; with `not_returned`, only those still waiting for a cold rep. |
+| `list_shelves` | Lists your shelves, each with its cards and how many are borrowed, returned, and borrowed again, and says which is the default. |
+| `list_cards` | Lists a shelf's cards, most borrowed first; with `not_returned`, only those still waiting for a cold rep. |
 | `record_question` | Records a question in your own words as a capture, and says whether it landed on a card you asked before, with its count and status, or waits unsorted. |
 | `start_cold_rep` | Starts a cold rep on a card: the problem, and the lesson on its first cold rep or after a failed one. |
 | `check_answer` | Checks your answer to a cold rep, as you wrote it: the verdict, the reason, and the card's status. |
 
-A tool that works in a project takes it by name or id, or else uses the default project. Recording a question the model has to place, starting a cold rep, and checking an answer each count toward your account's daily cap of model requests. Past it, the tool answers with an error, and a question it couldn't record is lost unless the agent sends it again.
+A tool that works on a shelf takes it by name or id, or else uses the default shelf. Recording a question the model has to place, starting a cold rep, and checking an answer each count toward your account's daily cap of model requests. Past it, the tool answers with an error, and a question it couldn't record is lost unless the agent sends it again.
 
 ## Settings
 
@@ -29,7 +29,7 @@ The server reads its settings from its environment, and exits at once, naming th
 | --- | --- |
 | `ASKED_BEFORE_URL` | Your Asked Before server's address, such as `https://asked-before.example`. |
 | `ASKED_BEFORE_API_KEY` | An API key from your Asked Before Settings page. |
-| `ASKED_BEFORE_PROJECT` | Optional: the project, by name or id, that the tools use when a call names none. |
+| `ASKED_BEFORE_SHELF` | Optional: the shelf, by name or id, that the tools use when a call names none. |
 
 ## Set it up
 
@@ -64,7 +64,7 @@ Claude Desktop: open Settings, then Developer, then Edit Config, and add this to
 }
 ```
 
-Cursor: add this to `~/.cursor/mcp.json`, or to `.cursor/mcp.json` for one project, with bun's path as for Claude Desktop.
+Cursor: add this to `~/.cursor/mcp.json`, or to `.cursor/mcp.json` in one repository, with bun's path as for Claude Desktop.
 
 ```json
 {
@@ -95,7 +95,7 @@ claude plugin install asked-before@asked-before \
   --config api_key=YOUR_API_KEY
 ```
 
-Then start a new Claude Code session. To pick a default project too, add `--config project=Work`.
+Then start a new Claude Code session. To pick a default shelf too, add `--config shelf=Work`.
 
 After a change to this server or to the SDK, rebuild the plugin's server and check the plugin:
 

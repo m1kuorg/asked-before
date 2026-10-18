@@ -1,7 +1,7 @@
 // Checks the app shell (m1kuorg/basics#42) in a real browser at 1920×1080, on
 // a fresh copy of the app: the public pages and the not-found page, signing
-// up and landing on the dashboard, the top navigation and every screen's
-// route, creating, renaming, and deleting a project with its confirmation
+// up and landing on the Desk, the top navigation and every screen's
+// route, creating, renaming, and deleting a shelf with its confirmation
 // (each checked again through the SDK), logging out, and an app page visited
 // while logged out sending you to log in and back. The page must reach the
 // server only through /api/v1, and break no rule of the content security
@@ -9,7 +9,7 @@
 // exits 1 if any fails, naming the step.
 // Run: bun run check:shell [screenshot dir]
 
-import type { Project } from "@asked-before/sdk";
+import type { Shelf } from "@asked-before/sdk";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -77,8 +77,9 @@ try {
       ["the docs", "/docs", 200],
       ["log in", "/login", 200],
       ["sign up", "/signup", 200],
-      ["the app", "/app", 200],
-      ["an app screen", "/app/projects/p1", 200],
+      ["the Desk", "/app/desk", 200],
+      ["an app screen", "/app/shelves/p1", 200],
+      ["the app's root", "/app", 200],
       ["a missing page", "/no-such-page", 404],
     ] as const) {
       const response = await fetch(new URL(at, app.url));
@@ -92,7 +93,7 @@ try {
     }
   });
 
-  await step("2. Sign up: a weak password is refused, then the dashboard", async () => {
+  await step("2. Sign up: a weak password is refused, then the Desk", async () => {
     await page.goto(app.url);
     await page.locator("nav").getByRole("link", { name: "Sign up", exact: true }).click();
     await page.waitForURL(/\/signup$/);
@@ -113,41 +114,41 @@ try {
     check(marked.invalid === "true" && marked.focused && marked.described.includes("A password needs at least 10 characters."), `the password field is marked, described by the notice, and focused: ${JSON.stringify(marked)}`);
     await page.getByLabel("Password").fill(ADA.password);
     await page.getByRole("button", { name: "Sign up" }).click();
-    await page.waitForURL(/\/app$/);
+    await page.waitForURL(/\/app\/desk$/);
     await page.locator(".block h1").waitFor();
-    check((await heading(page)) === "Still borrowed", `signing up lands on the dashboard: "${await heading(page)}" at ${path(page)}`);
+    check((await heading(page)) === "Still borrowed", `signing up lands on the Desk: "${await heading(page)}" at ${path(page)}`);
     const nav = page.locator("body > nav");
-    check((await nav.locator('[aria-current="page"]').textContent()) === "Dashboard", "the navigation marks Dashboard as the current page");
+    check((await nav.locator('[aria-current="page"]').textContent()) === "Desk", "the navigation marks Desk as the current page");
     check((await nav.textContent())?.includes(ADA.name) ?? false, "the navigation names the account");
-    check((await page.title()).startsWith("Dashboard"), `the page's title is "${await page.title()}"`);
+    check((await page.title()).startsWith("Desk"), `the page's title is "${await page.title()}"`);
   });
 
-  await step("3. Projects: the empty state, then create two", async () => {
-    await page.locator("body > nav").getByRole("link", { name: "Projects", exact: true }).click();
-    await page.waitForURL(/\/app\/projects$/);
+  await step("3. Shelves: the empty state, then create two", async () => {
+    await page.locator("body > nav").getByRole("link", { name: "Shelves", exact: true }).click();
+    await page.waitForURL(/\/app\/shelves$/);
     await page.locator(".block .empty").waitFor();
-    check((await page.locator(".block .empty h2").textContent()) === "No projects yet", `the empty state says "${await page.locator(".block .empty h2").textContent()}"`);
+    check((await page.locator(".block .empty h2").textContent()) === "No shelves yet", `the empty state says "${await page.locator(".block .empty h2").textContent()}"`);
     for (const name of ["Work", "Bootcamp"]) {
-      await page.getByLabel("New project").fill(name);
-      await page.getByRole("button", { name: "Create project" }).click();
+      await page.getByLabel("New shelf").fill(name);
+      await page.getByRole("button", { name: "Add shelf" }).click();
       await row(name).waitFor();
     }
-    check((await page.locator("table.rows tbody tr").count()) === 2, "both projects are rows in the list");
-    check((await page.getByLabel("New project").inputValue()) === "", "the field is cleared for the next one");
+    check((await page.locator("table.rows tbody tr").count()) === 2, "both shelves are rows in the list");
+    check((await page.getByLabel("New shelf").inputValue()) === "", "the field is cleared for the next one");
     const cells = (await row("Work").locator("td").allTextContents()).map((text) => text.trim());
     check(cells[1] === "0" && cells[2] === "0" && cells[3] === "0" && cells[4] === "None yet", `Work's row reads ${JSON.stringify(cells.slice(0, 5))}`);
-    await page.getByLabel("New project").fill("   ");
-    await page.getByRole("button", { name: "Create project" }).click();
+    await page.getByLabel("New shelf").fill("   ");
+    await page.getByRole("button", { name: "Add shelf" }).click();
     const refusal = page.locator(".block .error");
     await refusal.waitFor();
-    check((await refusal.textContent()) === "A project needs a name.", `a blank name says "${await refusal.textContent()}"`);
+    check((await refusal.textContent()) === "A shelf needs a name.", `a blank name says "${await refusal.textContent()}"`);
 
     await api.auth.logIn({ email: ADA.email, password: ADA.password });
-    const names = (await api.projects.list()).map((project) => project.name);
+    const names = (await api.shelves.list()).map((shelf) => shelf.name);
     check(names.join(", ") === "Work, Bootcamp", `the API lists ${names.join(", ")}`);
   });
 
-  await step("4. Rename a project in its row", async () => {
+  await step("4. Rename a shelf in its row", async () => {
     await row("Work").getByRole("button", { name: "Rename Work" }).click();
     const input = page.getByLabel("Name of Work");
     check((await input.inputValue()) === "Work" && (await input.evaluate((el) => el === document.activeElement)), "the row's name becomes a field holding it, with focus");
@@ -158,11 +159,11 @@ try {
     await page.getByLabel("Name of Work").press("Enter");
     await row("Day job").waitFor();
     check((await row("Work").count()) === 0, "the row now reads Day job");
-    const names = (await api.projects.list()).map((project) => project.name);
+    const names = (await api.shelves.list()).map((shelf) => shelf.name);
     check(names.join(", ") === "Day job, Bootcamp", `the API lists ${names.join(", ")}`);
   });
 
-  await step("5. Delete a project, after its confirmation", async () => {
+  await step("5. Delete a shelf, after its confirmation", async () => {
     await row("Bootcamp").getByRole("button", { name: "Delete Bootcamp" }).click();
     const notice = page.locator("table.rows .confirm");
     await notice.waitFor();
@@ -172,32 +173,33 @@ try {
     check(focused === "Keep it", `focus starts on the safe choice: "${focused}"`);
     await page.screenshot({ path: join(OUT, `${shot}b-confirm.png`) });
     await page.getByRole("button", { name: "Keep it" }).click();
-    check((await notice.count()) === 0 && (await row("Bootcamp").count()) === 1, "Keep it closes the confirmation and keeps the project");
-    check((await api.projects.list()).length === 2, "the API still lists both");
+    check((await notice.count()) === 0 && (await row("Bootcamp").count()) === 1, "Keep it closes the confirmation and keeps the shelf");
+    check((await api.shelves.list()).length === 2, "the API still lists both");
 
     await row("Bootcamp").getByRole("button", { name: "Delete Bootcamp" }).click();
     await page.getByRole("button", { name: "Delete Bootcamp" }).last().click();
     await row("Bootcamp").waitFor({ state: "detached" });
-    const left = (await api.projects.list()).map((project) => project.name);
+    const left = (await api.shelves.list()).map((shelf) => shelf.name);
     check(left.join(", ") === "Day job", `the API lists only ${left.join(", ")}`);
   });
 
   await step("6. Every screen has its route, and back and forward work", async () => {
-    const [dayJob] = (await api.projects.list()) as [Project];
+    const [dayJob] = (await api.shelves.list()) as [Shelf];
     await page.getByRole("link", { name: "Day job", exact: true }).click();
-    await page.waitForURL(new RegExp(`/app/projects/${dayJob.id}$`));
+    await page.waitForURL(new RegExp(`/app/shelves/${dayJob.id}$`));
     await page.locator(".block h1", { hasText: "Day job" }).waitFor();
-    check((await heading(page)) === "Day job", `the project's screen is headed "${await heading(page)}"`);
-    check((await page.locator("body > nav [aria-current=page]").textContent()) === "Projects", "the navigation keeps Projects current inside a project");
+    check((await heading(page)) === "Day job", `the shelf's screen is headed "${await heading(page)}"`);
+    check((await page.locator("body > nav [aria-current=page]").textContent()) === "Shelves", "the navigation keeps Shelves current inside a shelf");
     await page.goBack();
     await row("Day job").waitFor();
-    check(path(page) === "/app/projects", `back returns to ${path(page)}`);
+    check(path(page) === "/app/shelves", `back returns to ${path(page)}`);
     await page.goForward();
-    await page.waitForURL(new RegExp(`/app/projects/${dayJob.id}$`));
-    check(true, "forward returns to the project");
+    await page.waitForURL(new RegExp(`/app/shelves/${dayJob.id}$`));
+    check(true, "forward returns to the shelf");
 
     for (const [at, title] of [
-      [`/app/projects/${dayJob.id}/upload`, "Upload a chat export"],
+      ["/app", "Still borrowed"],
+      [`/app/shelves/${dayJob.id}/upload`, "Upload a chat export"],
       ["/app/cards/c1", "Card"],
       ["/app/settings", "Settings"],
       ["/app/no-such-screen", "This page doesn't exist"],
@@ -220,10 +222,10 @@ try {
   });
 
   await step("8. Logged out, an app page sends you to log in and back", async () => {
-    await page.goto(`${app.url}/app/projects?from=bookmark`);
+    await page.goto(`${app.url}/app/shelves?from=bookmark`);
     await page.waitForURL(/\/login\?/);
     const next = new URL(page.url()).searchParams.get("next");
-    check(next === "/app/projects?from=bookmark", `sent to log in with next=${next}`);
+    check(next === "/app/shelves?from=bookmark", `sent to log in with next=${next}`);
     await page.getByLabel("Email").fill(ADA.email);
     await page.getByLabel("Password").fill("the wrong password");
     await page.getByRole("button", { name: "Log in" }).click();
@@ -233,9 +235,9 @@ try {
     check((await page.locator("[aria-invalid]").count()) === 0, "and marks neither field, so it doesn't say which was wrong");
     await page.getByLabel("Password").fill(ADA.password);
     await page.getByRole("button", { name: "Log in" }).click();
-    await page.waitForURL(/\/app\/projects\?from=bookmark$/);
+    await page.waitForURL(/\/app\/shelves\?from=bookmark$/);
     await row("Day job").waitFor();
-    check(path(page) === "/app/projects?from=bookmark", `and back to ${path(page)}, with Day job listed`);
+    check(path(page) === "/app/shelves?from=bookmark", `and back to ${path(page)}, with Day job listed`);
   });
 
   await step("9. The page reached the server only through /api/v1, within its security policy", async () => {

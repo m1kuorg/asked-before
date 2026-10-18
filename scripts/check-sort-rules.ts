@@ -9,14 +9,14 @@
 // joins it, one of a single phrasing makes no card, and an answer that
 // breaks a rule is asked again with the error, then fails the sort with no
 // card made. A failed sort resumes on retry from the first phrasing not yet
-// offered; sorts run one at a time in a project and side by side across
-// projects; deleting a project stops its sort; a restart carries on the
+// offered; sorts run one at a time on a shelf and side by side across
+// shelves; deleting a shelf stops its sort; a restart carries on the
 // sort it cut off; and past the daily cap, the next model request gets 429,
 // which the upload records. It prints each step's checks, ids, and skill
 // names, never phrasing text, and exits 1 if any fails, naming the step.
 // Run: bun run check:sort-rules
 
-import { ApiError, createClient, type Client, type Phrasing, type Project } from "@asked-before/sdk";
+import { ApiError, createClient, type Client, type Phrasing, type Shelf } from "@asked-before/sdk";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -74,13 +74,13 @@ const main = await copy();
 const ada = main.client;
 const bea = main.app.browser().client;
 await bea.auth.signUp({ name: "Bea Example", email: "bea@example.com", password: "difference engine" });
-let work: Project;
+let work: Shelf;
 let failedUpload = "";
-const cardNamed = async (client: Client, projectId: string, skill: string) => (await client.cards.list(projectId)).find((c) => c.skill === skill);
+const cardNamed = async (client: Client, shelfId: string, skill: string) => (await client.cards.list(shelfId)).find((c) => c.skill === skill);
 
 try {
-  await step("1. Before a sort, a project has no cards and nothing unsorted, and another account's are a 404", async () => {
-    work = await ada.projects.create({ name: "Work" });
+  await step("1. Before a sort, a shelf has no cards and nothing unsorted, and another account's are a 404", async () => {
+    work = await ada.shelves.create({ name: "Work" });
     const cards = await ada.cards.list(work.id);
     const unsorted = await ada.cards.unsorted(work.id);
     check(cards.length === 0 && unsorted.phrasings.length === 0 && unsorted.next === null, `${cards.length} cards, ${unsorted.phrasings.length} unsorted`);
@@ -92,7 +92,7 @@ try {
       const refused = await failure(call());
       check(refused?.status === 404, `Bea's ${what}: ${say(refused)}`);
     }
-    const response = await fetch(`${main.app.url}/api/v1/projects/${work.id}/cards`);
+    const response = await fetch(`${main.app.url}/api/v1/shelves/${work.id}/cards`);
     check(response.status === 401, `no session: ${response.status}`);
   });
 
@@ -229,9 +229,9 @@ try {
 
   const small = await copy({ SORT_BATCH_SIZE: "10" });
   await step("9. With a batch size of 10, a sort that fails midway resumes on retry from the first phrasing not yet offered", async () => {
-    const project = await small.client.projects.create({ name: "Bootcamp" });
+    const shelf = await small.client.shelves.create({ name: "Bootcamp" });
     small.model.queue(reply(keySorter), refuse());
-    const failed = await sortEnds(small.client, (await upload(small.client, project.id, phrasings)).id);
+    const failed = await sortEnds(small.client, (await upload(small.client, shelf.id, phrasings)).id);
     check(failed.status === "failed" && failed.offered === 10 && failed.error === "The model request failed (400).", `batch 2 failed: ${failed.status}, ${failed.offered} of ${failed.phrasings} offered, "${failed.error}"`);
     const [first, second] = small.model.requests.map(sentNames);
     check(first!.join(" ") === "m1 m2 m3 m4 m5 m6 m7 m8 m9 m10", `batch 1 was ${first!.join(" ")}`);
@@ -241,13 +241,13 @@ try {
     const resumed = sentNames(small.model.requests[2]!);
     check(resumed.slice(0, 10).join(" ") === "m11 m12 m13 m14 m15 m16 m17 m18 m19 m20", `the retry starts again at m11: ${resumed.slice(0, 10).join(" ")}`);
     check(end.status === "sorted" && small.model.requests.length === 4, `then ends ${end.status}, in ${small.model.requests.length} requests in all`);
-    const { problems } = await compareWithKey(small.client, project.id);
+    const { problems } = await compareWithKey(small.client, shelf.id);
     check(problems.length === 0, problems.length ? problems.join("; ") : "and its cards match the key");
   });
 
-  await step("10. Sorts run one at a time in a project, and side by side across projects", async () => {
-    const one = await small.client.projects.create({ name: "One" });
-    const other = await small.client.projects.create({ name: "Other" });
+  await step("10. Sorts run one at a time on a shelf, and side by side across shelves", async () => {
+    const one = await small.client.shelves.create({ name: "One" });
+    const other = await small.client.shelves.create({ name: "Other" });
     const before = small.model.requests.length;
     const held = hold();
     small.model.queue(held.answer);
@@ -265,14 +265,14 @@ try {
     check(ends.every((u) => u.status === "sorted") && small.model.requests.length === before + 3, `all three end ${ends.map((u) => u.status).join(", ")}, in ${small.model.requests.length - before} requests`);
   });
 
-  await step("11. Deleting a project stops its sort", async () => {
-    const doomed = await small.client.projects.create({ name: "Doomed" });
+  await step("11. Deleting a shelf stops its sort", async () => {
+    const doomed = await small.client.shelves.create({ name: "Doomed" });
     const held = hold();
     small.model.queue(held.answer);
     const sorting = await upload(small.client, doomed.id, phrasings);
     await held.reached;
     const asked = small.model.requests.length;
-    await small.client.projects.delete(doomed.id);
+    await small.client.shelves.delete(doomed.id);
     held.release(reply(keySorter));
     await Bun.sleep(1000);
     check(small.model.requests.length === asked, `after its first batch's answer came back, no more were asked (${small.model.requests.length - asked} more)`);
@@ -290,10 +290,10 @@ try {
       const before = await startApp({ ANTHROPIC_BASE_URL: model.url, ...env });
       const learner = before.browser().client;
       await learner.auth.signUp({ name: "Cy Example", email: "cy@example.com", password: "jacquard loom" });
-      const project = await learner.projects.create({ name: "Restarted" });
+      const shelf = await learner.shelves.create({ name: "Restarted" });
       const held = hold();
       model.queue(held.answer);
-      const cut = await upload(learner, project.id, phrasings);
+      const cut = await upload(learner, shelf.id, phrasings);
       await held.reached;
       await before.stop();
       held.release(refuse());
@@ -303,7 +303,7 @@ try {
       await again.auth.logIn({ email: "cy@example.com", password: "jacquard loom" });
       const end = await sortEnds(again, cut.id);
       check(end.status === "sorted" && model.requests.length === 2, `the restarted app asked the model again and the upload ends ${end.status}`);
-      const { problems } = await compareWithKey(again, project.id);
+      const { problems } = await compareWithKey(again, shelf.id);
       check(problems.length === 0, problems.length ? problems.join("; ") : "and its cards match the key");
     } finally {
       await rm(dir, { recursive: true, force: true });
@@ -312,11 +312,11 @@ try {
 
   const capped = await copy({ DAILY_MODEL_REQUESTS: "2" });
   await step("13. Past the daily cap, the next model request gets 429, and the upload says so", async () => {
-    const project = await capped.client.projects.create({ name: "Capped" });
-    const first = await sortEnds(capped.client, (await upload(capped.client, project.id, phrasings.slice(0, half))).id);
-    const second = await sortEnds(capped.client, (await upload(capped.client, project.id, phrasings.slice(half))).id);
+    const shelf = await capped.client.shelves.create({ name: "Capped" });
+    const first = await sortEnds(capped.client, (await upload(capped.client, shelf.id, phrasings.slice(0, half))).id);
+    const second = await sortEnds(capped.client, (await upload(capped.client, shelf.id, phrasings.slice(half))).id);
     check(first.status === "sorted" && second.status === "sorted" && capped.model.requests.length === 2, `two sorts spend the day's 2 requests: ${first.status}, ${second.status}`);
-    const third = await sortEnds(capped.client, (await upload(capped.client, project.id, extra("how do i undo a commit i already pushed", "push a branch to a new remote"))).id);
+    const third = await sortEnds(capped.client, (await upload(capped.client, shelf.id, extra("how do i undo a commit i already pushed", "push a branch to a new remote"))).id);
     check(third.status === "failed" && /today's 2 model requests/.test(third.error ?? "") && capped.model.requests.length === 2, `the third: ${third.status}, "${third.error}", and the model wasn't asked (${capped.model.requests.length} requests)`);
     await capped.client.uploads.retry(third.id);
     const retried = await sortEnds(capped.client, third.id);

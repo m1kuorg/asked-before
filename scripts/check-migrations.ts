@@ -67,15 +67,15 @@ const schema = (path: string) =>
   read(path, (store) => JSON.stringify(store.query("SELECT type, name, tbl_name, sql FROM sqlite_schema ORDER BY type, name").all()));
 
 // The spec's tables (m1kuorg/basics#40, Store), with the uploads' messages, the card_status view, and the migrations the database records.
-const SCHEMA = ["api_keys", "card_status", "cards", "migrations", "phrasings", "projects", "reps", "sessions", "upload_messages", "uploads", "usage", "users"];
+const SCHEMA = ["api_keys", "card_status", "cards", "migrations", "phrasings", "reps", "sessions", "shelves", "upload_messages", "uploads", "usage", "users"];
 
 /** What an account's download holds, in counts, to say what survived. */
 function held(data: AccountData): string {
-  const all = data.projects.flatMap((p) => p.phrasings);
-  const cards = data.projects.flatMap((p) => p.cards);
+  const all = data.shelves.flatMap((p) => p.phrasings);
+  const cards = data.shelves.flatMap((p) => p.cards);
   const reps = cards.flatMap((c) => c.reps);
   const A = cards.find((c) => c.skill === known.skill);
-  return `${data.projects.length} project(s), ${data.projects.flatMap((p) => p.uploads).length} upload(s), ${all.length} phrasings (${all.filter((p) => p.cardId).length} on ${cards.length} cards), ${reps.length} rep(s), card A ${A?.status ?? "missing"}`;
+  return `${data.shelves.length} shelf(s), ${data.shelves.flatMap((p) => p.uploads).length} upload(s), ${all.length} phrasings (${all.filter((p) => p.cardId).length} on ${cards.length} cards), ${reps.length} rep(s), card A ${A?.status ?? "missing"}`;
 }
 
 /** An account's download without the time it was made, to compare one with another. */
@@ -150,7 +150,7 @@ try {
     await onDatabase(async () => {
       await ada.client.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
       apiKey = (await ada.client.keys.create({ name: "Script" })).key;
-      const demo = await ada.client.projects.create({ name: "Demo", demo: true });
+      const demo = await ada.client.shelves.create({ name: "Demo", demo: true });
       const sorted = await sortEnds(ada.client, (await upload(ada.client, demo.id, phrasings, "demo-export.json")).id);
       const A = (await ada.client.cards.list(demo.id)).find((c) => c.skill === known.skill)!;
       model.queue(repReply("You committed to main by mistake. What do you do?"));
@@ -159,7 +159,7 @@ try {
       const checked = await ada.client.reps.check(rep.id, { answer: known.right });
       check(sorted.status === "sorted" && checked.card.status === "returned", `the demo export sorted, and card A ${checked.card.status} after a cold rep`);
       before = await ada.client.account.export();
-      check(before.projects[0]!.cards.length > 1, `Ada's download holds ${held(before)}`);
+      check(before.shelves[0]!.cards.length > 1, `Ada's download holds ${held(before)}`);
     });
   });
 
@@ -178,17 +178,17 @@ try {
       const after = await ada.client.account.export();
       check(kept(after) === kept(before), `Ada's download is as it was: ${held(after)}`);
       const me = await ada.client.auth.me();
-      const byKey = await createClient({ baseUrl: `http://localhost:${port}`, apiKey }).projects.list();
+      const byKey = await createClient({ baseUrl: `http://localhost:${port}`, apiKey }).shelves.list();
       check(me.email === "ada@example.com" && byKey.length === 1, `Ada's session and her API key still work (${byKey.map((p) => p.name).join()})`);
     }, copy);
     check(recorded(databasePath).join() === "1 0001-schema.sql,2 0002-pin-cards.sql", `the database records ${recorded(databasePath).join(", ")}`);
     const pinned = read(databasePath, (store) => store.query<{ cards: number; unpinned: number }, []>("SELECT count(*) AS cards, sum(pinned = 0) AS unpinned FROM cards").get()!);
-    check(pinned.cards === before.projects[0]!.cards.length && pinned.unpinned === pinned.cards, `cards has its pinned column, unpinned on all ${pinned.cards} cards`);
+    check(pinned.cards === before.shelves[0]!.cards.length && pinned.unpinned === pinned.cards, `cards has its pinned column, unpinned on all ${pinned.cards} cards`);
   });
 
   await step("5. A migration that fails applies nothing, and the app doesn't start until it's gone", async () => {
-    const broken = join(copy, "server", "store", "migrations", "0003-archive-projects.sql");
-    const archive = "ALTER TABLE projects ADD COLUMN archived INTEGER NOT NULL DEFAULT 0;\n";
+    const broken = join(copy, "server", "store", "migrations", "0003-archive-shelves.sql");
+    const archive = "ALTER TABLE shelves ADD COLUMN archived INTEGER NOT NULL DEFAULT 0;\n";
     const failings = [
       { what: "a statement that fails", sql: `${archive}SELECT * FROM no_such_table;\n`, says: "no such table: no_such_table" },
       { what: "a rep left on no card", sql: `${archive}INSERT INTO reps (id, card_id, problem, created_at) VALUES ('stray', 'no-such-card', 'A rep on no card.', 0);\n`, says: "reps" },
@@ -199,8 +199,8 @@ try {
         async (app) => (await app.stop(), "it started"),
         (error: Error) => error.message.split("\n").find((line) => line.includes("0003-")) ?? error.message,
       );
-      check(said.includes("Migration 0003-archive-projects.sql failed") && said.includes(says), `with ${what}, the app stops: ${said.trim()}`);
-      const columns = read(databasePath, (store) => store.query<{ name: string }, []>("SELECT name FROM pragma_table_info('projects')").all().map((c) => c.name));
+      check(said.includes("Migration 0003-archive-shelves.sql failed") && said.includes(says), `with ${what}, the app stops: ${said.trim()}`);
+      const columns = read(databasePath, (store) => store.query<{ name: string }, []>("SELECT name FROM pragma_table_info('shelves')").all().map((c) => c.name));
       const stray = read(databasePath, (store) => store.query<{ n: number }, []>("SELECT count(*) AS n FROM reps WHERE id = 'stray'").get()!.n);
       check(recorded(databasePath).join() === "1 0001-schema.sql,2 0002-pin-cards.sql" && !columns.includes("archived") && stray === 0, `and the database is as migration 2 left it: ${recorded(databasePath).join(", ")}, ${columns.includes("archived") ? "an" : "no"} archived column, ${stray} stray rep(s)`);
     }
@@ -218,8 +218,8 @@ try {
       check(schema(fresh.databasePath) === schema(databasePath), "its schema is the migrated database's, table for table");
       const bea = fresh.browser();
       await bea.client.auth.signUp({ name: "Bea", email: "bea@example.com", password: "difference engine" });
-      const made = await bea.client.projects.create({ name: "Study" });
-      check((await bea.client.projects.list()).map((p) => p.id).join() === made.id, `and the app works on it: Bea signs up and makes "${made.name}"`);
+      const made = await bea.client.shelves.create({ name: "Study" });
+      check((await bea.client.shelves.list()).map((p) => p.id).join() === made.id, `and the app works on it: Bea signs up and makes "${made.name}"`);
     } finally {
       await fresh.stop();
     }

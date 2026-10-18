@@ -1,5 +1,5 @@
 // The upload page's states (public/styles/upload.css; m1kuorg/basics#43), on
-// the real page: waiting for the project, and failing to get it (its request
+// the real page: waiting for the shelf, and failing to get it (its request
 // held and answered here), with no plate, since nothing is counted yet; the
 // drop zone with the instructions in the margin; a
 // Claude export's preview, with a message skipped for length; sending, and
@@ -21,25 +21,25 @@ const DEMO = join(ROOT, "demo", "export.json");
 
 export default async function upload(kit: Kit) {
   const { check, learner } = kit;
-  const project = await learner.client.projects.create({ name: "Bootcamp" });
-  const at = `/app/projects/${project.id}/upload`;
+  const shelf = await learner.client.shelves.create({ name: "Bootcamp" });
+  const at = `/app/shelves/${shelf.id}/upload`;
   const page = await kit.page({ loggedIn: true });
   const uploadButton = page.locator(".block").getByRole("button", { name: /^Upload / });
 
-  // Waiting for the project, then failing to get it, with its request held and answered here.
-  let releaseProject = () => {};
-  const projectHeld = new Promise<void>((resolve) => (releaseProject = resolve));
-  const projectFails = async (route: Route) => {
-    await projectHeld;
+  // Waiting for the shelf, then failing to get it, with its request held and answered here.
+  let releaseShelf = () => {};
+  const shelfHeld = new Promise<void>((resolve) => (releaseShelf = resolve));
+  const shelfFails = async (route: Route) => {
+    await shelfHeld;
     await route.fulfill({ status: 500, json: { error: "The server failed." } });
   };
-  await page.route(`**/api/v1/projects/${project.id}`, projectFails);
+  await page.route(`**/api/v1/shelves/${shelf.id}`, shelfFails);
   await kit.open(page, at, ".block .is-waiting");
   await kit.shoot(page, "upload-waiting", { plate: false });
-  releaseProject();
+  releaseShelf();
   await page.locator(".block .error").waitFor();
   await kit.shoot(page, "upload-load-failed", { plate: false });
-  await page.unroute(`**/api/v1/projects/${project.id}`, projectFails);
+  await page.unroute(`**/api/v1/shelves/${shelf.id}`, shelfFails);
 
   await kit.open(page, at, ".drop-zone");
   await kit.shoot(page, "upload");
@@ -66,7 +66,7 @@ export default async function upload(kit: Kit) {
   await page.getByRole("button", { name: "Try again" }).click();
   await page.locator(".block .upload-done").waitFor();
   await kit.shoot(page, "upload-done");
-  const [sent] = (await learner.client.uploads.list(project.id)).uploads;
+  const [sent] = (await learner.client.uploads.list(shelf.id)).uploads;
   check(sent?.phrasings === 3, `the retried upload holds ${sent?.phrasings} phrasings`);
 
   // The sort's states: the page reads the upload as each one, whatever the real sort is doing.

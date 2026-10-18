@@ -1,5 +1,5 @@
 // The incremental sort check (m1kuorg/basics#44), with the real model. The
-// demo export is uploaded through the SDK and sorted, and the project's
+// demo export is uploaded through the SDK and sorted, and the shelf's
 // cards and unsorted phrasings are compared with demo/answer-key.json, three
 // ways at once, each on its own copy of the app: the whole export in one
 // upload; the export in two halves, as two uploads, so the second half must
@@ -24,8 +24,8 @@ type Scenario = {
   app: App;
   model: ModelStub;
   client: Client;
-  /** Uploads the export into the project, one upload after another, and returns how each sort ended. */
-  run: (client: Client, projectId: string) => Promise<Upload[]>;
+  /** Uploads the export onto the shelf, one upload after another, and returns how each sort ended. */
+  run: (client: Client, shelfId: string) => Promise<Upload[]>;
   matched: number;
 };
 
@@ -39,12 +39,12 @@ async function scenario(name: string, env: Record<string, string>, run: Scenario
   scenarios.push({ name, app, model, client, run, matched: 0 });
 }
 
-const one = (list: typeof phrasings) => async (client: Client, projectId: string) => [await sortEnds(client, (await upload(client, projectId, list)).id)];
+const one = (list: typeof phrasings) => async (client: Client, shelfId: string) => [await sortEnds(client, (await upload(client, shelfId, list)).id)];
 
 await scenario("whole export", {}, one(phrasings));
-await scenario("two halves", {}, async (client, projectId) => [
-  ...(await one(phrasings.slice(0, half))(client, projectId)),
-  ...(await one(phrasings.slice(half))(client, projectId)),
+await scenario("two halves", {}, async (client, shelfId) => [
+  ...(await one(phrasings.slice(0, half))(client, shelfId)),
+  ...(await one(phrasings.slice(half))(client, shelfId)),
 ]);
 await scenario("batches of 10", { SORT_BATCH_SIZE: "10" }, one(phrasings));
 
@@ -60,11 +60,11 @@ try {
         const problems: string[] = [];
         let lines: string[] = [];
         try {
-          const project = await s.client.projects.create({ name: `${s.name}, run ${run}` });
-          const ends = await s.run(s.client, project.id);
+          const shelf = await s.client.shelves.create({ name: `${s.name}, run ${run}` });
+          const ends = await s.run(s.client, shelf.id);
           for (const end of ends) if (end.status !== "sorted") problems.push(`an upload's sort ${end.status}: ${end.error}`);
           if (!problems.length) {
-            const compared = await compareWithKey(s.client, project.id);
+            const compared = await compareWithKey(s.client, shelf.id);
             lines = compared.lines;
             problems.push(...compared.problems);
           }

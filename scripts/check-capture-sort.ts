@@ -1,6 +1,6 @@
 // Checks how well a capture is sorted with the real model
 // (m1kuorg/basics#50), at the app's capture effort, through the SDK: on a
-// fresh copy of the app, the demo project's upload is sorted by a stand-in
+// fresh copy of the app, the demo shelf's upload is sorted by a stand-in
 // as the answer key says, then fresh rephrasings of each of its skills and
 // questions none of them ask are captured one at a time. Each rephrasing
 // must land on its skill's card, and each other question wait unsorted.
@@ -55,7 +55,7 @@ for (let run = 1; run <= runs; run++) {
   try {
     const { client } = app.browser();
     await client.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
-    const demo = await client.projects.create({ name: "Demo", demo: true });
+    const demo = await client.shelves.create({ name: "Demo", demo: true });
     await sortEnds(client, (await upload(client, demo.id, phrasings, "demo-export.json")).id);
     demoSorted = true;
     console.log(`\nRun ${run} of ${runs}`);

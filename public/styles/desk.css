@@ -1,11 +1,11 @@
 /*
-  The dashboard (src/screens/dashboard.ts; m1kuorg/basics#47 owns this file):
+  The Desk (src/screens/desk.ts; m1kuorg/basics#47 owns this file):
   the margin's ledger of totals, the cards still borrowed in rows, the latest
   borrows on the rail (stack.css), and the latest returns in rows. It composes
   the shared parts, and adds no ink: a card borrowed again says so in words.
 */
 
-#app[data-screen="dashboard"] {
+#app[data-screen="desk"] {
   /* The ledger: your cards by status, word left and count right in tabular figures, between iron hairlines with Rule Gray between rows, like the margin's keys. */
   .ledger {
     border-block: var(--hairline);
@@ -47,7 +47,7 @@
     font-weight: 500;
   }
 
-  .rows col.is-project {
+  .rows col.is-shelf {
     width: 17rem;
   }
 
@@ -109,7 +109,7 @@
   }
 
   /* The first upload: one field and its button, under the demo's empty state. */
-  .first-project {
+  .first-shelf {
     max-width: calc(var(--column) + 16rem);
     margin-top: var(--space-6);
   }

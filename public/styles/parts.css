@@ -214,7 +214,7 @@ textarea:is(:disabled, :read-only) {
   margin-left: var(--space-2);
 }
 
-/* A row's title and what stands beside it, such as a demo project's label, wrapping together. */
+/* A row's title and what stands beside it, such as a demo shelf's label, wrapping together. */
 .row-title {
   display: flex;
   flex-wrap: wrap;

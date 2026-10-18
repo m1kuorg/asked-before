@@ -1,5 +1,5 @@
 // The sign-up page. A weak password or an email already in use gets the
-// server's message; signing up goes to `next`, or to the dashboard.
+// server's message; signing up goes to `next`, or to the Desk.
 
 import { field, form } from "../parts/fields";
 import { client, mountAccountPage, next } from "./account";
@@ -10,7 +10,7 @@ const password = field({ label: "Password", name: "password", type: "password", 
 
 mountAccountPage({
   title: "Sign up",
-  note: "An account keeps your projects, their cards, and every return stamp, from one visit to the next.",
+  note: "An account keeps your shelves, their cards, and every return stamp, from one visit to the next.",
   form: form({
     fields: [name.element, email.element, password.element],
     submit: "Sign up",

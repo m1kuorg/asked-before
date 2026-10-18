@@ -1,8 +1,8 @@
-// Checks a project's page (m1kuorg/basics#45) in a real browser at
+// Checks a shelf's page (m1kuorg/basics#45) in a real browser at
 // 1920×1080, on a fresh copy of the app, each step checked again through the
 // SDK. The app's model is a stand-in in this script, answering as the demo
 // export's answer key does, so every sort ends as the key says. The demo
-// action makes the demo project, labeled as demo data, whose stack shows
+// action makes the demo shelf, labeled as demo data, whose stack shows
 // cards A to E in the key's order, with card A's phrasings word for word,
 // its count, its months, and a stamp per borrow, in the learner's own time
 // zone. Each card's status shows, after real cold reps through the API,
@@ -12,13 +12,13 @@
 // history each upload's date, source, messages, and new ones. Deleting the
 // second of two uploads through the page, after its confirmation, removes
 // its borrows and any card left under two, as the key says, checked in the
-// API; deleting needs the owner's session. A project with no cards says
+// API; deleting needs the owner's session. A shelf with no cards says
 // why, and the page reaches the server only through /api/v1.
 // It prints ids, counts, and skill names, never phrasing text, and exits 1
 // if any check fails, naming the step.
-// Run: bun run check:project [screenshot dir]
+// Run: bun run check:shelf [screenshot dir]
 
-import { ApiError, createClient, type Project, type Upload } from "@asked-before/sdk";
+import { ApiError, createClient, type Shelf, type Upload } from "@asked-before/sdk";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -28,7 +28,7 @@ import { startApp } from "./lib/app";
 import { hold, refuse, reply, startModelStub } from "./lib/model-stub";
 import { repReply, smallExport, sortsByKey, verdictReply } from "./lib/reps";
 
-const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-project");
+const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-shelf");
 const FRAME = { width: 1920, height: 1080 };
 
 const failures: string[] = [];
@@ -140,17 +140,17 @@ async function failure(call: Promise<unknown>): Promise<ApiError | null> {
 }
 const say = (error: ApiError | null) => (error ? `${error.status} "${error.message}"` : "no error");
 
-let demo: Project;
+let demo: Shelf;
 
 try {
-  await step("1. The demo project's stack: cards A to E in the key's order, card A in the block, labeled as demo data", async () => {
-    await page.goto(`${app.url}/app/projects`);
-    await page.getByRole("button", { name: "Try the demo project" }).click();
+  await step("1. The demo shelf's stack: cards A to E in the key's order, card A in the block, labeled as demo data", async () => {
+    await page.goto(`${app.url}/app/shelves`);
+    await page.getByRole("button", { name: "Try the demo shelf" }).click();
     await page.locator(".block .upload-done p", { hasText: /sorted into Demo's cards\.$/ }).waitFor({ timeout: 60_000 });
     await page.getByRole("link", { name: "Go to Demo" }).click();
     await page.locator(".margin .margin-key").first().waitFor();
-    [demo] = (await ada.client.projects.list()) as [Project];
-    check(demo.demo && new URL(page.url()).pathname === `/app/projects/${demo.id}`, `on the demo project's page (${new URL(page.url()).pathname})`);
+    [demo] = (await ada.client.shelves.list()) as [Shelf];
+    check(demo.demo && new URL(page.url()).pathname === `/app/shelves/${demo.id}`, `on the demo shelf's page (${new URL(page.url()).pathname})`);
 
     const keys = await marginKeys();
     const want = key.skills.map((skill, i) => `${String.fromCharCode(65 + i)} ${skill.name} ${skill.count}`);
@@ -158,7 +158,7 @@ try {
     check(got.join(" | ") === want.join(" | "), `the margin's keys are the key's, in order: ${got.join(" | ")}`);
     check(keys[0]?.current === true && keys.slice(1).every((k) => !k.current), "key A is current");
     check((await text(".margin h2")) === "Keys, most borrowed first", `the keys are headed "${await text(".margin h2")}"`);
-    check(await page.locator(".margin .demo-label").isVisible(), `the margin names the project with the demo-data label: "${await text(".margin .project-name")}"`);
+    check(await page.locator(".margin .demo-label").isVisible(), `the margin names the shelf with the demo-data label: "${await text(".margin .shelf-name")}"`);
 
     const A = key.skills[0]!;
     check((await text(".block h1.skill")) === A.name, `the block is headed by card A, "${await text(".block h1.skill")}"`);
@@ -202,7 +202,7 @@ try {
     check(A?.status === "returned" && B?.status === "borrowed_again" && B.count === key.skills[1]!.count + 1, `the API has card A ${A?.status}, card B ${B?.status} with ${B?.count} borrows (its last borrow ${B?.lastBorrowAt}, after its return stamp ${B?.returnedAt})`);
     const RETURNED = A!.returnedAt!;
     const AGAIN = B!.returnedAt!;
-    await page.goto(`${app.url}/app/projects/${demo.id}`);
+    await page.goto(`${app.url}/app/shelves/${demo.id}`);
     await page.locator(".block .end-rule").waitFor();
 
     const keys = await marginKeys();
@@ -230,7 +230,7 @@ try {
   const ZONE = "Pacific/Kiritimati";
   const east = await adaPage(ZONE);
   await step(`3. Stamps and months are in the learner's own time zone (${ZONE}, 14 hours ahead)`, async () => {
-    await east.goto(`${app.url}/app/projects/${demo.id}`);
+    await east.goto(`${app.url}/app/shelves/${demo.id}`);
     await east.locator(".block .rail").first().waitFor();
     const A = key.skills[0]!;
     const borrows = A.messageIds.map(keyed).sort((a, b) => Date.parse(a.time) - Date.parse(b.time));
@@ -246,7 +246,7 @@ try {
   }, east);
 
   await step("4. Unsorted lists the phrasings nothing else asks yet, word for word, newest first, a page at a time", async () => {
-    await page.goto(`${app.url}/app/projects/${demo.id}`);
+    await page.goto(`${app.url}/app/shelves/${demo.id}`);
     await page.locator(".margin").getByRole("link", { name: "Unsorted phrasings" }).click();
     await page.locator(".block table.rows").waitFor();
     check((await text(".block h1")) === "Unsorted phrasings", `headed "${await text(".block h1")}"`);
@@ -258,12 +258,12 @@ try {
     check((await page.locator(".margin .margin-key").count()) === key.skills.length, "the margin still keys the cards");
     check((await page.locator(".block").getByRole("button", { name: "Show more" }).count()) === 0, "one page holds them all");
 
-    // A project with more unsorted phrasings than a page holds: phrasings of the learner's that the key sorts nowhere.
-    const scratch = await ada.client.projects.create({ name: "Scratch" });
+    // A shelf with more unsorted phrasings than a page holds: phrasings of the learner's that the key sorts nowhere.
+    const scratch = await ada.client.shelves.create({ name: "Scratch" });
     const loose = Array.from({ length: 60 }, (_, i) => ({ sourceId: `loose-${i}`, text: `how do i do thing number ${i}`, time: new Date(Date.UTC(2026, 0, 1, 0, i)).toISOString() }));
     const made = await upload(ada.client, scratch.id, loose);
     await sortEnds(ada.client, made.id);
-    await page.goto(`${app.url}/app/projects/${scratch.id}?view=unsorted`);
+    await page.goto(`${app.url}/app/shelves/${scratch.id}?view=unsorted`);
     await page.locator(".block table.rows").waitFor();
     const first = await unsortedRows();
     check(first.length === 50 && first[0]?.text === loose[59]!.text, `the first page holds ${first.length}, newest first`);
@@ -275,7 +275,7 @@ try {
   });
 
   await step("5. The upload history: the date, the source, your messages, and the new ones", async () => {
-    await page.goto(`${app.url}/app/projects/${demo.id}`);
+    await page.goto(`${app.url}/app/shelves/${demo.id}`);
     await page.locator(".margin").getByRole("link", { name: "Upload history" }).click();
     await page.locator(".block table.rows").waitFor();
     check((await text(".block h1")) === "Upload history" && new URL(page.url()).searchParams.get("view") === "uploads", `headed "${await text(".block h1")}", at ${new URL(page.url()).search}`);
@@ -285,16 +285,16 @@ try {
     const [newest, row] = rows;
     check(newest?.source === "Claude" && newest.messages === "1" && newest.added === "1", `newest first, the small export reads ${JSON.stringify(newest)}`);
     check(row?.date === utcDate(whole!.createdAt) && row.source === "ChatGPT" && row.messages === "27" && row.added === "27", `the demo export reads ${JSON.stringify(row)}`);
-    check(newest?.href === `/app/projects/${demo.id}/upload?upload=${small!.id}` && row?.href === `/app/projects/${demo.id}/upload?upload=${whole!.id}`, `each date leads to its upload's own page (${row?.href})`);
+    check(newest?.href === `/app/shelves/${demo.id}/upload?upload=${small!.id}` && row?.href === `/app/shelves/${demo.id}/upload?upload=${whole!.id}`, `each date leads to its upload's own page (${row?.href})`);
   });
 
   // The demo export in two halves, as two uploads: the second brings the rest of every card's borrows.
   const half = 13;
   const firstHalf = phrasings.slice(0, half);
-  let work: Project;
+  let work: Shelf;
   let second: Upload;
   await step("6. Delete the second of two uploads, after its confirmation: its borrows go, and any card left under two", async () => {
-    work = await ada.client.projects.create({ name: "Work" });
+    work = await ada.client.shelves.create({ name: "Work" });
     const first = await upload(ada.client, work.id, firstHalf, "march.json");
     await sortEnds(ada.client, first.id);
     second = await upload(ada.client, work.id, phrasings.slice(half), "september.json");
@@ -302,7 +302,7 @@ try {
     const before = await ada.client.cards.list(work.id);
     check(before.length === key.skills.length, `with both uploads, Work has ${before.length} cards`);
 
-    await page.goto(`${app.url}/app/projects/${work.id}?view=uploads`);
+    await page.goto(`${app.url}/app/shelves/${work.id}?view=uploads`);
     await page.locator(".block table.rows").waitFor();
     const rows = await uploadRows();
     check(rows.map((r) => r.added).join(", ") === `${phrasings.length - half}, ${half}`, `newest first: ${rows.map((r) => `${r.messages} messages, ${r.added} new`).join("; ")}`);
@@ -362,9 +362,9 @@ try {
     check((await ada.client.uploads.list(work.id)).uploads.length === 1, "the first upload is still there");
   });
 
-  await step("8. A project with no cards says why: nothing uploaded, a sort under way, or nothing asked twice yet", async () => {
-    const empty = await ada.client.projects.create({ name: "Day job" });
-    const at = `${app.url}/app/projects/${empty.id}`;
+  await step("8. A shelf with no cards says why: nothing uploaded, a sort under way, or nothing asked twice yet", async () => {
+    const empty = await ada.client.shelves.create({ name: "Day job" });
+    const at = `${app.url}/app/shelves/${empty.id}`;
     const said = async () => {
       await page.goto(at);
       await page.locator(".block .empty").waitFor();
@@ -384,7 +384,7 @@ try {
     await held.reached;
     now = await said();
     check(now.body.includes("still being sorted") && now.links.join() === "See its sort", `while its sort runs: ${JSON.stringify(now)}`);
-    check((await page.locator(".block .empty a").getAttribute("href")) === `/app/projects/${empty.id}/upload?upload=${sorting.id}`, "and leads to the upload's own page, where the sort shows");
+    check((await page.locator(".block .empty a").getAttribute("href")) === `/app/shelves/${empty.id}/upload?upload=${sorting.id}`, "and leads to the upload's own page, where the sort shows");
     held.release(reply({ joins: [], newSkills: [] }));
     await sortEnds(ada.client, sorting.id);
     now = await said();

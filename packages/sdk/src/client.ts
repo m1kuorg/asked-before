@@ -6,11 +6,11 @@ import { account } from "./account.ts";
 import { auth } from "./auth.ts";
 import { captures } from "./captures.ts";
 import { cards } from "./cards.ts";
-import { dashboard } from "./dashboard.ts";
+import { desk } from "./desk.ts";
 import { health } from "./health.ts";
 import { requester, type ClientOptions } from "./http.ts";
 import { keys } from "./keys.ts";
-import { projects } from "./projects.ts";
+import { shelves } from "./shelves.ts";
 import { reps } from "./reps.ts";
 import { uploads } from "./uploads.ts";
 
@@ -24,12 +24,12 @@ export function createClient(options: ClientOptions = {}) {
     auth: auth(request),
     account: account(request),
     keys: keys(request),
-    projects: projects(request),
+    shelves: shelves(request),
     uploads: uploads(request),
     cards: cards(request),
     captures: captures(request),
     reps: reps(request),
-    dashboard: dashboard(request),
+    desk: desk(request),
     health: health(request),
   };
 }

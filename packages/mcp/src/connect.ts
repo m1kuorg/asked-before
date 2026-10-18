@@ -3,7 +3,7 @@
 // Code, Claude Desktop, and Cursor built from them. The server reads its
 // environment names from here, and the settings and docs pages show the
 // snippets with their own server's address filled in. It's configured by
-// an API key, the server URL, and an optional default project
+// an API key, the server URL, and an optional default shelf
 // (app-notes/mcp-sdk.md). It runs from a clone of the repo, with bun, or
 // from the Claude Code plugin, which carries a single-file build of it and
 // launches it with node (app-notes/claude-code-plugin.md).
@@ -15,8 +15,8 @@ export const MCP_ENV = {
   apiKey: "ASKED_BEFORE_API_KEY",
   /** The Asked Before server, such as https://asked-before.example. */
   url: "ASKED_BEFORE_URL",
-  /** Optional: the project, by name or id, that the tools use when a call names none. */
-  project: "ASKED_BEFORE_PROJECT",
+  /** Optional: the shelf, by name or id, that the tools use when a call names none. */
+  shelf: "ASKED_BEFORE_SHELF",
 } as const;
 
 /** What a snippet holds for the learner to replace: their clone of the repo, their key, and where bun is. */
@@ -50,12 +50,12 @@ export const PLUGIN = {
   /** The build, from the plugin's directory. */
   bundle: "dist/server.js",
   /** The options the plugin asks for (its userConfig), each passed on to the server as the MCP_ENV setting of the same key. */
-  options: { url: "server_url", apiKey: "api_key", project: "project" },
+  options: { url: "server_url", apiKey: "api_key", shelf: "shelf" },
 } as const;
 
 const ENTRY = `${PLACEHOLDERS.clone}/${ENTRY_IN_CLONE}`;
 
-// The default project is optional, so the snippets leave it out.
+// The default shelf is optional, so the snippets leave it out.
 const env = (serverUrl: string) => ({ [MCP_ENV.url]: serverUrl, [MCP_ENV.apiKey]: PLACEHOLDERS.apiKey });
 
 /** The setup snippet for each agent, for the server at `serverUrl`: the Claude Code plugin, and the command from a clone for Claude Code, Claude Desktop, and Cursor. */

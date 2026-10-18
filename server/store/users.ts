@@ -54,7 +54,7 @@ export function setPasswordHash(userId: string, passwordHash: string): void {
   db.query("UPDATE users SET password_hash = $passwordHash WHERE id = $userId").run({ userId, passwordHash });
 }
 
-/** Deletes the account and, by cascade, everything in it: its sessions, API keys, usage, and projects with all they hold. */
+/** Deletes the account and, by cascade, everything in it: its sessions, API keys, usage, and shelves with all they hold. */
 export function deleteUser(userId: string): void {
   db.query("DELETE FROM users WHERE id = $userId").run({ userId });
 }

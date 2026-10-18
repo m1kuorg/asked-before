@@ -22,7 +22,7 @@ import { rows } from "../parts/rows";
 export function mountSettings(root: HTMLElement, props: ScreenProps) {
   const { block } = frame(root, [
     el("p", undefined, "Your name shows in the navigation, and your email is how you log in."),
-    el("p", undefined, "An API key lets a script or an agent reach your projects without your password. Make one for each, so you can revoke one alone."),
+    el("p", undefined, "An API key lets a script or an agent reach your shelves without your password. Make one for each, so you can revoke one alone."),
     el("p", undefined, "Your data is yours: download all of it, or delete your account and leave nothing behind."),
   ]);
   const loggedIn = el("p", undefined, loggedInAs(props.account));
@@ -162,13 +162,13 @@ function apiKeys({ client, signal }: ScreenProps) {
   function shown(key: CreatedApiKey) {
     const code = codeBlock(`${key.name}'s key`, key.key);
     code.querySelector("button")!.setAttribute("aria-label", `Copy ${key.name}'s key`);
-    return el("div", "key-shown", el("p", undefined, "Copy this key now: it's shown only this once. Anything that has it can reach your projects."), code);
+    return el("div", "key-shown", el("p", undefined, "Copy this key now: it's shown only this once. Anything that has it can reach your shelves."), code);
   }
 
   function confirmation(key: ApiKey) {
     return confirmDelete({
       title: `Revoke ${key.name}?`,
-      body: "Anything that uses this key loses access to your projects at once. It can't be undone.",
+      body: "Anything that uses this key loses access to your shelves at once. It can't be undone.",
       action: `Revoke ${key.name}`,
       onConfirm: async () => {
         await client.keys.revoke(key.id);
@@ -189,7 +189,7 @@ function apiKeys({ client, signal }: ScreenProps) {
 
   return section(
     "API keys",
-    el("p", undefined, "A key can read your projects and add to them, but it can't rename or delete anything, download your data, manage keys, or change your account."),
+    el("p", undefined, "A key can read your shelves and add to them, but it can't rename or delete anything, download your data, manage keys, or change your account."),
     list,
     create,
   );
@@ -217,7 +217,7 @@ function agents(serverUrl: string) {
     codeBlock("Claude Desktop", snippets.claudeDesktop),
     el("p", undefined, `In Claude Desktop, open Settings, then Developer, then Edit Config, and add it to claude_desktop_config.json. ${whichBun} Then restart Claude Desktop.`),
     codeBlock("Cursor", snippets.cursor),
-    el("p", undefined, `Add it to ~/.cursor/mcp.json, or to .cursor/mcp.json for one project. ${whichBun}`),
+    el("p", undefined, `Add it to ~/.cursor/mcp.json, or to .cursor/mcp.json in one repository. ${whichBun}`),
   );
 }
 
@@ -235,7 +235,7 @@ function yourData({ client }: ScreenProps) {
     el(
       "p",
       undefined,
-      "Download everything Asked Before keeps for you as one JSON file: your account, your projects and their uploads, every phrasing, and your cards with their lessons and cold reps. Your API keys and password aren't in it.",
+      "Download everything Asked Before keeps for you as one JSON file: your account, your shelves and their uploads, every phrasing, and your cards with their lessons and cold reps. Your API keys and password aren't in it.",
     ),
     sent,
   );
@@ -268,7 +268,7 @@ function deleteAccount({ client }: ScreenProps) {
       new Promise<void>((resolve, reject) => {
         const confirmation = confirmDelete({
           title: "Delete your account and everything in it?",
-          body: "Your projects, their uploads and phrasings, your cards with their lessons and cold reps, and your API keys all go, and every browser is logged out. It can't be undone.",
+          body: "Your shelves, their uploads and phrasings, your cards with their lessons and cold reps, and your API keys all go, and every browser is logged out. It can't be undone.",
           action: "Delete everything",
           onConfirm: async () => {
             try {

@@ -12,18 +12,18 @@ Contents:
 
 ## Install it
 
-It isn't on npm yet. In a copy of Asked Before it's the workspace package `@asked-before/sdk`, run from its TypeScript sources. To use it in another project, build it in your copy, which writes JavaScript and type declarations to `packages/sdk/dist`, then add it from there:
+It isn't on npm yet. In a copy of Asked Before it's the workspace package `@asked-before/sdk`, run from its TypeScript sources. To use it in your own code, build it in your copy, which writes JavaScript and type declarations to `packages/sdk/dist`, then add it from there:
 
 ```sh
 cd /path/to/asked-before && bun run build:sdk
-cd /path/to/your-project && bun add /path/to/asked-before/packages/sdk
+cd /path/to/your-app && bun add /path/to/asked-before/packages/sdk
 ```
 
-The build is what another project imports, in Bun, Node, or a bundler for the browser, with its types under both bundler and Node module resolution. Build it again after you pull a newer copy.
+The build is what your code imports, in Bun, Node, or a bundler for the browser, with its types under both bundler and Node module resolution. Build it again after you pull a newer copy.
 
 ## Quickstart
 
-This reads your export, uploads it into a new project, waits for the sort, and lists the project's cards:
+This reads your export, uploads it onto a new shelf, waits for the sort, and lists the shelf's cards:
 
 ```ts
 import { createClient, MAX_CHUNK, readExport } from "@asked-before/sdk";
@@ -42,10 +42,10 @@ const file = process.argv[2]!;
 const { source, phrasings, skipped } = await readExport(await readFile(file));
 console.log(`${phrasings.length} of your messages, ${skipped} skipped as too long.`);
 
-// Upload them into a project: create the upload, send its phrasings in
+// Upload them onto a shelf: create the upload, send its phrasings in
 // chunks, then finish it, which starts the sort.
-const project = await client.projects.create({ name: "Work" });
-let upload = await client.uploads.create(project.id, { source, fileName: basename(file) });
+const shelf = await client.shelves.create({ name: "Work" });
+let upload = await client.uploads.create(shelf.id, { source, fileName: basename(file) });
 for (let i = 0; i < phrasings.length; i += MAX_CHUNK) {
   await client.uploads.append(upload.id, phrasings.slice(i, i + MAX_CHUNK));
 }
@@ -58,13 +58,13 @@ while (upload.status === "waiting" || upload.status === "sorting") {
 }
 if (upload.status === "failed") throw new Error(`The sort failed: ${upload.error}`);
 
-// List the project's cards, most borrowed first.
-for (const card of await client.cards.list(project.id)) {
+// List the shelf's cards, most borrowed first.
+for (const card of await client.cards.list(shelf.id)) {
   console.log(`${card.skill}: borrowed ${card.count} times, ${card.status}`);
 }
 ```
 
-Run it with your Asked Before server's address, an API key from its Settings page, and your export. In a copy of Asked Before it's `packages/sdk/examples/quickstart.ts`: `bun run check:docs` runs it there, and `bun run check:sdk` runs it in a project of its own against the build, in Bun and in Node.
+Run it with your Asked Before server's address, an API key from its Settings page, and your export. In a copy of Asked Before it's `packages/sdk/examples/quickstart.ts`: `bun run check:docs` runs it there, and `bun run check:sdk` runs it in a scratch package against the build, in Bun and in Node.
 
 ```sh
 ASKED_BEFORE_URL=https://asked-before.example ASKED_BEFORE_API_KEY=YOUR_API_KEY \
@@ -77,11 +77,11 @@ Node 23.6 or later runs it too, as `node quickstart.ts conversations.json`.
 
 `createClient({ baseUrl, apiKey })` makes a client for the server at `baseUrl` that sends `apiKey` as a Bearer token. In the page, `createClient()` calls its own origin with the session cookie instead. Pass `fetch` to send requests through your own.
 
-The client has one group of methods per area of the API: `auth`, `account`, `keys`, `projects`, `uploads`, `cards`, `captures`, `reps`, `dashboard`, and `health`. Each method calls one endpoint, such as `projects.list()` for `GET /api/v1/projects`. The docs page at `/docs` on any Asked Before server lists every endpoint with its method, the credential it needs, and what it answers.
+The client has one group of methods per area of the API: `auth`, `account`, `keys`, `shelves`, `uploads`, `cards`, `captures`, `reps`, `desk`, and `health`. Each method calls one endpoint, such as `shelves.list()` for `GET /api/v1/shelves`. The docs page at `/docs` on any Asked Before server lists every endpoint with its method, the credential it needs, and what it answers.
 
-A list comes back as an array, such as `Project[]`. A list that can grow without bound, `uploads.list` or `cards.unsorted`, comes a page at a time, newest first: pass `{ limit, cursor }`, with the `next` of the page before as the cursor, until `next` is null.
+A list comes back as an array, such as `Shelf[]`. A list that can grow without bound, `uploads.list` or `cards.unsorted`, comes a page at a time, newest first: pass `{ limit, cursor }`, with the `next` of the page before as the cursor, until `next` is null.
 
-An API key can read projects, cards, uploads, and the dashboard, and make projects, uploads, captures, and cold reps. Renaming a project, deleting anything, downloading your data, managing keys, and changing the account need a session, so a key gets 403 there.
+An API key can read shelves, cards, uploads, and the Desk, and make shelves, uploads, captures, and cold reps. Renaming a shelf, deleting anything, downloading your data, managing keys, and changing the account need a session, so a key gets 403 there.
 
 ## Errors
 

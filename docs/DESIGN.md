@@ -264,7 +264,7 @@ Contents:
     1.  [The delete confirmation](#the-delete-confirmation)
     1.  [Wells: the drop zone and code blocks](#wells-the-drop-zone-and-code-blocks)
     1.  [The landing page](#the-landing-page)
-    1.  [The dashboard](#the-dashboard)
+    1.  [The Desk](#the-desk)
     1.  [The docs page](#the-docs-page)
 1.  [Do's and Don'ts](#dos-and-donts)
     1.  [Design do's](#design-dos)
@@ -348,7 +348,7 @@ The cold rep keeps the same two columns either side of a centre hairline: the ve
 
 At 67.5rem (1080px) and below there's one column, with the margin above the block, 16px of page padding, and 16px of block padding. The rail moves outboard to the text's left edge as the same gray bar, each key spanning its phrasing and the date under it; it never becomes a colored edge stripe. The plate goes in flow with 24px above it, hanging 12px past the block's right edge.
 
-**The Rows Stack Rule.** A row's actions and its notice never scroll out of a narrow screen; a wide list stacks its cells. A projects table that scrolled sideways inside its hairlines, hiding Rename and Delete and clipping its delete confirmation at 390px, was the mistake.
+**The Rows Stack Rule.** A row's actions and its notice never scroll out of a narrow screen; a wide list stacks its cells. A shelves table that scrolled sideways inside its hairlines, hiding Rename and Delete and clipping its delete confirmation at 390px, was the mistake.
 
 **The Rail's Columns Rule.** Every section below a card sits on the rail's columns: its heading and each item's title on the left, set against the centre, and their words on the right. Landing sections with headings across the block and prose running across the centre, out of the rail's columns, were the mistake.
 
@@ -362,7 +362,7 @@ The system is flat. Nothing has a shadow; depth comes from 1px hairlines, from t
 
 **The Plate Counts Rule.** A plate holds a count from the library, never a status code or a label. A "404" plate on the not-found page, which counted nothing and ran past the outer margin, was the mistake.
 
-**The Plate Holds Rule.** Once a screen has its count, every state keeps its one plate, inside the block's padding: waiting and error too. Until then, while a screen waits for the count itself (its first load, or a file being read) or fails to get it, there's no plate, since the Plate Counts Rule leaves nothing to put on one. A plate that drops out of a short state once its count is known, such as a project's card that failed to come, or hangs past the block's foot, is wrong.
+**The Plate Holds Rule.** Once a screen has its count, every state keeps its one plate, inside the block's padding: waiting and error too. Until then, while a screen waits for the count itself (its first load, or a file being read) or fails to get it, there's no plate, since the Plate Counts Rule leaves nothing to put on one. A plate that drops out of a short state once its count is known, such as a shelf's card that failed to come, or hangs past the block's foot, is wrong.
 
 ## Shapes
 
@@ -388,11 +388,11 @@ Standard controls, set in the world's type and printed marks. Hover fills are in
 
 ### Navigation
 
-The web's standard top bar on proof gray, 60px tall, closed by an iron hairline. The product name is 20px weight 900 and leads home. The app's places (Dashboard, Projects, Settings) are cells at 18px weight 700 that run the bar's full height; the current one fills Block White from the bar's top to its hairline and goes to weight 800, like the current margin key, and the others fill Hover Gray on hover. The learner's name (weight 600) and Log out, a cell too, sit at the far right. A cell's focus is the 2px iron rule set 4px inside it, so it stays within the bar. A public page's bar carries Docs, then Log in as a cell and Sign up as a compact primary button; on the log-in or sign-up page, that page's own item is the current cell. On narrow screens the bar wraps.
+The web's standard top bar on proof gray, 60px tall, closed by an iron hairline. The product name is 20px weight 900 and leads home. The app's places (Desk, Shelves, Settings) are cells at 18px weight 700 that run the bar's full height; the current one fills Block White from the bar's top to its hairline and goes to weight 800, like the current margin key, and the others fill Hover Gray on hover. The learner's name (weight 600) and Log out, a cell too, sit at the far right. A cell's focus is the 2px iron rule set 4px inside it, so it stays within the bar. A public page's bar carries Docs, then Log in as a cell and Sign up as a compact primary button; on the log-in or sign-up page, that page's own item is the current cell. On narrow screens the bar wraps.
 
 **The Full Cell Rule.** A navigation cell runs the bar's full height, so the current page fills it edge to edge, like a current key. Cells floating as short white tabs inside the bar were the mistake.
 
-The demo-data label is a 1px iron frame at 16px weight 700 that sits beside a demo project's name, in its heading and in its row, wherever it shows.
+The demo-data label is a 1px iron frame at 16px weight 700 that sits beside a demo shelf's name, in its heading and in its row, wherever it shows.
 
 ### Links
 
@@ -402,7 +402,7 @@ Underlined iron, 1px, offset 0.2em, filled Hover Gray on hover, instantly.
 
 Full-width rows between iron hairlines: the vermilion key letter, the skill, and its count right-aligned in tabular figures. The current key fills Block White and goes to weight 800; others fill Hover Gray on hover and Rule Gray when pressed. A returned key is struck through with a 2px iron line; a key borrowed again isn't struck, and says "Borrowed again" under its skill at weight 500. The margin heading above them is in apparatus capitals, and when a card's borrows span more than one year the margin carries the note "A cut in the rail marks a new year of asking."
 
-On a project's page the margin opens with the project's name at 20px weight 800, beside its demo-data label, then the way to its views (Cards, Unsorted phrasings, Upload history, and Upload a chat export) as underlined notes, the view on screen at weight 800 without its underline, then the keys. The block holds the chosen card, or one view's list in rows under the project's plate of cards. A card borrowed again closes its rail with the line "Returned <date>, then borrowed again." and its keys drop again.
+On a shelf's page the margin opens with the shelf's name at 20px weight 800, beside its demo-data label, then the way to its views (Cards, Unsorted phrasings, Upload history, and Upload a chat export) as underlined notes, the view on screen at weight 800 without its underline, then the keys. The block holds the chosen card, or one view's list in rows under the shelf's plate of cards. A card borrowed again closes its rail with the line "Returned <date>, then borrowed again." and its keys drop again.
 
 ### The rail
 
@@ -457,15 +457,15 @@ The landing page sets one real card and the sections after it in the block, with
 
 **The Phrasings First Rule.** On a narrow screen the card's phrasings come before its side-note. A narrow card that put its explanation before its phrasings was the mistake.
 
-### The dashboard
+### The Desk
 
-The dashboard sets what's still borrowed in the block, the latest borrows on the rail, and the latest returns in rows, with the totals in the margin.
+The Desk sets what's still borrowed in the block, the latest borrows on the rail, and the latest returns in rows, with the totals in the margin.
 
-- **The ledger:** under "Your cards" in apparatus capitals, the margin counts your cards as hairline rows at the 18px label size: Borrowed, Borrowed again, and Returned, each word left and its count right at weight 800 in tabular figures, with Rule Gray between rows. All cards closes it under an iron hairline at weight 800, as a sum is ruled off. Margin notes under it name the projects counted and what borrowed, returned, and borrowed again mean; when the latest borrows span more than one year, a note says "A cut in the rail marks where the year turns."
-- **Still borrowed:** the heading at display size, a one-line lede, and the plate's count of cards not returned hanging over the block's right edge. The cards follow in rows, most borrowed first: the skill, its project with the demo-data label, borrows, and the last borrow's date. A card borrowed again says "Borrowed again" under its skill at weight 500, in words and no new ink. The section closes 32px below its rows with "Take a cold rep on <skill>", a link drawn as the primary button, for the top card.
+- **The ledger:** under "Your cards" in apparatus capitals, the margin counts your cards as hairline rows at the 18px label size: Borrowed, Borrowed again, and Returned, each word left and its count right at weight 800 in tabular figures, with Rule Gray between rows. All cards closes it under an iron hairline at weight 800, as a sum is ruled off. Margin notes under it name the shelves counted and what borrowed, returned, and borrowed again mean; when the latest borrows span more than one year, a note says "A cut in the rail marks where the year turns."
+- **Still borrowed:** the heading at display size, a one-line lede, and the plate's count of cards not returned hanging over the block's right edge. The cards follow in rows, most borrowed first: the skill, its shelf with the demo-data label, borrows, and the last borrow's date. A card borrowed again says "Borrowed again" under its skill at weight 500, in words and no new ink. The section closes 32px below its rows with "Take a cold rep on <skill>", a link drawn as the primary button, for the top card.
 - **Latest borrows:** 40px below, under a 20px weight 800 heading and a lede, the rail, newest first, so its keys are already seated and don't drop. Your phrasing sits on the left in italic; on the right the stamp, then the card's skill as a link at weight 400, wrapping in its own column. On a narrow screen the skill goes under the stamp, at the text's whole width.
-- **Latest returns:** 40px below, in rows: the skill, its project, and the day it was returned. A returned card's skill is struck through by the 2px iron line its margin key carries; a card borrowed again since isn't struck, and says "Borrowed again <date>" under its skill.
-- **Empty states:** the same heading over a plate of 0. With no projects, "No cards yet" offers "Try the demo project", then a field, "Or name your first project", that shares a line with an outlined "Upload a chat export" and goes to that project's upload. With projects but no cards, "No cards yet" leads to them with "Go to your projects". When no card is still borrowed, "Every card is returned" takes the rows' place; when none is returned yet, Latest returns keeps its heading over one line on how a card gets stamped.
+- **Latest returns:** 40px below, in rows: the skill, its shelf, and the day it was returned. A returned card's skill is struck through by the 2px iron line its margin key carries; a card borrowed again since isn't struck, and says "Borrowed again <date>" under its skill.
+- **Empty states:** the same heading over a plate of 0. With no shelves, "No cards yet" offers "Try the demo shelf", then a field, "Or name your first shelf", that shares a line with an outlined "Upload a chat export" and goes to that shelf's upload. With shelves but no cards, "No cards yet" leads to them with "Go to your shelves". When no card is still borrowed, "Every card is returned" takes the rows' place; when none is returned yet, Latest returns keeps its heading over one line on how a card gets stamped.
 
 **The Narrow Stamp Rule.** On a narrow screen a rail row's stamp and skill stack in one column, so the skill keeps the text's whole width. A right cell that kept its two columns on a narrow screen and squeezed a skill to four lines was the mistake.
 

@@ -1,5 +1,5 @@
 // API keys: list, create (shown once), and revoke (m1kuorg/basics#48). A key
-// lets a script or an agent reach the account's projects as a Bearer token:
+// lets a script or an agent reach the account's shelves as a Bearer token:
 // pass it to createClient({ baseUrl, apiKey }). Managing keys needs a session,
 // so a key can't make, list, or revoke keys.
 

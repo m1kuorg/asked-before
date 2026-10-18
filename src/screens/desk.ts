@@ -1,17 +1,17 @@
-// The dashboard (m1kuorg/basics#47), where signing up and logging in land,
-// read from GET /dashboard. The margin keeps the totals as a ledger: your
+// The Desk (m1kuorg/basics#47), where signing up and logging in land,
+// read from GET /desk. The margin keeps the totals as a ledger: your
 // cards borrowed, borrowed again, and returned, in plain numbers. The block
-// heads with what's still borrowed across your projects, most borrowed
+// heads with what's still borrowed across your shelves, most borrowed
 // first, over the plate's count of cards not returned, and closes that list
 // with the way to a cold rep on the top card. Then your latest borrows on
 // the rail, your words facing the card each borrowed, newest first, so the
 // keys are already seated; then your latest return stamps.
 //
-// With no projects, the empty state offers the demo project and a first
-// upload: name a project, and go to its upload page. With projects but no
+// With no shelves, the empty state offers the demo shelf and a first
+// upload: name a shelf, and go to its upload page. With shelves but no
 // cards yet, it leads to them.
 
-import type { Dashboard, DashboardBorrow, DashboardCard, DashboardProject } from "@asked-before/sdk";
+import type { Desk, DeskBorrow, DeskCard, DeskShelf } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
 import { phrasing } from "../parts/card";
 import { button, el, link, type Child } from "../parts/dom";
@@ -21,85 +21,85 @@ import { frame, load, notice, plate } from "../parts/frame";
 import { count, demoLabel, stamp } from "../parts/library";
 import { messageOf } from "../parts/messages";
 import { rows } from "../parts/rows";
-import { startDemoProject } from "./upload";
+import { startDemoShelf } from "./upload";
 
 const cardPath = (cardId: string) => `/app/cards/${encodeURIComponent(cardId)}`;
-const projectPath = (projectId: string) => `/app/projects/${encodeURIComponent(projectId)}`;
+const shelfPath = (shelfId: string) => `/app/shelves/${encodeURIComponent(shelfId)}`;
 
 const STATUS_NOTE =
   "A card stays borrowed until you pass a cold rep on it, which stamps it returned. A borrow dated after that stamp makes it borrowed again.";
 
-export function mountDashboard(root: HTMLElement, { client, navigate, signal }: ScreenProps) {
+export function mountDesk(root: HTMLElement, { client, navigate, signal }: ScreenProps) {
   const { margin, block } = frame(root);
   const heading = el("h1", undefined, "Still borrowed");
 
   load(block, {
     keep: [heading],
     line: "Finding your cards…",
-    request: () => client.dashboard.get(),
+    request: () => client.desk.get(),
     signal,
-    show: (dashboard) => {
-      const out = dashboard.totals.borrowed + dashboard.totals.borrowedAgain;
+    show: (desk) => {
+      const out = desk.totals.borrowed + desk.totals.borrowedAgain;
       const counted = plate(count(out), out === 1 ? "card borrowed, not returned" : "cards borrowed, not returned");
-      if (!dashboard.totals.cards) {
-        margin.replaceChildren(el("p", undefined, "Your cards from every project are counted here, with the ones you still borrow at the top."), el("p", undefined, STATUS_NOTE));
-        block.replaceChildren(heading, counted, ...(dashboard.projects ? noCardsYet() : firstVisit()));
+      if (!desk.totals.cards) {
+        margin.replaceChildren(el("p", undefined, "Your cards from every shelf are counted here, with the ones you still borrow at the top."), el("p", undefined, STATUS_NOTE));
+        block.replaceChildren(heading, counted, ...(desk.shelves ? noCardsYet() : firstVisit()));
         return;
       }
-      margin.replaceChildren(...ledger(dashboard));
+      margin.replaceChildren(...ledger(desk));
       // The margin explains the cut whenever the latest borrows span more than one year.
-      if (new Set(dashboard.latestBorrows.map((borrow) => new Date(borrow.time).getFullYear())).size > 1) margin.append(el("p", undefined, "A cut in the rail marks where the year turns."));
-      block.replaceChildren(heading, ...stillBorrowed(dashboard, counted), latestBorrows(dashboard.latestBorrows), latestReturns(dashboard.latestReturns));
+      if (new Set(desk.latestBorrows.map((borrow) => new Date(borrow.time).getFullYear())).size > 1) margin.append(el("p", undefined, "A cut in the rail marks where the year turns."));
+      block.replaceChildren(heading, ...stillBorrowed(desk, counted), latestBorrows(desk.latestBorrows), latestReturns(desk.latestReturns));
     },
   });
 
-  /** A new learner's empty state: the demo project, or a first project to upload into. */
+  /** A new learner's empty state: the demo shelf, or a first shelf to upload to. */
   function firstVisit(): Node[] {
-    const demo = button("Try the demo project", async () => {
+    const demo = button("Try the demo shelf", async () => {
       demo.disabled = true;
       demo.parentElement?.querySelector(".error")?.remove();
       try {
-        await startDemoProject(client, navigate);
+        await startDemoShelf(client, navigate);
       } catch (error) {
         demo.disabled = false;
         demo.after(notice(messageOf(error)));
       }
     });
-    const name = field({ label: "Or name your first project", name: "name", placeholder: "Such as Work or Bootcamp", autocomplete: "off" });
+    const name = field({ label: "Or name your first shelf", name: "name", placeholder: "Such as Work or Bootcamp", autocomplete: "off" });
     const first = form({
       fields: [name.element],
       submit: "Upload a chat export",
       layout: "row",
-      className: "first-project",
+      className: "first-shelf",
       onSubmit: async () => {
-        const made = await client.projects.create({ name: name.input.value });
-        navigate(`${projectPath(made.id)}/upload`);
+        const made = await client.shelves.create({ name: name.input.value });
+        navigate(`${shelfPath(made.id)}/upload`);
       },
     });
     first.querySelector("button")!.classList.add("secondary");
     return [
       emptyState(
         "No cards yet",
-        "Every question you've asked a chatbot more than once becomes a card, kept here until you pass a cold rep on it. Try the demo project to see a sorted history, made from a demo chat export.",
+        "Every question you've asked a chatbot more than once becomes a card, kept here until you pass a cold rep on it. Try the demo shelf to see a sorted history, made from a demo chat export.",
         demo,
       ),
       first,
     ];
   }
 
-  /** Projects, but no cards in any of them yet. */
+  /** Shelves, but no cards on any of them yet. */
   function noCardsYet(): Node[] {
     return [
       emptyState(
         "No cards yet",
-        "A card appears once a project's uploads hold the same question twice. Open one of your projects to upload a chat export into it, or to see its upload history.",
-        link("Go to your projects", "/app/projects", "button"),
+        "A card appears once a shelf's uploads hold the same question twice. Open one of your shelves to upload a chat export to it, or to see its upload history.",
+        link("Go to your shelves", "/app/shelves", "button"),
       ),
     ];
   }
 
   /** The margin's ledger: your cards by status, in plain numbers, and what they're counted across. */
-  function ledger({ totals, projects }: Dashboard): Node[] {
+  function ledger({ totals, shelves }: Desk): Node[] {
     const line = (word: string, n: number, className?: string) => el("div", className, el("dt", undefined, word), el("dd", undefined, count(n)));
     return [
       el("h2", undefined, "Your cards"),
@@ -111,13 +111,13 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
         line("Returned", totals.returned),
         line("All cards", totals.cards, "ledger-total"),
       ),
-      el("p", undefined, projects === 1 ? "Counted in your one project." : `Counted across your ${count(projects)} projects.`),
+      el("p", undefined, shelves === 1 ? "Counted on your one shelf." : `Counted across your ${count(shelves)} shelves.`),
       el("p", undefined, STATUS_NOTE),
     ];
   }
 
   /** The cards no cold rep has returned, most borrowed first, and the way to a cold rep on the top one. */
-  function stillBorrowed({ mostBorrowed, totals }: Dashboard, counted: HTMLElement): Node[] {
+  function stillBorrowed({ mostBorrowed, totals }: Desk, counted: HTMLElement): Node[] {
     const out = totals.borrowed + totals.borrowedAgain;
     if (!mostBorrowed.length) {
       return [
@@ -127,7 +127,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
     }
     const lede =
       mostBorrowed.length < out
-        ? `The ${count(mostBorrowed.length)} most borrowed of the ${count(out)} cards no cold rep has returned yet. Each project's page has the rest.`
+        ? `The ${count(mostBorrowed.length)} most borrowed of the ${count(out)} cards no cold rep has returned yet. Each shelf's page has the rest.`
         : "Cards no cold rep has returned yet, most borrowed first.";
     const top = mostBorrowed[0]!;
     return [
@@ -138,7 +138,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
         items: mostBorrowed,
         columns: [
           { label: "Card", cell: (card) => cardTitle(card, card.status === "borrowed_again" ? ["Borrowed again"] : null) },
-          { label: "Project", className: "is-project", cell: projectTitle },
+          { label: "Shelf", className: "is-shelf", cell: shelfTitle },
           { label: "Borrows", numeric: true, className: "is-count", cell: (card) => count(card.count) },
           { label: "Last borrow", numeric: true, className: "is-date", cell: (card) => stamp(card.lastBorrowAt) },
         ],
@@ -149,7 +149,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
   }
 
   /** Your latest borrows on the rail, newest first: your words, a key, then the stamp and the card each borrowed. A cut marks where the year turns. */
-  function latestBorrows(borrows: DashboardBorrow[]): HTMLElement {
+  function latestBorrows(borrows: DeskBorrow[]): HTMLElement {
     const years = Map.groupBy(borrows, (borrow) => new Date(borrow.time).getFullYear());
     const rails = [...years].map(([year, inYear]) => {
       const rail = el(
@@ -167,8 +167,8 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
     return section("latest-borrows", "Latest borrows", el("p", undefined, "What you asked most recently, newest first, beside the card each one borrowed."), ...rails);
   }
 
-  /** Your latest return stamps: each card, its project, and the day its cold rep passed; one borrowed again since says so. */
-  function latestReturns(returns: DashboardCard[]): HTMLElement {
+  /** Your latest return stamps: each card, its shelf, and the day its cold rep passed; one borrowed again since says so. */
+  function latestReturns(returns: DeskCard[]): HTMLElement {
     if (!returns.length) {
       return section("latest-returns", "Latest returns", el("p", undefined, "No card is returned yet. A card is stamped returned the day you pass a cold rep on it."));
     }
@@ -180,7 +180,7 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
         items: returns,
         columns: [
           { label: "Card", cell: (card) => cardTitle(card, card.status === "borrowed_again" ? ["Borrowed again ", stamp(card.lastBorrowAt)] : null, { struck: card.status === "returned" }) },
-          { label: "Project", className: "is-project", cell: projectTitle },
+          { label: "Shelf", className: "is-shelf", cell: shelfTitle },
           { label: "Returned", numeric: true, className: "is-date", cell: (card) => stamp(card.returnedAt!) },
         ],
       }),
@@ -194,18 +194,18 @@ export function mountDashboard(root: HTMLElement, { client, navigate, signal }: 
   /**
    * A card's skill, leading to the card and its cold rep, with its status
    * under it when it needs saying. A returned card's skill is struck, as its
-   * margin key is on its project's page.
+   * margin key is on its shelf's page.
    */
-  function cardTitle(card: DashboardCard, status: Child[] | null, { struck = false } = {}): Child[] {
+  function cardTitle(card: DeskCard, status: Child[] | null, { struck = false } = {}): Child[] {
     const skill = link("", cardPath(card.id));
     skill.append(struck ? el("span", "is-struck", card.skill) : card.skill);
     const title = el("span", "row-title", skill);
     return status ? [title, el("span", "card-status", ...status)] : [title];
   }
 
-  function projectTitle({ project }: { project: DashboardProject }): HTMLElement {
-    const title = el("span", "row-title", link(project.name, projectPath(project.id)));
-    if (project.demo) title.append(demoLabel());
+  function shelfTitle({ shelf }: { shelf: DeskShelf }): HTMLElement {
+    const title = el("span", "row-title", link(shelf.name, shelfPath(shelf.id)));
+    if (shelf.demo) title.append(demoLabel());
     return title;
   }
 }

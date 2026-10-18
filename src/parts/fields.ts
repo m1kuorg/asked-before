@@ -49,7 +49,7 @@ export function field({ label, name, type = "text", value, autocomplete, hint, p
 
 export type FormOptions = {
   fields: Child[];
-  /** The button's words: the action it takes, such as "Create project". */
+  /** The button's words: the action it takes, such as "Add shelf". */
   submit: string;
   /** Sends the form. A thrown error shows as the form's notice, and the button unlocks again. */
   onSubmit: (form: HTMLFormElement) => Promise<void>;
