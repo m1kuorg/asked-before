@@ -118,6 +118,19 @@ components:
     backgroundColor: "{colors.gray-200}"
   button-retry-active:
     backgroundColor: "{colors.rule-gray}"
+  button-secondary:
+    backgroundColor: "{colors.block-white}"
+    textColor: "{colors.iron-black}"
+    typography: "{typography.label-button}"
+    rounded: "{rounded.none}"
+    padding: "0.875rem 1.5rem"
+  button-quiet:
+    backgroundColor: "transparent"
+    textColor: "{colors.iron-black}"
+    typography: "{typography.label-nav}"
+    padding: "0.5rem 0.75rem"
+  button-quiet-hover:
+    backgroundColor: "{colors.gray-200}"
   margin-key:
     backgroundColor: "transparent"
     textColor: "{colors.iron-black}"
@@ -173,13 +186,54 @@ components:
     backgroundColor: "{colors.proof-gray}"
     textColor: "{colors.iron-black}"
     typography: "{typography.label-nav}"
-    padding: "0.75rem 2.5rem"
+    padding: "0 2.5rem"
     height: "3.75rem"
+  nav-item:
+    backgroundColor: "transparent"
+    textColor: "{colors.iron-black}"
+    typography: "{typography.label-nav}"
+    padding: "0 0.75rem"
+    height: "3.6875rem"
+  nav-item-hover:
+    backgroundColor: "{colors.gray-200}"
+  nav-item-current:
+    backgroundColor: "{colors.block-white}"
+  field-input:
+    backgroundColor: "{colors.block-white}"
+    textColor: "{colors.iron-black}"
+    typography: "{typography.body-row}"
+    rounded: "{rounded.none}"
+    padding: "0.75rem 1rem"
+    width: "{spacing.column}"
+  field-input-locked:
+    textColor: "{colors.iron-black}"
+  rows:
+    textColor: "{colors.iron-black}"
+    typography: "{typography.body-row}"
+    padding: "0.5625rem 1rem"
+  rows-header:
+    typography: "{typography.label-stamp}"
+  confirm:
+    backgroundColor: "{colors.block-white}"
+    textColor: "{colors.iron-black}"
+    padding: "1rem 1.5rem 1.5rem"
+  drop-zone:
+    backgroundColor: "{colors.proof-gray}"
+    textColor: "{colors.iron-black}"
+    padding: "{spacing.space-6}"
+    height: "15rem"
+  drop-zone-over:
+    backgroundColor: "{colors.gray-200}"
+  code-block:
+    backgroundColor: "{colors.proof-gray}"
+    textColor: "{colors.iron-black}"
+    typography: "{typography.body}"
+    padding: "1rem 1.5rem"
 ---
 
 # Asked Before design
 
-The visual world for Asked Before, chosen in [impeccable](/.claude/skills/impeccable/SKILL.md)'s direction workshop on October 16, 2026, with rules grounded in a search of X the same day, and recorded from the shipped `public/styles.css`. The frontmatter's tokens are normative and match that stylesheet's custom properties. [The scope](/devpost/scope.md) owns what the product is, and the [card stack surface brief](/.impeccable/surfaces/apps-src-index-tsx.md) owns that screen's composition; this file is strictly visual. When a review catches a visual mistake, add a one-line Named Rule here.
+The visual world for Asked Before, chosen in [impeccable](/.claude/skills/impeccable/SKILL.md)'s direction workshop on October 16, 2026, with rules grounded in a search of X the same day, and recorded from the shipped stylesheets, now split per surface under `public/styles/`. The frontmatter's tokens are normative and match the custom properties in `public/styles/base.css`. [The scope](/devpost/scope.md) owns what the product is, the [card stack surface brief](/.impeccable/surfaces/apps-src-index-tsx.md) owns that screen's composition, the [app shell surface brief](/.impeccable/surfaces/src-app-main-ts.md) owns the shell's and the shared parts', and the [landing page surface brief](/.impeccable/surfaces/src-pages-landing-ts.md) owns the landing page's; this file is strictly visual. When a review catches a visual mistake, add a one-line Named Rule here.
 
 Contents:
 
@@ -197,12 +251,21 @@ Contents:
 1.  [Components](#components)
     1.  [Buttons](#buttons)
     1.  [Navigation](#navigation)
+    1.  [Links](#links)
     1.  [Margin keys](#margin-keys)
     1.  [The rail](#the-rail)
     1.  [The reversed plate](#the-reversed-plate)
     1.  [Verdicts](#verdicts)
     1.  [The answer box](#the-answer-box)
     1.  [Waits and errors](#waits-and-errors)
+    1.  [Form fields](#form-fields)
+    1.  [Rows](#rows)
+    1.  [Empty states](#empty-states)
+    1.  [The delete confirmation](#the-delete-confirmation)
+    1.  [Wells: the drop zone and code blocks](#wells-the-drop-zone-and-code-blocks)
+    1.  [The landing page](#the-landing-page)
+    1.  [The dashboard](#the-dashboard)
+    1.  [The docs page](#the-docs-page)
 1.  [Do's and Don'ts](#dos-and-donts)
     1.  [Design do's](#design-dos)
     1.  [Design don'ts](#design-donts)
@@ -281,9 +344,15 @@ Two inks on proof gray: iron black does the work, and rubric vermilion marks onl
 
 The block holds its measure and the margin absorbs the width: two short columns of equal measure (520px, about 52 characters) around a 72px rail, inside 40px of padding, which makes the block 1194px. Extra desktop width goes to the margins in a 5:3 split, never to the line length: the wide left margin carries the keys, notes, and the privacy line at its foot, and the narrower right margin holds the plate. The block sits 32px below the navigation. Space steps are 4, 8, 12, 16, 24, 32, and 40px, and rail rows are padded 9px top and bottom.
 
-The cold rep keeps the same two columns either side of a centre hairline: the verdict and lesson on the left, the problem and answer box on the right. After a pass, "Back to the stack" sits under the Returned verdict in the left column, so it stays in the frame however long the locked answer runs.
+The cold rep keeps the same two columns either side of a centre hairline: the verdict and lesson on the left, the problem and answer box on the right. After a pass, "Back to the stack" sits under the Returned verdict in the left column, so it stays in the frame however long the locked answer runs. On a card's page the rep comes first, under the skill and the plate; the card's phrasings on the rail, closed by its end rule once returned, and its earlier cold reps in rows follow it, each opening 40px below under a 20px weight 800 heading.
 
 At 67.5rem (1080px) and below there's one column, with the margin above the block, 16px of page padding, and 16px of block padding. The rail moves outboard to the text's left edge as the same gray bar, each key spanning its phrasing and the date under it; it never becomes a colored edge stripe. The plate goes in flow with 24px above it, hanging 12px past the block's right edge.
+
+**The Rows Stack Rule.** A row's actions and its notice never scroll out of a narrow screen; a wide list stacks its cells. A projects table that scrolled sideways inside its hairlines, hiding Rename and Delete and clipping its delete confirmation at 390px, was the mistake.
+
+**The Rail's Columns Rule.** Every section below a card sits on the rail's columns: its heading and each item's title on the left, set against the centre, and their words on the right. Landing sections with headings across the block and prose running across the centre, out of the rail's columns, were the mistake.
+
+**The Narrow Wins Rule.** On a narrow screen every heading and title sits flush left with its words, and the narrow rule must outrank the desktop one. Section headings stuck right-aligned on a narrow screen, because the desktop rule's selector outranked the narrow one, were the mistake.
 
 ## Elevation & Depth
 
@@ -291,11 +360,13 @@ The system is flat. Nothing has a shadow; depth comes from 1px hairlines, from t
 
 **The Reversed Plate Rule.** One element per screen sits on a black plate with white type: the number that matters most on that screen. A second plate means the first one isn't the point.
 
-**The Plate Holds Rule.** Every state of a screen keeps its one plate, inside the block's padding: waiting and error too. A plate that drops out of a short state, or hangs past the block's foot, is wrong.
+**The Plate Counts Rule.** A plate holds a count from the library, never a status code or a label. A "404" plate on the not-found page, which counted nothing and ran past the outer margin, was the mistake.
+
+**The Plate Holds Rule.** Once a screen has its count, every state keeps its one plate, inside the block's padding: waiting and error too. Until then, while a screen waits for the count itself (its first load, or a file being read) or fails to get it, there's no plate, since the Plate Counts Rule leaves nothing to put on one. A plate that drops out of a short state once its count is known, such as a project's card that failed to come, or hangs past the block's foot, is wrong.
 
 ## Shapes
 
-Square everywhere: no radius on blocks, buttons, inputs, plates, or keys. Keys are small vermilion squares (22px) seated in square detents (30px) along the rail's bar. Frames are 1px iron-black rules; heavier rules carry meaning, at one 3px weight: a failed verdict's frame, a returned rail's end rule, and an error's head rule. Control states use the world's printed marks: square brackets for focus, a fill one ramp step down for pressed, and a dotted frame for disabled or locked. None reuses the 2px strike that marks a returned card.
+Square everywhere: no radius on blocks, buttons, inputs, plates, or keys. Keys are small vermilion squares (22px) seated in square detents (30px) along the rail's bar. Frames are 1px iron-black rules; heavier rules carry meaning, at one 3px weight: a failed verdict's frame, a returned rail's end rule, and the head rule of a notice (an error, or a delete confirmation). Control states use the world's printed marks: square brackets for focus, a fill one ramp step down for pressed, and a dotted frame for disabled or locked. None reuses the 2px strike that marks a returned card.
 
 **The One Bar Rule.** Each year's rail is one continuous gray bar between two iron hairlines, and a key has no cell or frame of its own. Keys in separate gray cells read as a column of checkboxes.
 
@@ -307,17 +378,31 @@ Standard controls, set in the world's type and printed marks. Hover fills are in
 
 - **Shape:** square (0px), with a 1px iron frame.
 - **Primary:** iron-black fill, white label at 18px weight 800, padded 14px by 24px. Pressed fills Pressed Iron.
-- **Retry:** the same shape outlined, white fill and iron label; it fills Hover Gray on hover and Rule Gray when pressed.
+- **Retry and secondary:** the same shape outlined, white fill and iron label; it fills Hover Gray on hover and Rule Gray when pressed. The secondary is the safe choice beside a primary one, such as "Keep it" beside a delete.
+- **Quiet:** a row's or the navigation's action, such as Rename or Delete in a list: no frame, an underlined label at 18px weight 700, filled Hover Gray on hover and Rule Gray with an iron frame when pressed.
+- **Links styled as buttons** take the primary or secondary look, for an action that goes somewhere, such as "Upload a chat export" or "Open key A".
 - **Focus:** printed square brackets, 2px iron, standing 8px outside each side and 6px above and below; anything that isn't a button gets a 2px iron outline offset 3px.
 - **Disabled:** the frame drops to a dotted Disabled Gray rule, the fill lifts, and the label goes Disabled Gray.
 
+**The Pressed Link Rule.** A link drawn as the primary button fills Pressed Iron when pressed, as a button does. "Open key A" as a link that stayed iron black under the pointer while pressed, because its hover rule outranked the press, was the mistake.
+
 ### Navigation
 
-The web's standard top bar on proof gray, 60px tall, closed by an iron hairline. The product name is 20px weight 900; the demo-data label sits at the far right in a 1px iron frame at 16px weight 700, on every screen while the demo export is loaded. On narrow screens the label wraps under the name.
+The web's standard top bar on proof gray, 60px tall, closed by an iron hairline. The product name is 20px weight 900 and leads home. The app's places (Dashboard, Projects, Settings) are cells at 18px weight 700 that run the bar's full height; the current one fills Block White from the bar's top to its hairline and goes to weight 800, like the current margin key, and the others fill Hover Gray on hover. The learner's name (weight 600) and Log out, a cell too, sit at the far right. A cell's focus is the 2px iron rule set 4px inside it, so it stays within the bar. A public page's bar carries Docs, then Log in as a cell and Sign up as a compact primary button; on the log-in or sign-up page, that page's own item is the current cell. On narrow screens the bar wraps.
+
+**The Full Cell Rule.** A navigation cell runs the bar's full height, so the current page fills it edge to edge, like a current key. Cells floating as short white tabs inside the bar were the mistake.
+
+The demo-data label is a 1px iron frame at 16px weight 700 that sits beside a demo project's name, in its heading and in its row, wherever it shows.
+
+### Links
+
+Underlined iron, 1px, offset 0.2em, filled Hover Gray on hover, instantly.
 
 ### Margin keys
 
-Full-width rows between iron hairlines: the vermilion key letter, the skill, and its count right-aligned in tabular figures. The current key fills Block White and goes to weight 800; others fill Hover Gray on hover and Rule Gray when pressed. A returned key is struck through with a 2px iron line. The margin heading above them is in apparatus capitals, and when a card's borrows span more than one year the margin carries the note "A cut in the rail marks a new year of asking."
+Full-width rows between iron hairlines: the vermilion key letter, the skill, and its count right-aligned in tabular figures. The current key fills Block White and goes to weight 800; others fill Hover Gray on hover and Rule Gray when pressed. A returned key is struck through with a 2px iron line; a key borrowed again isn't struck, and says "Borrowed again" under its skill at weight 500. The margin heading above them is in apparatus capitals, and when a card's borrows span more than one year the margin carries the note "A cut in the rail marks a new year of asking."
+
+On a project's page the margin opens with the project's name at 20px weight 800, beside its demo-data label, then the way to its views (Cards, Unsorted phrasings, Upload history, and Upload a chat export) as underlined notes, the view on screen at weight 800 without its underline, then the keys. The block holds the chosen card, or one view's list in rows under the project's plate of cards. A card borrowed again closes its rail with the line "Returned <date>, then borrowed again." and its keys drop again.
 
 ### The rail
 
@@ -337,7 +422,63 @@ A square textarea with a 1px iron frame, white fill, body type, a 152px minimum 
 
 ### Waits and errors
 
-A waiting line opens with a short piece of rail, the same gray bar empty of keys, with the line beside it at weight 500. An error is a notice: a 1px iron frame with a 3px head rule, so it can't be mistaken for a disabled control, followed by an outlined retry.
+A waiting line opens with a short piece of rail, the same gray bar empty of keys, with the line beside it at weight 500. An error is a notice: a 1px iron frame with a 3px head rule, so it can't be mistaken for a disabled control, followed by an outlined retry. A form's notice sits above its button (under it, when the field and button share a line), and the button locks while the form is sent.
+
+### Form fields
+
+A label at 18px weight 700 over a square box: a 1px iron frame, white fill, body type at 20px, 12px by 16px of padding, one column (520px) wide, with Disabled Gray placeholders. A hint sits under the box at 16px weight 500, and the box is described by it. When a failure's message names one field, that field's frame goes to 3px iron, it's described by the notice too, and it takes focus; a message that names several, such as "Wrong email or password.", marks none. A locked box keeps its words in iron and drops its frame to a dotted Disabled Gray rule. Fields stack one under another with 24px between them; a single field and its button can share one line, the button seated on the field's foot. The browser's autofill tint is held off, so a saved password brings no new ink.
+
+### Rows
+
+A list is a table set between two iron hairlines: a header row in 16px weight 700 closed by a hairline, then rows in body type at the rail rows' leading and padding, with Rule Gray between them. Words sit flush with the block's heading; counts and dates are right-aligned in tabular figures; quiet actions close each row. A row can open a full-width row under it, such as its delete confirmation. On a narrow screen the header row goes and each row stacks: its title, a line of its counts each led by its column's name at 16px weight 600, then its actions and any notice at the screen's width.
+
+### Empty states
+
+A section that opens on an iron hairline, like the lesson and the problem: a 20px weight 800 title that names what isn't here yet, one sentence on how it gets here, and the action that leads there.
+
+### The delete confirmation
+
+A notice in place, never a modal: the error's frame with its 3px head rule, on white, under the row it deletes. It asks "Delete Work?", names everything that goes and that it can't be undone, and offers the delete as a primary button named for what it deletes, then "Keep it", outlined, which takes focus first; Escape keeps it too. Nothing turns red.
+
+### Wells: the drop zone and code blocks
+
+A well is recessed proof gray inside the white block, framed by a 1px iron rule, like the rail's bar. The drop zone is a 240px well with its title at 20px weight 800, a line on what it takes, and a "Choose a file" control drawn as an outlined button; a file held over it fills it Hover Gray, and it takes the focus rule from the keyboard. A code block is a well holding a setup snippet in Hanken Grotesk at 20px (the world has no monospace), scrolling sideways inside itself, under a 18px weight 700 caption with an outlined Copy button that says "Copied" for two seconds.
+
+### The landing page
+
+The landing page sets one real card and the sections after it in the block, with their apparatus in the margin.
+
+- **The head:** the pitch at display size across the block, then the lede at weight 500 in the left column and Sign up in the right, seated on the lede's first line.
+- **The card:** card A of the demo export, with the card stack's rail markup. It opens on an iron hairline 24px below the pitch, with 16px of padding, so its whole rail closes inside the 1080 frame. Its name is 40px weight 900 beside the demo-data label, over its borrow line at weight 500; the rails start 16px below, 12px apart at the year cut. The plate hangs over the block's right edge level with the card's name, overlapping only the padding. On a narrow screen the plate goes in flow with 24px above it, hanging 12px past the block's right edge.
+- **Sections:** each opens on an iron hairline, 40px below the last, with 24px of padding, set on the rail's columns. The heading (40px weight 900) and each item's title (20px weight 800) sit right-aligned against the centre on the left, facing their words on the right; items are padded 16px, with Rule Gray between rows. What leaves the computer is said once, at the headline size. On a narrow screen there's one column, with everything flush left.
+- **Side-notes:** margin notes in sentence case, as the margin sets them. Each hangs into the margin column level with the section it annotates, starting at the section's padding. On a narrow screen it goes in flow under its section: 16px under the card's rail, and one 24px row gap under a section.
+
+**The Clear Notes Rule.** A side-note is placed absolutely and pushes nothing, so each must end above the next one at every desktop width, down to the 16rem margin at 1440. Side-notes about to collide where the margin narrows to 16rem at 1440 were the mistake.
+
+**The Phrasings First Rule.** On a narrow screen the card's phrasings come before its side-note. A narrow card that put its explanation before its phrasings was the mistake.
+
+### The dashboard
+
+The dashboard sets what's still borrowed in the block, the latest borrows on the rail, and the latest returns in rows, with the totals in the margin.
+
+- **The ledger:** under "Your cards" in apparatus capitals, the margin counts your cards as hairline rows at the 18px label size: Borrowed, Borrowed again, and Returned, each word left and its count right at weight 800 in tabular figures, with Rule Gray between rows. All cards closes it under an iron hairline at weight 800, as a sum is ruled off. Margin notes under it name the projects counted and what borrowed, returned, and borrowed again mean; when the latest borrows span more than one year, a note says "A cut in the rail marks where the year turns."
+- **Still borrowed:** the heading at display size, a one-line lede, and the plate's count of cards not returned hanging over the block's right edge. The cards follow in rows, most borrowed first: the skill, its project with the demo-data label, borrows, and the last borrow's date. A card borrowed again says "Borrowed again" under its skill at weight 500, in words and no new ink. The section closes 32px below its rows with "Take a cold rep on <skill>", a link drawn as the primary button, for the top card.
+- **Latest borrows:** 40px below, under a 20px weight 800 heading and a lede, the rail, newest first, so its keys are already seated and don't drop. Your phrasing sits on the left in italic; on the right the stamp, then the card's skill as a link at weight 400, wrapping in its own column. On a narrow screen the skill goes under the stamp, at the text's whole width.
+- **Latest returns:** 40px below, in rows: the skill, its project, and the day it was returned. A returned card's skill is struck through by the 2px iron line its margin key carries; a card borrowed again since isn't struck, and says "Borrowed again <date>" under its skill.
+- **Empty states:** the same heading over a plate of 0. With no projects, "No cards yet" offers "Try the demo project", then a field, "Or name your first project", that shares a line with an outlined "Upload a chat export" and goes to that project's upload. With projects but no cards, "No cards yet" leads to them with "Go to your projects". When no card is still borrowed, "Every card is returned" takes the rows' place; when none is returned yet, Latest returns keeps its heading over one line on how a card gets stamped.
+
+**The Narrow Stamp Rule.** On a narrow screen a rail row's stamp and skill stack in one column, so the skill keeps the text's whole width. A right cell that kept its two columns on a narrow screen and squeezed a skill to four lines was the mistake.
+
+**The Whole Status Rule.** A status line under a skill finishes its thought, with its date. A returned card borrowed again that said only "Borrowed again since", ending mid-thought, was the mistake.
+
+### The docs page
+
+The docs page is a reference set in one block, with no plate, since it counts nothing from the library.
+
+- **The margin:** "Contents" in apparatus capitals over the sections as links, then a note naming this server's API. It stays in view while the block scrolls by; on a narrow screen it goes above the block, in flow.
+- **Sections:** each opens on an iron hairline 40px below the last, with 24px of padding, under a 40px weight 900 heading, as the landing page's do. Its parts open 32px below under 20px weight 800 headings. Prose keeps the 60ch measure; rows and code blocks run the block's width.
+- **Rows:** the endpoints, by area, then the error statuses, the tools, and the settings, as the shared rows set them, with cells aligned to their top and prose leading in the words. An endpoint's method sits at weight 800 before its path, over its SDK method.
+- **Code in prose:** a path, a setting, or a tool's name inside a sentence is set in the text family at weight 600, never in a monospace, and breaks anywhere rather than push the line past the measure.
 
 ## Do's and Don'ts
 
@@ -371,6 +512,8 @@ These hold for every screen. The ones from X cite the post they came from; the r
 ## See also
 
 - [Card stack surface brief](/.impeccable/surfaces/apps-src-index-tsx.md), with the direction contract
+- [App shell surface brief](/.impeccable/surfaces/src-app-main-ts.md), with the shell's direction contract
+- [Landing page surface brief](/.impeccable/surfaces/src-pages-landing-ts.md), with the landing page's direction contract
 - [Chosen card stack sketch](/.impeccable/mocks/decision/r2-lead.html) and its [Centre Rail figure](/.impeccable/mocks/decision/r2-lead.png)
 - [Asked Before scope](/devpost/scope.md)
 - [Asked Before product requirements](/devpost/prd.md)

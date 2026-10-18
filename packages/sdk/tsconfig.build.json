@@ -1,0 +1,23 @@
+{
+  // The SDK's build, `bun run build`: JavaScript and type declarations in
+  // dist/, one file each per module under src/. It's checked as Node checks
+  // an ES module, without Bun's types, so the build runs in Bun, Node, or a
+  // browser. Inside the repo, the root tsconfig.json maps the package to
+  // its sources, so nothing there needs this build.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rewriteRelativeImportExtensions": true,
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "declaration": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "types": []
+  },
+  "include": ["src"]
+}

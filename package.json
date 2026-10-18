@@ -2,21 +2,48 @@
   "name": "asked-before",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "start": "bun run server.ts",
+    "journey": "bun run scripts/journey.ts",
+    "check:accounts": "bun run scripts/check-accounts.ts",
+    "check:shell": "bun run scripts/check-shell.ts",
+    "check:readers": "bun run scripts/check-readers.ts",
+    "check:uploads": "bun run scripts/check-uploads.ts",
+    "check:upload-page": "bun run scripts/check-upload-page.ts",
+    "check:settings": "bun run scripts/check-settings.ts",
+    "check:landing": "bun run scripts/check-landing.ts",
     "check:key": "bun run scripts/check-answer-key.ts",
-    "check:cards": "bun run scripts/check-cards.ts",
     "check:styles": "bun run scripts/check-styles.ts",
-    "check:rep": "bun run scripts/check-rep.ts",
-    "check:rep-routes": "bun run scripts/check-rep-routes.ts",
-    "check:grouping": "bun run scripts/check-grouping.ts",
-    "journey": "bun run scripts/journey.ts"
+    "check:sort": "bun run scripts/check-sort.ts",
+    "check:sort-rules": "bun run scripts/check-sort-rules.ts",
+    "check:sort-page": "bun run scripts/check-sort-page.ts",
+    "check:project": "bun run scripts/check-project.ts",
+    "check:reps": "bun run scripts/check-reps.ts",
+    "check:rep-rules": "bun run scripts/check-rep-rules.ts",
+    "check:card-page": "bun run scripts/check-card-page.ts",
+    "check:captures": "bun run scripts/check-captures.ts",
+    "check:capture-sort": "bun run scripts/check-capture-sort.ts",
+    "check:mcp": "bun run scripts/check-mcp.ts",
+    "check:data": "bun run scripts/check-data.ts",
+    "check:dashboard": "bun run scripts/check-dashboard.ts",
+    "check:plugin": "bun run scripts/check-plugin.ts",
+    "check:docs": "bun run scripts/check-docs.ts",
+    "check:sdk": "bun run scripts/check-sdk.ts",
+    "check:container": "bun run scripts/check-container.ts",
+    "check:migrations": "bun run scripts/check-migrations.ts",
+    "build:plugin": "bun run scripts/build-plugin.ts",
+    "build:sdk": "bun run --cwd packages/sdk build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
+    "@asked-before/sdk": "workspace:*",
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "^2.3.1",
     "@types/bun": "^1.4.3",
     "playwright": "^1.64.1",
     "typescript": "^7.0.2"
