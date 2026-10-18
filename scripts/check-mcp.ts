@@ -4,12 +4,12 @@
 // sorted by a stand-in in this script as the answer key says (the sort has
 // its own check); every capture, cold rep, and check goes on to the real
 // model. The server lists five tools described in the glossary's words,
-// saying only the learner's own words are sent; it lists the demo project
+// saying only the learner's own words are sent; it lists the demo shelf
 // and its cards, records a rephrasing of undoing the last commit onto card
 // A with its count up by one, adds no borrow for the same words again,
 // leaves a question nothing matches unsorted and says so, starts a cold
 // rep on card A, and passes the known right answer, stamping it returned.
-// Then failures as tool errors, a default project, a bad key, an
+// Then failures as tool errors, a default shelf, a bad key, an
 // unreachable server, missing settings, and no avoided word anywhere. It
 // prints each tool's text, which holds made-up demo data, and exits 1 if
 // any check fails, naming the step. It needs ANTHROPIC_API_KEY, and makes
@@ -101,7 +101,7 @@ try {
     mcps.push(mcp);
     const { tools } = await mcp.listTools();
     const names = tools.map((t) => t.name).sort();
-    check(names.join() === "check_answer,list_cards,list_projects,record_question,start_cold_rep", `tools: ${names.join(", ")}, on protocol ${mcp.getNegotiatedProtocolVersion()}`);
+    check(names.join() === "check_answer,list_cards,list_shelves,record_question,start_cold_rep", `tools: ${names.join(", ")}, on protocol ${mcp.getNegotiatedProtocolVersion()}`);
     const instructions = mcp.getInstructions() ?? "";
     said.push(instructions, ...tools.flatMap((t) => [t.title ?? "", t.description ?? "", fieldNames(t.inputSchema), fieldNames(t.outputSchema)]));
     const terms = [...glossary.matchAll(/^\*\*(.+)\*\*:$/gm)].map((m) => m[1]!.toLowerCase());
@@ -117,31 +117,31 @@ try {
 
   let cardA = "";
 
-  await step("2. list_projects gives the demo project, labeled demo data, with its counts", async () => {
-    const { isError, text, data } = await call(mcp, "list_projects");
+  await step("2. list_shelves gives the demo shelf, labeled demo data, with its counts", async () => {
+    const { isError, text, data } = await call(mcp, "list_shelves");
     console.log(indent(text));
-    const project = data?.projects?.[0];
-    check(!isError && data.projects.length === 1 && project.id === demo.id && project.demo && project.cards === 5 && project.borrowed === 5, `the demo project: ${project?.cards} cards, ${project?.borrowed} borrowed`);
-    check(/"Demo" \(demo data\)/.test(text) && data.defaultProject === null && /No default project/.test(text), "its text labels it demo data, and says no default project is set");
+    const shelf = data?.shelves?.[0];
+    check(!isError && data.shelves.length === 1 && shelf.id === demo.id && shelf.demo && shelf.cards === 5 && shelf.borrowed === 5, `the demo shelf: ${shelf?.cards} cards, ${shelf?.borrowed} borrowed`);
+    check(/"Demo" \(demo data\)/.test(text) && data.defaultShelf === null && /No default shelf/.test(text), "its text labels it demo data, and says no default shelf is set");
   });
 
-  await step("3. list_cards gives the demo project's cards, most borrowed first, with card A first", async () => {
-    const { isError, text, data } = await call(mcp, "list_cards", { project: "demo" });
+  await step("3. list_cards gives the demo shelf's cards, most borrowed first, with card A first", async () => {
+    const { isError, text, data } = await call(mcp, "list_cards", { shelf: "demo" });
     console.log(indent(text));
     const [a] = data?.cards ?? [];
     cardA = a?.id ?? "";
     const want = key.skills[0]!;
     check(!isError && data.cards.length === key.skills.length && a.skill === want.name && a.count === want.count && a.status === "borrowed", `card A: "${a?.skill}", ${a?.count} borrows, ${a?.status}, of ${data?.cards?.length} cards`);
     check(data.cards.map((c: { skill: string }) => c.skill).join() === key.skills.map((k) => k.name).join(), "in the answer key's margin order");
-    const byId = await call(mcp, "list_cards", { project: demo.id });
-    check(byId.data?.cards?.length === key.skills.length, "a project's id works as well as its name");
+    const byId = await call(mcp, "list_cards", { shelf: demo.id });
+    check(byId.data?.cards?.length === key.skills.length, "a shelf's id works as well as its name");
   });
 
   const rephrasing = "how do I undo the commit I just made? I haven't pushed it yet";
 
   await step("4. record_question with a rephrasing of undoing the last commit lands on card A, its count up by one", async () => {
     const before = model.requests.length;
-    const { isError, text, data } = await call(mcp, "record_question", { question: rephrasing, project: "Demo" });
+    const { isError, text, data } = await call(mcp, "record_question", { question: rephrasing, shelf: "Demo" });
     console.log(indent(text));
     const sent = model.requests.slice(before);
     check(sent.length === 1 && kindOf(sent[0]!) === "sort" && sent[0]!.body.output_config?.effort === "low", `${sent.length} model request, a sort at effort ${sent[0]?.body.output_config?.effort}, sent to the real model`);
@@ -151,21 +151,21 @@ try {
 
   await step("5. Recording the same words again within ten minutes adds no borrow", async () => {
     const before = model.requests.length;
-    const { isError, text, data } = await call(mcp, "record_question", { question: rephrasing, project: "Demo" });
+    const { isError, text, data } = await call(mcp, "record_question", { question: rephrasing, shelf: "Demo" });
     console.log(indent(text));
     check(!isError && data.alreadyCaptured && data.card?.count === 10 && model.requests.length === before, `already captured ${data?.alreadyCaptured}, card A still ${data?.card?.count}, ${model.requests.length - before} model requests`);
     check(/no borrow was added/.test(text), "its text says no borrow was added");
-    const cards = await call(mcp, "list_cards", { project: "Demo" });
+    const cards = await call(mcp, "list_cards", { shelf: "Demo" });
     check(cards.data?.cards?.[0]?.count === 10, `list_cards gives card A ${cards.data?.cards?.[0]?.count} borrows`);
   });
 
   await step("6. Recording a question nothing matches leaves it unsorted, and says so", async () => {
     const question = "how do I tune a ukulele by ear";
-    const { isError, text, data } = await call(mcp, "record_question", { question, project: "Demo" });
+    const { isError, text, data } = await call(mcp, "record_question", { question, shelf: "Demo" });
     console.log(indent(text));
     check(!isError && data.card === null && /waits unsorted/.test(text), `card ${data?.card?.skill ?? null}; its text says it waits unsorted`);
     const unsorted = await ada.cards.unsorted(demo.id);
-    check(unsorted.phrasings[0]?.text === question, "it's the demo project's newest unsorted phrasing");
+    check(unsorted.phrasings[0]?.text === question, "it's the demo shelf's newest unsorted phrasing");
   });
 
   let repId = "";
@@ -183,7 +183,7 @@ try {
     console.log(indent(text));
     check(!isError && data.verdict === "pass" && data.card.id === cardA && data.card.status === "returned", `${data?.verdict}, card A ${data?.card?.status}`);
     check(/^Passed\./.test(text) && /is returned, stamped \d{4}-\d{2}-\d{2}/.test(text), "its text says so, with the stamp");
-    const open = await call(mcp, "list_cards", { project: "Demo", not_returned: true });
+    const open = await call(mcp, "list_cards", { shelf: "Demo", not_returned: true });
     const skills = (open.data?.cards ?? []).map((c: { skill: string }) => c.skill);
     check(skills.length === key.skills.length - 1 && !skills.includes(key.skills[0]!.name), `not_returned lists ${skills.length} cards, without card A`);
   });
@@ -195,28 +195,28 @@ try {
     check(missing.isError && missing.text === "There's no such card.", `a card that isn't there: ${missing.text}`);
     await ada.shelves.create({ name: "Work" });
     const unnamed = await call(mcp, "record_question", { question: "how do I squash commits" });
-    check(unnamed.isError && /Say which project/.test(unnamed.text) && /"Demo", "Work"|"Work", "Demo"/.test(unnamed.text) && unnamed.text.includes(MCP_ENV.project), `no project and no default: ${unnamed.text}`);
-    const nope = await call(mcp, "list_cards", { project: "Bootcamp" });
-    check(nope.isError && /no project "Bootcamp"/.test(nope.text), `a project that isn't there: ${nope.text}`);
-    const long = await call(mcp, "record_question", { question: "x".repeat(2001), project: "Demo" });
+    check(unnamed.isError && /Say which shelf/.test(unnamed.text) && /"Demo", "Work"|"Work", "Demo"/.test(unnamed.text) && unnamed.text.includes(MCP_ENV.shelf), `no shelf and no default: ${unnamed.text}`);
+    const nope = await call(mcp, "list_cards", { shelf: "Bootcamp" });
+    check(nope.isError && /no shelf "Bootcamp"/.test(nope.text), `a shelf that isn't there: ${nope.text}`);
+    const long = await call(mcp, "record_question", { question: "x".repeat(2001), shelf: "Demo" });
     check(long.isError && /Input validation error/.test(long.text), `a question of 2,001 characters: ${long.text.slice(0, 90)}`);
   });
 
-  await step("10. With a default project, a call can leave the project out; a bad key or a missing setting says what to fix", async () => {
-    const withDefault = await connect({ [MCP_ENV.url]: app.url, [MCP_ENV.apiKey]: apiKey, [MCP_ENV.project]: "Demo" });
+  await step("10. With a default shelf, a call can leave the shelf out; a bad key or a missing setting says what to fix", async () => {
+    const withDefault = await connect({ [MCP_ENV.url]: app.url, [MCP_ENV.apiKey]: apiKey, [MCP_ENV.shelf]: "Demo" });
     mcps.push(withDefault);
-    const projects = await call(withDefault, "list_projects");
-    check(projects.data?.defaultProject?.id === demo.id && /The default project is "Demo"/.test(projects.text), `list_projects names the default: ${projects.data?.defaultProject?.name}`);
+    const shelves = await call(withDefault, "list_shelves");
+    check(shelves.data?.defaultShelf?.id === demo.id && /The default shelf is "Demo"/.test(shelves.text), `list_shelves names the default: ${shelves.data?.defaultShelf?.name}`);
     const recorded = await call(withDefault, "record_question", { question: rephrasing });
-    check(!recorded.isError && recorded.data.project.id === demo.id && recorded.data.alreadyCaptured, `record_question with no project went to ${recorded.data?.project?.name}, already captured ${recorded.data?.alreadyCaptured}`);
+    check(!recorded.isError && recorded.data.shelf.id === demo.id && recorded.data.alreadyCaptured, `record_question with no shelf went to ${recorded.data?.shelf?.name}, already captured ${recorded.data?.alreadyCaptured}`);
 
     const badKey = await connect({ [MCP_ENV.url]: app.url, [MCP_ENV.apiKey]: "ab_0000000000000000_00000000000000000000000000000000" });
     mcps.push(badKey);
-    const refused = await call(badKey, "list_projects");
+    const refused = await call(badKey, "list_shelves");
     check(refused.isError && refused.text.includes("That API key isn't valid.") && refused.text.includes(MCP_ENV.apiKey), `a bad key: ${refused.text}`);
     const away = await connect({ [MCP_ENV.url]: "http://127.0.0.1:9", [MCP_ENV.apiKey]: apiKey });
     mcps.push(away);
-    const unreachable = await call(away, "list_projects");
+    const unreachable = await call(away, "list_shelves");
     check(unreachable.isError && /couldn't be reached at http:\/\/127\.0\.0\.1:9/.test(unreachable.text), `a server that isn't there: ${unreachable.text}`);
 
     const bare = Bun.spawn([process.execPath, ENTRY], { env: { PATH: process.env.PATH ?? "" }, stdin: "pipe", stdout: "pipe", stderr: "pipe" });
