@@ -77,8 +77,8 @@ export async function startApp(env: Record<string, string> = {}, { state, port, 
   if ((await build.exited) !== 0) await fail("The pages didn't build", await new Response(build.stderr).text());
   const migrate = wrangler(["d1", "migrations", "apply", "DB", "--local"]);
   if ((await migrate.exited) !== 0) await fail("The migrations failed", (await new Response(migrate.stdout).text()) + (await new Response(migrate.stderr).text()));
-  const d1 = [...new Bun.Glob("v3/d1/miniflare-D1DatabaseObject/*.sqlite").scanSync(persist)].find((file) => !file.endsWith("metadata.sqlite"));
-  if (!d1) await fail("The migrations made no database", persist);
+  const databasePath = databaseIn(persist);
+  if (!databasePath) await fail("The migrations made no database", persist);
 
   // PUBLIC_URL is emptied so that a value in .env can't point the app's origin elsewhere.
   const vars = Object.entries({ PUBLIC_URL: "", ...env }).flatMap(([name, value]) => ["--var", `${name}:${value}`]);
@@ -134,7 +134,13 @@ export async function startApp(env: Record<string, string> = {}, { state, port, 
     return { requests: lines.filter(request), others: lines.filter((line) => !request(line)) };
   };
 
-  return { url, databasePath: join(persist, d1!), log: () => log, workerLog, browser: () => browser(url), stop: () => stop(), kill: () => stop("SIGKILL") };
+  return { url, databasePath: databasePath!, log: () => log, workerLog, browser: () => browser(url), stop: () => stop(), kill: () => stop("SIGKILL") };
+}
+
+/** The local D1 database's SQLite file in a state folder, or null when no migrations have been applied there. */
+export function databaseIn(state: string): string | null {
+  const file = [...new Bun.Glob("v3/d1/miniflare-D1DatabaseObject/*.sqlite").scanSync(state)].find((name) => !name.endsWith("metadata.sqlite"));
+  return file ? join(state, file) : null;
 }
 
 /** The node that runs Wrangler, once it's checked to be 22 or later, as Wrangler needs. */
