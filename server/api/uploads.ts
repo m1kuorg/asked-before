@@ -78,7 +78,7 @@ const changed = (change: UploadChange, conflict: string): Upload => {
  * shelf's Durable Object can't be started, the upload fails, saying so,
  * rather than wait for a sort that never comes: a retry starts it again.
  */
-const sort = async (env: Env, db: Db, userId: string, upload: Upload) => {
+const startSortAndAnswer = async (env: Env, db: Db, userId: string, upload: Upload) => {
   try {
     await env.SORTER.getByName(upload.shelfId).start();
     return Response.json(upload);
@@ -129,9 +129,9 @@ export const uploads = defineRoutes({
     }),
   },
   "/api/v1/uploads/:uploadId/finish": {
-    POST: authed(async (_req, { env, db, params, auth }) => sort(env, db, auth.userId, changed(await finishUpload(db, auth.userId, params.uploadId), "This upload is finished already."))),
+    POST: authed(async (_req, { env, db, params, auth }) => startSortAndAnswer(env, db, auth.userId, changed(await finishUpload(db, auth.userId, params.uploadId), "This upload is finished already."))),
   },
   "/api/v1/uploads/:uploadId/retry": {
-    POST: authed(async (_req, { env, db, params, auth }) => sort(env, db, auth.userId, changed(await retryUpload(db, auth.userId, params.uploadId), "Only a sort that failed can be tried again."))),
+    POST: authed(async (_req, { env, db, params, auth }) => startSortAndAnswer(env, db, auth.userId, changed(await retryUpload(db, auth.userId, params.uploadId), "Only a sort that failed can be tried again."))),
   },
 });
