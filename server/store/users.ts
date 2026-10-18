@@ -65,3 +65,16 @@ export async function changePasswordHash(db: Db, userId: string, { from, to, kee
   ]);
   return (changed?.meta.changes ?? 0) > 0;
 }
+
+/**
+ * Deletes the account while its hash is still `hash`, the one the password
+ * was just checked against, and with it, by cascade, everything in it: its
+ * sessions, keys, usage, and shelves, with their uploads, phrasings, cards,
+ * and reps. One statement, so it's whole or nothing. False, deleting
+ * nothing, when the hash isn't `hash` any more: the password changed
+ * meanwhile, or the account is gone.
+ */
+export async function deleteUser(db: Db, userId: string, hash: string): Promise<boolean> {
+  const { meta } = await db.prepare("DELETE FROM users WHERE id = ?1 AND password_hash = ?2").bind(userId, hash).run();
+  return meta.changes > 0;
+}
