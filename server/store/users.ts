@@ -45,16 +45,19 @@ export async function renameAccount(db: Db, userId: string, name: string): Promi
 
 /**
  * Moves the account to a new email, with the hash of the password key that
- * email salts (`to`), and the new name too when one is given, in one batch,
- * only while its hash is still `from`, the one the current key was just
- * checked against. The account; or why not: "taken" when another account
- * has the email, or "changed" when the hash isn't `from` any more, since
- * the password changed meanwhile.
+ * email salts (`to`), and the new name too when one is given, and ends
+ * every other session of the account but `keepSessionId` (every one, given
+ * null), as a password change does, since the server can't tell that `to`
+ * comes from the same password; one batch, only while the hash is still
+ * `from`, the one the current key was just checked against. The account;
+ * or why not: "taken" when another account has the email, or "changed"
+ * when the hash isn't `from` any more, since the password changed
+ * meanwhile.
  */
 export async function changeEmail(
   db: Db,
   userId: string,
-  { name, email, from, to }: { name?: string; email: string; from: string; to: string },
+  { name, email, from, to, keepSessionId }: { name?: string; email: string; from: string; to: string; keepSessionId: string | null },
 ): Promise<Account | "taken" | "changed"> {
   const [moved, held] = await db.batch<AccountRow>([
     db
@@ -64,6 +67,9 @@ export async function changeEmail(
       )
       .bind(userId, name ?? null, email, to, from),
     db.prepare(`${ACCOUNT} AND password_hash = ?2`).bind(userId, from),
+    db
+      .prepare("DELETE FROM sessions WHERE user_id = ?1 AND id IS NOT ?2 AND EXISTS (SELECT 1 FROM users WHERE id = ?1 AND email = ?3 AND password_hash = ?4)")
+      .bind(userId, keepSessionId, email, to),
   ]);
   const row = moved?.results[0];
   if (row) return toAccount(row);
