@@ -286,11 +286,11 @@ function api(): Section {
         "). A chunk counts every phrasing it carries, even one the shelf holds already, since recording that the upload sent it writes too. So an export bigger than a day's phrasings is carried on the next day in the same upload, with Try again on the upload page.",
       ),
       p(
-        "An account on its first day, the UTC day it was made, gets a smaller share of the app's caps, which the accounts made that day share: 100 a day of the app's model requests (",
+        "An account on its first day, the UTC day it was made, reaches only part of the app's caps: 100 a day of the app's model requests (",
         code("FIRST_DAY_SITE_DAILY_MODEL_REQUESTS"),
         "), and 4,000 a day of its phrasings (",
         code("FIRST_DAY_SITE_DAILY_PHRASINGS"),
-        "). Once the app has counted that many today, an account made today gets a 429, while older accounts carry on up to the app's whole cap.",
+        "). Once the app has counted that many today, across every account, an account made today gets a 429, while older accounts carry on up to the app's whole cap.",
       ),
       p("Past a cap, the request is a 429 and counts toward neither: a chunk stores none of its phrasings and can be sent again, a sort fails with that message and can be retried, and a capture is lost unless it's sent again. More open at midnight UTC."),
       p(
