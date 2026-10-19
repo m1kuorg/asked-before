@@ -1,21 +1,23 @@
 // The sort's recall on a long history (m1kuorg/basics#56), with the real
 // model. The demo export is too small and too clean to show what the sort
 // misses, so this sorts scripts/fixtures/long-history.json, a made-up
-// history of 469 labeled phrasings (70 skills, many of them near misses of
-// each other, and 260 one-offs), uploaded at once through the SDK, dated
-// across 18 months by a seeded shuffle so every run sorts the same upload.
-// Its cards are scored against the labels by pairs of phrasings: recall is
-// the share of pairs of one skill that share a card, and precision the
-// share of pairs sharing a card that are of one skill. One run's recall can
-// land 10 points from the next, so the runs, 3 unless asked, sort side by
-// side and pass on their mean: recall of at least 62% at precision of at
-// least 87%. That floor is under what the sort does now (71% at 92%, the
-// mean of 20 runs, whose recall ran from 59% to 80%) and over what it did
-// before m1kuorg/basics#56 (59% at 93%, in 10 runs), so a sort that finds
-// far fewer pairs or merges skills fails it. Each run also says whether it meets #56's target
-// of 85% recall at 90% precision, which no attempt has, Opus's included:
-// some of the history's skills are broad goals, such as preparing for a
-// technical interview, while others that share a goal are labeled apart.
+// history of 469 labeled phrasings (74 skills, many of them near misses of
+// each other, and 257 one-offs, labeled by the rules atop
+// make-long-history.ts), uploaded at once through the SDK, dated across 18
+// months by a seeded shuffle dealt in text order, so every run, and every
+// relabeling, sorts the same upload. Its cards are scored against the
+// labels by pairs of phrasings: recall is the share of pairs of one skill
+// that share a card, and precision the share of pairs sharing a card that
+// are of one skill. One run's recall can land 10 points from the next, so
+// the runs, 3 unless asked, sort side by side and pass on their mean:
+// recall of at least 62% at precision of at least 87%. That floor is under
+// what the sort does now (72% at 92%, the mean of 10 runs, whose recall ran
+// from 62% to 81%) and over what it did before m1kuorg/basics#56 (60% at
+// 97%, in 10 runs), so a sort that finds far fewer pairs or merges skills
+// fails it. Each run also says whether it meets #56's target of 85% recall
+// at 90% precision, which no run has met yet: relabeling the history raised
+// the sort's recall by 5 points, and most of what it still misses it leaves
+// unsorted, often whole skills at a time.
 // It prints each run's time, model requests, and tokens, then the skills
 // not whole on one card and the cards holding more than one skill, by name
 // (the history's labels and the cards' skills), never a phrasing's words.
@@ -38,7 +40,7 @@ const runs = Number(process.argv[2] ?? 3);
 
 const history: { skills: { name: string; messages: string[] }[]; oneOffs: string[] } = await Bun.file(join(import.meta.dir, "fixtures", "long-history.json")).json();
 
-// A seeded shuffle of times, so every run uploads the same history in the same order.
+// A seeded shuffle of times, dealt in the phrasings' text order, so every run uploads the same history in the same order, whatever their labels.
 let seed = 42;
 const random = () => (seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
 const start = Date.UTC(2025, 2, 1);
@@ -47,6 +49,7 @@ const dated = [
   ...history.skills.flatMap((s) => s.messages.map((text) => ({ text, label: s.name as string | null }))),
   ...history.oneOffs.map((text) => ({ text, label: null as string | null })),
 ]
+  .sort((a, b) => (a.text < b.text ? -1 : 1))
   .map((m) => ({ ...m, time: start + Math.floor(random() * (end - start)) }))
   .sort((a, b) => a.time - b.time);
 const phrasings: Phrasing[] = dated.map((m, i) => ({ sourceId: `h${i + 1}`, text: m.text, time: new Date(m.time).toISOString() }));
