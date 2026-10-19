@@ -1,0 +1,826 @@
+{
+  "note": "Made-up data: one imagined learner's chat history, written by Claude (claude-opus-5-5) through scripts/fixtures/make-long-history.ts, for check:sort-recall. No real person wrote these messages. Each skill lists the messages that ask how to do it; oneOffs are asked once each.",
+  "skills": [
+    {
+      "name": "Undo a git commit",
+      "messages": [
+        "how do i undo my last git commit but keep the changes",
+        "I committed to main by accident instead of my feature branch. how do I move that commit off main??",
+        "git reset --soft HEAD~1 vs --hard, which one wont delete my work",
+        "already pushed a bad commit to the shared branch. is git revert the safe way or will reset mess everyone up",
+        "oops committed my .env file. how do i take back the commit before i push",
+        "undo last 3 commits locally, havent pushed yet",
+        "i did git reset --hard and my changes are gone. is there any way to get the commit back? reflog?",
+        "made a commit with the wrong files in it, want to uncommit and redo it properly. steps?"
+      ]
+    },
+    {
+      "name": "Rename a git branch",
+      "messages": [
+        "how to rename a git branch locally",
+        "named my branch feature/loginn with a typo and already pushed it. how do I rename it on github too",
+        "team wants us to rename master to main on our old repo, what commands do i run"
+      ]
+    },
+    {
+      "name": "Resolve a git merge conflict",
+      "messages": [
+        "what do the <<<<<<< HEAD and >>>>>>> markers mean, i got a merge conflict and panicked",
+        "CONFLICT (content): Merge conflict in src/App.jsx. Automatic merge failed; fix conflicts and then commit the result. what now",
+        "is there a way to resolve merge conflicts in vs code without editing the markers by hand",
+        "merge conflict in package-lock.json, should I just delete it and regenerate?",
+        "i want to keep their version of the file entirely during the conflict, whats the command"
+      ]
+    },
+    {
+      "name": "Stash uncommitted changes in git",
+      "messages": [
+        "need to switch branches but have uncommitted changes, git won't let me. how do i stash",
+        "git stash pop gave me a conflict, did i lose my stash?",
+        "how to stash only one file not everything"
+      ]
+    },
+    {
+      "name": "Squash commits before a pull request",
+      "messages": [
+        "my PR has 14 commits like 'fix', 'fix again', 'ugh'. how do i squash them into one",
+        "interactive rebase opened vim and i have no idea what im doing. pick squash?? how do i save and exit",
+        "should I squash commits myself or just use squash and merge on github"
+      ]
+    },
+    {
+      "name": "Delete a remote git branch",
+      "messages": [
+        "how do i delete a branch on github from the terminal",
+        "git push origin --delete feature/old-nav says remote ref does not exist but i still see it in my branch list"
+      ]
+    },
+    {
+      "name": "Rebase a feature branch onto main",
+      "messages": [
+        "main moved ahead while i was working on my branch. rebase or merge main into mine?",
+        "how do i rebase my feature branch on top of latest main",
+        "mid-rebase and got conflicts, how do I continue or just abort the whole thing"
+      ]
+    },
+    {
+      "name": "Center an element with CSS",
+      "messages": [
+        "how do i center a div horizontally and vertically",
+        "margin: 0 auto isnt centering my button. it's inside a flex container if that matters",
+        "center text vertically inside a 60px tall navbar",
+        "justify-content center works but align-items center does nothing?? parent has display flex",
+        "whats the modern way to center something, grid place-items or flexbox",
+        "trying to center an absolutely positioned modal over the page. top 50% left 50% puts the corner in the middle not the box",
+        "center an image inside a card w/o stretching it",
+        "center a div lol i know i know. but it's in a container with fixed height and nothing works",
+        "how to center the last row of items in a flex wrap layout"
+      ]
+    },
+    {
+      "name": "Make a CSS grid responsive",
+      "messages": [
+        "how do i make a grid that's 3 columns on desktop and 1 on mobile",
+        "what does repeat(auto-fit, minmax(250px, 1fr)) actually do, and is auto-fill different",
+        "my grid cards overflow the screen on iphone, grid-template-columns: repeat(4, 300px)"
+      ]
+    },
+    {
+      "name": "Truncate overflowing text with an ellipsis",
+      "messages": [
+        "how to cut off long text with ... at the end in css",
+        "text-overflow ellipsis but for 2 lines not 1, is that possible"
+      ]
+    },
+    {
+      "name": "Fix z-index stacking issues",
+      "messages": [
+        "z-index 9999 and my dropdown is still behind the hero section. why",
+        "what's a stacking context and why does transform break my z-index",
+        "modal overlay appears behind the sticky header even though the modal has higher z-index"
+      ]
+    },
+    {
+      "name": "Make a sticky header",
+      "messages": [
+        "position sticky not working on my header, top: 0 is set",
+        "how to make the nav stick to the top when you scroll but only after the banner"
+      ]
+    },
+    {
+      "name": "Build a dark mode toggle with CSS variables",
+      "messages": [
+        "best way to do dark mode with css variables and a toggle button",
+        "how do I respect prefers-color-scheme but still let users override with a toggle"
+      ]
+    },
+    {
+      "name": "Debounce an input handler in JavaScript",
+      "messages": [
+        "search input fires an api call on every keystroke, how do I debounce it",
+        "write a simple debounce function in vanilla js, no lodash",
+        "debounce in react with useEffect keeps using the old value?"
+      ]
+    },
+    {
+      "name": "Deep clone an object in JavaScript",
+      "messages": [
+        "how to copy an object without changing the original, spread operator still mutates nested stuff",
+        "is structuredClone safe to use now or should i still do JSON.parse(JSON.stringify())"
+      ]
+    },
+    {
+      "name": "Format a date in JavaScript",
+      "messages": [
+        "format a date like 'Mar 5, 2024' in javascript",
+        "new Date('2024-03-05') shows March 4 for me?? timezone issue?",
+        "should I use date-fns, dayjs or just Intl.DateTimeFormat",
+        "how to show '3 hours ago' style relative time"
+      ]
+    },
+    {
+      "name": "Remove duplicates from an array",
+      "messages": [
+        "remove duplicates from an array js",
+        "remove duplicate objects from array by id, Set doesn't work for objects"
+      ]
+    },
+    {
+      "name": "Fetch data with async/await and handle errors",
+      "messages": [
+        "how do i use async await with fetch and catch errors properly",
+        "fetch doesn't throw on 404?? my catch block never runs",
+        "const data = await fetch(url).json() gives 'json is not a function'",
+        "how to fetch two endpoints at the same time and wait for both"
+      ]
+    },
+    {
+      "name": "Fix 'Cannot read properties of undefined' errors",
+      "messages": [
+        "TypeError: Cannot read properties of undefined (reading 'map') getting this on my products page",
+        "Uncaught TypeError: Cannot read properties of undefined (reading 'name') — the data is there when I console.log it though",
+        "what's optional chaining and should I just put ?. everywhere to stop undefined errors",
+        "cannot read properties of null (reading 'addEventListener') my script is in the head",
+        "user.address.city crashes when address is missing, best way to guard against that"
+      ]
+    },
+    {
+      "name": "Sort an array of objects by a property",
+      "messages": [
+        "sort array of objects by price low to high",
+        "sorting by name alphabetically but uppercase and lowercase sort weird"
+      ]
+    },
+    {
+      "name": "Fix a useEffect infinite loop",
+      "messages": [
+        "my useEffect keeps running forever and spamming my api",
+        "React Hook useEffect has a missing dependency: 'fetchData'. if i add it, infinite loop. if i don't, warning. help",
+        "useEffect with an object in the dependency array re-runs every render",
+        "why does my useEffect run twice in development",
+        "setState inside useEffect causes infinite re-render, how do I only run it on mount"
+      ]
+    },
+    {
+      "name": "Lift state up between React components",
+      "messages": [
+        "two sibling components need to share the same state, how do I do that",
+        "child component needs to update the parent's count, pass a function down?"
+      ]
+    },
+    {
+      "name": "Handle form inputs in React",
+      "messages": [
+        "how to handle a form with like 6 inputs in react without 6 useStates",
+        "A component is changing an uncontrolled input to be controlled. what does that mean",
+        "should I use react-hook-form or just controlled inputs for a signup form"
+      ]
+    },
+    {
+      "name": "Fix the React unique key prop warning",
+      "messages": [
+        "Warning: Each child in a list should have a unique 'key' prop. how do i get rid of this",
+        "is using the array index as key really that bad",
+        "my items don't have ids, what should I use as the key"
+      ]
+    },
+    {
+      "name": "Set up routing with React Router",
+      "messages": [
+        "how do i set up react router v6 with a navbar and 3 pages",
+        "page goes 404 when i refresh on /about after deploying, works locally",
+        "how to get the id from the url like /products/42 in react router"
+      ]
+    },
+    {
+      "name": "Memoize an expensive React computation",
+      "messages": [
+        "when should I actually use useMemo vs just computing it",
+        "filtering a list of 5000 items on every keystroke is laggy, useMemo or something else"
+      ]
+    },
+    {
+      "name": "Use React context to avoid prop drilling",
+      "messages": [
+        "passing user through 5 components is getting ugly, how do I use context",
+        "is context fine for global state or do I need redux/zustand"
+      ]
+    },
+    {
+      "name": "Type a React component's props in TypeScript",
+      "messages": [
+        "how do I type props in a react component with typescript",
+        "type for children prop? React.ReactNode or JSX.Element",
+        "interface vs type for component props, does it matter"
+      ]
+    },
+    {
+      "name": "Fix 'Object is possibly undefined' in TypeScript",
+      "messages": [
+        "Object is possibly 'undefined'. ts(2532) but I know it's defined",
+        "is using ! non-null assertion bad practice",
+        "useRef<HTMLInputElement>(null) and then ref.current.focus() gives possibly null error"
+      ]
+    },
+    {
+      "name": "Type an API response in TypeScript",
+      "messages": [
+        "how do I type the json I get back from fetch in typescript",
+        "should I use zod to validate api responses or just cast with as"
+      ]
+    },
+    {
+      "name": "Fix CORS errors when calling an API",
+      "messages": [
+        "Access to fetch at 'http://localhost:5000/api' from origin 'http://localhost:3000' has been blocked by CORS policy. how do I fix",
+        "what even is cors and why does postman work but my browser doesn't",
+        "added app.use(cors()) in express, still getting cors error on POST only",
+        "cors error only in production on vercel, works fine locally",
+        "should I use a proxy in vite config instead of enabling cors on the backend",
+        "No 'Access-Control-Allow-Origin' header is present on the requested resource — calling a third party api I don't control",
+        "cors with credentials: include, getting wildcard '*' not allowed error"
+      ]
+    },
+    {
+      "name": "Store secrets in environment variables",
+      "messages": [
+        "how do i hide my api key in a react app",
+        "process.env.API_KEY is undefined in my vite app",
+        "accidentally pushed my .env to github, what do I do now",
+        "how do I add env variables on netlify so they work in the build"
+      ]
+    },
+    {
+      "name": "Write Express middleware",
+      "messages": [
+        "how do I write middleware in express that checks if user is logged in",
+        "my express middleware runs but the route never responds, request just hangs"
+      ]
+    },
+    {
+      "name": "Hash passwords with bcrypt",
+      "messages": [
+        "how to hash a password with bcrypt in node and check it on login",
+        "bcrypt vs bcryptjs which should I install, getting node-gyp build errors"
+      ]
+    },
+    {
+      "name": "Write a SQL JOIN query",
+      "messages": [
+        "how do I get all orders with the customer name, they're in different tables",
+        "left join vs inner join, i keep losing rows",
+        "join three tables users, posts, comments and count comments per post"
+      ]
+    },
+    {
+      "name": "Run a database migration with Prisma",
+      "messages": [
+        "added a field to my prisma schema, how do I update the database",
+        "prisma migrate dev says drift detected, will it delete my data?",
+        "difference between prisma db push and prisma migrate"
+      ]
+    },
+    {
+      "name": "Paginate API results",
+      "messages": [
+        "how to add pagination to my express api, offset or cursor",
+        "infinite scroll in react with a paginated api, how do i load the next page"
+      ]
+    },
+    {
+      "name": "Kill a process using a port",
+      "messages": [
+        "Error: listen EADDRINUSE: address already in use :::3000 again",
+        "how to find what's running on port 5173 on mac and kill it",
+        "kill port on windows powershell",
+        "my node server didn't shut down when i closed the terminal, port still taken"
+      ]
+    },
+    {
+      "name": "Fix npm dependency conflicts",
+      "messages": [
+        "npm ERR! ERESOLVE unable to resolve dependency tree",
+        "is it ok to just use --legacy-peer-deps",
+        "deleted node_modules and package-lock and reinstalled, now different errors. whats the right way",
+        "npm audit says 37 vulnerabilities, should i run npm audit fix --force"
+      ]
+    },
+    {
+      "name": "Switch Node versions with nvm",
+      "messages": [
+        "project needs node 16 but I have 20, how to switch",
+        "nvm use 18 works but new terminal goes back to old version"
+      ]
+    },
+    {
+      "name": "Configure ESLint and Prettier together",
+      "messages": [
+        "how to set up eslint and prettier so they don't fight",
+        "prettier format on save not working in vs code",
+        "eslint flat config eslint.config.js confusing, how do i add prettier to it"
+      ]
+    },
+    {
+      "name": "Debug with breakpoints in VS Code",
+      "messages": [
+        "how do i use breakpoints in vs code instead of console.log everywhere",
+        "breakpoints show as unbound grey circles in vs code when debugging next.js"
+      ]
+    },
+    {
+      "name": "Write a unit test with Jest",
+      "messages": [
+        "how do I write my first jest test for a simple function",
+        "jest SyntaxError: Cannot use import statement outside a module",
+        "testing a react component that shows an error message after clicking submit",
+        "what should i even test? my lead says add tests but idk where to start"
+      ]
+    },
+    {
+      "name": "Mock a fetch call in tests",
+      "messages": [
+        "how to mock fetch in jest so my test doesn't hit the real api",
+        "msw vs jest.fn for mocking api calls, which one"
+      ]
+    },
+    {
+      "name": "Deploy a site to Vercel or Netlify",
+      "messages": [
+        "how to deploy my react portfolio for free",
+        "netlify build failed: Command failed with exit code 1: npm run build. works locally",
+        "how do I connect my custom domain from namecheap to vercel"
+      ]
+    },
+    {
+      "name": "Set up a GitHub Actions workflow",
+      "messages": [
+        "how to set up github actions to run tests on every pull request",
+        "github action fails at npm ci but works locally, says lockfile out of sync"
+      ]
+    },
+    {
+      "name": "Write a regex to validate input",
+      "messages": [
+        "regex for a valid email, simple version",
+        "regex to check password has at least 1 number, 1 uppercase, 8 chars",
+        "regex to only allow digits and dashes for a phone number input"
+      ]
+    },
+    {
+      "name": "Run a Docker container locally",
+      "messages": [
+        "how to run postgres in docker for local dev",
+        "docker container starts but I cant reach localhost:8080 from my browser"
+      ]
+    },
+    {
+      "name": "Explain a bootcamp background in interviews",
+      "messages": [
+        "how do i answer 'why should we hire a bootcamp grad over a CS grad'",
+        "how to explain my career change from restaurant manager to dev in interviews",
+        "interviewer asked about my 8 month gap after bootcamp, I froze. how should I answer next time"
+      ]
+    },
+    {
+      "name": "Prepare for a technical interview",
+      "messages": [
+        "I have a technical interview friday for junior frontend role, what should I study",
+        "how do I talk through my thinking during live coding, I go silent",
+        "best way to practice leetcode as a beginner, easy problems still take me an hour",
+        "take home assignment due in 3 days, how much polish is expected"
+      ]
+    },
+    {
+      "name": "Write a cover letter for a junior developer role",
+      "messages": [
+        "write a cover letter for a junior react developer role, I'm a bootcamp grad",
+        "how long should a cover letter be, does anyone even read them",
+        "make my cover letter less generic: 'I am passionate about coding and eager to learn'"
+      ]
+    },
+    {
+      "name": "Negotiate a salary offer",
+      "messages": [
+        "got an offer for 62k junior dev, is it ok to negotiate or will they pull it",
+        "how do I answer what are your salary expectations on the first call",
+        "time for my first review, how do I ask for a raise after 1 year"
+      ]
+    },
+    {
+      "name": "Ask a senior developer for help",
+      "messages": [
+        "how long should I be stuck before asking a senior dev for help",
+        "how to phrase a question in slack to a senior so i don't look clueless",
+        "I've asked my mentor like 4 questions today, am I being annoying"
+      ]
+    },
+    {
+      "name": "Write a pull request description",
+      "messages": [
+        "what should go in a pull request description",
+        "write a PR description for: added pagination to orders table, fixed off by one bug"
+      ]
+    },
+    {
+      "name": "Estimate how long a ticket will take",
+      "messages": [
+        "pm asked how long this will take and I have no idea. how do you estimate",
+        "my estimates are always 2x too short, how to get better"
+      ]
+    },
+    {
+      "name": "Deal with imposter syndrome",
+      "messages": [
+        "everyone at work seems so much smarter, how do i deal with imposter syndrome",
+        "broke prod today with a typo and feel like I should quit",
+        "6 months in and still feel like a fraud, is that normal"
+      ]
+    },
+    {
+      "name": "Answer 'tell me about yourself'",
+      "messages": [
+        "help me write a 60 second answer to tell me about yourself for dev interviews",
+        "my tell me about yourself is too long and rambly, how to tighten"
+      ]
+    },
+    {
+      "name": "Respond to code review feedback",
+      "messages": [
+        "senior left 23 comments on my PR, how do I respond without being defensive",
+        "reviewer wants a change I disagree with, how to push back politely"
+      ]
+    },
+    {
+      "name": "Write a standup update",
+      "messages": [
+        "what do I say at standup when I made no progress yesterday",
+        "how to keep my standup update short, I ramble"
+      ]
+    },
+    {
+      "name": "Meal prep lunches for the work week",
+      "messages": [
+        "easy meal prep lunches for the week that aren't sad chicken and rice",
+        "how long does cooked chicken last in the fridge for meal prep",
+        "vegetarian meal prep ideas with lots of protein, under $40",
+        "meal prep that reheats well in an office microwave"
+      ]
+    },
+    {
+      "name": "Relieve a stiff neck from desk work",
+      "messages": [
+        "neck is so stiff from staring at my laptop all day, stretches?",
+        "how high should my monitor be to stop neck pain",
+        "woke up with a crick in my neck, can't turn left, what helps"
+      ]
+    },
+    {
+      "name": "Build an emergency fund",
+      "messages": [
+        "how much should my emergency fund be on a 65k salary",
+        "where to keep emergency savings, high yield savings account?"
+      ]
+    },
+    {
+      "name": "Fall asleep after late coding sessions",
+      "messages": [
+        "brain won't shut off after coding late, how to fall asleep",
+        "can't sleep after debugging till midnight, tips"
+      ]
+    },
+    {
+      "name": "Cook rice on the stove",
+      "messages": [
+        "rice always comes out mushy on the stove, ratio?",
+        "how to cook brown rice on stovetop, it's crunchy every time"
+      ]
+    },
+    {
+      "name": "Contribute to a 401k",
+      "messages": [
+        "new job has 401k with 4% match, how much should I put in",
+        "roth 401k or traditional for someone making 70k",
+        "what funds should I pick in my 401k, there are like 30 options"
+      ]
+    },
+    {
+      "name": "Pay off loans faster",
+      "messages": [
+        "I have 14k in bootcamp loan at 9%, pay it off fast or invest",
+        "avalanche vs snowball for my car loan and bootcamp loan"
+      ]
+    },
+    {
+      "name": "Stay focused when working from home",
+      "messages": [
+        "how do i stay focused working from home, i keep cleaning instead of coding",
+        "pomodoro actually work for programming? 25 min seems too short",
+        "phone keeps distracting me during work, practical fixes"
+      ]
+    },
+    {
+      "name": "Follow up on a job application",
+      "messages": [
+        "how to follow up on a job application after 2 weeks with no reply",
+        "email to recruiter asking about status after final round, been 10 days"
+      ]
+    },
+    {
+      "name": "Make buttons and forms accessible",
+      "messages": [
+        "how to make my form accessible, labels and stuff",
+        "lighthouse says buttons do not have an accessible name — they're icon buttons",
+        "div with onClick vs button, does it matter for accessibility"
+      ]
+    },
+    {
+      "name": "Optimize images for faster page loads",
+      "messages": [
+        "my site loads slow because of big images, how to optimize",
+        "webp vs avif and how to use srcset for different screen sizes"
+      ]
+    }
+  ],
+  "oneOffs": [
+    "how do I change the author email on my past git commits",
+    "what's the difference between git fetch and git pull",
+    "how to add a fade-in animation on scroll with css only",
+    "what does the 'this' keyword refer to inside an arrow function",
+    "explain closures like I'm a line cook",
+    "how to make a custom 404 page in next.js app router",
+    "is tailwind worth learning or should I stay with plain css",
+    "how do I convert a callback-based function to return a promise",
+    "what's the difference between == and === again, I keep forgetting",
+    "how to add a favicon to a vite react project",
+    "git clone over ssh says permission denied (publickey), how to set up ssh keys",
+    "how do I write a .gitignore for a node project",
+    "what's a monorepo and why does my company use turborepo",
+    "how to read a csv file in node and turn it into json",
+    "what is the event loop, someone asked me in an interview and I blanked",
+    "how do I make a button that copies text to the clipboard",
+    "svg icon color won't change with css color property",
+    "how to lazy load a react component with React.lazy and Suspense",
+    "what's the difference between localStorage and sessionStorage",
+    "how to scroll to the top of the page smoothly when clicking a button",
+    "is it bad to have 300 lines in one react component",
+    "how to write a custom hook for fetching that I can reuse",
+    "what does 'hydration failed' mean in next.js",
+    "how to set up a basic websocket chat with socket.io",
+    "how do I generate a uuid in the browser",
+    "make a sql query to find duplicate emails in users table",
+    "what does an index do in postgres and when do I add one",
+    "how to seed a database with fake data using faker",
+    "how do I write a cron job in node that runs every night at 2am",
+    "what's the difference between PUT and PATCH",
+    "status code for validation errors, 400 or 422",
+    "how to upload a file from a react form to express with multer",
+    "how do I set up husky to run lint before commits",
+    "what does tree shaking mean in bundlers like vite",
+    "vs code shortcut to select all occurrences of a word",
+    "how do I open vs code from the terminal with 'code .' on mac",
+    "my zsh terminal prompt is ugly, how to customize it with oh my zsh",
+    "what's the difference between npm, yarn, and pnpm, our team uses pnpm",
+    "how to publish a tiny npm package just for practice",
+    "how to make an http request from the terminal with curl and send json",
+    "what's jwt and where should I store it, cookie or localStorage",
+    "how do I implement 'sign in with google' in a next.js app",
+    "explain the difference between authentication and authorization simply",
+    "how to read a stack trace, which line actually matters",
+    "what is a race condition, my senior said I have one",
+    "how to cancel a fetch request when the component unmounts",
+    "is it worth learning python too or should I go deeper on javascript",
+    "should I learn vue or angular next for job market",
+    "how do I convert px to rem quickly",
+    "what's the difference between em and rem",
+    "how to add a google font to my site without slowing it down",
+    "css to make an image a perfect circle",
+    "how to animate a hamburger menu into an X",
+    "why does my page have a horizontal scrollbar on mobile",
+    "what's BEM naming and does anyone still use it",
+    "how do I make a custom checkbox with css",
+    "what's the difference between display none and visibility hidden",
+    "how to write a media query for landscape phones",
+    "how to print only part of a web page with css",
+    "what's the shadow dom and when would I actually use it",
+    "should I put my bootcamp projects on my resume or just my job now",
+    "how to write a linkedin headline for a junior developer",
+    "is it weird to message a recruiter on linkedin directly",
+    "what's a good github profile readme for a job seeker",
+    "how many projects should a portfolio have",
+    "recruiter says role is 'contract to hire', what does that mean and is it risky",
+    "how to say no to working the weekend without sounding lazy",
+    "my manager wants a 1:1 every week, what should I bring to it",
+    "how do I ask to be put on the frontend team instead of support tickets",
+    "what is a staff engineer vs senior engineer",
+    "is a masters in cs worth it if I already have a dev job",
+    "should I get the aws cloud practitioner cert",
+    "how to write a brag document for my performance review",
+    "my coworker keeps taking credit for my work in meetings, what do I do",
+    "how to give feedback to another junior on their pr nicely",
+    "what's an on-call rotation and should juniors do it",
+    "how do I write a resignation letter, leaving for a better offer",
+    "is it rude to leave a job after 11 months",
+    "how to prep for a behavioral interview with the STAR method",
+    "what questions should I ask at the end of an interview",
+    "what to cook with chicken thighs, rice, and a sad bell pepper",
+    "how to make cold brew coffee at home",
+    "is it safe to eat leftover pizza left out overnight",
+    "easy pasta sauce from canned tomatoes",
+    "how to sharpen a kitchen knife without a sharpener",
+    "recipe for overnight oats that doesn't taste like paste",
+    "how long to boil eggs for jammy yolks",
+    "can I freeze cooked rice and reheat it later",
+    "what's a good cheap dinner for when friends come over, 6 people",
+    "how do I make my sourdough starter less sour",
+    "cheap flights to lisbon in october, when should I book",
+    "what to pack for a 4 day trip to chicago in winter",
+    "is travel insurance worth it for a domestic trip",
+    "how to work remotely from another country for 2 weeks, tax issues?",
+    "how to deal with jet lag flying east",
+    "is a 1 hour layover in denver enough",
+    "things to do in mexico city for 5 days on a budget",
+    "should I get tsa precheck or global entry",
+    "how to keep my laptop safe while traveling with it in a hostel",
+    "best way to get from the airport to downtown montreal",
+    "how do I do my taxes when I changed jobs mid year",
+    "what is a w-4 and what do I put on it for my new job",
+    "is it worth paying for a credit card with annual fee",
+    "how to raise my credit score from 640",
+    "should I open a roth ira on top of my 401k",
+    "what's an index fund in plain english",
+    "how much should rent be compared to my salary",
+    "how to split bills fairly with a roommate who makes more",
+    "is it smart to buy a car right after getting my first dev job",
+    "what does HSA mean on my benefits form and should I pick it",
+    "how to read a pay stub, why is my check so much less than I expected",
+    "my wrists hurt after typing all day, is that carpal tunnel",
+    "best keyboard for wrist pain, split keyboards worth it?",
+    "how to fix eye strain from screens, 20-20-20 thing real?",
+    "simple 20 minute workout I can do at home before work",
+    "how much water should I actually drink a day",
+    "how to stop snacking constantly while working from home",
+    "is standing desk actually better or a gimmick",
+    "I've been getting headaches every afternoon at work, could it be caffeine",
+    "how to get back into running after a year off",
+    "how to keep my free render backend from sleeping and taking 50 seconds to wake up",
+    "what's the difference between a docker image and a container",
+    "how to write a dockerfile for a node app",
+    "how to set up a postgres database on supabase and connect from next.js",
+    "what's the n+1 query problem and how do I spot it",
+    "how to use git bisect to find which commit broke something",
+    "how do I cherry pick one commit from another branch",
+    "how to see who changed a specific line, git blame?",
+    "how to write a git commit message properly, conventional commits?",
+    "how to sign commits so github shows verified",
+    "how to set up a pull request template on github",
+    "github says my branch is 30 commits behind, does that matter",
+    "how to make an api route in next.js that returns json",
+    "server components vs client components, when do I use 'use client'",
+    "how to add loading skeletons in react",
+    "how do I show a toast notification after saving a form",
+    "what's the difference between useRef and useState",
+    "how to make a modal accessible with focus trap",
+    "how to add keyboard shortcuts to a web app",
+    "how to detect click outside a dropdown in react",
+    "how to make a chart in react, recharts or chart.js",
+    "how to export table data to csv in the browser",
+    "how to implement drag and drop sorting for a list",
+    "how to handle file size limits on image upload in the frontend",
+    "how to show a preview of an uploaded image before submitting",
+    "how to internationalize a react app, i18next?",
+    "what's an ORM and why would I use one instead of raw sql",
+    "how to write a sql query to get the top 5 customers by total spend",
+    "what does 'ON DELETE CASCADE' do in postgres",
+    "how to back up my local postgres database",
+    "how to rate limit an express api",
+    "how to send emails from node, nodemailer or resend",
+    "how to validate request body in express with zod",
+    "what's graphql and is it worth learning for a junior",
+    "how to set up redis for caching api responses",
+    "what's the difference between a process and a thread",
+    "explain big O notation with real examples",
+    "how to reverse a linked list, practicing for interview",
+    "what's a hash map and why is lookup O(1)",
+    "how to solve two sum without nested loops",
+    "how to use chrome devtools to see why my page is slow",
+    "how to throttle network in devtools to test slow 3g",
+    "how to edit css live in devtools and save it back to the file",
+    "what's the lighthouse performance score actually measuring",
+    "how to set up a new mac for web dev, what to install",
+    "how to use homebrew to install postgres",
+    "what's wsl and should I use it on my windows laptop for dev",
+    "how to make vs code use less ram, it's eating 4gb",
+    "best vs code extensions for react",
+    "how do I use github copilot without becoming dependent on it",
+    "is it ok to use chatgpt at work for code, company policy unclear",
+    "how to write a good bug report in jira",
+    "what's the difference between a story, task and bug in jira",
+    "how to use notion to keep track of things I learn",
+    "how to set up two github accounts on one laptop, work and personal",
+    "how do I make a terminal alias for git status",
+    "how to search through all files in a project from the terminal, grep or ripgrep",
+    "how to use tmux, a coworker swears by it",
+    "how to switch my vs code theme for presenting on a projector",
+    "what's the keyboard shortcut to move a line up in vs code",
+    "my landlord won't fix the heat, what are my rights in illinois",
+    "how to get a mold smell out of towels",
+    "how to clean a cast iron pan that has rust",
+    "plant leaves turning yellow, pothos, too much water?",
+    "how to tell my parents I'm moving across the country for a job",
+    "gift idea for my mentor who helped me get my first job, under $50",
+    "how to make friends in a new city as an adult",
+    "what to say in a thank you note to my bootcamp instructor",
+    "how to plan a small birthday dinner for my partner on a budget",
+    "my cat keeps sitting on my keyboard during meetings, solutions?",
+    "how to get rid of fruit flies in my kitchen",
+    "how often should I replace my running shoes",
+    "how to fix a squeaky office chair",
+    "best cheap office chair for back pain under 200",
+    "how to get better at small talk at work happy hours",
+    "good books for a junior developer that aren't too dry",
+    "podcast recommendations for web dev to listen to on commute",
+    "how to learn to touch type faster, I'm at 55 wpm",
+    "should I get a mechanical keyboard or is it hype",
+    "how to organize my desktop files, it's chaos",
+    "how do I add a loading spinner while fetch is pending in vanilla js",
+    "how to use the intersection observer api",
+    "how to make a progressive web app installable",
+    "what's a service worker and do I need one",
+    "how to set cookies with httpOnly from express",
+    "how to handle refresh tokens",
+    "how to prevent xss when rendering user content",
+    "what's csrf and do I need to worry with a spa",
+    "how to set up https on localhost",
+    "what's the difference between a cdn and a regular host",
+    "how do dns records work, a record vs cname",
+    "how to set up a staging environment on vercel",
+    "how to roll back a bad deploy on vercel",
+    "what's feature flagging and how do companies do it",
+    "how to read logs on render when my app crashes",
+    "how to use sentry to track errors in react",
+    "what's the difference between unit, integration and e2e tests",
+    "how to write a cypress test for a login flow",
+    "playwright vs cypress for a small team",
+    "what's snapshot testing and is it useful",
+    "how to convert a class component to a function component",
+    "how does react reconciliation work, simple explanation",
+    "what's the difference between props and state",
+    "how to use useReducer, when is it better than useState",
+    "how to conditionally add a class name in react",
+    "how to pass data from a react router link to the next page",
+    "how to make a countdown timer in react",
+    "react portal, when would I use one",
+    "what are generics in typescript, explain with an example",
+    "how to make a union type from an array of strings in typescript",
+    "what's the difference between unknown and any",
+    "how to type an event handler for onChange in react ts",
+    "how to extend a type with an extra field in typescript",
+    "what does 'as const' do in typescript exactly",
+    "how to use enums in typescript or should I avoid them",
+    "tsconfig strict mode, should I turn it on in an old project",
+    "how to migrate a small js project to typescript gradually",
+    "how to read a typescript error that's 40 lines long",
+    "how to use Promise.allSettled vs Promise.all",
+    "what's the difference between map, filter and reduce",
+    "how to stay motivated learning after work when I'm exhausted",
+    "is it normal to not code on weekends as a developer",
+    "how to build a side project without burning out",
+    "what side project would impress employers more than another todo app",
+    "how to find open source issues good for beginners",
+    "how to write a technical blog post about something I learned",
+    "should I go to a local meetup alone",
+    "how to give a 5 minute lightning talk at work without panicking",
+    "my bootcamp friend is still job hunting, how can I help without being awkward",
+    "how to ask for a referral from someone I met once",
+    "is it worth switching to a remote job for 5k less",
+    "what's a reasonable raise to expect at a startup",
+    "how to read my offer letter equity section, what are options",
+    "how to plan my first real vacation days at a new job",
+    "how to set boundaries with slack notifications after hours",
+    "my sister wants to do a bootcamp, what should I tell her honestly",
+    "how to explain what I do at work to my grandma",
+    "how to say I don't know in a meeting confidently",
+    "how to recover after a really bad sprint demo",
+    "what to do on my first day at a new dev job"
+  ]
+}

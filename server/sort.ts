@@ -11,12 +11,13 @@
 // The model sees the cards as short ids, skills, and three sample phrasings,
 // and the phrasings as short ids and their words cut to 300 characters,
 // never a time; it only says which phrasings join which card and which form
-// new skills. Code checks the answer, asks again with the error up to
-// twice, and otherwise fails the sort rather than make a bad card. Progress
-// and failures are recorded on the upload, and a failed sort is retried
-// from the first phrasing not yet offered. A batch a restart or a deploy
-// cuts off runs again. Every request spends one of the account's daily
-// model requests (server/model.ts).
+// new skills. An upload's batch is sent in an order that puts phrasings
+// sharing rare words side by side (orderByWords). Code checks the answer,
+// asks again with the error up to twice, and otherwise fails the sort
+// rather than make a bad card. Progress and failures are recorded on the
+// upload, and a failed sort is retried from the first phrasing not yet
+// offered. A batch a restart or a deploy cuts off runs again. Every request
+// spends one of the account's daily model requests (server/model.ts).
 //
 // A capture (m1kuorg/basics#50) is placed by the same request and checks,
 // at a lower effort, against the cards and a shorter window, and keeps
@@ -49,11 +50,21 @@ const Reply = z.object({
   newSkills: z.array(z.object({ name: z.string(), phrasingIds: z.array(z.string()) })),
 });
 
+/**
+ * What a skill is, tuned with `bun run check:sort-recall` (m1kuorg/basics#56)
+ * on a made-up history of 469 labeled phrasings. The sentence on a task's
+ * variants, with each batch in orderByWords' order, raised the share of
+ * pairs of one skill found on one card from 59% to 71%, at precision from
+ * 93% to 92%, the means of 10 and 20 runs; the sentence alone found as many
+ * at 87%. Card A's phrasing about a commit made on the wrong branch, which
+ * the sort without it sometimes left unsorted, stayed on card A in every
+ * run since (m1kuorg/basics#66).
+ */
 const SYSTEM = `You sort one person's own messages to a chatbot onto their library cards. A card is one skill the person asked about more than once, and each message on it is one time they asked.
 
 You're given JSON with two lists. "cards" holds the person's existing cards, each { id, skill, samples }: the skill's name and a few of the messages already on it. "phrasings" holds the messages to place, each { id, text }.
 
-A skill is one task the person wanted to know how to do, at the level someone would learn it once to stop asking: the task in general, with its variants. Messages that ask how to do the same task belong to the same skill even when they're worded differently, describe different circumstances, or ask which way or option to use for it. Messages that share only a topic or a tool, but ask how to do different tasks, are different skills.
+A skill is one task the person wanted to know how to do, at the level someone would learn it once to stop asking: the task in general, with its variants. A task's variants are everything someone learning it would meet: doing it in other circumstances or with other options, choosing between ways to do it, the errors and surprises it throws, and putting it right when it went wrong. Messages that ask how to do the same task belong to the same skill even when they're worded differently, describe different circumstances, or ask which way or option to use for it. Messages that share only a topic or a tool, but ask how to do different tasks, are different skills.
 
 Place each phrasing in one of three ways:
 1. If it asks how to do the skill of an existing card, it joins that card: list its id under the card's id in "joins".
@@ -69,6 +80,86 @@ class ReplyError extends Error {}
 
 /** A phrasing as the model sees it, in a sort or a rep: its first 300 characters. */
 export const cut = (text: string) => text.slice(0, MAX_TEXT);
+
+/** Words that say nothing about what a phrasing asks, which orderByWords skips. */
+const COMMON = new Set(
+  "a an the and or but if to of in on at for with by from as is are was were be been it its this that these those i im my me we our you your do does did how what whats why when which who can could should would will just so not no yes vs get got have has had there their them they than then too very all any some into out up down over about like still even also again only one two".split(" "),
+);
+const WORD = /[\p{L}\p{N}]+/gu;
+/** A word without an ending such as a plural's or a tense's, so "commits" reads as "commit". */
+const stem = (word: string) =>
+  word.endsWith("ing") ? word.slice(0, -3) : word.endsWith("ed") || word.endsWith("es") ? word.slice(0, -2) : word.endsWith("s") ? word.slice(0, -1) : word;
+/** How much two phrasings must share to sit side by side: one word held by at most a twentieth of the batch is enough on its own. */
+const ENOUGH = 3;
+/** How much of a phrasing orderByWords reads: its opening, which says what it asks, before any code or error pasted after. */
+const OPENING = 150;
+
+/**
+ * A batch in an order that puts phrasings sharing rare words side by side,
+ * which the model sorts with fewer misplaced phrasings than the same batch
+ * in time order (m1kuorg/basics#56). A phrasing's words are those of its
+ * first OPENING characters, lowercase and stemmed, of two characters or
+ * more and not common. From the batch's first phrasing, each next one is
+ * the phrasing not yet placed that shares the most with the last, each
+ * shared word counting more the fewer of the batch's phrasings hold it, and
+ * a word in more than a tenth of them not at all; when none shares ENOUGH,
+ * the earliest one not yet placed. Only the order changes, never which
+ * phrasings are sent. A batch of 600 long phrasings takes about 2 ms of CPU.
+ */
+function orderByWords<P extends SortPhrasing>(batch: P[]): P[] {
+  const n = batch.length;
+  const index = new Map<string, number>();
+  /** For each word, by its index, the phrasings that hold it, in batch order. */
+  const holders: number[][] = [];
+  const words = batch.map((phrasing, i) => {
+    const mine: number[] = [];
+    for (const word of phrasing.text.slice(0, OPENING).toLowerCase().match(WORD) ?? []) {
+      if (word.length < 2 || COMMON.has(word)) continue;
+      const stemmed = stem(word);
+      if (stemmed.length < 2) continue;
+      let w = index.get(stemmed);
+      if (w === undefined) index.set(stemmed, (w = holders.push([]) - 1));
+      const held = holders[w]!;
+      if (held[held.length - 1] !== i) {
+        held.push(i);
+        mine.push(w);
+      }
+    }
+    return mine;
+  });
+  const weight = holders.map((held) => (held.length > n / 10 ? 0 : Math.log(n / held.length)));
+  /** Each phrasing's words that can tie it to another: rare, and held by more than it. */
+  const ties = words.map((mine) => mine.filter((w) => weight[w]! > 0 && holders[w]!.length > 1));
+  const placed = new Uint8Array(n);
+  const score = new Float64Array(n);
+  const order: P[] = [];
+  let earliest = 0;
+  let at = -1;
+  while (order.length < n) {
+    if (at < 0) {
+      while (placed[earliest]) earliest++;
+      at = earliest;
+    }
+    placed[at] = 1;
+    order.push(batch[at]!);
+    const touched: number[] = [];
+    for (const w of ties[at]!) {
+      for (const j of holders[w]!) {
+        if (placed[j]) continue;
+        if (score[j] === 0) touched.push(j);
+        score[j] = score[j]! + weight[w]!;
+      }
+    }
+    let next = -1;
+    let best = 0;
+    for (const j of touched) {
+      if (score[j]! > best) [next, best] = [j, score[j]!];
+      score[j] = 0;
+    }
+    at = best >= ENOUGH ? next : -1;
+  }
+  return order;
+}
 
 /**
  * Asks the model where a batch's phrasings go, against the shelf's cards,
@@ -195,7 +286,7 @@ export async function sortNextBatch(env: Env, shelfId: string): Promise<boolean>
     // With none of its phrasings left to offer, the upload is sorted; with no card to join and one phrasing alone, nothing can be placed. Either way the model isn't asked.
     const batch = fresh.length ? [...fresh, ...window] : [];
     const ask = batch.length > 0 && (cards.length > 0 || batch.length > 1);
-    const placement = ask ? await askPlacement(env, upload.userId, cards, batch, SORT_EFFORT) : NOTHING;
+    const placement = ask ? await askPlacement(env, upload.userId, cards, orderByWords(batch), SORT_EFFORT) : NOTHING;
     return await store.applyPlacement(env.DB, upload, placement, batch.map((p) => p.id));
   } catch (error) {
     // Its message is safe to show. The upload records it; the logs carry requests only.
