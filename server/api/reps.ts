@@ -1,6 +1,6 @@
 // Reps: start a cold rep on a card, and check an answer once
 // (m1kuorg/basics#46). Both ask the model (server/reps.ts), so both count
-// toward the account's daily cap, and an API key may do both.
+// toward the app's daily cap, and an API key may do both.
 //
 // Starting a rep writes a fresh problem from the card's phrasings and its
 // earlier problems, plus the lesson when the card has none yet, which is
