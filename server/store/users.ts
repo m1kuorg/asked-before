@@ -19,10 +19,11 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /**
  * The new account, made from `network` (an IPv4 address, or an IPv6 /64)
  * while it has made fewer than `cap` today, a UTC day; or why not: "taken"
- * when the email already has one, or "capped" when the network has made
- * today's. One batch: the network's count today is a row of the throttle
- * table, "signups:<network>", whose window ends at midnight UTC, and counts
- * only an account made, so a sign-up refused for any reason counts nothing.
+ * when the email already has one, whatever the network's count, or
+ * "capped" when the network has made today's. One batch: the network's
+ * count today is a row of the throttle table, "signups:<network>", whose
+ * window ends at midnight UTC, and counts only an account made, so a
+ * sign-up refused for any reason counts nothing.
  */
 export async function createUser(
   db: Db,
@@ -33,12 +34,11 @@ export async function createUser(
   const now = Date.now();
   const midnight = (Math.floor(now / DAY_MS) + 1) * DAY_MS;
   const key = `signups:${network}`;
-  const madeToday = "coalesce((SELECT tries FROM throttle WHERE address = ?1 AND ends_at > ?2), 0)";
-  const [made, created] = await db.batch<{ made: number } & AccountRow>([
-    db.prepare(`SELECT ${madeToday} AS made`).bind(key, now),
+  const [before, created] = await db.batch<{ taken: number } & AccountRow>([
+    db.prepare("SELECT EXISTS (SELECT 1 FROM users WHERE email = ?1) AS taken").bind(input.email),
     db
       .prepare(
-        `INSERT INTO users (id, name, email, password_hash, created_at) SELECT ?3, ?4, ?5, ?6, ?2 WHERE ${madeToday} < ?7
+        `INSERT INTO users (id, name, email, password_hash, created_at) SELECT ?3, ?4, ?5, ?6, ?2 WHERE coalesce((SELECT tries FROM throttle WHERE address = ?1 AND ends_at > ?2), 0) < ?7
          ON CONFLICT (email) DO NOTHING
          RETURNING ${ACCOUNT_COLUMNS}`,
       )
@@ -52,7 +52,7 @@ export async function createUser(
   ]);
   const row = created?.results[0];
   if (row) return toAccount(row);
-  return (made?.results[0]?.made ?? 0) >= cap ? "capped" : "taken";
+  return before?.results[0]?.taken ? "taken" : "capped";
 }
 
 export async function getAccount(db: Db, userId: string): Promise<Account | null> {

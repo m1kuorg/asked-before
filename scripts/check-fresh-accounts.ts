@@ -6,12 +6,12 @@
 // at 2 a UTC day for each network, an IPv4 address or an IPv6 /64: a third
 // gets 429, through the SDK and in the sign-up page, while another network
 // still signs up, and a sign-up refused for an email in use doesn't count.
-// Accounts made today, on their first UTC day, share a smaller part of the
+// An account made today, on its first UTC day, reaches only part of the
 // app's daily caps, set small: 1 of the app's 3 model requests, and 60 of
-// its 90 phrasings. Past it, an account made today gets 429 for a sort, a
-// cold rep, and a chunk, through the SDK and in the upload page, while an
-// account made before today, aged a day in the database, still uploads and
-// sorts, up to the app's whole cap. A refused request counts toward
+// its 90 phrasings, counted across every account. Past it, an account made
+// today gets 429 for a sort, a cold rep, and a chunk, through the SDK and
+// in the upload page, while an account made before today, aged a day in
+// the database, still uploads and sorts, up to the app's whole cap. A refused request counts toward
 // nothing, as the database's counters show. The model is a stand-in here,
 // answering as the answer key sorts the demo export.
 // It prints each step's checks, saves a screenshot of each page, and exits
@@ -180,6 +180,10 @@ try {
     check(second === null, `a second account from that address: ${say(second)}`);
     const third = await failure(signUp("198.51.100.1", "Hal"));
     check(third?.status === 429, `and a third: ${say(third)}`);
+    const again = await failure(signUp("198.51.100.1", "Gus"));
+    check(again?.status === 409, `Gus signing up again from there, at its cap, is told the email has an account: ${say(again)}`);
+    const mapped = [await failure(signUp("::ffff:198.51.100.2", "Ida")), await failure(signUp("::ffff:198.51.100.3", "Jay")), await failure(signUp("::FFFF:198.51.100.4", "Kim"))];
+    check(mapped.every((error) => error === null), `three IPv4 addresses written in IPv6 are three networks: ${mapped.map(say).join(", ")}`);
   });
 
   await step("4. The sign-up page shows a network past its sign-ups", async () => {
@@ -205,9 +209,9 @@ try {
   store.query("UPDATE users SET created_at = created_at - 24 * 60 * 60 * 1000 WHERE name = 'Lee'").run();
   store.close();
 
-  await step("5. Past the model requests accounts made today share, a sort fails and the page shows it, and a cold rep gets 429", async () => {
+  await step("5. Past the app's first-day model requests, an account made today fails a sort, which the page shows, and gets 429 for a cold rep", async () => {
     const sorted = await sortEnds(jo.client, (await upload(jo.client, jo.shelfId, phrasings)).id);
-    check(sorted.status === "sorted" && model.requests.length === 1, `Jo's demo upload is sorted, with the one model request accounts made today share: ${sorted.status}, ${model.requests.length}`);
+    check(sorted.status === "sorted" && model.requests.length === 1, `Jo's demo upload is sorted, with the app's one first-day model request: ${sorted.status}, ${model.requests.length}`);
     const page = await pageOf(kit, "192.0.2.11");
     await page.goto(`${app.url}/app/shelves/${kit.shelfId}/upload`);
     await page.locator(".drop-zone input[type=file]").setInputFiles(DEMO);
@@ -223,7 +227,7 @@ try {
     check(model.requests.length === 1, `and the model wasn't asked again: ${model.requests.length} request`);
   });
 
-  await step("6. Past the phrasings accounts made today share, a chunk gets 429, and the page shows it; one that just fits is stored", async () => {
+  await step("6. Past the app's first-day phrasings, an account made today gets 429 for a chunk, which the page shows; one that just fits is stored", async () => {
     const open = await jo.client.uploads.create(jo.shelfId, { source: "chatgpt", fileName: "conversations.json" });
     const over = await failure(jo.client.uploads.append(open.id, fresh(7, "jo")));
     check(over?.status === 429 && over.message === PAST_FIRST_DAY_PHRASINGS, `a chunk of 7 from Jo, with 54 of 60 counted: ${say(over)}`);
@@ -235,7 +239,7 @@ try {
     check(await page.locator(".block").getByRole("button", { name: "Try again" }).isVisible(), "with a Try again button");
   });
 
-  await step("7. An account made before today isn't held to that share, only to the app's whole cap", async () => {
+  await step("7. An account made before today isn't held to the first day's part, only to the app's whole cap", async () => {
     const sorted = await sortEnds(lee.client, (await upload(lee.client, lee.shelfId, phrasings)).id);
     check(sorted.status === "sorted" && sorted.phrasings === 27, `Lee's demo upload, past the 60, is stored and sorted: ${sorted.status}, ${sorted.phrasings} phrasings`);
     check(model.requests.length === 2, `with a second model request: ${model.requests.length}`);

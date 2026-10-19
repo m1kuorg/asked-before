@@ -57,12 +57,15 @@ function appPath(next: string | undefined): string {
 
 /**
  * The caller's network, as Cloudflare saw it, for the throttle: an IPv4
- * address as it is, and an IPv6 one as its /64, written as "2001:db8:1:2::/64",
- * since one connection is usually given a whole /64 and could take a fresh
- * address from it for every try.
+ * address as it is, written in IPv6 too ("::ffff:192.0.2.1"), and an IPv6
+ * one as its /64, written as "2001:db8:1:2::/64", since one connection is
+ * usually given a whole /64 and could take a fresh address from it for
+ * every try.
  */
 function callerNetwork(req: Request): string {
   const address = req.headers.get("cf-connecting-ip") ?? "unknown";
+  const ipv4 = address.match(/^(?:::ffff:)?(\d{1,3}(?:\.\d{1,3}){3})$/i)?.[1];
+  if (ipv4) return ipv4;
   if (!address.includes(":")) return address;
   const [head, tail, extra] = address.toLowerCase().split("::");
   // An IPv4 address written at the end fills the last two groups.
