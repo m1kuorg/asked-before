@@ -45,7 +45,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/auth/signup",
         sdk: "auth.signUp",
         who: "None",
-        does: "Signs up with { name, email, passwordKey } and starts a session: 201 with { account, next }. The SDK takes a password of 10 to 200 characters and sends only its key. An email that has an account already is a 409. It must come from the page, with its Origin, and allows 20 tries from one address in 15 minutes.",
+        does: "Signs up with { name, email, passwordKey } and starts a session: 201 with { account, next }. The SDK takes a password of 10 to 200 characters and sends only its key. An email that has an account already is a 409. It must come from the page, with its Origin, and allows 20 tries from one network in 15 minutes, and 3 accounts from one network a day.",
       },
       {
         method: "POST",
@@ -221,7 +221,7 @@ const STATUSES: [string, string][] = [
   ["404", "There's no such endpoint, or the shelf, upload, card, key, or cold rep isn't yours. Another account's is a 404 at any depth."],
   ["409", "A conflict: an email that has an account, an upload finished already, a retry of a sort that hasn't failed, or a cold rep checked already."],
   ["413", `A phrasing or capture over ${count(MAX_PHRASING_LENGTH)} characters, an append over ${count(MAX_CHUNK)} phrasings, or an answer over 4,000 characters.`],
-  ["429", "Too many sign-up or log-in tries from one address, or password tries on one account, 20 in 15 minutes; or a daily cap is spent: the account's or the app's model requests, or its phrasings."],
+  ["429", "Too many sign-up or log-in tries from one network, or password tries on one account, 20 in 15 minutes; a network's accounts for the day are made; or a daily cap is spent: the account's or the app's model requests, or its phrasings, or the share of the app's that accounts made today get."],
   ["500", "The server failed. Its message says nothing more."],
   ["502", "The model failed. Nothing was stored, so send the request again."],
 ];
@@ -270,7 +270,7 @@ function api(): Section {
       h3("Errors"),
       table("docs-statuses", { caption: "Error statuses", columns: [{ label: "Status", className: "is-status", cell: ([status]) => status }, { label: "When", cell: ([, when]) => when }], items: STATUSES }),
       h3("The daily caps"),
-      p("Four caps, each counted per UTC day, keep Asked Before inside Cloudflare's free plan. Each is a setting of the server's, given here with its default."),
+      p("Daily caps, each counted per UTC day, keep Asked Before inside Cloudflare's free plan, and keep new accounts from spending a day's share for everyone else. Each is a setting of the server's, given here with its default."),
       p(
         "Every model request counts toward your account's cap, 10 a day (",
         code("DAILY_MODEL_REQUESTS"),
@@ -285,7 +285,19 @@ function api(): Section {
         code("SITE_DAILY_PHRASINGS"),
         "). A chunk counts every phrasing it carries, even one the shelf holds already, since recording that the upload sent it writes too. So an export bigger than a day's phrasings is carried on the next day in the same upload, with Try again on the upload page.",
       ),
+      p(
+        "An account on its first day, the UTC day it was made, reaches only part of the app's caps: 100 a day of the app's model requests (",
+        code("FIRST_DAY_SITE_DAILY_MODEL_REQUESTS"),
+        "), and 4,000 a day of its phrasings (",
+        code("FIRST_DAY_SITE_DAILY_PHRASINGS"),
+        "). Once the app has counted that many today, across every account, an account made today gets a 429, while older accounts carry on up to the app's whole cap.",
+      ),
       p("Past a cap, the request is a 429 and counts toward neither: a chunk stores none of its phrasings and can be sent again, a sort fails with that message and can be retried, and a capture is lost unless it's sent again. More open at midnight UTC."),
+      p(
+        "Signing up and logging in count tries by network: an IPv4 address, or an IPv6 address's /64, since one connection is usually given a whole /64. Sign-ups are capped at 3 a day from one network (",
+        code("NETWORK_DAILY_SIGNUPS"),
+        "), counting only the accounts made.",
+      ),
     ],
   };
 }
