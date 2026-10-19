@@ -73,7 +73,7 @@ The other checks:
 | `bun run check:key` | The demo export's answer key against the export | |
 | `bun run check:accounts` | Accounts and shelves through the SDK: sessions, `next`, 404s across accounts, the Origin rule, the logs, the throttle | |
 | `bun run check:passwords` | The password never reaching the server: every request the page sends to sign up, log in, change the password or email, and delete the account, the API refusing anything but a key, and the database keeping only its salted hash | Chromium |
-| `bun run check:caps` | The daily caps, set small: an account's phrasings, the app's phrasings, and the app's model requests, each a 429 through the SDK and in the upload page | Chromium |
+| `bun run check:caps` | The daily caps, set small: an account's phrasings, the app's phrasings, and the app's model requests, each a 429 through the SDK and in the upload page, and a refused request counting toward neither the account nor the app | Chromium |
 | `bun run check:fresh-accounts` | What keeps fresh accounts from draining the app's day, set small: the throttle by IPv6 /64, a network's daily sign-ups, and the share of the app's caps that accounts made today get, each a 429 through the SDK and in the page | Chromium |
 | `bun run check:shell` | The app's shell: sign up, the Desk, your shelves, log out, and the redirect to log in and back | Chromium |
 | `bun run check:landing` | The landing page's card against the answer key, and signing up and logging in from it | Chromium |
