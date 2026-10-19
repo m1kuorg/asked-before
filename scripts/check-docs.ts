@@ -108,17 +108,15 @@ try {
     check(text.includes(`${CAPTURE_WINDOW} most recent unsorted`), `it gives a capture's window, ${CAPTURE_WINDOW}`);
     const api = (await page.locator("#api").textContent()) ?? "";
     for (const [name, cap] of [
-      ["DAILY_MODEL_REQUESTS", config.dailyModelRequests.account],
-      ["SITE_DAILY_MODEL_REQUESTS", config.dailyModelRequests.site],
-      ["DAILY_PHRASINGS", config.dailyPhrasings.account],
-      ["SITE_DAILY_PHRASINGS", config.dailyPhrasings.site],
-      ["FIRST_DAY_SITE_DAILY_MODEL_REQUESTS", config.dailyModelRequests.firstDay],
-      ["FIRST_DAY_SITE_DAILY_PHRASINGS", config.dailyPhrasings.firstDay],
-      ["NETWORK_DAILY_SIGNUPS", config.dailySignups],
+      ["SITE_DAILY_MODEL_REQUESTS", config.dailyModelRequests],
+      ["SITE_DAILY_PHRASINGS", config.dailyPhrasings],
     ] as const) {
       const said = new RegExp(`${cap.toLocaleString("en-US")} a day[^()]*\\(${name}\\)`).test(api);
       check(said, `the daily caps name ${name} and its default, ${cap}`);
     }
+    // The caps m1kuorg/basics#73 removed: each account's own, a network's sign-ups, and a new account's first day.
+    const gone = ["DAILY_MODEL_REQUESTS", "DAILY_PHRASINGS", "FIRST_DAY_", "NETWORK_DAILY_SIGNUPS"].filter((name) => new RegExp(`(?<!SITE_)${name}`).test(api));
+    check(gone.length === 0, `no cap that went is named${gone.length ? `; still ${gone.join(", ")}` : ""}`);
   });
 
   await step("5. The setup snippets carry this server's address, and the page keeps its security policy", async () => {

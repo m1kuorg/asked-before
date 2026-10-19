@@ -14,6 +14,10 @@
 // The demo action, startDemoShelf(), makes a shelf flagged demo and
 // comes here with ?export=demo, which reads the demo export with the same
 // reader and uploads it through the same endpoints at once.
+//
+// The shared guest (m1kuorg/basics#73) is warned under the heading, from
+// before a file is chosen, that every guest sees what's uploaded and that
+// the guest workspace is wiped daily.
 
 import { ExportError, MAX_CHUNK, MAX_PHRASING_LENGTH, readExport, type Client, type Shelf, type ReadExport, type Upload } from "@asked-before/sdk";
 import type { ScreenProps } from "../app/router";
@@ -47,7 +51,18 @@ function instructions(): HTMLElement[] {
   ];
 }
 
-export function mountUpload(root: HTMLElement, { client, params, query, navigate, signal }: ScreenProps<"shelfId">) {
+/** What the shared guest is told before uploading: that every guest sees it, and how long it stays. */
+function guestWarning(): HTMLElement {
+  const node = el(
+    "p",
+    "guest-warning",
+    "You're signed in as the shared guest, so every guest will see what you upload here, with its cards and cold reps. The guest workspace is wiped daily at midnight UTC, though Cloudflare's backups keep it for up to 30 days. Sign up to keep an export to yourself.",
+  );
+  node.setAttribute("role", "note");
+  return node;
+}
+
+export function mountUpload(root: HTMLElement, { client, account, params, query, navigate, signal }: ScreenProps<"shelfId">) {
   const { block } = frame(root, instructions());
   const heading = el("h1", undefined, "Upload a chat export");
   const uploadId = query.get("upload");
@@ -61,7 +76,7 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
       document.title = `Upload into ${shelf.name} · Asked Before`;
       const into = el("p", undefined, `Into ${shelf.name}.`);
       if (shelf.demo) into.append(" ", demoLabel());
-      const top = [heading, into];
+      const top = account.guest ? [heading, into, guestWarning()] : [heading, into];
       const draw = (...children: Node[]) => {
         if (!signal.aborted) block.replaceChildren(...top, ...children);
       };

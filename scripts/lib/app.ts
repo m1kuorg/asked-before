@@ -18,13 +18,8 @@ const ROOT = join(import.meta.dir, "..", "..");
 
 /** The daily caps every check starts with, past anything one makes; a check of a cap sets its own in `env`. */
 const LIFTED_CAPS = {
-  DAILY_MODEL_REQUESTS: "1000000",
   SITE_DAILY_MODEL_REQUESTS: "1000000",
-  FIRST_DAY_SITE_DAILY_MODEL_REQUESTS: "1000000",
-  DAILY_PHRASINGS: "1000000",
   SITE_DAILY_PHRASINGS: "1000000",
-  FIRST_DAY_SITE_DAILY_PHRASINGS: "1000000",
-  NETWORK_DAILY_SIGNUPS: "1000000",
 };
 
 export type App = {
@@ -32,8 +27,7 @@ export type App = {
   url: string;
   /**
    * The local D1 database's SQLite file, for the few checks that read it with bun:sqlite, read-only; check:captures'
-   * write, aging a capture past the ten-minute window, and check:fresh-accounts', aging an account past its first day,
-   * are the documented exceptions (docs/code-map.md).
+   * write, aging a capture past the ten-minute window, is the documented exception (docs/code-map.md).
    */
   databasePath: string;
   /** Everything Wrangler has printed so far, the Worker's own lines among its own. */
@@ -68,7 +62,7 @@ export type StartOptions = {
 
 /**
  * Starts the app. `env` adds to or overrides the Worker's vars, such as
- * DAILY_MODEL_REQUESTS or ANTHROPIC_BASE_URL; every daily cap is lifted
+ * SITE_DAILY_MODEL_REQUESTS or ANTHROPIC_BASE_URL; every daily cap is lifted
  * unless `env` sets it. First it checks for Node.js
  * 22 or later, builds the pages into a folder of their own, and applies the
  * migrations to the state's database.

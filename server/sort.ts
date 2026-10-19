@@ -23,7 +23,7 @@
 // rather than make a bad card. Progress and failures are recorded on the
 // upload, and a failed sort is retried from the first phrasing not yet
 // offered. A batch a restart or a deploy cuts off runs again. Every request
-// spends one of the account's daily model requests (server/model.ts).
+// spends one of the app's daily model requests (server/model.ts).
 //
 // A capture (m1kuorg/basics#50) is placed by the same request and checks,
 // at a lower effort, against the cards and a shorter window, and keeps
@@ -179,14 +179,14 @@ function orderByWords<P extends SortPhrasing>(batch: P[]): P[] {
  * and checks its answer; one that fails a check is asked again with the
  * error added, up to twice, and then the sort fails with that error.
  */
-export async function askPlacement(env: Env, userId: string, cards: SortCard[], phrasings: SortPhrasing[], effort: Effort): Promise<Placement> {
+export async function askPlacement(env: Env, cards: SortCard[], phrasings: SortPhrasing[], effort: Effort): Promise<Placement> {
   const request = JSON.stringify({
     cards: cards.map((card, i) => ({ id: `c${i + 1}`, skill: card.skill, samples: card.samples.map(cut) })),
     phrasings: phrasings.map((phrasing, i) => ({ id: `p${i + 1}`, text: cut(phrasing.text) })),
   });
   let note = "";
   for (let attempt = 1; ; attempt++) {
-    const reply = await askStructured(env, userId, SYSTEM, request + note, Reply, effort);
+    const reply = await askStructured(env, SYSTEM, request + note, Reply, effort);
     try {
       return check(reply, cards, phrasings);
     } catch (error) {
@@ -268,12 +268,12 @@ export const CAPTURE_EFFORT: Effort = "low";
 export const CAPTURE_WINDOW = 50;
 
 /** Asks the sort where a capture goes, and keeps only that: the card it joins, or the new card it makes. */
-export async function sortCapture(env: Env, userId: string, shelfId: string, capture: SortPhrasing): Promise<Placement> {
+export async function sortCapture(env: Env, shelfId: string, capture: SortPhrasing): Promise<Placement> {
   const { cards, window } = await store.captureView(env.DB, shelfId, CAPTURE_WINDOW);
   const batch = [capture, ...window];
   // With no card to join and nothing unsorted, it can only wait unsorted, so the model isn't asked.
   if (!cards.length && batch.length === 1) return NOTHING;
-  const { joins, newCards } = await askPlacement(env, userId, cards, batch, CAPTURE_EFFORT);
+  const { joins, newCards } = await askPlacement(env, cards, batch, CAPTURE_EFFORT);
   const holds = (ids: string[]) => ids.includes(capture.id);
   return {
     joins: joins.filter((join) => holds(join.phrasingIds)).map((join) => ({ cardId: join.cardId, phrasingIds: [capture.id] })),
@@ -301,7 +301,7 @@ export async function sortNextBatch(env: Env, shelfId: string): Promise<boolean>
     const batch = last ? (brought ? window : []) : [...fresh, ...window];
     // With nothing to offer, or no card to join and one phrasing alone, nothing can be placed, so the model isn't asked.
     const ask = batch.length > 0 && (cards.length > 0 || batch.length > 1);
-    const placement = ask ? await askPlacement(env, upload.userId, cards, orderByWords(batch), last ? SECOND_PASS_EFFORT : SORT_EFFORT) : NOTHING;
+    const placement = ask ? await askPlacement(env, cards, orderByWords(batch), last ? SECOND_PASS_EFFORT : SORT_EFFORT) : NOTHING;
     return await store.applyPlacement(env.DB, upload, placement, batch.map((p) => p.id), last);
   } catch (error) {
     // Its message is safe to show. The upload records it; the logs carry requests only.

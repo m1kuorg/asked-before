@@ -2,7 +2,8 @@
 // SDK, on a fresh copy of the app: the health check and the security
 // headers, sign-up, log-in and its `next`, log-out, shelves and their
 // counts, another account's 404, deletes, the Origin and JSON rule, the
-// logs, and, last, the per-IP throttle. The counts come from cards made and
+// logs, and, last, the throttle per network: an IPv4 address, or an IPv6
+// /64 (m1kuorg/basics#69). The counts come from cards made and
 // returned through the API, with the app's model a stand-in in this script,
 // never in the app: it sorts as the answer key does, writes a stand-in's
 // problem, and passes the answer "right" and fails any other. It prints
@@ -308,7 +309,7 @@ await step("12. The app logs only the method, path, status, and duration", async
   check(leaked.length === 0, `no email, name, password, or shelf name anywhere in Wrangler's output${leaked.length ? `: ${leaked.join(", ")}` : ""}`);
 });
 
-await step("13. Signing up and logging in are throttled per IP address", async () => {
+await step("13. Signing up and logging in are throttled per IP address, and signing in as a guest apart", async () => {
   // Last, since it locks this address out for the rest of the run.
   let tries = 0;
   let throttled: ApiError | null = null;
@@ -321,6 +322,30 @@ await step("13. Signing up and logging in are throttled per IP address", async (
   check(right?.status === 429, `then even the right password: ${say(right)}`);
   const signUp = await failure(app.browser().client.auth.signUp({ name: "Cy", email: "cy@example.com", password: "a long enough password" }));
   check(signUp?.status === 429, `and signing up: ${say(signUp)}`);
+  // A guest has no password to guess, so its tries are counted apart, and a room of guests doesn't lock out log-ins.
+  const guests: (ApiError | null)[] = [];
+  for (let i = 0; i < 21; i++) guests.push(await failure(app.browser().client.auth.signInAsGuest()));
+  const signedIn = guests.findIndex((error) => error !== null);
+  check(signedIn === 20, `signing in as a guest still works, ${signedIn} times`);
+  check(guests[20]?.status === 429, `and the 21st is throttled: ${say(guests[20] ?? null)}`);
+});
+
+await step("14. An IPv6 caller's tries count by its /64, and an IPv4 address written in IPv6 as itself", async () => {
+  // Each caller's address is set as Cloudflare names it, in CF-Connecting-IP (m1kuorg/basics#69).
+  const wrong = { email: "nobody@example.com", password: "not the password at all" };
+  const answers: (ApiError | null)[] = [];
+  // Twenty addresses, each written its own way, all in 2001:db8:1:1::/64.
+  for (let i = 1; i <= 20; i++) answers.push(await failure(app.browser(i % 2 ? `2001:db8:1:1::${i.toString(16)}` : `2001:0DB8:0001:0001:${i.toString(16)}:0:0:1`).client.auth.logIn(wrong)));
+  check(answers.every((answer) => answer?.status === 401), `20 tries from 20 addresses in the /64: ${[...new Set(answers.map((answer) => answer?.status))].join(", ")}`);
+  const next = await failure(app.browser("2001:db8:1:1:ffff:ffff:ffff:ffff").client.auth.logIn(wrong));
+  check(next?.status === 429 && next.message === "Too many tries. Wait a few minutes, then try again.", `a 21st from yet another address in it: ${say(next)}`);
+  const other = await failure(app.browser("2001:db8:1:2::1").client.auth.logIn(wrong));
+  check(other?.status === 401, `a try from the next /64: ${say(other)}`);
+  for (let i = 0; i < 20; i++) await failure(app.browser("::ffff:203.0.113.1").client.auth.logIn(wrong));
+  const plain = await failure(app.browser("203.0.113.1").client.auth.logIn(wrong));
+  check(plain?.status === 429, `20 tries from ::ffff:203.0.113.1 spend 203.0.113.1's: ${say(plain)}`);
+  const neighbour = await failure(app.browser("::FFFF:203.0.113.2").client.auth.logIn(wrong));
+  check(neighbour?.status === 401, `while ::FFFF:203.0.113.2 keeps its own: ${say(neighbour)}`);
 });
 
 await app.stop();

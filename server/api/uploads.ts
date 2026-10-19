@@ -9,9 +9,9 @@
 // is a 413; a phrasing dated more than 5 minutes after the server's clock
 // is a 400 (its time is a Unix timestamp, so no time zone runs ahead), lest
 // a card show borrowed again the moment it's returned. Every phrasing a
-// chunk carries counts toward the account's daily phrasings and the app's
+// chunk carries counts toward the app's daily phrasings, for everyone
 // (store/usage.ts), or the chunk is a 429 that stores none of them once
-// they'd pass either. Finishing an upload answers with it waiting to be
+// they'd pass it. Finishing an upload answers with it waiting to be
 // sorted, and starts the shelf's sort in its Durable Object
 // (worker/sorter.ts, server/sort.ts), which records its progress and any
 // failure on the upload; when that start fails, the upload answers failed,
@@ -128,7 +128,7 @@ export const uploads = defineRoutes({
         }
         if (Date.parse(time) > latest) throw new HttpError(400, `Phrasing ${i + 1} is dated more than 5 minutes after the server's clock.`);
       });
-      await spendPhrasings(db, auth.userId, phrasings.length, config.dailyPhrasings);
+      await spendPhrasings(db, phrasings.length, config.dailyPhrasings);
       const appended = await appendPhrasings(db, auth.userId, params.uploadId, phrasings);
       return Response.json(changed(appended, "This upload is finished, so it takes no more phrasings. Start a new upload to add more."));
     }),
