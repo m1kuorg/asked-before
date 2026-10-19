@@ -17,19 +17,34 @@ import { join } from "node:path";
 const ROOT = join(import.meta.dir, "..", "..");
 
 /** The daily caps every check starts with, past anything one makes; a check of a cap sets its own in `env`. */
-const LIFTED_CAPS = { DAILY_MODEL_REQUESTS: "1000000", SITE_DAILY_MODEL_REQUESTS: "1000000", DAILY_PHRASINGS: "1000000", SITE_DAILY_PHRASINGS: "1000000" };
+const LIFTED_CAPS = {
+  DAILY_MODEL_REQUESTS: "1000000",
+  SITE_DAILY_MODEL_REQUESTS: "1000000",
+  FIRST_DAY_SITE_DAILY_MODEL_REQUESTS: "1000000",
+  DAILY_PHRASINGS: "1000000",
+  SITE_DAILY_PHRASINGS: "1000000",
+  FIRST_DAY_SITE_DAILY_PHRASINGS: "1000000",
+  NETWORK_DAILY_SIGNUPS: "1000000",
+};
 
 export type App = {
   /** The app's origin, as "http://localhost:51234". */
   url: string;
-  /** The local D1 database's SQLite file, for the few checks that read it with bun:sqlite, read-only; check:captures' one write, aging a capture past the ten-minute window, is the documented exception (docs/code-map.md). */
+  /**
+   * The local D1 database's SQLite file, for the few checks that read it with bun:sqlite, read-only; check:captures'
+   * write, aging a capture past the ten-minute window, and check:fresh-accounts', aging an account past its first day,
+   * are the documented exceptions (docs/code-map.md).
+   */
   databasePath: string;
   /** Everything Wrangler has printed so far, the Worker's own lines among its own. */
   log: () => string;
   /** The lines after Wrangler's banner that aren't Wrangler's own: the Worker's request lines (method, path, status, and duration), and any others, such as an uncaught error. */
   workerLog: () => { requests: string[]; others: string[] };
-  /** A client for one browser: it keeps the session cookie and sends the page's Origin, as the page's requests do. */
-  browser: () => Browser;
+  /**
+   * A client for one browser: it keeps the session cookie and sends the page's Origin, as the page's requests do.
+   * Given an address, it calls from there, as Cloudflare names the caller in CF-Connecting-IP; else from this computer.
+   */
+  browser: (address?: string) => Browser;
   /** Stops the app and deletes its state, unless `state` was given. */
   stop: () => Promise<void>;
   /** Kills Wrangler and its workerd at once, by their process group, as a crash would, with no chance to finish anything; then as stop(). */
@@ -139,7 +154,7 @@ export async function startApp(env: Record<string, string> = {}, { state, port, 
     return { requests: lines.filter(request), others: lines.filter((line) => !request(line)) };
   };
 
-  return { url, databasePath: databasePath!, log: () => log, workerLog, browser: () => browser(url), stop: () => stop(), kill: () => stop("SIGKILL") };
+  return { url, databasePath: databasePath!, log: () => log, workerLog, browser: (address) => browser(url, address), stop: () => stop(), kill: () => stop("SIGKILL") };
 }
 
 /** The local D1 database's SQLite file in a state folder, or null when no migrations have been applied there. */
@@ -165,13 +180,14 @@ export function freePort(): number {
   return port!;
 }
 
-/** A client for one browser on the app at `url`. */
-export function browser(url: string): Browser {
+/** A client for one browser on the app at `url`, calling from `address` when one is given. */
+export function browser(url: string, address?: string): Browser {
   const jar = new Map<string, string>();
   const cookie = () => [...jar].map(([name, value]) => `${name}=${value}`).join("; ");
   const send = async (input: string, init: RequestInit) => {
     const headers = new Headers(init.headers);
     headers.set("origin", url);
+    if (address) headers.set("cf-connecting-ip", address);
     if (jar.size) headers.set("cookie", cookie());
     const response = await fetch(input, { ...init, headers });
     for (const line of response.headers.getSetCookie()) {
