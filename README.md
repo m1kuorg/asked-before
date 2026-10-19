@@ -42,6 +42,9 @@ The key is the only setting you need. The others are vars in `wrangler.jsonc`, e
 | `SITE_DAILY_MODEL_REQUESTS` | `200` | Model requests the whole app may make per UTC day, across every account. |
 | `DAILY_PHRASINGS` | `1000` | Phrasings one account may send per UTC day, uploads and captures together. |
 | `SITE_DAILY_PHRASINGS` | `8000` | Phrasings the whole app may take per UTC day, across every account. |
+| `FIRST_DAY_SITE_DAILY_MODEL_REQUESTS` | `100` | The share of `SITE_DAILY_MODEL_REQUESTS` that accounts on their first UTC day, the day they were made, may use between them; past it, only older accounts carry on. |
+| `FIRST_DAY_SITE_DAILY_PHRASINGS` | `4000` | The share of `SITE_DAILY_PHRASINGS` that accounts on their first UTC day may send between them. |
+| `NETWORK_DAILY_SIGNUPS` | `3` | Accounts one network, an IPv4 address or an IPv6 /64, may make per UTC day. Signing up and logging in also allow 20 tries from one network in 15 minutes. |
 | `SORT_BATCH_SIZE` | `300` | Phrasings a sort sends the model at once. |
 
 The schema is a series of Wrangler's D1 migrations, the numbered files in `migrations/`; see [Deploy it](#deploy-it).
@@ -71,6 +74,7 @@ The other checks:
 | `bun run check:accounts` | Accounts and shelves through the SDK: sessions, `next`, 404s across accounts, the Origin rule, the logs, the throttle | |
 | `bun run check:passwords` | The password never reaching the server: every request the page sends to sign up, log in, change the password or email, and delete the account, the API refusing anything but a key, and the database keeping only its salted hash | Chromium |
 | `bun run check:caps` | The daily caps, set small: an account's phrasings, the app's phrasings, and the app's model requests, each a 429 through the SDK and in the upload page | Chromium |
+| `bun run check:fresh-accounts` | What keeps fresh accounts from draining the app's day, set small: the throttle by IPv6 /64, a network's daily sign-ups, and the share of the app's caps that accounts made today get, each a 429 through the SDK and in the page | Chromium |
 | `bun run check:shell` | The app's shell: sign up, the Desk, your shelves, log out, and the redirect to log in and back | Chromium |
 | `bun run check:landing` | The landing page's card against the answer key, and signing up and logging in from it | Chromium |
 | `bun run check:readers` | The SDK's export readers on every fixture, and on broken exports | |
@@ -99,7 +103,7 @@ A check that needs the key and stubs nothing calls the real model; the others st
 
 ## Deploy it
 
-The app runs on [Workers Free](https://developers.cloudflare.com/workers/platform/pricing/). Free gives a request, a cron run, and each of the sort's Durable Object alarms 10 ms of CPU time, so the server never hashes a password: the SDK, in the page or your script, derives a key from it with scrypt, and the server keeps only a salted SHA-256 of that key (ADR 0006). Free's real ceiling is D1's 100,000 rows written a day for the whole Cloudflare account, past which every query fails, logging in too; a phrasing stored and sorted writes 7 to 9. The daily caps in [Run it](#run-it) keep the app under it: 1,000 phrasings an account and 8,000 for the app, and 10 model requests an account and 200 for the app. [Workers Paid](https://developers.cloudflare.com/workers/platform/pricing/), $5 a month, lifts the CPU and D1 limits; raise the caps in `wrangler.jsonc`'s `vars` to match. Deploying is a one-time setup on a Cloudflare account, from your clone, with your key exported in your shell:
+The app runs on [Workers Free](https://developers.cloudflare.com/workers/platform/pricing/). Free gives a request, a cron run, and each of the sort's Durable Object alarms 10 ms of CPU time, so the server never hashes a password: the SDK, in the page or your script, derives a key from it with scrypt, and the server keeps only a salted SHA-256 of that key (ADR 0006). Free's real ceiling is D1's 100,000 rows written a day for the whole Cloudflare account, past which every query fails, logging in too; a phrasing stored and sorted writes 7 to 9. The daily caps in [Run it](#run-it) keep the app under it: 1,000 phrasings an account and 8,000 for the app, and 10 model requests an account and 200 for the app. So that fresh accounts can't spend the app's whole day and lock everyone out until midnight UTC, the accounts made today share only half of the app's caps, and one network makes at most 3 accounts a day. [Workers Paid](https://developers.cloudflare.com/workers/platform/pricing/), $5 a month, lifts the CPU and D1 limits; raise the caps in `wrangler.jsonc`'s `vars` to match. Deploying is a one-time setup on a Cloudflare account, from your clone, with your key exported in your shell:
 
 1. Log in to that account:
 

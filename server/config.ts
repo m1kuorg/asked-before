@@ -27,11 +27,19 @@ export type Env = {
   SITE_DAILY_MODEL_REQUESTS?: string;
   DAILY_PHRASINGS?: string;
   SITE_DAILY_PHRASINGS?: string;
+  FIRST_DAY_SITE_DAILY_MODEL_REQUESTS?: string;
+  FIRST_DAY_SITE_DAILY_PHRASINGS?: string;
+  NETWORK_DAILY_SIGNUPS?: string;
   SORT_BATCH_SIZE?: string;
 };
 
-/** A daily cap for each account, and one for the whole app, across every account, both counted per UTC day (store/usage.ts). */
-export type Caps = { account: number; site: number };
+/**
+ * A daily cap for each account, and one for the whole app, across every
+ * account, both counted per UTC day (store/usage.ts); and `firstDay`, the
+ * app's cap as an account on its first UTC day, the day it was made, sees
+ * it: a smaller share, so accounts made today can't spend the app's whole day.
+ */
+export type Caps = { account: number; site: number; firstDay: number };
 
 export type Config = {
   /** The public URL, when set. Without it, a request's own origin is the app's origin. */
@@ -46,6 +54,8 @@ export type Config = {
    * stored and sorted writes 7 to 9.
    */
   dailyPhrasings: Caps;
+  /** Accounts one network, an IPv4 address or an IPv6 /64, may make per UTC day (store/users.ts). */
+  dailySignups: number;
   /** Phrasings a sort sends the model at once, beside as many of the shelf's most recent unsorted ones (server/sort.ts). */
   sortBatchSize: number;
 };
@@ -56,14 +66,35 @@ export function readConfig(env: Env): Config {
   return {
     publicUrl,
     https: publicUrl?.protocol === "https:",
-    dailyModelRequests: { account: wholeNumber(env, "DAILY_MODEL_REQUESTS", 10), site: wholeNumber(env, "SITE_DAILY_MODEL_REQUESTS", 200) },
-    dailyPhrasings: { account: wholeNumber(env, "DAILY_PHRASINGS", 1000), site: wholeNumber(env, "SITE_DAILY_PHRASINGS", 8000) },
+    dailyModelRequests: {
+      account: wholeNumber(env, "DAILY_MODEL_REQUESTS", 10),
+      site: wholeNumber(env, "SITE_DAILY_MODEL_REQUESTS", 200),
+      firstDay: wholeNumber(env, "FIRST_DAY_SITE_DAILY_MODEL_REQUESTS", 100),
+    },
+    dailyPhrasings: {
+      account: wholeNumber(env, "DAILY_PHRASINGS", 1000),
+      site: wholeNumber(env, "SITE_DAILY_PHRASINGS", 8000),
+      firstDay: wholeNumber(env, "FIRST_DAY_SITE_DAILY_PHRASINGS", 4000),
+    },
+    dailySignups: wholeNumber(env, "NETWORK_DAILY_SIGNUPS", 3),
     sortBatchSize: wholeNumber(env, "SORT_BATCH_SIZE", 300),
   };
 }
 
 /** A setting that's a whole number of 1 or more, or `fallback` when it's unset. */
-function wholeNumber(env: Env, name: "DAILY_MODEL_REQUESTS" | "SITE_DAILY_MODEL_REQUESTS" | "DAILY_PHRASINGS" | "SITE_DAILY_PHRASINGS" | "SORT_BATCH_SIZE", fallback: number): number {
+function wholeNumber(
+  env: Env,
+  name:
+    | "DAILY_MODEL_REQUESTS"
+    | "SITE_DAILY_MODEL_REQUESTS"
+    | "FIRST_DAY_SITE_DAILY_MODEL_REQUESTS"
+    | "DAILY_PHRASINGS"
+    | "SITE_DAILY_PHRASINGS"
+    | "FIRST_DAY_SITE_DAILY_PHRASINGS"
+    | "NETWORK_DAILY_SIGNUPS"
+    | "SORT_BATCH_SIZE",
+  fallback: number,
+): number {
   const value = Number(env[name] || fallback);
   if (!Number.isInteger(value) || value < 1) throw new Error(`${name} must be a whole number of 1 or more.`);
   return value;

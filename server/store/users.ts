@@ -14,17 +14,45 @@ export const ACCOUNT = `SELECT ${ACCOUNT_COLUMNS} FROM users WHERE id = ?1`;
 
 export const toAccount = (row: AccountRow): Account => ({ id: row.id, name: row.name, email: row.email, createdAt: iso(row.created_at) });
 
-/** The new account, or null when the email already has one. */
-export async function createUser(db: Db, input: { name: string; email: string; passwordHash: string }): Promise<Account | null> {
-  const row = await db
-    .prepare(
-      `INSERT INTO users (id, name, email, password_hash, created_at) VALUES (?1, ?2, ?3, ?4, ?5)
-       ON CONFLICT (email) DO NOTHING
-       RETURNING ${ACCOUNT_COLUMNS}`,
-    )
-    .bind(newId(), input.name, input.email, input.passwordHash, Date.now())
-    .first<AccountRow>();
-  return row && toAccount(row);
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * The new account, made from `network` (an IPv4 address, or an IPv6 /64)
+ * while it has made fewer than `cap` today, a UTC day; or why not: "taken"
+ * when the email already has one, or "capped" when the network has made
+ * today's. One batch: the network's count today is a row of the throttle
+ * table, "signups:<network>", whose window ends at midnight UTC, and counts
+ * only an account made, so a sign-up refused for any reason counts nothing.
+ */
+export async function createUser(
+  db: Db,
+  input: { name: string; email: string; passwordHash: string },
+  { network, cap }: { network: string; cap: number },
+): Promise<Account | "taken" | "capped"> {
+  const id = newId();
+  const now = Date.now();
+  const midnight = (Math.floor(now / DAY_MS) + 1) * DAY_MS;
+  const key = `signups:${network}`;
+  const madeToday = "coalesce((SELECT tries FROM throttle WHERE address = ?1 AND ends_at > ?2), 0)";
+  const [made, created] = await db.batch<{ made: number } & AccountRow>([
+    db.prepare(`SELECT ${madeToday} AS made`).bind(key, now),
+    db
+      .prepare(
+        `INSERT INTO users (id, name, email, password_hash, created_at) SELECT ?3, ?4, ?5, ?6, ?2 WHERE ${madeToday} < ?7
+         ON CONFLICT (email) DO NOTHING
+         RETURNING ${ACCOUNT_COLUMNS}`,
+      )
+      .bind(key, now, id, input.name, input.email, input.passwordHash, cap),
+    db
+      .prepare(
+        `INSERT INTO throttle (address, tries, ends_at) SELECT ?1, 1, ?3 WHERE EXISTS (SELECT 1 FROM users WHERE id = ?4)
+         ON CONFLICT (address) DO UPDATE SET tries = CASE WHEN ends_at > ?2 THEN tries + 1 ELSE 1 END, ends_at = ?3`,
+      )
+      .bind(key, now, midnight, id),
+  ]);
+  const row = created?.results[0];
+  if (row) return toAccount(row);
+  return (made?.results[0]?.made ?? 0) >= cap ? "capped" : "taken";
 }
 
 export async function getAccount(db: Db, userId: string): Promise<Account | null> {

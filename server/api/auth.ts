@@ -1,11 +1,13 @@
 // Auth: sign up, log in, log out, and the current account
 // (m1kuorg/basics#41). Signing up and logging in must come from the page's
-// own origin, and are then throttled per IP address, so another site's
-// forged request can't use up a visitor's tries. Both take the key the SDK
-// derives from the password, never the password itself (ADR 0006), so the
-// password's rules are the SDK's. A wrong email and a wrong password get
-// the same answer, in about the same time, so neither says whether an
-// account exists.
+// own origin, and are then throttled per network (an IPv4 address, or an
+// IPv6 /64), so another site's forged request can't use up a visitor's
+// tries; and one network makes at most NETWORK_DAILY_SIGNUPS accounts a UTC
+// day, so fresh accounts can't spend the app's daily caps
+// (m1kuorg/basics#69). Both take the key the SDK derives from the password,
+// never the password itself (ADR 0006), so the password's rules are the
+// SDK's. A wrong email and a wrong password get the same answer, in about
+// the same time, so neither says whether an account exists.
 
 import type { Account, Session } from "@asked-before/sdk";
 import { z } from "zod";
@@ -53,18 +55,40 @@ function appPath(next: string | undefined): string {
   return inside ? url.pathname + url.search + url.hash : APP_HOME;
 }
 
-/** The caller's address, as Cloudflare saw it, for the throttle. */
-const callerAddress = (req: Request) => req.headers.get("cf-connecting-ip") ?? "unknown";
+/**
+ * The caller's network, as Cloudflare saw it, for the throttle: an IPv4
+ * address as it is, and an IPv6 one as its /64, written as "2001:db8:1:2::/64",
+ * since one connection is usually given a whole /64 and could take a fresh
+ * address from it for every try.
+ */
+function callerNetwork(req: Request): string {
+  const address = req.headers.get("cf-connecting-ip") ?? "unknown";
+  if (!address.includes(":")) return address;
+  const [head, tail, extra] = address.toLowerCase().split("::");
+  // An IPv4 address written at the end fills the last two groups.
+  const groups = (part: string | undefined) => (part ? part.split(":").flatMap((group) => (group.includes(".") ? ["0", "0"] : [group])) : []);
+  const left = groups(head);
+  const right = groups(tail);
+  const all = tail === undefined ? left : [...left, ...Array<string>(Math.max(0, 8 - left.length - right.length)).fill("0"), ...right];
+  const prefix = all.slice(0, 4).map((group) => (/^[0-9a-f]{1,4}$/.test(group) ? Number.parseInt(group, 16) : NaN));
+  if (extra !== undefined || all.length !== 8 || prefix.some(Number.isNaN)) return address;
+  return `${prefix.map((group) => group.toString(16)).join(":")}::/64`;
+}
 
 export const auth = defineRoutes({
   "/api/v1/auth/signup": {
     async POST(req, ctx) {
       sameOrigin(req, ctx.config);
-      await throttle(ctx.db, callerAddress(req));
+      const network = callerNetwork(req);
+      await throttle(ctx.db, network);
       const { name, email, passwordKey, next } = await readJson(req, SignUp);
       const passwordHash = hashKey(passwordKey);
-      const created = await createUser(ctx.db, { name, email, passwordHash });
-      if (!created) throw new HttpError(409, "That email already has an account. Log in instead.");
+      const cap = ctx.config.dailySignups;
+      const created = await createUser(ctx.db, { name, email, passwordHash }, { network, cap });
+      if (created === "taken") throw new HttpError(409, "That email already has an account. Log in instead.");
+      if (created === "capped") {
+        throw new HttpError(429, `Asked Before makes at most ${cap} ${cap === 1 ? "account" : "accounts"} a day from one internet connection, and this one has made today's. More open at midnight UTC.`);
+      }
       const session = await startSession(req, ctx, { userId: created.id, passwordHash });
       if (!session) throw new HttpError(401, "Log in first.");
       return Response.json({ account: session.account, next: appPath(next) } satisfies Session, {
@@ -77,7 +101,7 @@ export const auth = defineRoutes({
   "/api/v1/auth/login": {
     async POST(req, ctx) {
       sameOrigin(req, ctx.config);
-      await throttle(ctx.db, callerAddress(req));
+      await throttle(ctx.db, callerNetwork(req));
       const { email, passwordKey, next } = await readJson(req, LogIn);
       const login = await findLogin(ctx.db, email);
       const matches = verifyKey(passwordKey, login?.passwordHash ?? null);

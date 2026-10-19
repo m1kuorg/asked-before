@@ -1,11 +1,14 @@
 // The throttle: at most 20 tries in 15 minutes, a row per caller in the
 // throttle table, since a Worker keeps nothing in memory between requests.
-// Signing up and logging in count per address, the caller's as Cloudflare
-// saw it (CF-Connecting-IP); checking a session's account's password key,
-// to change the email or the password or to delete the account, counts per
-// account, since that check takes microseconds where scrypt took 70 ms
-// (ADR 0006). A try past the limit writes nothing, so a flood of them
-// spends none of D1's rows written.
+// Signing up and logging in count per network, the caller's address as
+// Cloudflare saw it (CF-Connecting-IP), an IPv6 one by its /64
+// (api/auth.ts); checking a session's account's password key, to change the
+// email or the password or to delete the account, counts per account, since
+// that check takes microseconds where scrypt took 70 ms (ADR 0006). A try
+// past the limit writes nothing, so a flood of them spends none of D1's
+// rows written. The table also holds each network's sign-ups today,
+// "signups:<network>", whose window ends at midnight UTC (store/users.ts's
+// createUser()), swept here like any other.
 
 import { HttpError } from "../http";
 import type { Db } from "./db";
