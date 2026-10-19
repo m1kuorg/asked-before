@@ -266,7 +266,7 @@ try {
   });
 
   await step("11. Past the daily cap, starting and checking a rep get 429, without asking the model", async () => {
-    const CAP = 3;
+    const CAP = 4;
     const capped = await startApp({ ANTHROPIC_BASE_URL: model.url, DAILY_MODEL_REQUESTS: String(CAP) });
     try {
       const cy = capped.browser();
@@ -278,7 +278,7 @@ try {
       const { rep } = await start(cy.client, first!.id, "A second capped problem.");
       const before = model.requests.length;
       const started = await failure(cy.client.reps.start(first!.id));
-      check(started?.status === 429 && started.message === `You've used today's ${CAP} model requests. More open at midnight UTC.`, `the day's sort and two reps spent ${CAP}; the next start: ${say(started)}`);
+      check(started?.status === 429 && started.message === `You've used today's ${CAP} model requests. More open at midnight UTC.`, `the day's sort, its batch and its second pass, and two reps spent ${CAP}; the next start: ${say(started)}`);
       const checked = await failure(cy.client.reps.check(rep.id, { answer: known.right }));
       check(checked?.status === 429, `and a check: ${say(checked)}`);
       check(model.requests.length === before && (await cy.client.cards.get(first!.id)).reps.length === 2, "neither reached the model, and nothing was stored");

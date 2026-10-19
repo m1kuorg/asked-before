@@ -276,7 +276,7 @@ function api(): Section {
         code("DAILY_MODEL_REQUESTS"),
         "), and the app's, 200 a day across every account (",
         code("SITE_DAILY_MODEL_REQUESTS"),
-        "). A sort makes one request per batch, and up to two more when an answer breaks a rule; a capture the model places makes one; so do starting a cold rep and checking an answer.",
+        "). An upload's sort makes one request per batch of up to 300 phrasings, and one more for its last pass over the unsorted, each asked up to twice more when an answer breaks a rule: so the demo export takes 2, and an upload of 2,000 phrasings 8. A capture the model places makes one; so do starting a cold rep and checking an answer.",
       ),
       p(
         "Every phrasing sent counts toward your account's cap, 1,000 a day, uploads and captures together (",
@@ -332,7 +332,7 @@ function sortWindow(): Section {
       p(
         "An upload is sorted in batches. Each batch carries up to ",
         code("SORT_BATCH_SIZE"),
-        " (300) new phrasings, plus up to as many of the shelf's most recent unsorted ones, and later batches see the cards earlier ones made. So an older unsorted phrasing is compared again only while it's inside that window. This is a known limit: once 300 or more unsorted phrasings dated after it are on the shelf, a new phrasing that asks the same thing can wait unsorted beside it instead of making a card.",
+        " (300) new phrasings, plus up to as many of the shelf's most recent unsorted ones, and later batches see the cards earlier ones made. Once the batches are done, a last pass offers those most recent unsorted phrasings again, against the cards as they stand then and each other, so one an earlier batch left unsorted can still join a card a later batch made. So an older unsorted phrasing is compared again only while it's inside that window. This is a known limit: once 300 or more unsorted phrasings dated after it are on the shelf, a new phrasing that asks the same thing can wait unsorted beside it instead of making a card.",
       ),
       p("A capture is compared with the shelf's cards and its 50 most recent unsorted phrasings."),
     ],

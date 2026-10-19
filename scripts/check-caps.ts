@@ -1,19 +1,19 @@
 // Checks the daily caps that keep the app inside Workers Free
 // (m1kuorg/basics#68) on a fresh copy of the app with small ones: 30
-// phrasings a day for each account, 60 for the whole app, and 1 model
-// request for the whole app. The model is a stand-in in this script,
-// answering as the answer key sorts the demo export. Through the SDK and in
-// the upload page, in a real browser at 1920×1080: an account past its
-// phrasings gets 429, for a capture and for an upload's chunk, and the page
-// shows it; the app past its one model request fails the next sort, which
-// the page shows, and answers a cold rep 429; and the app past its
-// phrasings answers any account's chunk 429, which the page shows, while a
-// chunk that just fits is stored. A refused request counts toward neither
-// cap, as the database's counters show, though a trigger this script adds
-// keeps every account's count from going down: a refusal must leave the
-// account's count where it was, not take it and give it back
-// (m1kuorg/basics#70). It prints each step's checks, saves a screenshot of
-// each page, and exits 1 if any fails, naming the step.
+// phrasings a day for each account, 60 for the whole app, and 2 model
+// requests for the whole app, one sort's batch and second pass. The model
+// is a stand-in in this script, answering as the answer key sorts the demo
+// export. Through the SDK and in the upload page, in a real browser at
+// 1920×1080: an account past its phrasings gets 429, for a capture and for
+// an upload's chunk, and the page shows it; the app past its two model
+// requests fails the next sort, which the page shows, and answers a cold
+// rep 429; and the app past its phrasings answers any account's chunk 429,
+// which the page shows, while a chunk that just fits is stored. A refused
+// request counts toward neither cap, as the database's counters show,
+// though a trigger this script adds keeps every account's count from going
+// down: a refusal must leave the account's count where it was, not take it
+// and give it back (m1kuorg/basics#70). It prints each step's checks, saves
+// a screenshot of each page, and exits 1 if any fails, naming the step.
 // Run: bun run check:caps [screenshot dir]
 
 import { ApiError, type Phrasing } from "@asked-before/sdk";
@@ -48,7 +48,7 @@ const app = await startApp({
   ANTHROPIC_BASE_URL: model.url,
   DAILY_PHRASINGS: String(ACCOUNT_PHRASINGS),
   SITE_DAILY_PHRASINGS: String(SITE_PHRASINGS),
-  SITE_DAILY_MODEL_REQUESTS: "1",
+  SITE_DAILY_MODEL_REQUESTS: "2",
 });
 // No endpoint can make the database fail a write, so the give-back's failing (m1kuorg/basics#70) is made here, in
 // the database: every account's count may only go up, for the whole run. One of the read-only rule's documented
@@ -166,7 +166,7 @@ try {
   });
 
   await step("3. Past the app's model requests, the next sort fails, the page shows it, and a cold rep gets 429", async () => {
-    check(model.requests.length === 1, `Cy's sort made the app's one model request: ${model.requests.length}`);
+    check(model.requests.length === 2, `Cy's sort made the app's two model requests, its batch and its second pass: ${model.requests.length}`);
     const page = await pageOf(dee);
     await page.goto(`${app.url}/app/shelves/${dee.shelfId}/upload`);
     await page.locator(".drop-zone input[type=file]").setInputFiles(DEMO);
@@ -179,7 +179,7 @@ try {
     check(failed.status === "failed" && failed.error === PAST_MODEL && failed.phrasings === 27, `the API has it ${failed.status}: "${failed.error}"`);
     const rep = await failure(cy.client.reps.start((await cy.client.cards.list(cy.shelfId))[0]!.id));
     check(rep?.status === 429 && rep.message === PAST_MODEL, `a cold rep on another account: ${say(rep)}`);
-    check(model.requests.length === 1, `and the model wasn't asked again: ${model.requests.length} request`);
+    check(model.requests.length === 2, `and the model wasn't asked again: ${model.requests.length} requests`);
   });
 
   await step("4. Past the app's phrasings, any account's chunk gets 429, and the page shows it; one that just fits is stored", async () => {
@@ -196,8 +196,8 @@ try {
   await step("5. A refused request counts toward neither cap, with no account's count ever going down", async () => {
     const { accounts, site } = counted();
     const want = {
-      accounts: { Cy: { phrasings: 30, modelRequests: 1 }, Dee: { phrasings: 27, modelRequests: 0 }, Eve: { phrasings: 3, modelRequests: 0 } },
-      site: { phrasings: 60, modelRequests: 1 },
+      accounts: { Cy: { phrasings: 30, modelRequests: 2 }, Dee: { phrasings: 27, modelRequests: 0 }, Eve: { phrasings: 3, modelRequests: 0 } },
+      site: { phrasings: 60, modelRequests: 2 },
     };
     const got = { accounts: { Cy: accounts.Cy, Dee: accounts.Dee, Eve: accounts.Eve }, site };
     check(JSON.stringify(got) === JSON.stringify(want), `counted ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);

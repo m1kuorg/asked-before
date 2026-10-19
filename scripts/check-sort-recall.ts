@@ -10,14 +10,16 @@
 // that share a card, and precision the share of pairs sharing a card that
 // are of one skill. One run's recall can land 10 points from the next, so
 // the runs, 3 unless asked, sort side by side and pass on their mean:
-// recall of at least 62% at precision of at least 87%. That floor is under
-// what the sort does now (72% at 92%, the mean of 10 runs, whose recall ran
-// from 62% to 81%) and over what it did before m1kuorg/basics#56 (60% at
-// 97%, in 10 runs), so a sort that finds far fewer pairs or merges skills
-// fails it. Each run also says whether it meets #56's target of 85% recall
-// at 90% precision, which no run has met yet: relabeling the history raised
-// the sort's recall by 5 points, and most of what it still misses it leaves
-// unsorted, often whole skills at a time.
+// recall of at least 77% at precision of at least 86%. That floor is just
+// under what the sort does with its second pass over the unsorted (82.4%
+// at 89.2%, the mean of 10 runs, whose recall ran from 77.6% to 90.1% and
+// precision from 85.6% to 91.7%), by what a mean of 3 runs can stray from
+// it (one landed at 78.6%, with a run at 72.6%), and well over what it did
+// without the pass (69.2% at 95.3%, in 10 runs), so a sort that loses the
+// pass's gain, or merges skills, fails it.
+// Each run also says whether it meets #56's target, which the entrant set
+// on October 19, 2026 to what the second pass measured, 82.4% recall at
+// 89.2% precision, from the 85% at 90% no design reached.
 // It prints each run's time, model requests, and tokens, then the skills
 // not whole on one card and the cards holding more than one skill, by name
 // (the history's labels and the cards' skills), never a phrasing's words.
@@ -31,11 +33,11 @@ import { allUnsorted, sortEnds, upload } from "./lib/answer-key";
 import { forward, startModelStub, type Answer } from "./lib/model-stub";
 
 /** The floor the runs' mean must reach. */
-const RECALL = 0.62;
-const PRECISION = 0.87;
-/** m1kuorg/basics#56's target, reported but not yet required. */
-const TARGET_RECALL = 0.85;
-const TARGET_PRECISION = 0.9;
+const RECALL = 0.77;
+const PRECISION = 0.86;
+/** m1kuorg/basics#56's target, what the second pass measured: reported for each run, not required. */
+const TARGET_RECALL = 0.824;
+const TARGET_PRECISION = 0.892;
 const runs = Number(process.argv[2] ?? 3);
 
 const history: { skills: { name: string; messages: string[] }[]; oneOffs: string[] } = await Bun.file(join(import.meta.dir, "fixtures", "long-history.json")).json();

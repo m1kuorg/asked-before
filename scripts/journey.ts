@@ -12,9 +12,9 @@
 // says how long it took; any mismatch stops the run with a message naming
 // the step. It prints step names, counts, months, and dates, never message
 // text, problems, answers, or reasons.
-// It needs ANTHROPIC_API_KEY and Playwright's Chromium, and makes 6 model
-// calls (a sort, two cold reps and their checks, and a capture), in under a
-// minute.
+// It needs ANTHROPIC_API_KEY and Playwright's Chromium, and makes 7 model
+// calls (a sort's batch and its last pass, two cold reps and their checks,
+// and a capture), in under a minute.
 // Run: bun run journey [screenshot dir] [--video] [--pause <ms>] [--demo-shelf]
 //   --video        also records the run, at 1920×1080, to journey.webm in the
 //                  screenshot dir, and says when each step began and ended in it;

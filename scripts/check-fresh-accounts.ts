@@ -7,12 +7,13 @@
 // gets 429, through the SDK and in the sign-up page, while another network
 // still signs up, and a sign-up refused for an email in use doesn't count.
 // An account made today, on its first UTC day, reaches only part of the
-// app's daily caps, set small: 1 of the app's 3 model requests, and 60 of
-// its 90 phrasings, counted across every account. Past it, an account made
-// today gets 429 for a sort, a cold rep, and a chunk, through the SDK and
-// in the upload page, while an account made before today, aged a day in
-// the database, still uploads and sorts, up to the app's whole cap. A refused request counts toward
-// nothing, as the database's counters show. The model is a stand-in here,
+// app's daily caps, set small: 2 of the app's 4 model requests, one sort's
+// batch and second pass, and 60 of its 90 phrasings, counted across every
+// account. Past it, an account made today gets 429 for a sort, a cold rep,
+// and a chunk, through the SDK and in the upload page, while an account
+// made before today, aged a day in the database, still uploads and sorts,
+// up to the app's whole cap. A refused request counts toward nothing, as
+// the database's counters show. The model is a stand-in here,
 // answering as the answer key sorts the demo export.
 // It prints each step's checks, saves a screenshot of each page, and exits
 // 1 if any fails, naming the step.
@@ -48,8 +49,8 @@ const model = await startModelStub(reply(keySorter));
 const app = await startApp({
   ANTHROPIC_BASE_URL: model.url,
   NETWORK_DAILY_SIGNUPS: String(NETWORK_SIGNUPS),
-  SITE_DAILY_MODEL_REQUESTS: "3",
-  FIRST_DAY_SITE_DAILY_MODEL_REQUESTS: "1",
+  SITE_DAILY_MODEL_REQUESTS: "4",
+  FIRST_DAY_SITE_DAILY_MODEL_REQUESTS: "2",
   SITE_DAILY_PHRASINGS: "90",
   FIRST_DAY_SITE_DAILY_PHRASINGS: "60",
 });
@@ -211,7 +212,7 @@ try {
 
   await step("5. Past the app's first-day model requests, an account made today fails a sort, which the page shows, and gets 429 for a cold rep", async () => {
     const sorted = await sortEnds(jo.client, (await upload(jo.client, jo.shelfId, phrasings)).id);
-    check(sorted.status === "sorted" && model.requests.length === 1, `Jo's demo upload is sorted, with the app's one first-day model request: ${sorted.status}, ${model.requests.length}`);
+    check(sorted.status === "sorted" && model.requests.length === 2, `Jo's demo upload is sorted, with the app's two first-day model requests, its batch and its second pass: ${sorted.status}, ${model.requests.length}`);
     const page = await pageOf(kit, "192.0.2.11");
     await page.goto(`${app.url}/app/shelves/${kit.shelfId}/upload`);
     await page.locator(".drop-zone input[type=file]").setInputFiles(DEMO);
@@ -224,7 +225,7 @@ try {
     check(failed.status === "failed" && failed.error === PAST_FIRST_DAY_MODEL && failed.phrasings === 27, `the API has it ${failed.status}: "${failed.error}"`);
     const rep = await failure(jo.client.reps.start((await jo.client.cards.list(jo.shelfId))[0]!.id));
     check(rep?.status === 429 && rep.message === PAST_FIRST_DAY_MODEL, `a cold rep of Jo's: ${say(rep)}`);
-    check(model.requests.length === 1, `and the model wasn't asked again: ${model.requests.length} request`);
+    check(model.requests.length === 2, `and the model wasn't asked again: ${model.requests.length} requests`);
   });
 
   await step("6. Past the app's first-day phrasings, an account made today gets 429 for a chunk, which the page shows; one that just fits is stored", async () => {
@@ -242,7 +243,7 @@ try {
   await step("7. An account made before today isn't held to the first day's part, only to the app's whole cap", async () => {
     const sorted = await sortEnds(lee.client, (await upload(lee.client, lee.shelfId, phrasings)).id);
     check(sorted.status === "sorted" && sorted.phrasings === 27, `Lee's demo upload, past the 60, is stored and sorted: ${sorted.status}, ${sorted.phrasings} phrasings`);
-    check(model.requests.length === 2, `with a second model request: ${model.requests.length}`);
+    check(model.requests.length === 4, `with two more model requests: ${model.requests.length}`);
     const open = await lee.client.uploads.create(lee.shelfId, { source: "chatgpt", fileName: "conversations.json" });
     const over = await failure(lee.client.uploads.append(open.id, fresh(4, "lee")));
     check(over?.status === 429 && over.message === PAST_SITE_PHRASINGS, `a chunk of 4 from Lee, with 87 of 90 counted: ${say(over)}`);
@@ -250,7 +251,7 @@ try {
 
   await step("8. A refused request counts toward nothing", async () => {
     const { accounts, site } = counted();
-    const want = { accounts: { Jo: 33, Kit: 27, Lee: 27 }, site: { phrasings: 87, modelRequests: 2 } };
+    const want = { accounts: { Jo: 33, Kit: 27, Lee: 27 }, site: { phrasings: 87, modelRequests: 4 } };
     const got = { accounts: { Jo: accounts.Jo, Kit: accounts.Kit, Lee: accounts.Lee }, site };
     check(JSON.stringify(got) === JSON.stringify(want), `counted ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
     check(errors.length === 0, `no console errors${errors.length ? `: ${errors.slice(0, 3).join(" | ")}` : ""}`);

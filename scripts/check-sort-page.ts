@@ -2,13 +2,16 @@
 // browser at 1920×1080, on a fresh copy of the app whose model is a
 // stand-in in this script, never in the app: it answers as the answer key
 // sorts the demo export, unless a step holds or refuses a request. The app
-// sorts in batches of 10, with a daily cap of 4 model requests. Uploading
+// sorts in batches of 10, with a daily cap of 6 model requests. Uploading
 // the demo export shows the sort's progress in the library's words, and
-// again after a reload; a sort that fails shows the error and a retry, and
-// the retry finishes the sort with the key's cards; past the daily cap, the
-// next model request gets 429, and the page says so with a retry. Each step
-// is checked through the SDK too, saves a screenshot, and prints its
-// checks; it exits 1 if any fails, naming the step.
+// again after a reload; a sort that fails shows the error and a retry; the
+// retry carries on to the sort's last pass over the unsorted
+// (m1kuorg/basics#56), which the waiting line names, and which can fail
+// and be tried again too, finishing the sort with the key's cards; past
+// the daily cap, the next model request gets 429, and the page says so
+// with a retry. Each step is checked through the SDK too, saves a
+// screenshot, and prints its checks; it exits 1 if any fails, naming the
+// step.
 // Run: bun run check:sort-page [screenshot dir]
 
 import { mkdir } from "node:fs/promises";
@@ -23,7 +26,7 @@ const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-sort-page");
 const ROOT = join(import.meta.dir, "..");
 const DEMO = join(ROOT, "demo", "export.json");
 const CLAUDE = join(ROOT, "packages", "sdk", "fixtures", "claude.json");
-const CAP = 4;
+const CAP = 6;
 
 const failures: string[] = [];
 let current = "";
@@ -102,7 +105,25 @@ try {
     check(upload.status === "failed" && upload.error === "The model request failed (400).", `the API has it ${upload.status}: "${upload.error}"`);
   });
 
-  await step("3. The retry finishes the sort, with the answer key's cards", async () => {
+  await step("3. The retry carries on to the last pass over the unsorted, which the page names, and which can fail too", async () => {
+    const last = hold();
+    model.queue(reply(keySorter), reply(keySorter), last.answer);
+    await page.locator(".block").getByRole("button", { name: "Try again" }).click();
+    await last.reached;
+    await page.locator(".block .is-waiting", { hasText: "27 of 27" }).waitFor();
+    const line = await text(".block .is-waiting");
+    check(line === "Sorting them into Bootcamp's cards: 27 of 27 sorted, and a last pass over the unsorted…", `the waiting line says "${line}"`);
+    const sorting = await learner.client.uploads.get(uploadId());
+    check(sorting.status === "sorting" && sorting.offered === 27, `the API has it ${sorting.status}, ${sorting.offered} of ${sorting.phrasings} offered`);
+    last.release(refuse());
+    await page.locator(".block .error").waitFor();
+    const said = await text(".block .upload-done");
+    check(said.includes("27 of 27 were sorted, and it stopped on the last pass over the unsorted. Trying again runs that pass."), `the page says how far it got: "${said}"`);
+    const failed = await learner.client.uploads.get(uploadId());
+    check(failed.status === "failed" && failed.offered === 27 && failed.error === "The model request failed (400).", `the API has it ${failed.status}, ${failed.offered} offered: "${failed.error}"`);
+  });
+
+  await step("4. Trying the last pass again finishes the sort, with the answer key's cards", async () => {
     await page.locator(".block").getByRole("button", { name: "Try again" }).click();
     await page.locator(".block .upload-done p", { hasText: /^They're sorted into Bootcamp's cards\.$/ }).waitFor();
     check(!(await page.locator(".block .is-waiting, .block .error").count()), `the page says "${await text(".block .upload-done p:last-child")}", with no waiting line or notice left`);
@@ -111,10 +132,10 @@ try {
     const { lines, problems } = await compareWithKey(learner.client, shelf.id);
     console.log(lines.join("\n"));
     check(problems.length === 0, problems.length ? problems.join("; ") : "its cards match the answer key");
-    check(model.requests.length === CAP, `the day's ${model.requests.length} of ${CAP} model requests are spent: two batches, the refused one, and the last`);
+    check(model.requests.length === CAP, `the day's ${model.requests.length} of ${CAP} model requests are spent: three batches, the refused one, and the last pass twice`);
   });
 
-  await step("4. Past the daily cap, the next model request gets 429, and the page shows it with a retry", async () => {
+  await step("5. Past the daily cap, the next model request gets 429, and the page shows it with a retry", async () => {
     await send(shelf.id, CLAUDE);
     await page.locator(".block .error").waitFor();
     const said = await text(".block .error");

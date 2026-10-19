@@ -96,15 +96,26 @@ const toCards = (cards: unknown[], samples: unknown[]): SortCard[] =>
 
 /**
  * The next batch, read at once: up to `size` of the upload's phrasings
- * that no sort has seen, oldest first; the window; and the shelf's cards.
+ * that no sort has seen, oldest first; the window; the shelf's cards; and
+ * whether the upload brought any phrasing, which its second pass needs.
  */
-export async function nextBatch(db: Db, upload: SortUpload, size: number): Promise<{ fresh: SortPhrasing[]; window: SortPhrasing[]; cards: SortCard[] }> {
-  const [fresh, window, cards, samples] = await db.batch([
+export async function nextBatch(
+  db: Db,
+  upload: SortUpload,
+  size: number,
+): Promise<{ fresh: SortPhrasing[]; window: SortPhrasing[]; cards: SortCard[]; brought: boolean }> {
+  const [fresh, window, cards, samples, brought] = await db.batch([
     db.prepare("SELECT id, text FROM phrasings WHERE upload_id = ?1 AND offered_at IS NULL ORDER BY time, id LIMIT ?2").bind(upload.id, size),
     windowOf(db, upload.shelfId, size),
     ...cardsOf(db, upload.shelfId),
+    db.prepare("SELECT EXISTS (SELECT 1 FROM phrasings WHERE upload_id = ?1) AS brought").bind(upload.id),
   ]);
-  return { fresh: fresh!.results as SortPhrasing[], window: window!.results as SortPhrasing[], cards: toCards(cards!.results, samples!.results) };
+  return {
+    fresh: fresh!.results as SortPhrasing[],
+    window: window!.results as SortPhrasing[],
+    cards: toCards(cards!.results, samples!.results),
+    brought: (brought!.results[0] as { brought: number }).brought === 1,
+  };
 }
 
 /** What a capture's sort is asked against, read at once: the shelf's cards, and its window of `size`. */
@@ -115,20 +126,25 @@ export async function captureView(db: Db, shelfId: string, size: number): Promis
 
 /**
  * Applies a checked answer to a batch in one batch, and marks every
- * phrasing in it offered (placeBatch); then the upload is sorted once none
- * of its phrasings is left unoffered. Whether any upload of the shelf is
- * still to sort, this one or another; none is when the upload is gone,
- * its shelf deleted, which stops its sort.
+ * phrasing in it offered (placeBatch); then, when it's the upload's `last`
+ * pass, its second, the upload is sorted, if none of its phrasings is left
+ * unoffered. Whether any upload of the shelf is still to sort, this one or
+ * another; none is when the upload is gone, its shelf deleted, which stops
+ * its sort.
  */
-export async function applyPlacement(db: Db, upload: SortUpload, placement: Placement, batch: string[]): Promise<boolean> {
+export async function applyPlacement(db: Db, upload: SortUpload, placement: Placement, batch: string[], last: boolean): Promise<boolean> {
   const results = await db.batch([
     ...placeBatch(db, upload.shelfId, placement, batch, { upload: upload.id }),
-    db
-      .prepare(
-        `UPDATE uploads SET status = 'sorted', error = NULL
-         WHERE id = ?1 AND status = 'sorting' AND NOT EXISTS (SELECT 1 FROM phrasings WHERE upload_id = ?1 AND offered_at IS NULL)`,
-      )
-      .bind(upload.id),
+    ...(last
+      ? [
+          db
+            .prepare(
+              `UPDATE uploads SET status = 'sorted', error = NULL
+               WHERE id = ?1 AND status = 'sorting' AND NOT EXISTS (SELECT 1 FROM phrasings WHERE upload_id = ?1 AND offered_at IS NULL)`,
+            )
+            .bind(upload.id),
+        ]
+      : []),
     db.prepare(UNSORTED_UPLOAD).bind(upload.shelfId),
   ]);
   return (results.at(-1)!.results[0] as { more: number }).more === 1;
