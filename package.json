@@ -24,6 +24,7 @@
     "check:styles": "bun run scripts/check-styles.ts",
     "check:sort": "bun run scripts/check-sort.ts",
     "check:sort-rules": "bun run scripts/check-sort-rules.ts",
+    "check:sort-recall": "bun run scripts/check-sort-recall.ts",
     "check:sort-page": "bun run scripts/check-sort-page.ts",
     "check:shelf": "bun run scripts/check-shelf.ts",
     "check:reps": "bun run scripts/check-reps.ts",
