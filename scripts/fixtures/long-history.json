@@ -1,5 +1,5 @@
 {
-  "note": "Made-up data: one imagined learner's chat history, written by Claude (claude-opus-5-5) through scripts/fixtures/make-long-history.ts, for check:sort-recall. No real person wrote these messages. Each skill lists the messages that ask how to do it; oneOffs are asked once each.",
+  "note": "Made-up data: one imagined learner's chat history, written by Claude (claude-opus-5-5) through scripts/fixtures/make-long-history.ts and relabeled by the rules at the top of that script, for check:sort-recall. No real person wrote these messages. Each skill lists the messages that ask how to do it; oneOffs are asked once each.",
   "skills": [
     {
       "name": "Undo a git commit",
@@ -56,11 +56,12 @@
       ]
     },
     {
-      "name": "Rebase a feature branch onto main",
+      "name": "Update a feature branch with main",
       "messages": [
         "main moved ahead while i was working on my branch. rebase or merge main into mine?",
         "how do i rebase my feature branch on top of latest main",
-        "mid-rebase and got conflicts, how do I continue or just abort the whole thing"
+        "mid-rebase and got conflicts, how do I continue or just abort the whole thing",
+        "github says my branch is 30 commits behind, does that matter"
       ]
     },
     {
@@ -150,8 +151,14 @@
       "messages": [
         "how do i use async await with fetch and catch errors properly",
         "fetch doesn't throw on 404?? my catch block never runs",
-        "const data = await fetch(url).json() gives 'json is not a function'",
-        "how to fetch two endpoints at the same time and wait for both"
+        "const data = await fetch(url).json() gives 'json is not a function'"
+      ]
+    },
+    {
+      "name": "Wait for several promises at once",
+      "messages": [
+        "how to fetch two endpoints at the same time and wait for both",
+        "how to use Promise.allSettled vs Promise.all"
       ]
     },
     {
@@ -172,7 +179,7 @@
       ]
     },
     {
-      "name": "Fix a useEffect infinite loop",
+      "name": "Control when a useEffect runs",
       "messages": [
         "my useEffect keeps running forever and spamming my api",
         "React Hook useEffect has a missing dependency: 'fetchData'. if i add it, infinite loop. if i don't, warning. help",
@@ -182,10 +189,12 @@
       ]
     },
     {
-      "name": "Lift state up between React components",
+      "name": "Share state between React components",
       "messages": [
         "two sibling components need to share the same state, how do I do that",
-        "child component needs to update the parent's count, pass a function down?"
+        "child component needs to update the parent's count, pass a function down?",
+        "passing user through 5 components is getting ugly, how do I use context",
+        "is context fine for global state or do I need redux/zustand"
       ]
     },
     {
@@ -205,11 +214,12 @@
       ]
     },
     {
-      "name": "Set up routing with React Router",
+      "name": "Route between pages with React Router",
       "messages": [
         "how do i set up react router v6 with a navbar and 3 pages",
         "page goes 404 when i refresh on /about after deploying, works locally",
-        "how to get the id from the url like /products/42 in react router"
+        "how to get the id from the url like /products/42 in react router",
+        "how to pass data from a react router link to the next page"
       ]
     },
     {
@@ -220,10 +230,10 @@
       ]
     },
     {
-      "name": "Use React context to avoid prop drilling",
+      "name": "Show a loading state while data loads",
       "messages": [
-        "passing user through 5 components is getting ugly, how do I use context",
-        "is context fine for global state or do I need redux/zustand"
+        "how to add loading skeletons in react",
+        "how do I add a loading spinner while fetch is pending in vanilla js"
       ]
     },
     {
@@ -301,13 +311,6 @@
       ]
     },
     {
-      "name": "Paginate API results",
-      "messages": [
-        "how to add pagination to my express api, offset or cursor",
-        "infinite scroll in react with a paginated api, how do i load the next page"
-      ]
-    },
-    {
       "name": "Kill a process using a port",
       "messages": [
         "Error: listen EADDRINUSE: address already in use :::3000 again",
@@ -321,8 +324,7 @@
       "messages": [
         "npm ERR! ERESOLVE unable to resolve dependency tree",
         "is it ok to just use --legacy-peer-deps",
-        "deleted node_modules and package-lock and reinstalled, now different errors. whats the right way",
-        "npm audit says 37 vulnerabilities, should i run npm audit fix --force"
+        "deleted node_modules and package-lock and reinstalled, now different errors. whats the right way"
       ]
     },
     {
@@ -336,7 +338,6 @@
       "name": "Configure ESLint and Prettier together",
       "messages": [
         "how to set up eslint and prettier so they don't fight",
-        "prettier format on save not working in vs code",
         "eslint flat config eslint.config.js confusing, how do i add prettier to it"
       ]
     },
@@ -351,9 +352,7 @@
       "name": "Write a unit test with Jest",
       "messages": [
         "how do I write my first jest test for a simple function",
-        "jest SyntaxError: Cannot use import statement outside a module",
-        "testing a react component that shows an error message after clicking submit",
-        "what should i even test? my lead says add tests but idk where to start"
+        "jest SyntaxError: Cannot use import statement outside a module"
       ]
     },
     {
@@ -364,11 +363,24 @@
       ]
     },
     {
+      "name": "Write an end-to-end test",
+      "messages": [
+        "how to write a cypress test for a login flow",
+        "playwright vs cypress for a small team"
+      ]
+    },
+    {
       "name": "Deploy a site to Vercel or Netlify",
       "messages": [
         "how to deploy my react portfolio for free",
-        "netlify build failed: Command failed with exit code 1: npm run build. works locally",
-        "how do I connect my custom domain from namecheap to vercel"
+        "netlify build failed: Command failed with exit code 1: npm run build. works locally"
+      ]
+    },
+    {
+      "name": "Point a custom domain at a site",
+      "messages": [
+        "how do I connect my custom domain from namecheap to vercel",
+        "how do dns records work, a record vs cname"
       ]
     },
     {
@@ -402,15 +414,6 @@
       ]
     },
     {
-      "name": "Prepare for a technical interview",
-      "messages": [
-        "I have a technical interview friday for junior frontend role, what should I study",
-        "how do I talk through my thinking during live coding, I go silent",
-        "best way to practice leetcode as a beginner, easy problems still take me an hour",
-        "take home assignment due in 3 days, how much polish is expected"
-      ]
-    },
-    {
       "name": "Write a cover letter for a junior developer role",
       "messages": [
         "write a cover letter for a junior react developer role, I'm a bootcamp grad",
@@ -419,11 +422,17 @@
       ]
     },
     {
-      "name": "Negotiate a salary offer",
+      "name": "Negotiate pay for a new job",
       "messages": [
         "got an offer for 62k junior dev, is it ok to negotiate or will they pull it",
-        "how do I answer what are your salary expectations on the first call",
-        "time for my first review, how do I ask for a raise after 1 year"
+        "how do I answer what are your salary expectations on the first call"
+      ]
+    },
+    {
+      "name": "Ask for a raise",
+      "messages": [
+        "time for my first review, how do I ask for a raise after 1 year",
+        "what's a reasonable raise to expect at a startup"
       ]
     },
     {
@@ -478,20 +487,34 @@
       ]
     },
     {
-      "name": "Meal prep lunches for the work week",
+      "name": "Plan meal prep lunches for the week",
       "messages": [
         "easy meal prep lunches for the week that aren't sad chicken and rice",
-        "how long does cooked chicken last in the fridge for meal prep",
         "vegetarian meal prep ideas with lots of protein, under $40",
         "meal prep that reheats well in an office microwave"
       ]
     },
     {
-      "name": "Relieve a stiff neck from desk work",
+      "name": "Store leftovers safely",
+      "messages": [
+        "how long does cooked chicken last in the fridge for meal prep",
+        "is it safe to eat leftover pizza left out overnight",
+        "can I freeze cooked rice and reheat it later"
+      ]
+    },
+    {
+      "name": "Relieve a stiff neck",
       "messages": [
         "neck is so stiff from staring at my laptop all day, stretches?",
         "how high should my monitor be to stop neck pain",
         "woke up with a crick in my neck, can't turn left, what helps"
+      ]
+    },
+    {
+      "name": "Relieve wrist pain from typing",
+      "messages": [
+        "my wrists hurt after typing all day, is that carpal tunnel",
+        "best keyboard for wrist pain, split keyboards worth it?"
       ]
     },
     {
@@ -644,12 +667,10 @@
     "what questions should I ask at the end of an interview",
     "what to cook with chicken thighs, rice, and a sad bell pepper",
     "how to make cold brew coffee at home",
-    "is it safe to eat leftover pizza left out overnight",
     "easy pasta sauce from canned tomatoes",
     "how to sharpen a kitchen knife without a sharpener",
     "recipe for overnight oats that doesn't taste like paste",
     "how long to boil eggs for jammy yolks",
-    "can I freeze cooked rice and reheat it later",
     "what's a good cheap dinner for when friends come over, 6 people",
     "how do I make my sourdough starter less sour",
     "cheap flights to lisbon in october, when should I book",
@@ -673,8 +694,6 @@
     "is it smart to buy a car right after getting my first dev job",
     "what does HSA mean on my benefits form and should I pick it",
     "how to read a pay stub, why is my check so much less than I expected",
-    "my wrists hurt after typing all day, is that carpal tunnel",
-    "best keyboard for wrist pain, split keyboards worth it?",
     "how to fix eye strain from screens, 20-20-20 thing real?",
     "simple 20 minute workout I can do at home before work",
     "how much water should I actually drink a day",
@@ -693,10 +712,8 @@
     "how to write a git commit message properly, conventional commits?",
     "how to sign commits so github shows verified",
     "how to set up a pull request template on github",
-    "github says my branch is 30 commits behind, does that matter",
     "how to make an api route in next.js that returns json",
     "server components vs client components, when do I use 'use client'",
-    "how to add loading skeletons in react",
     "how do I show a toast notification after saving a form",
     "what's the difference between useRef and useState",
     "how to make a modal accessible with focus trap",
@@ -762,7 +779,6 @@
     "how to learn to touch type faster, I'm at 55 wpm",
     "should I get a mechanical keyboard or is it hype",
     "how to organize my desktop files, it's chaos",
-    "how do I add a loading spinner while fetch is pending in vanilla js",
     "how to use the intersection observer api",
     "how to make a progressive web app installable",
     "what's a service worker and do I need one",
@@ -772,22 +788,18 @@
     "what's csrf and do I need to worry with a spa",
     "how to set up https on localhost",
     "what's the difference between a cdn and a regular host",
-    "how do dns records work, a record vs cname",
     "how to set up a staging environment on vercel",
     "how to roll back a bad deploy on vercel",
     "what's feature flagging and how do companies do it",
     "how to read logs on render when my app crashes",
     "how to use sentry to track errors in react",
     "what's the difference between unit, integration and e2e tests",
-    "how to write a cypress test for a login flow",
-    "playwright vs cypress for a small team",
     "what's snapshot testing and is it useful",
     "how to convert a class component to a function component",
     "how does react reconciliation work, simple explanation",
     "what's the difference between props and state",
     "how to use useReducer, when is it better than useState",
     "how to conditionally add a class name in react",
-    "how to pass data from a react router link to the next page",
     "how to make a countdown timer in react",
     "react portal, when would I use one",
     "what are generics in typescript, explain with an example",
@@ -800,7 +812,6 @@
     "tsconfig strict mode, should I turn it on in an old project",
     "how to migrate a small js project to typescript gradually",
     "how to read a typescript error that's 40 lines long",
-    "how to use Promise.allSettled vs Promise.all",
     "what's the difference between map, filter and reduce",
     "how to stay motivated learning after work when I'm exhausted",
     "is it normal to not code on weekends as a developer",
@@ -813,7 +824,6 @@
     "my bootcamp friend is still job hunting, how can I help without being awkward",
     "how to ask for a referral from someone I met once",
     "is it worth switching to a remote job for 5k less",
-    "what's a reasonable raise to expect at a startup",
     "how to read my offer letter equity section, what are options",
     "how to plan my first real vacation days at a new job",
     "how to set boundaries with slack notifications after hours",
@@ -821,6 +831,16 @@
     "how to explain what I do at work to my grandma",
     "how to say I don't know in a meeting confidently",
     "how to recover after a really bad sprint demo",
-    "what to do on my first day at a new dev job"
+    "what to do on my first day at a new dev job",
+    "how to add pagination to my express api, offset or cursor",
+    "infinite scroll in react with a paginated api, how do i load the next page",
+    "npm audit says 37 vulnerabilities, should i run npm audit fix --force",
+    "prettier format on save not working in vs code",
+    "testing a react component that shows an error message after clicking submit",
+    "what should i even test? my lead says add tests but idk where to start",
+    "I have a technical interview friday for junior frontend role, what should I study",
+    "how do I talk through my thinking during live coding, I go silent",
+    "best way to practice leetcode as a beginner, easy problems still take me an hour",
+    "take home assignment due in 3 days, how much polish is expected"
   ]
 }
