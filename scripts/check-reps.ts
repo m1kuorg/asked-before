@@ -6,17 +6,17 @@
 // every one that gives the fix away and none of the rest. The sort is a
 // stand-in in this script that sorts as the answer key does (the sort has
 // its own check); every rep and check request goes on to the real model.
-// Five reps in turn on card A,
-// answered with the known wrong, right, wrong, right, and wrong answers:
-// the first brings the lesson, and each start after a failed rep brings it
-// again, but none after a pass; every problem differs from the earlier
-// ones, quotes no phrasing, and names no fix; the wrong answer fails with a
-// reason about git stash, the right one passes and stamps the card
-// returned. Each request carried the card's phrasings and its earlier
-// problems, never a time. Then the app's logs are read for any of those
-// texts. It prints the lesson, problems, and reasons, which are made-up
-// demo data, so they can be read; the app itself must log none of them.
-// It needs ANTHROPIC_API_KEY, and makes 10 model calls in a minute or two.
+// Five reps in turn on card A, answered with the known wrong, right, wrong,
+// right, and wrong answers: the first brings the lesson, and each start
+// after a failed rep brings it again, but none after a pass; every problem
+// differs from the earlier ones, quotes no phrasing, and names no fix; the
+// wrong answer fails with a reason about git stash, the right one passes
+// and stamps the card returned. Each request carried the card's phrasings
+// and its earlier problems, never a time. Then the app's logs are read for
+// any of those texts. It prints the lesson, problems, and reasons, which
+// are made-up demo data, so they can be read; the app itself must log none
+// of them. It needs ANTHROPIC_API_KEY, and makes 10 model calls in a minute
+// or two.
 // Run: bun run check:reps
 
 import { ApiError } from "@asked-before/sdk";
