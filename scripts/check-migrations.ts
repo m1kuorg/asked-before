@@ -7,14 +7,14 @@
 // Ada fills it through the SDK, with the model a stand-in in this script
 // that sorts as the demo export's answer key does and answers her cold
 // reps, and a restart applies nothing again. Then a copy of the app, in a
-// temporary folder, gets a migration 0004 the repo doesn't have, rebuilding
-// the cards table, which ALTER TABLE can't change, beneath the phrasings
-// and reps that point at it. D1 keeps foreign keys on, so dropping cards
-// deletes every rep and empties every phrasing's card: on a copy of Ada's
-// state, the rebuild alone loses them, as docs/code-map.md warns. With the
-// map's recipe, copying them aside first and back after, it keeps every
-// rep and every phrasing's card, read in the database and in her download,
-// and her session and API key. A migration that fails, by a statement or by
+// temporary folder, gets a migration the repo doesn't have, numbered after
+// its last, rebuilding the cards table, which ALTER TABLE can't change,
+// beneath the phrasings and reps that point at it. D1 keeps foreign keys
+// on, so dropping cards deletes every rep and empties every phrasing's
+// card: on a copy of Ada's state, the rebuild alone loses them, as
+// docs/code-map.md warns. With the map's recipe, copying them aside first
+// and back after, it keeps every rep and every phrasing's card, read in the
+// database and in her download, and her session and API key. A migration that fails, by a statement or by
 // leaving a rep on no card, applies nothing, and the app doesn't start;
 // one before it in the same run stays applied. On a fresh database, the
 // copy applies every migration and ends with the migrated database's
@@ -85,11 +85,17 @@ const links = (path: string) =>
 type Links = ReturnType<typeof links>;
 const onCards = (l: Links) => l.cardOf.filter((p) => p.card_id !== null).length;
 
-// The app's own tables, with the uploads' messages, the throttle, the card_status view, and Wrangler's record of the migrations.
-const SCHEMA = ["api_keys", "card_status", "cards", "d1_migrations", "phrasings", "reps", "sessions", "shelves", "throttle", "upload_messages", "uploads", "usage", "users"];
+// The app's own tables, with the uploads' messages, the throttle, the daily caps' counters, the card_status view, and Wrangler's record of the migrations.
+const SCHEMA = ["api_keys", "card_status", "cards", "d1_migrations", "phrasings", "reps", "sessions", "shelves", "site_usage", "throttle", "upload_messages", "uploads", "usage", "users"];
 
 /** The repo's migrations, as Wrangler lists them: the .sql files in migrations/, in name order. */
 const MIGRATIONS = (await readdir(join(ROOT, "migrations"))).filter((file) => file.endsWith(".sql")).sort();
+
+/** The check's own migrations, which the repo doesn't have, numbered after its last: the rebuild, a good one, and a failing one. */
+const numbered = (after: number, name: string) => `${String(MIGRATIONS.length + after).padStart(4, "0")}_${name}.sql`;
+const PIN = numbered(1, "pin_cards");
+const ARCHIVE = numbered(2, "archive_shelves");
+const LABEL = numbered(3, "label_cards");
 
 /** What an account's download holds, in counts, to say what survived. */
 function held(data: AccountData): string {
@@ -120,7 +126,7 @@ async function copyApp(name: string): Promise<string> {
 }
 
 /**
- * Migration 0004, for this check only: the cards table rebuilt with a
+ * PIN, a migration for this check only: the cards table rebuilt with a
  * pinned column, as SQLite changes what ALTER TABLE can't. Its view goes
  * first and comes back after. With `copyAside`, it follows the code map's
  * recipe for D1, whose foreign keys stay on: the reps and the phrasings'
@@ -144,7 +150,7 @@ function rebuildCards(path: string, { copyAside }: { copyAside: boolean }): stri
     "DROP TABLE keep_card_ids;",
   ];
   return [
-    `-- Migration 0004, from check:migrations: cards rebuilt with a pinned column${copyAside ? ", its children copied aside and back" : ", alone"}.`,
+    `-- Migration ${PIN}, from check:migrations: cards rebuilt with a pinned column${copyAside ? ", its children copied aside and back" : ", alone"}.`,
     ...(copyAside ? [...aside, ...rebuild, ...back] : rebuild),
     `${view};`,
     "",
@@ -223,7 +229,7 @@ try {
 
   await step("4. On a copy of Ada's state, rebuilding the cards table alone loses every rep and every phrasing's card", async () => {
     const naive = await copyApp("naive");
-    await Bun.write(join(naive, "migrations", "0004_pin_cards.sql"), rebuildCards(databaseOf(state), { copyAside: false }));
+    await Bun.write(join(naive, "migrations", PIN), rebuildCards(databaseOf(state), { copyAside: false }));
     const copied = join(work, "state-naive");
     await cp(state, copied, { recursive: true });
     await onState(
@@ -242,7 +248,7 @@ try {
 
   await step("5. With the recipe, copying them aside first, the rebuild keeps every rep and every phrasing's card", async () => {
     copy = await copyApp("app");
-    await Bun.write(join(copy, "migrations", "0004_pin_cards.sql"), rebuildCards(databaseOf(state), { copyAside: true }));
+    await Bun.write(join(copy, "migrations", PIN), rebuildCards(databaseOf(state), { copyAside: true }));
     await onState(
       async () => {
         const after = await ada.client.account.export();
@@ -254,7 +260,7 @@ try {
       { root: copy },
     );
     const database = databaseOf(state);
-    check(recorded(database).join() === [...MIGRATIONS, "0004_pin_cards.sql"].join(), `the database records ${recorded(database).join(", ")}`);
+    check(recorded(database).join() === [...MIGRATIONS, PIN].join(), `the database records ${recorded(database).join(", ")}`);
     const now = links(database);
     check(Bun.deepEquals(now, linked, true), `every rep, whole (${now.reps.length} of ${linked.reps.length}), and every phrasing's card (${onCards(now)} of ${onCards(linked)}) are as they were`);
     const pinned = read(database, (store) => store.query<{ cards: number; unpinned: number }, []>("SELECT count(*) AS cards, sum(pinned = 0) AS unpinned FROM cards").get()!);
@@ -270,7 +276,7 @@ try {
       { what: "a statement that fails", sql: `${archive}SELECT * FROM no_such_table;\n`, says: "no such table: no_such_table" },
       { what: "a rep left on no card", sql: `${archive}INSERT INTO reps (id, card_id, problem, created_at) VALUES ('stray', 'no-such-card', 'A rep on no card.', 0);\n`, says: "FOREIGN KEY constraint failed" },
     ];
-    const broken = join(copy, "migrations", "0005_archive_shelves.sql");
+    const broken = join(copy, "migrations", ARCHIVE);
     for (const { what, sql, says } of failings) {
       await Bun.write(broken, sql);
       const result = await startApp(env, { state, port, root: copy }).then(
@@ -280,23 +286,23 @@ try {
       check(result.includes(says), `with ${what}, the app doesn't start: ${result}`);
       const stray = read(database, (store) => store.query<{ n: number }, []>("SELECT count(*) AS n FROM reps WHERE id = 'stray'").get()!.n);
       const archived = columns(database, "shelves").includes("archived");
-      check(recorded(database).join() === applied && !archived && stray === 0, `and the database is as migration 0004 left it: no 0005 recorded, ${archived ? "an" : "no"} archived column, ${stray} stray rep(s)`);
+      check(recorded(database).join() === applied && !archived && stray === 0, `and the database is as ${PIN} left it: no ${ARCHIVE} recorded, ${archived ? "an" : "no"} archived column, ${stray} stray rep(s)`);
     }
 
     await Bun.write(broken, archive);
-    await Bun.write(join(copy, "migrations", "0006_label_cards.sql"), "ALTER TABLE cards ADD COLUMN label TEXT;\nSELECT * FROM no_such_table;\n");
+    await Bun.write(join(copy, "migrations", LABEL), "ALTER TABLE cards ADD COLUMN label TEXT;\nSELECT * FROM no_such_table;\n");
     const result = await startApp(env, { state, port, root: copy }).then(
       async (app) => (await app.stop(), "it started"),
       (error: Error) => said(error),
     );
     const labelled = columns(database, "cards").includes("label");
-    check(result.includes("no such table") && recorded(database).at(-1) === "0005_archive_shelves.sql" && columns(database, "shelves").includes("archived") && !labelled, `with a good 0005 and a failing 0006 in one run, 0005 stays applied and 0006 doesn't: ${recorded(database).slice(-2).join(", ")}, ${labelled ? "a" : "no"} label column`);
-    await rm(join(copy, "migrations", "0006_label_cards.sql"));
+    check(result.includes("no such table") && recorded(database).at(-1) === ARCHIVE && columns(database, "shelves").includes("archived") && !labelled, `with a good ${ARCHIVE} and a failing ${LABEL} in one run, the first stays applied and the second doesn't: ${recorded(database).slice(-2).join(", ")}, ${labelled ? "a" : "no"} label column`);
+    await rm(join(copy, "migrations", LABEL));
 
     await onState(
       async () => {
         const after = await ada.client.account.export();
-        check(kept(after) === kept(before), `with 0006 gone, it starts, and Ada's download is as it was: ${held(after)}`);
+        check(kept(after) === kept(before), `with ${LABEL} gone, it starts, and Ada's download is as it was: ${held(after)}`);
       },
       { root: copy },
     );
@@ -306,7 +312,7 @@ try {
     const fresh = await startApp(env, { root: copy });
     try {
       const names = recorded(fresh.databasePath);
-      check(names.join() === [...MIGRATIONS, "0004_pin_cards.sql", "0005_archive_shelves.sql"].join(), `it records ${names.join(", ")}`);
+      check(names.join() === [...MIGRATIONS, PIN, ARCHIVE].join(), `it records ${names.join(", ")}`);
       check(schema(fresh.databasePath) === schema(databaseOf(state)), "its schema is the migrated database's, table for table");
       const bea = fresh.browser();
       await bea.client.auth.signUp({ name: "Bea", email: "bea@example.com", password: "difference engine" });

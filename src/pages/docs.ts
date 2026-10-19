@@ -1,7 +1,7 @@
 // The docs page (m1kuorg/basics#51): how to reach your cards from your own
 // scripts and agents. It mounts into #app like every screen, from the
 // shared parts: the contents in the margin, and in the block the API (its
-// credentials, conventions, errors, and daily cap), every endpoint in rows
+// credentials, conventions, errors, and daily caps), every endpoint in rows
 // by area, the sort window's known limit, the SDK's quickstart, the MCP
 // server, and the Claude Code plugin. Setup snippets come from connect.ts
 // with this server's address filled in, and the quickstart is the example
@@ -45,14 +45,14 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/auth/signup",
         sdk: "auth.signUp",
         who: "None",
-        does: "Signs up with { name, email, password } and starts a session: 201 with { account, next }. A password has 10 to 200 characters, and an email that has an account already is a 409. It must come from the page, with its Origin, and allows 20 tries from one address in 15 minutes.",
+        does: "Signs up with { name, email, passwordKey } and starts a session: 201 with { account, next }. The SDK takes a password of 10 to 200 characters and sends only its key. An email that has an account already is a 409. It must come from the page, with its Origin, and allows 20 tries from one address in 15 minutes.",
       },
       {
         method: "POST",
         path: "/auth/login",
         sdk: "auth.logIn",
         who: "None",
-        does: "Logs in with { email, password } and starts a session: { account, next }. A wrong email and a wrong password get the same 401. It must come from the page, and shares signing up's tries.",
+        does: "Logs in with { email, passwordKey } and starts a session: { account, next }. A wrong email and a wrong password get the same 401. It must come from the page, and shares signing up's tries.",
       },
       { method: "POST", path: "/auth/logout", sdk: "auth.logOut", who: SESSION, does: "Ends this session: 204." },
       { method: "GET", path: "/auth/me", sdk: "auth.me", who: KEY, does: "The account: { id, name, email, createdAt }." },
@@ -61,13 +61,19 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
   {
     area: "Account",
     endpoints: [
-      { method: "PATCH", path: "/account", sdk: "account.update", who: SESSION, does: "Changes { name, email }, either or both: the account. An email another account has is a 409." },
+      {
+        method: "PATCH",
+        path: "/account",
+        sdk: "account.update",
+        who: SESSION,
+        does: "Changes { name, email }, either or both: the account. A new email changes the password's key, so it comes with { currentPasswordKey, newPasswordKey }, the key the current email and the new one each make; the SDK takes the password. A wrong password is a 403, and an email another account has a 409. A new email ends every other session.",
+      },
       {
         method: "POST",
         path: "/account/password",
         sdk: "account.changePassword",
         who: SESSION,
-        does: "Changes the password with { currentPassword, newPassword }: 204. A wrong current password is a 403. Every other session ends.",
+        does: "Changes the password with { currentPasswordKey, newPasswordKey }: 204. The SDK takes both passwords, a new one of 10 to 200 characters. A wrong current password is a 403. Every other session ends.",
       },
       {
         method: "GET",
@@ -76,7 +82,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         who: SESSION,
         does: "All your data as one JSON value: the account, and each shelf with its uploads, every phrasing, and its cards with their lessons and cold reps. No API key or password is in it.",
       },
-      { method: "DELETE", path: "/account", sdk: "account.delete", who: SESSION, does: "Deletes the account and everything in it with { password }, and ends every session: 204. A wrong password is a 403. What it deletes stays in the backups of Cloudflare, Asked Before's host, for up to 30 days." },
+      { method: "DELETE", path: "/account", sdk: "account.delete", who: SESSION, does: "Deletes the account and everything in it with { passwordKey }, and ends every session: 204. A wrong password is a 403. What it deletes stays in the backups of Cloudflare, Asked Before's host, for up to 30 days." },
     ],
   },
   {
@@ -120,7 +126,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/uploads/:uploadId/phrasings",
         sdk: "uploads.append",
         who: KEY,
-        does: `Appends { phrasings }, up to ${count(MAX_CHUNK)} at a time: the upload. A phrasing whose sourceId the shelf holds already is skipped, so the same export uploaded twice stores nothing new, unless an upload that never finished holds it: then it joins this upload, to be sorted with it. A finished upload is a 409.`,
+        does: `Appends { phrasings }, up to ${count(MAX_CHUNK)} at a time: the upload. A phrasing whose sourceId the shelf holds already is skipped, so the same export uploaded twice stores nothing new, unless an upload that never finished holds it: then it joins this upload, to be sorted with it. A finished upload is a 409, and a chunk past the daily phrasings a 429 that stores none of it.`,
       },
       {
         method: "POST",
@@ -167,7 +173,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/shelves/:shelfId/captures",
         sdk: "captures.create",
         who: KEY,
-        does: "Records { text }, one question in your own words, and sorts it at once: 201 with { phrasing, card, alreadyCaptured }, its card the one it landed on, or null while it waits unsorted. The same words on the same shelf within ten minutes give 200 with that earlier capture, and add no borrow.",
+        does: "Records { text }, one question in your own words, and sorts it at once: 201 with { phrasing, card, alreadyCaptured }, its card the one it landed on, or null while it waits unsorted. The same words on the same shelf within ten minutes give 200 with that earlier capture, and add no borrow. Any other counts toward the daily phrasings.",
       },
     ],
   },
@@ -215,7 +221,7 @@ const STATUSES: [string, string][] = [
   ["404", "There's no such endpoint, or the shelf, upload, card, key, or cold rep isn't yours. Another account's is a 404 at any depth."],
   ["409", "A conflict: an email that has an account, an upload finished already, a retry of a sort that hasn't failed, or a cold rep checked already."],
   ["413", `A phrasing or capture over ${count(MAX_PHRASING_LENGTH)} characters, an append over ${count(MAX_CHUNK)} phrasings, or an answer over 4,000 characters.`],
-  ["429", "Too many sign-up or log-in tries from one address, or the account's model requests for the day are spent."],
+  ["429", "Too many sign-up or log-in tries from one address, or password tries on one account, 20 in 15 minutes; or a daily cap is spent: the account's or the app's model requests, or its phrasings."],
   ["500", "The server failed. Its message says nothing more."],
   ["502", "The model failed. Nothing was stored, so send the request again."],
 ];
@@ -241,6 +247,13 @@ function api(): Section {
       ),
       p("A key can read your shelves, cards, uploads, and the Desk, and make shelves, uploads, captures, and cold reps. Deleting anything, downloading your data, managing keys, and changing the account need a session: a key gets 403 there."),
       p("The page uses the session cookie that logging in sets, for 30 days. A cookie request that changes something must carry the page's Origin and a JSON body, or it's a 403, so another site can't act for you."),
+      p(
+        "Your password never leaves your computer. Wherever the API takes it, it takes a password key instead: scrypt of the password, in Unicode's NFC form, with N=2^14, r=8, and p=5, salted with ",
+        code("asked-before/1:"),
+        " and the account's email, trimmed and lowercased, as 32 bytes in 64 lowercase hex digits. The SDK derives it, and exports ",
+        code("passwordKey(password, email)"),
+        " for any other client.",
+      ),
       h3("Conventions"),
       p("Times are ISO timestamps, and ids are opaque strings. A list comes inside an object, such as { shelves }. A list that can grow without bound comes a page at a time, newest first: pass ", code("limit"), " (1 to 100, 50 by default), and ", code("cursor"), ", the ", code("next"), " of the page before, which is null on the last page."),
       p(
@@ -256,12 +269,23 @@ function api(): Section {
       ),
       h3("Errors"),
       table("docs-statuses", { caption: "Error statuses", columns: [{ label: "Status", className: "is-status", cell: ([status]) => status }, { label: "When", cell: ([, when]) => when }], items: STATUSES }),
-      h3("The daily cap"),
+      h3("The daily caps"),
+      p("Four caps, each counted per UTC day, keep Asked Before inside Cloudflare's free plan. Each is a setting of the server's, given here with its default."),
       p(
-        "Every model request counts toward your account's daily cap: 300 a day by default (",
+        "Every model request counts toward your account's cap, 10 a day (",
         code("DAILY_MODEL_REQUESTS"),
-        "), counted per UTC day. A sort makes one request per batch, and up to two more when an answer breaks a rule; a capture the model places makes one; so do starting a cold rep and checking an answer. Past the cap, the request is a 429: a sort fails with that message and can be retried, and a capture is lost unless it's sent again.",
+        "), and the app's, 200 a day across every account (",
+        code("SITE_DAILY_MODEL_REQUESTS"),
+        "). A sort makes one request per batch, and up to two more when an answer breaks a rule; a capture the model places makes one; so do starting a cold rep and checking an answer.",
       ),
+      p(
+        "Every phrasing sent counts toward your account's cap, 1,000 a day, uploads and captures together (",
+        code("DAILY_PHRASINGS"),
+        "), and the app's, 8,000 a day across every account (",
+        code("SITE_DAILY_PHRASINGS"),
+        "). A chunk counts every phrasing it carries, even one the shelf holds already, since recording that the upload sent it writes too. So an export bigger than a day's phrasings is carried on the next day in the same upload, with Try again on the upload page.",
+      ),
+      p("Past a cap, the request is a 429 and counts toward neither: a chunk stores none of its phrasings and can be sent again, a sort fails with that message and can be retried, and a capture is lost unless it's sent again. More open at midnight UTC."),
     ],
   };
 }
