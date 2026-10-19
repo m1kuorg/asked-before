@@ -112,6 +112,9 @@ try {
       ["SITE_DAILY_MODEL_REQUESTS", config.dailyModelRequests.site],
       ["DAILY_PHRASINGS", config.dailyPhrasings.account],
       ["SITE_DAILY_PHRASINGS", config.dailyPhrasings.site],
+      ["FIRST_DAY_SITE_DAILY_MODEL_REQUESTS", config.dailyModelRequests.firstDay],
+      ["FIRST_DAY_SITE_DAILY_PHRASINGS", config.dailyPhrasings.firstDay],
+      ["NETWORK_DAILY_SIGNUPS", config.dailySignups],
     ] as const) {
       const said = new RegExp(`${cap.toLocaleString("en-US")} a day[^()]*\\(${name}\\)`).test(api);
       check(said, `the daily caps name ${name} and its default, ${cap}`);
