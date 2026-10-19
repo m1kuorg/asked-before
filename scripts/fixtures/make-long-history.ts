@@ -3,9 +3,44 @@
 // no real person's messages are in it, and the file says so. Each skill
 // lists the messages that ask how to do it, worded as differently as a
 // person would; one-offs are asked once each, some near a skill's topic.
-// The committed file is one run of this; rerunning it writes a new history,
-// so the recall the check measures moves with it.
+// The committed file is one run of this, relabeled by hand by the rules
+// below; rerunning it writes a new history, which needs the same pass, and
+// the recall the check measures moves with it.
 // Run: bun run scripts/fixtures/make-long-history.ts
+//
+// The labels follow GLOSSARY.md's Skill and the sort's prompt
+// (server/sort.ts), by these rules, applied to every phrasing; the
+// phrasings themselves are the run's own (m1kuorg/basics#56):
+// 1. A skill is one task someone would learn once to stop asking, named the
+//    way a reference book titles its entry: a verb and what it acts on,
+//    such as "Undo a git commit".
+// 2. A task's variants are part of it: doing it in other circumstances or
+//    with other options, choosing between ways to do it, the errors and
+//    surprises it throws, and putting it right when it went wrong. Lifting
+//    state up and React context are two ways to share state between React
+//    components, so they are one skill.
+// 3. A broad goal that takes several tasks is not a skill: each phrasing
+//    goes to the task it asks about. Preparing for a technical interview
+//    splits into what to study, thinking aloud while live coding,
+//    practicing problems, and how polished a take-home should be; how long
+//    cooked chicken keeps is storing leftovers, not planning meal prep
+//    lunches.
+// 4. Phrasings that share only a topic or a tool but ask how to do
+//    different tasks are different skills: renaming a branch and deleting
+//    one, paginating an API and loading the next page in an infinite
+//    scroll, a first Jest test and a test of a React component.
+// 5. A question about a concept, a fact, or whether something is worth it
+//    asks a task of its own; it joins a skill only when that skill's entry
+//    would answer it.
+// 6. The test for a phrasing in doubt: would someone who had learned the
+//    skill, with its variants, still need to ask it? If so, it asks another
+//    task.
+// 7. A skill needs two phrasings or more. A phrasing alone in its task is a
+//    one-off, and one-offs that ask the same task as each other, or as a
+//    skill, are labeled with it.
+// A second model, Claude Sonnet, reviewed 171 of the labels against these
+// rules and agreed with 170; the one it didn't, Prettier's format on save in
+// VS Code, became a one-off.
 
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
