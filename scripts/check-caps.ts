@@ -9,8 +9,11 @@
 // the page shows, and answers a cold rep 429; and the app past its
 // phrasings answers any account's chunk 429, which the page shows, while a
 // chunk that just fits is stored. A refused request counts toward neither
-// cap, as the database's counters show. It prints each step's checks,
-// saves a screenshot of each page, and exits 1 if any fails, naming the step.
+// cap, as the database's counters show, though a trigger this script adds
+// keeps every account's count from going down: a refusal must leave the
+// account's count where it was, not take it and give it back
+// (m1kuorg/basics#70). It prints each step's checks, saves a screenshot of
+// each page, and exits 1 if any fails, naming the step.
 // Run: bun run check:caps [screenshot dir]
 
 import { ApiError, type Phrasing } from "@asked-before/sdk";
@@ -47,6 +50,16 @@ const app = await startApp({
   SITE_DAILY_PHRASINGS: String(SITE_PHRASINGS),
   SITE_DAILY_MODEL_REQUESTS: "1",
 });
+// No endpoint can make the database fail a write, so the give-back's failing (m1kuorg/basics#70) is made here, in
+// the database: every account's count may only go up, for the whole run. One of the read-only rule's documented
+// exceptions (docs/code-map.md).
+{
+  const store = new Database(app.databasePath, { strict: true });
+  store.run(`CREATE TRIGGER usage_only_goes_up BEFORE UPDATE ON usage
+    WHEN NEW.phrasings < OLD.phrasings OR NEW.model_requests < OLD.model_requests
+    BEGIN SELECT RAISE(ABORT, 'an account''s count went down'); END`);
+  store.close();
+}
 const browser = await chromium.launch();
 const pages: Page[] = [];
 const errors: string[] = [];
@@ -114,13 +127,15 @@ async function sendDemo(page: Page, shelfId: string): Promise<string> {
 const fresh = (n: number, tag: string): Phrasing[] =>
   Array.from({ length: n }, (_, i) => ({ sourceId: `${tag}-${i}`, text: `A question of ${tag}'s, number ${i}`, time: "2026-10-01T09:00:00.000Z" }));
 
-/** The phrasings each account and the app have counted today, from the database. */
-function counted(): { accounts: Record<string, number>; site: { phrasings: number; modelRequests: number } } {
+type Counts = { phrasings: number; modelRequests: number };
+
+/** The phrasings and model requests each account and the app have counted today, from the database. */
+function counted(): { accounts: Record<string, Counts>; site: Counts } {
   const store = new Database(app.databasePath, { readonly: true, strict: true });
-  const rows = store.query("SELECT u.name, g.phrasings FROM usage g JOIN users u ON u.id = g.user_id").all() as { name: string; phrasings: number }[];
-  const site = store.query("SELECT phrasings, model_requests AS modelRequests FROM site_usage").get() as { phrasings: number; modelRequests: number };
+  const rows = store.query("SELECT u.name, g.phrasings, g.model_requests AS modelRequests FROM usage g JOIN users u ON u.id = g.user_id").all() as ({ name: string } & Counts)[];
+  const site = store.query("SELECT phrasings, model_requests AS modelRequests FROM site_usage").get() as Counts;
   store.close();
-  return { accounts: Object.fromEntries(rows.map((row) => [row.name, row.phrasings])), site };
+  return { accounts: Object.fromEntries(rows.map(({ name, ...counts }) => [name, counts])), site };
 }
 
 const cy = await learner("Cy");
@@ -178,9 +193,12 @@ try {
     check(fits.phrasings === 3, `a chunk of 3 is stored: ${fits.phrasings} phrasings`);
   });
 
-  await step("5. A refused request counts toward neither cap", async () => {
+  await step("5. A refused request counts toward neither cap, with no account's count ever going down", async () => {
     const { accounts, site } = counted();
-    const want = { accounts: { Cy: 30, Dee: 27, Eve: 3 }, site: { phrasings: 60, modelRequests: 1 } };
+    const want = {
+      accounts: { Cy: { phrasings: 30, modelRequests: 1 }, Dee: { phrasings: 27, modelRequests: 0 }, Eve: { phrasings: 3, modelRequests: 0 } },
+      site: { phrasings: 60, modelRequests: 1 },
+    };
     const got = { accounts: { Cy: accounts.Cy, Dee: accounts.Dee, Eve: accounts.Eve }, site };
     check(JSON.stringify(got) === JSON.stringify(want), `counted ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
     check(errors.length === 0, `no console errors${errors.length ? `: ${errors.slice(0, 3).join(" | ")}` : ""}`);
