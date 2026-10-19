@@ -14,45 +14,45 @@
 
 import type { Caps } from "../config";
 import { HttpError } from "../http";
-import type { Db } from "./db";
+import { newId, type Db } from "./db";
 
 const count = (n: number) => n.toLocaleString("en-US");
 
 /**
- * Counts `n` toward the app's day and the account's, in one batch, each
- * only while it stays within its cap: the app's is its first day's share
- * while the account was made today. The app's count is taken only while
- * the account's has room too, so an account past its own cap never touches
- * the app's. When the app's cap refuses and the account's took it, the
- * account's is given back, so a refused request counts toward neither.
- * Which cap refused, or null when both took it.
+ * Counts `n` toward the account's day and the app's, all or nothing, in one
+ * batch: the account's count first, only while it and the app's both stay
+ * within their caps, the app's being its first day's share while the
+ * account was made today; then the app's, only when the account's row holds
+ * this request's id, so it moves only when the account's did. A refused
+ * request moves neither, so nothing is given back (m1kuorg/basics#70).
+ * Which cap refused, or null when both took it: the account's, when both
+ * would.
  */
 async function spend(db: Db, userId: string, what: "model_requests" | "phrasings", n: number, caps: Caps): Promise<"account" | "site" | "firstDay" | null> {
   const day = new Date().toISOString().slice(0, 10);
-  const accountHasRoom = `coalesce((SELECT ${what} FROM usage WHERE user_id = ?4 AND day = ?1), 0) + ?2 <= ?5`;
-  const madeToday = "(SELECT created_at >= ?6 FROM users WHERE id = ?4)";
-  const siteCap = `CASE WHEN ${madeToday} THEN min(?3, ?7) ELSE ?3 END`;
-  const [site, account, firstDay] = await db.batch<{ firstDay: number }>([
+  const spendId = newId();
+  const accountHasRoom = `coalesce((SELECT ${what} FROM usage WHERE user_id = ?1 AND day = ?2), 0) + ?3 <= ?4`;
+  const madeToday = "coalesce((SELECT created_at >= ?6 FROM users WHERE id = ?1), 0)";
+  const siteHasRoom = `coalesce((SELECT ${what} FROM site_usage WHERE day = ?2), 0) + ?3 <= CASE WHEN ${madeToday} THEN min(?5, ?7) ELSE ?5 END`;
+  const args = [userId, day, n, caps.account, caps.site, Date.parse(day), caps.firstDay];
+  const [account, , why] = await db.batch<{ refused: "account" | "site" | "firstDay" }>([
     db
       .prepare(
-        `INSERT INTO site_usage (day, ${what}) SELECT ?1, ?2 WHERE ?2 <= ${siteCap} AND ${accountHasRoom}
-         ON CONFLICT (day) DO UPDATE SET ${what} = ${what} + ?2 WHERE ${what} + ?2 <= ${siteCap} AND ${accountHasRoom}
-         RETURNING ${what}`,
+        `INSERT INTO usage (user_id, day, ${what}, spend_id) SELECT ?1, ?2, ?3, ?8 WHERE ${accountHasRoom} AND ${siteHasRoom}
+         ON CONFLICT (user_id, day) DO UPDATE SET ${what} = ${what} + ?3, spend_id = ?8
+         RETURNING spend_id`,
       )
-      .bind(day, n, caps.site, userId, caps.account, Date.parse(day), caps.firstDay),
+      .bind(...args, spendId),
     db
       .prepare(
-        `INSERT INTO usage (user_id, day, ${what}) SELECT ?1, ?2, ?3 WHERE ?3 <= ?4
-         ON CONFLICT (user_id, day) DO UPDATE SET ${what} = ${what} + ?3 WHERE ${what} + ?3 <= ?4
-         RETURNING ${what}`,
+        `INSERT INTO site_usage (day, ${what}) SELECT ?2, ?3 WHERE EXISTS (SELECT 1 FROM usage WHERE user_id = ?1 AND day = ?2 AND spend_id = ?4)
+         ON CONFLICT (day) DO UPDATE SET ${what} = ${what} + ?3`,
       )
-      .bind(userId, day, n, caps.account),
-    db.prepare("SELECT coalesce((SELECT created_at >= ?2 FROM users WHERE id = ?1), 0) AS firstDay").bind(userId, Date.parse(day)),
+      .bind(userId, day, n, spendId),
+    // Read only when the account's count was refused, so the counts are as they were before the batch.
+    db.prepare(`SELECT CASE WHEN NOT (${accountHasRoom}) THEN 'account' WHEN ${madeToday} AND ?7 < ?5 THEN 'firstDay' ELSE 'site' END AS refused`).bind(...args),
   ]);
-  if (!account!.results.length) return "account";
-  if (site!.results.length) return null;
-  await db.prepare(`UPDATE usage SET ${what} = ${what} - ?3 WHERE user_id = ?1 AND day = ?2`).bind(userId, day, n).run();
-  return firstDay!.results[0]?.firstDay && caps.firstDay < caps.site ? "firstDay" : "site";
+  return account!.results.length ? null : why!.results[0]!.refused;
 }
 
 /** Counts a model request for the account, or throws 429 past its daily cap or the app's. */
