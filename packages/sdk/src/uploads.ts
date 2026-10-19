@@ -14,8 +14,8 @@
 import { paged, path, type PageOptions, type Requester } from "./http.ts";
 import type { Phrasing, Source } from "./readers.ts";
 
-/** The most phrasings one append may carry. */
-export const MAX_CHUNK = 2000;
+/** The most phrasings one append may carry, few enough that a chunk is stored in a few milliseconds of the server's CPU. */
+export const MAX_CHUNK = 500;
 
 /** Receiving phrasings, then waiting to be sorted, sorting, and sorted, or failed with an error. */
 export type UploadStatus = "receiving" | "waiting" | "sorting" | "sorted" | "failed";

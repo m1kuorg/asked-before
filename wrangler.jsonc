@@ -38,9 +38,14 @@
   // address people reach the deployed app at: unset, a request's own origin
   // counts as the app's, and an https one makes the session cookie Secure.
   // `bun run dev` and the checks always run with it unset, on localhost.
+  // The daily caps keep the app inside Workers Free (store/usage.ts); the
+  // checks lift them, unless a check sets its own.
   "vars": {
     "PUBLIC_URL": "https://asked-before.m1kuorg.workers.dev",
     "DAILY_MODEL_REQUESTS": "10",
+    "SITE_DAILY_MODEL_REQUESTS": "200",
+    "DAILY_PHRASINGS": "1000",
+    "SITE_DAILY_PHRASINGS": "8000",
     "SORT_BATCH_SIZE": "300"
   },
   // A Worker secret in production; locally, read from .env or the shell.

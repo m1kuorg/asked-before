@@ -1,6 +1,7 @@
 // Settings (m1kuorg/basics#48), from the shared parts (src/parts/): the
-// profile (name and email), the password (the current one first; changing it
-// logs out every other browser), API keys (made and shown once, listed with
+// profile (name and email, and the password, which a new email needs: the
+// SDK derives the key it sends from both, ADR 0006), the password (the
+// current one first; changing it logs out every other browser), API keys (made and shown once, listed with
 // their prefix and their made and last-used dates, revoked after a
 // confirmation), and the setup snippets that connect an agent, with this
 // server's address filled in. Then your data (m1kuorg/basics#49): all of it
@@ -54,16 +55,23 @@ function saved(target: HTMLFormElement, message: string) {
 }
 
 function profile({ client, account, setAccount }: ScreenProps, onSaved: (account: Account) => void) {
+  /** The account as last saved, whose email a new one is compared with. */
+  let current = account;
   const name = field({ label: "Name", name: "name", value: account.name, autocomplete: "name" });
   const email = field({ label: "Email", name: "email", type: "email", value: account.email, autocomplete: "email" });
+  const password = field({ label: "Your password", name: "password", type: "password", autocomplete: "current-password", hint: "Only to change your email." });
   const sent = form({
-    fields: [name.element, email.element],
+    fields: [name.element, email.element, password.element],
     submit: "Save profile",
     onSubmit: async (target) => {
       target.querySelector(".saved")?.remove();
-      const updated = await client.account.update({ name: name.input.value, email: email.input.value });
+      const moved = email.input.value.trim().toLowerCase() !== current.email;
+      const change = moved ? { name: name.input.value, email: email.input.value, password: password.input.value } : { name: name.input.value };
+      const updated = await client.account.update(change);
+      current = updated;
       name.input.value = updated.name;
       email.input.value = updated.email;
+      password.input.value = "";
       setAccount(updated);
       onSaved(updated);
       saved(target, "Your profile is saved.");

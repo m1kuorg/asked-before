@@ -3,9 +3,9 @@
 // at /docs lists every route in the server's route table
 // (server/api/index.ts) and no route it lacks, each with who may call it
 // and what it does; it names every error status the server answers; it
-// states the sort window's limit with the server's own numbers; and it
-// fills the setup snippets with its own server's address, within its
-// security policy. The SDK's quickstart, shown on the page and in the SDK's
+// states the sort window's limit and the daily caps with the server's own
+// numbers; and it fills the setup snippets with its own server's address,
+// within its security policy. The SDK's quickstart, shown on the page and in the SDK's
 // README, is packages/sdk/examples/quickstart.ts, and it runs: with an API
 // key, it uploads the demo export and lists the answer key's cards (the
 // sort is a stand-in that sorts as the key does, so no model key is
@@ -101,11 +101,21 @@ try {
     check(missing.length === 0, `the server's ${server.join(", ")} are documented${missing.length ? `; not ${missing.join(", ")}` : ""}`);
   });
 
-  await step("4. The sort window's known limit is stated, with the server's numbers", async () => {
+  await step("4. The sort window's known limit and the daily caps are stated, with the server's numbers", async () => {
     const text = (await page.locator("#sort-window").textContent({ timeout: 2000 })) ?? "";
     check(text.includes(`SORT_BATCH_SIZE (${config.sortBatchSize})`), `it names SORT_BATCH_SIZE and its default, ${config.sortBatchSize}`);
     check(/compared again only while it's inside that window/.test(text), "it says an older unsorted phrasing is compared again only inside the window");
     check(text.includes(`${CAPTURE_WINDOW} most recent unsorted`), `it gives a capture's window, ${CAPTURE_WINDOW}`);
+    const api = (await page.locator("#api").textContent()) ?? "";
+    for (const [name, cap] of [
+      ["DAILY_MODEL_REQUESTS", config.dailyModelRequests.account],
+      ["SITE_DAILY_MODEL_REQUESTS", config.dailyModelRequests.site],
+      ["DAILY_PHRASINGS", config.dailyPhrasings.account],
+      ["SITE_DAILY_PHRASINGS", config.dailyPhrasings.site],
+    ] as const) {
+      const said = new RegExp(`${cap.toLocaleString("en-US")} a day[^()]*\\(${name}\\)`).test(api);
+      check(said, `the daily caps name ${name} and its default, ${cap}`);
+    }
   });
 
   await step("5. The setup snippets carry this server's address, and the page keeps its security policy", async () => {

@@ -1,5 +1,5 @@
-// Accounts. Emails arrive trimmed and lowercased, and passwords already
-// hashed; this module never sees a password itself.
+// Accounts. Emails arrive trimmed and lowercased, and password keys
+// already hashed (server/passwords.ts); no password ever reaches the server.
 
 import type { Account } from "@asked-before/sdk";
 import { iso, newId, type Db } from "./db";
@@ -37,19 +37,40 @@ export async function findLogin(db: Db, email: string): Promise<{ id: string; pa
   return db.prepare("SELECT id, password_hash AS passwordHash FROM users WHERE email = ?1").bind(email).first<{ id: string; passwordHash: string }>();
 }
 
-/** The account with its new name or email, or null when the email already belongs to another account. */
-export async function updateAccount(db: Db, userId: string, change: { name?: string; email?: string }): Promise<Account | null> {
-  const row = await db
-    .prepare(
-      `UPDATE OR IGNORE users SET name = coalesce(?2, name), email = coalesce(?3, email) WHERE id = ?1
-       RETURNING ${ACCOUNT_COLUMNS}`,
-    )
-    .bind(userId, change.name ?? null, change.email ?? null)
-    .first<AccountRow>();
+/** The account with its new name, or null when it's gone. */
+export async function renameAccount(db: Db, userId: string, name: string): Promise<Account | null> {
+  const row = await db.prepare(`UPDATE users SET name = ?2 WHERE id = ?1 RETURNING ${ACCOUNT_COLUMNS}`).bind(userId, name).first<AccountRow>();
   return row && toAccount(row);
 }
 
-/** The hash a password change checks the current password against. */
+/**
+ * Moves the account to a new email, with the hash of the password key that
+ * email salts (`to`), and the new name too when one is given, in one batch,
+ * only while its hash is still `from`, the one the current key was just
+ * checked against. The account; or why not: "taken" when another account
+ * has the email, or "changed" when the hash isn't `from` any more, since
+ * the password changed meanwhile.
+ */
+export async function changeEmail(
+  db: Db,
+  userId: string,
+  { name, email, from, to }: { name?: string; email: string; from: string; to: string },
+): Promise<Account | "taken" | "changed"> {
+  const [moved, held] = await db.batch<AccountRow>([
+    db
+      .prepare(
+        `UPDATE OR IGNORE users SET name = coalesce(?2, name), email = ?3, password_hash = ?4 WHERE id = ?1 AND password_hash = ?5
+         RETURNING ${ACCOUNT_COLUMNS}`,
+      )
+      .bind(userId, name ?? null, email, to, from),
+    db.prepare(`${ACCOUNT} AND password_hash = ?2`).bind(userId, from),
+  ]);
+  const row = moved?.results[0];
+  if (row) return toAccount(row);
+  return held?.results.length ? "taken" : "changed";
+}
+
+/** The hash a password change checks the current password's key against. */
 export async function passwordHashOf(db: Db, userId: string): Promise<string | null> {
   const row = await db.prepare("SELECT password_hash AS passwordHash FROM users WHERE id = ?1").bind(userId).first<{ passwordHash: string }>();
   return row?.passwordHash ?? null;

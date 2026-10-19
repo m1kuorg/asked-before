@@ -83,6 +83,8 @@ A list comes back as an array, such as `Shelf[]`. A list that can grow without b
 
 An API key can read shelves, cards, uploads, and the Desk, and make shelves, uploads, captures, and cold reps. Renaming a shelf, deleting anything, downloading your data, managing keys, and changing the account need a session, so a key gets 403 there.
 
+A password never leaves your computer. `auth.signUp`, `auth.logIn`, and the `account` methods that take a password send the key `passwordKey(password, email)` derives from it with scrypt instead, which takes about a tenth of a second. A new email changes that key, so `account.update` needs the password with a new email. The SDK holds a new password to 10 to 200 characters, and throws `ApiError` with a 400 before sending anything when it breaks that.
+
 ## Errors
 
 A failed request throws `ApiError`, with the HTTP `status` and the server's `message`:
@@ -108,4 +110,4 @@ try {
 
 A zip is read from its directory, inflating only its `conversations.json` or its numbered `conversations-NNN.json` shards, so an export full of images never has to fit in memory. ChatGPT's conversations are walked from their current message, so edited-away branches don't count. An export the reader can't use throws `ExportError`, whose message names the field, never your words.
 
-Send phrasings with `uploads.append`, at most `MAX_CHUNK` (2,000) at a time.
+Send phrasings with `uploads.append`, at most `MAX_CHUNK` (500) at a time. The phrasings an upload stores, and captures, count toward the server's daily caps; past one, a request throws `ApiError` with a 429, and a chunk stores none of its phrasings.

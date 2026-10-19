@@ -101,6 +101,24 @@ export async function listUploads(db: Db, userId: string, shelfId: string, limit
 const changed = (row: UploadRow | undefined, done: boolean): UploadChange => (!row ? { refused: "missing" } : done ? { upload: toUpload(row) } : { refused: "status" });
 
 /**
+ * How many of a chunk's phrasings the upload's shelf doesn't hold yet, by
+ * source id: the ones appending it would store, which count toward the
+ * daily phrasings (store/usage.ts). One sent again, or held by an upload
+ * that never finished, was counted when it was first stored. None when the
+ * account has no such upload, or it's no longer receiving.
+ */
+export async function newPhrasings(db: Db, userId: string, uploadId: string, phrasings: Phrasing[]): Promise<number> {
+  const row = await db
+    .prepare(
+      `SELECT count(DISTINCT j.value) AS n FROM (${OWN_UPLOAD}) u, json_each(?3) j
+       WHERE u.status = 'receiving' AND NOT EXISTS (SELECT 1 FROM phrasings f WHERE f.shelf_id = u.shelf_id AND f.source_id = j.value)`,
+    )
+    .bind(userId, uploadId, JSON.stringify(phrasings.map((phrasing) => phrasing.sourceId)))
+    .first<{ n: number }>();
+  return row?.n ?? 0;
+}
+
+/**
  * Adds a chunk to an upload that's still receiving, in one batch: each
  * phrasing counts once toward its messages, and those new to the shelf, or
  * held by an upload still receiving, become its own. The chunk goes in as

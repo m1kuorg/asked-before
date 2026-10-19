@@ -6,14 +6,16 @@
 // quickstart typechecks there against the declarations alone, under both
 // bundler and Node module resolution, and runs in Bun and in Node against a
 // fresh copy of the app with an API key: it uploads the demo export and
-// lists the answer key's cards. The sort is a stand-in in this script that
-// sorts as the key does, so no model key is needed. It exits 1 if any check
-// fails, naming the step.
+// lists the answer key's cards; and its passwordKey derives in Bun and in
+// Node the key the repo's SDK does. The sort is a stand-in in this script
+// that sorts as the key does, so no model key is needed. It exits 1 if any
+// check fails, naming the step.
 // Run: bun run check:sdk
 
 import { mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { passwordKey } from "@asked-before/sdk";
 import { key, keySorter } from "./lib/answer-key";
 import { startApp } from "./lib/app";
 import { reply, startModelStub } from "./lib/model-stub";
@@ -98,6 +100,15 @@ try {
       const lines = quickstart.out.split("\n");
       console.log(lines.map((line) => `       ${line}`).join("\n"));
       check(quickstart.code === 0 && lines[0] === "27 of your messages, 0 skipped as too long." && JSON.stringify(lines.slice(1)) === JSON.stringify(want), `in ${runtime}, it lists the answer key's ${want.length} cards${quickstart.code ? `; exit ${quickstart.code}: ${lastLine(quickstart.err)}` : ""}`);
+    }
+  });
+
+  await step("5. The built SDK derives the same password key in Bun and in Node as the repo's", async () => {
+    const want = await passwordKey("analytical engine", "Ada@Example.com ");
+    const derive = `import { passwordKey } from "@asked-before/sdk"; console.log(await passwordKey("analytical engine", "Ada@Example.com "))`;
+    for (const [runtime, cmd] of [["Bun", ["bun", "-e", derive]], ["Node", ["node", "--input-type=module", "-e", derive]]] as const) {
+      const derived = await run([...cmd], scratch);
+      check(derived.code === 0 && derived.out === want, `${runtime}: ${derived.out.slice(0, 12) || lastLine(derived.err)}…, the key the app's checks derive`);
     }
   });
 } finally {

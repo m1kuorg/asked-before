@@ -11,6 +11,8 @@
     "journey": "bun run scripts/journey.ts",
     "check:smoke": "bun run scripts/check-smoke.ts",
     "check:accounts": "bun run scripts/check-accounts.ts",
+    "check:passwords": "bun run scripts/check-passwords.ts",
+    "check:caps": "bun run scripts/check-caps.ts",
     "check:shell": "bun run scripts/check-shell.ts",
     "check:readers": "bun run scripts/check-readers.ts",
     "check:uploads": "bun run scripts/check-uploads.ts",

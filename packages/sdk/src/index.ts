@@ -5,6 +5,7 @@
 
 export { createClient, type Client } from "./client.ts";
 export { ApiError, type ClientOptions, type PageOptions } from "./http.ts";
+export { passwordKey } from "./password-key.ts";
 export { ExportError, MAX_PHRASING_LENGTH, readExport, type Phrasing, type ReadExport, type Source } from "./readers.ts";
 export { MAX_CHUNK } from "./uploads.ts";
 

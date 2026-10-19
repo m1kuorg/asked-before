@@ -1,16 +1,25 @@
 // Account: update the name and email, change the password (m1kuorg/basics#48),
 // download all your data, and delete the account (m1kuorg/basics#49). All of
-// them need a session, not an API key.
+// them need a session, not an API key. A password stays here: what's sent is
+// the key derived from it and the account's email (password-key.ts, ADR
+// 0006), which these methods read first with auth.me. A new email changes
+// the key's salt, so changing the email needs the password too.
 
 import type { Account } from "./auth.ts";
 import type { Card, StoredPhrasing } from "./cards.ts";
-import type { Requester } from "./http.ts";
+import { ApiError, type Requester } from "./http.ts";
+import { checkPassword, NEW_PASSWORD, passwordKey } from "./password-key.ts";
 import type { Shelf } from "./shelves.ts";
 import type { Rep } from "./reps.ts";
 import type { Upload } from "./uploads.ts";
 
 /** The name, the email, or both. */
-export type AccountChange = { name?: string; email?: string };
+export type AccountChange = {
+  name?: string;
+  email?: string;
+  /** Needed with a new email, since the key derived from the password changes with it. */
+  password?: string;
+};
 
 export type PasswordChange = {
   currentPassword: string;
@@ -47,11 +56,33 @@ export type AccountData = { exportedAt: string; account: Account; shelves: Shelf
 /** Deleting the account needs its password. */
 export type AccountDeletion = { password: string };
 
-export const account = (request: Requester) => ({
-  update: (change: AccountChange) => request<Account>("PATCH", "/account", change),
-  changePassword: (change: PasswordChange) => request<void>("POST", "/account/password", change),
-  /** All your data, as one JSON value. */
-  export: () => request<AccountData>("GET", "/account/export"),
-  /** Deletes the account and everything in it, and ends every session; a wrong password is a 403. */
-  delete: (deletion: AccountDeletion) => request<void>("DELETE", "/account", deletion),
-});
+export const account = (request: Requester) => {
+  /** The account's email, the salt of its password's key. */
+  const email = async () => (await request<Account>("GET", "/auth/me")).email;
+  return {
+    /** Changes the name, the email, or both. A new email needs the password; a wrong one is a 403. */
+    update: async ({ password, ...change }: AccountChange) => {
+      if (change.email === undefined) return request<Account>("PATCH", "/account", change);
+      if (!password) throw new ApiError(400, "Changing the email needs your password.");
+      checkPassword(password, "Your password");
+      const currentPasswordKey = await passwordKey(password, await email());
+      const newPasswordKey = await passwordKey(password, change.email);
+      return request<Account>("PATCH", "/account", { ...change, currentPasswordKey, newPasswordKey });
+    },
+    changePassword: async ({ currentPassword, newPassword }: PasswordChange) => {
+      checkPassword(currentPassword, "Your current password");
+      checkPassword(newPassword, "A new password", NEW_PASSWORD);
+      const salt = await email();
+      const currentPasswordKey = await passwordKey(currentPassword, salt);
+      const newPasswordKey = await passwordKey(newPassword, salt);
+      return request<void>("POST", "/account/password", { currentPasswordKey, newPasswordKey });
+    },
+    /** All your data, as one JSON value. */
+    export: () => request<AccountData>("GET", "/account/export"),
+    /** Deletes the account and everything in it, and ends every session; a wrong password is a 403. */
+    delete: async ({ password }: AccountDeletion) => {
+      checkPassword(password, "Your password", 1);
+      return request<void>("DELETE", "/account", { passwordKey: await passwordKey(password, await email()) });
+    },
+  };
+};
