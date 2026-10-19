@@ -1,6 +1,7 @@
 // Account: update the name and email, change the password
 // (m1kuorg/basics#48), download all your data, and delete the account
-// (m1kuorg/basics#49). All of them need a session: authed(..., { sessionOnly: true }).
+// (m1kuorg/basics#49). All of them need a session, and none is the shared
+// guest's (m1kuorg/basics#73): authed(..., { sessionOnly: true, notGuest: true }).
 // Each takes the keys the SDK derives from a password, never the password
 // (ADR 0006). The email salts the key, so a new email needs the key the
 // current one salts, and the key the new one does, and ends every other
@@ -38,7 +39,7 @@ const PasswordChange = z.strictObject({
 
 const Deletion = z.strictObject({ passwordKey: PasswordKey("passwordKey") });
 
-const sessionOnly = { sessionOnly: true };
+const ownAccountOnly = { sessionOnly: true, notGuest: true };
 
 /** The throttle's caller for checking an account's password key (store/throttle.ts): the account, whichever address it's from. */
 const keyChecks = (userId: string) => `account:${userId}`;
@@ -104,7 +105,7 @@ export const account = defineRoutes({
       if (moved === "taken") throw new HttpError(409, "That email already has an account.");
       if (moved === "changed") throw new HttpError(403, NOT_YOURS);
       return Response.json(moved satisfies Account);
-    }, sessionOnly),
+    }, ownAccountOnly),
     DELETE: authed(async (req, { db, auth, config }) => {
       const { passwordKey } = await readJson(req, Deletion);
       await throttle(db, keyChecks(auth.userId));
@@ -113,7 +114,7 @@ export const account = defineRoutes({
       // Deleted only while the hash is the one just checked, so a password changed meanwhile deletes nothing.
       if (!(await deleteUser(db, auth.userId, hash))) throw new HttpError(403, NOT_YOURS);
       return new Response(null, { status: 204, headers: { "set-cookie": clearSessionCookie(config) } });
-    }, sessionOnly),
+    }, ownAccountOnly),
   },
   "/api/v1/account/password": {
     POST: authed(async (req, { db, auth }) => {
@@ -124,13 +125,13 @@ export const account = defineRoutes({
       const changed = await changePasswordHash(db, auth.userId, { from: hash, to: hashKey(newPasswordKey), keepSessionId: auth.via === "session" ? auth.sessionId : null });
       if (!changed) throw new HttpError(403, NOT_CURRENT);
       return new Response(null, { status: 204 });
-    }, sessionOnly),
+    }, ownAccountOnly),
   },
   "/api/v1/account/export": {
     GET: authed(async (_req, { db, auth }) => {
       const data = await accountData(db, auth.userId);
       if (!data) throw new HttpError(401, "Log in first.");
       return streamJson(data);
-    }, sessionOnly),
+    }, ownAccountOnly),
   },
 });

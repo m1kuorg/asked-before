@@ -2,14 +2,15 @@
 // parts: the pitch, card A of the demo export (demo-card.ts, read when the
 // page is bundled) set on the rail with the card stack's own markup and
 // stack.css, the three steps, what leaves this computer, agents, and the
-// sign-up close. Each section's side-note is an `aside.margin` that
+// sign-up close. The head and the close also sign in as the shared guest
+// (m1kuorg/basics#73), with the log-in and sign-up pages' own part. Each section's side-note is an `aside.margin` that
 // landing.css hangs into the wide margin beside it.
 
 import { el, link, type Child } from "../parts/dom";
 import { field, form } from "../parts/fields";
 import { plate } from "../parts/frame";
 import { PRIVACY_LINE, demoLabel, stamp } from "../parts/library";
-import { client } from "./account";
+import { client, GUEST_NOTE, guestSignIn } from "./account";
 import { demoCard } from "./demo-card" with { type: "macro" };
 
 const PITCH = "Turn a question you keep asking into one you can answer without AI.";
@@ -118,7 +119,7 @@ function head(): Child[] {
       "div",
       "landing-lede",
       el("p", undefined, "Upload a chat export, and Asked Before sorts what you asked into library cards, one for each skill you asked about more than once."),
-      el("div", "actions", start),
+      el("div", "actions", start, guestSignIn()),
     ),
   ];
 }
@@ -216,6 +217,8 @@ function close(): HTMLElement {
         ),
         signUpForm.form,
         el("p", undefined, "Already signed up? ", link("Log in", "/login")),
+        el("p", undefined, `Just looking? Sign in as a guest, with no account. ${GUEST_NOTE}`),
+        guestSignIn(),
       ],
     },
   );

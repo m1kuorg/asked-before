@@ -1,19 +1,20 @@
 // Checks the daily caps that keep the app inside Workers Free
-// (m1kuorg/basics#68) on a fresh copy of the app with small ones: 30
-// phrasings a day for each account, 60 for the whole app, and 2 model
-// requests for the whole app, one sort's batch and second pass. The model
-// is a stand-in in this script, answering as the answer key sorts the demo
-// export. Through the SDK and in the upload page, in a real browser at
-// 1920×1080: an account past its phrasings gets 429, for a capture and for
-// an upload's chunk, and the page shows it; the app past its two model
-// requests fails the next sort, which the page shows, and answers a cold
-// rep 429; and the app past its phrasings answers any account's chunk 429,
-// which the page shows, while a chunk that just fits is stored. A refused
-// request counts toward neither cap, as the database's counters show,
-// though a trigger this script adds keeps every account's count from going
-// down: a refusal must leave the account's count where it was, not take it
-// and give it back (m1kuorg/basics#70). It prints each step's checks, saves
-// a screenshot of each page, and exits 1 if any fails, naming the step.
+// (m1kuorg/basics#68): since m1kuorg/basics#73 there are two, each for the
+// whole app and counted once for everyone, guests included. A fresh copy of
+// the app runs with small ones, 4 model requests and 60 phrasings a day,
+// and with the caps that went (each account's own, a network's sign-ups,
+// and a new account's first day) set to 1, which caps nothing now. The
+// model is a stand-in in this script, answering as the answer key sorts the
+// demo export, and a cold rep as a step queues it. Through the SDK and in
+// the upload page, in a real browser at 1920×1080: five accounts sign up
+// from one address; two accounts and the guest spend the app's 4 model
+// requests between them, and then a cold rep, its check, a capture, and a
+// sort each answer 429 with the app's message, whoever sends them, which
+// the upload page shows; and the app's phrasings, spent the same way, refuse
+// any account's chunk past them, while a chunk that just fits is stored. The
+// app's counters in the database say the same, and a refused request
+// counts toward nothing. It prints each step's checks, saves a screenshot
+// of each page, and exits 1 if any fails, naming the step.
 // Run: bun run check:caps [screenshot dir]
 
 import { ApiError, type Phrasing } from "@asked-before/sdk";
@@ -22,18 +23,16 @@ import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, type Page } from "playwright";
-import { keySorter, phrasings, sortEnds, upload } from "./lib/answer-key";
+import { phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp, type Browser } from "./lib/app";
-import { reply, startModelStub } from "./lib/model-stub";
+import { refuse, startModelStub } from "./lib/model-stub";
+import { known, repReply, sortsByKey } from "./lib/reps";
 
 const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-caps");
 const DEMO = join(import.meta.dir, "..", "demo", "export.json");
-const ACCOUNT_PHRASINGS = 30;
-const SITE_PHRASINGS = 60;
 
-const PAST_ACCOUNT = `Your account can send ${ACCOUNT_PHRASINGS} phrasings a day, uploads and captures together, and these would pass today's. More open at midnight UTC.`;
-const PAST_SITE = "These phrasings would pass what Asked Before can take today, across every account. More open at midnight UTC.";
-const PAST_MODEL = "Asked Before has made all the model requests it can today, across every account. More open at midnight UTC.";
+const PAST_MODEL = "Asked Before has used today's model requests for everyone. More open at midnight UTC.";
+const PAST_PHRASINGS = "These phrasings would pass what Asked Before can take today for everyone. More open at midnight UTC.";
 
 const failures: string[] = [];
 let current = "";
@@ -43,23 +42,19 @@ const check = (ok: boolean, what: string) => {
 };
 
 await mkdir(OUT, { recursive: true });
-const model = await startModelStub(reply(keySorter));
+// Sorts as the key does; a cold rep takes the answer a step queues, and anything else is refused.
+const model = await startModelStub(sortsByKey(refuse()));
 const app = await startApp({
   ANTHROPIC_BASE_URL: model.url,
-  DAILY_PHRASINGS: String(ACCOUNT_PHRASINGS),
-  SITE_DAILY_PHRASINGS: String(SITE_PHRASINGS),
-  SITE_DAILY_MODEL_REQUESTS: "2",
+  SITE_DAILY_MODEL_REQUESTS: "4",
+  SITE_DAILY_PHRASINGS: "60",
+  // The caps m1kuorg/basics#73 removed, set as small as they went: none of them holds anything back now.
+  DAILY_MODEL_REQUESTS: "1",
+  DAILY_PHRASINGS: "1",
+  FIRST_DAY_SITE_DAILY_MODEL_REQUESTS: "1",
+  FIRST_DAY_SITE_DAILY_PHRASINGS: "1",
+  NETWORK_DAILY_SIGNUPS: "1",
 });
-// No endpoint can make the database fail a write, so the give-back's failing (m1kuorg/basics#70) is made here, in
-// the database: every account's count may only go up, for the whole run. One of the read-only rule's documented
-// exceptions (docs/code-map.md).
-{
-  const store = new Database(app.databasePath, { strict: true });
-  store.run(`CREATE TRIGGER usage_only_goes_up BEFORE UPDATE ON usage
-    WHEN NEW.phrasings < OLD.phrasings OR NEW.model_requests < OLD.model_requests
-    BEGIN SELECT RAISE(ABORT, 'an account''s count went down'); END`);
-  store.close();
-}
 const browser = await chromium.launch();
 const pages: Page[] = [];
 const errors: string[] = [];
@@ -90,15 +85,7 @@ async function failure(call: Promise<unknown>): Promise<ApiError | null> {
 }
 const say = (error: ApiError | null) => (error ? `${error.status} "${error.message}"` : "no error");
 
-/** A new learner through the SDK, with a shelf. */
-async function learner(name: string): Promise<Browser & { shelfId: string }> {
-  const one = app.browser();
-  await one.client.auth.signUp({ name, email: `${name.toLowerCase()}@example.com`, password: "a long enough password" });
-  const { id } = await one.client.shelves.create({ name: "Bootcamp" });
-  return { ...one, shelfId: id };
-}
-
-/** A page in a browser holding the learner's session. */
+/** A page in a browser holding `one`'s session. */
 async function pageOf(one: Browser): Promise<Page> {
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   await context.addCookies(one.cookie().split("; ").map((pair) => pair.split("=")).map(([name, value]) => ({ name: name!, value: value!, url: app.url })));
@@ -127,79 +114,95 @@ async function sendDemo(page: Page, shelfId: string): Promise<string> {
 const fresh = (n: number, tag: string): Phrasing[] =>
   Array.from({ length: n }, (_, i) => ({ sourceId: `${tag}-${i}`, text: `A question of ${tag}'s, number ${i}`, time: "2026-10-01T09:00:00.000Z" }));
 
-type Counts = { phrasings: number; modelRequests: number };
-
-/** The phrasings and model requests each account and the app have counted today, from the database. */
-function counted(): { accounts: Record<string, Counts>; site: Counts } {
+/** The phrasings and model requests the app has counted today, from the database. */
+function counted(): { phrasings: number; modelRequests: number } {
   const store = new Database(app.databasePath, { readonly: true, strict: true });
-  const rows = store.query("SELECT u.name, g.phrasings, g.model_requests AS modelRequests FROM usage g JOIN users u ON u.id = g.user_id").all() as ({ name: string } & Counts)[];
-  const site = store.query("SELECT phrasings, model_requests AS modelRequests FROM site_usage").get() as Counts;
+  const site = store.query("SELECT phrasings, model_requests AS modelRequests FROM site_usage").get() as { phrasings: number; modelRequests: number };
   store.close();
-  return { accounts: Object.fromEntries(rows.map(({ name, ...counts }) => [name, counts])), site };
+  return site;
 }
 
-const cy = await learner("Cy");
-const dee = await learner("Dee");
-const eve = await learner("Eve");
+const learners = new Map<string, Browser & { shelfId: string }>();
+const guest = app.browser();
+/** The guest's demo shelf, its card A, and the cold rep the guest starts on it. */
+const guestHas = { shelfId: "", cardId: "", repId: "" };
 
 try {
-  await step("1. An account sends phrasings up to its cap, then gets 429 for a capture and for a chunk", async () => {
+  await step("1. Five accounts sign up from one address, with a network's sign-ups set to 1", async () => {
+    for (const name of ["Cy", "Dee", "Eve", "Fay", "Gus"]) {
+      const one = app.browser();
+      const made = await failure(one.client.auth.signUp({ name, email: `${name.toLowerCase()}@example.com`, password: "a long enough password" }));
+      if (!made) learners.set(name, { ...one, shelfId: (await one.client.shelves.create({ name: "Bootcamp" })).id });
+      check(made === null, `${name} signs up: ${say(made)}`);
+    }
+    // Signing in restores the guest workspace's demo shelf for the day, with no model request.
+    await guest.client.auth.signInAsGuest();
+    check((await guest.client.auth.me()).guest, "and the guest signs in");
+  });
+
+  await step("2. Two accounts and the guest spend the app's 4 model requests between them, past the caps each account had", async () => {
+    const cy = learners.get("Cy")!;
     const sorted = await sortEnds(cy.client, (await upload(cy.client, cy.shelfId, phrasings)).id);
-    check(sorted.status === "sorted" && sorted.phrasings === 27, `the demo export's 27 are stored and sorted: ${sorted.status}`);
-    // Words already on a card join it without the model.
-    const borrows = (await cy.client.cards.get((await cy.client.cards.list(cy.shelfId))[0]!.id)).borrows.map((borrow) => borrow.text);
-    for (const text of borrows.slice(0, 3)) await cy.client.captures.create(cy.shelfId, { text });
-    check(true, "three captures bring it to 30");
-    const capture = await failure(cy.client.captures.create(cy.shelfId, { text: borrows[3]! }));
-    check(capture?.status === 429 && capture.message === PAST_ACCOUNT, `a fourth capture: ${say(capture)}`);
-    const open = await cy.client.uploads.create(cy.shelfId, { source: "chatgpt", fileName: "conversations.json" });
-    const chunk = await failure(cy.client.uploads.append(open.id, fresh(1, "cy")));
-    check(chunk?.status === 429 && chunk.message === PAST_ACCOUNT, `a chunk of one: ${say(chunk)}`);
-    check((await cy.client.uploads.get(open.id)).messages === 0, "and the chunk stored nothing");
+    check(sorted.status === "sorted" && model.requests.length === 2, `Cy's sort spends 2, its batch and its second pass: ${sorted.status}, ${model.requests.length} requests`);
+    const [demo] = await guest.client.shelves.list();
+    const [cardA] = await guest.client.cards.list(demo!.id);
+    model.queue(repReply("A guest's problem.", "A guest's lesson."));
+    const { rep } = await guest.client.reps.start(cardA!.id);
+    check(rep.problem === "A guest's problem." && model.requests.length === 3, `the guest's cold rep spends 1: ${model.requests.length} requests`);
+    const dee = learners.get("Dee")!;
+    await dee.client.captures.create(dee.shelfId, { text: "how do i rename a git branch" });
+    const second = await dee.client.captures.create(dee.shelfId, { text: "what's the command to rename a branch in git" });
+    check(second.card === null && model.requests.length === 4, `Dee's second capture, sorted against her first, spends the last: ${model.requests.length} requests`);
+    Object.assign(guestHas, { shelfId: demo!.id, cardId: cardA!.id, repId: rep.id });
   });
 
-  await step("2. The upload page shows an account past its phrasings", async () => {
-    const page = await pageOf(cy);
-    const said = await sendDemo(page, (await cy.client.shelves.create({ name: "Work" })).id);
-    check(said === PAST_ACCOUNT, `the notice says "${said}"`);
-    check(await page.locator(".block").getByRole("button", { name: "Try again" }).isVisible(), "with a Try again button");
+  await step("3. Past them, every model request is a 429 with the app's message, whoever sends it", async () => {
+    const cy = learners.get("Cy")!;
+    const dee = learners.get("Dee")!;
+    const cyCard = (await cy.client.cards.list(cy.shelfId))[0]!;
+    const refused = {
+      "Cy's cold rep": await failure(cy.client.reps.start(cyCard.id)),
+      "the guest's check": await failure(guest.client.reps.check(guestHas.repId, { answer: known.right })),
+      "the guest's next cold rep": await failure(guest.client.reps.start(guestHas.cardId)),
+      "Dee's capture": await failure(dee.client.captures.create(dee.shelfId, { text: "how do i delete a git branch" })),
+    };
+    for (const [what, error] of Object.entries(refused)) check(error?.status === 429 && error.message === PAST_MODEL, `${what}: ${say(error)}`);
+    check(model.requests.length === 4, `and the model wasn't asked again: ${model.requests.length} requests`);
   });
 
-  await step("3. Past the app's model requests, the next sort fails, the page shows it, and a cold rep gets 429", async () => {
-    check(model.requests.length === 2, `Cy's sort made the app's two model requests, its batch and its second pass: ${model.requests.length}`);
-    const page = await pageOf(dee);
-    await page.goto(`${app.url}/app/shelves/${dee.shelfId}/upload`);
+  await step("4. The upload page shows a sort past the app's model requests", async () => {
+    const eve = learners.get("Eve")!;
+    const page = await pageOf(eve);
+    await page.goto(`${app.url}/app/shelves/${eve.shelfId}/upload`);
     await page.locator(".drop-zone input[type=file]").setInputFiles(DEMO);
     await page.locator(".block").getByRole("button", { name: "Upload 27 messages" }).click();
     await page.waitForURL(/[?&]upload=/);
     await page.locator(".block .error").waitFor();
     const said = ((await page.locator(".block .error").textContent()) ?? "").trim();
-    check(said === PAST_MODEL, `Dee's upload is stored, and the page says "${said}"`);
-    const failed = await dee.client.uploads.get(new URL(page.url()).searchParams.get("upload")!);
+    check(said === PAST_MODEL, `Eve's upload is stored, and the page says "${said}"`);
+    const failed = await eve.client.uploads.get(new URL(page.url()).searchParams.get("upload")!);
     check(failed.status === "failed" && failed.error === PAST_MODEL && failed.phrasings === 27, `the API has it ${failed.status}: "${failed.error}"`);
-    const rep = await failure(cy.client.reps.start((await cy.client.cards.list(cy.shelfId))[0]!.id));
-    check(rep?.status === 429 && rep.message === PAST_MODEL, `a cold rep on another account: ${say(rep)}`);
-    check(model.requests.length === 2, `and the model wasn't asked again: ${model.requests.length} requests`);
+    check(await page.locator(".block").getByRole("button", { name: "Try again" }).isVisible(), "with a Try again button");
   });
 
-  await step("4. Past the app's phrasings, any account's chunk gets 429, and the page shows it; one that just fits is stored", async () => {
-    const page = await pageOf(eve);
-    const said = await sendDemo(page, eve.shelfId);
-    check(said === PAST_SITE, `Eve's first upload, under her own cap, says "${said}"`);
-    const open = await eve.client.uploads.create(eve.shelfId, { source: "chatgpt", fileName: "conversations.json" });
-    const over = await failure(eve.client.uploads.append(open.id, fresh(4, "eve")));
-    check(over?.status === 429 && over.message === PAST_SITE, `a chunk of 4, with 57 of 60 counted: ${say(over)}`);
-    const fits = await eve.client.uploads.append(open.id, fresh(3, "eve"));
+  await step("5. Past the app's phrasings, any account's chunk is a 429, and the page shows it; one that just fits is stored", async () => {
+    // Cy's 27, Eve's 27, and Dee's 3 captures, the one refused at the model counted too, make 57 of 60.
+    check(counted().phrasings === 57, `57 of 60 are counted: ${counted().phrasings}`);
+    const open = await guest.client.uploads.create(guestHas.shelfId, { source: "chatgpt", fileName: "conversations.json" });
+    const over = await failure(guest.client.uploads.append(open.id, fresh(4, "guest")));
+    check(over?.status === 429 && over.message === PAST_PHRASINGS, `the guest's chunk of 4: ${say(over)}`);
+    const fits = await guest.client.uploads.append(open.id, fresh(3, "guest"));
     check(fits.phrasings === 3, `a chunk of 3 is stored: ${fits.phrasings} phrasings`);
+    const fay = learners.get("Fay")!;
+    const page = await pageOf(fay);
+    const said = await sendDemo(page, fay.shelfId);
+    check(said === PAST_PHRASINGS, `Fay's upload, her first, says "${said}"`);
+    check(await page.locator(".block").getByRole("button", { name: "Try again" }).isVisible(), "with a Try again button");
   });
 
-  await step("5. A refused request counts toward neither cap, with no account's count ever going down", async () => {
-    const { accounts, site } = counted();
-    const want = {
-      accounts: { Cy: { phrasings: 30, modelRequests: 2 }, Dee: { phrasings: 27, modelRequests: 0 }, Eve: { phrasings: 3, modelRequests: 0 } },
-      site: { phrasings: 60, modelRequests: 2 },
-    };
-    const got = { accounts: { Cy: accounts.Cy, Dee: accounts.Dee, Eve: accounts.Eve }, site };
+  await step("6. The app's counters hold what was taken, and nothing refused", async () => {
+    const got = counted();
+    const want = { phrasings: 60, modelRequests: 4 };
     check(JSON.stringify(got) === JSON.stringify(want), `counted ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
     check(errors.length === 0, `no console errors${errors.length ? `: ${errors.slice(0, 3).join(" | ")}` : ""}`);
   });
@@ -214,4 +217,4 @@ if (failures.length) {
   console.log(`\n${failures.length} check(s) failed:\n${failures.map((f) => `  ${f}`).join("\n")}`);
   process.exit(1);
 }
-console.log("\nThe daily caps hold.");
+console.log("\nThe app's daily caps hold, for everyone at once.");
