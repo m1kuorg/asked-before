@@ -7,8 +7,9 @@
 // error and a retry that carries on with the same upload. A finished upload
 // is shown from the query, ?upload=<id>, and watched while it waits and is
 // sorted (m1kuorg/basics#44): the waiting line counts the phrasings sorted
-// so far, and a sort that fails shows its error and a retry, which carries
-// on from where it stopped.
+// so far, then names the sort's last pass over the unsorted, once they all
+// are (m1kuorg/basics#56), and a sort that fails shows its error and a
+// retry, which carries on from where it stopped.
 //
 // The demo action, startDemoShelf(), makes a shelf flagged demo and
 // comes here with ?export=demo, which reads the demo export with the same
@@ -173,18 +174,22 @@ export function mountUpload(root: HTMLElement, { client, params, query, navigate
       /** Where an upload stands, in the library's words. */
       function standing(upload: Upload): Node[] {
         const one = upload.phrasings === 1;
+        const sorted = `${count(upload.offered)} of ${count(upload.phrasings)}`;
+        // Once every phrasing is sorted, the sort's last pass offers the shelf's unsorted again.
+        const lastPass = upload.phrasings > 0 && upload.offered === upload.phrasings;
         switch (upload.status) {
           case "receiving":
             return [el("p", undefined, "This upload stopped before all its messages arrived. Upload the export again: nothing already sent is counted twice.")];
           case "waiting":
             return [upload.phrasings === 0 ? el("p", undefined, "There's nothing new to sort.") : waiting(`${one ? "It waits" : "They wait"} to be sorted into ${shelf.name}'s cards…`)];
           case "sorting":
-            return [waiting(`Sorting ${one ? "it" : "them"} into ${shelf.name}'s cards: ${count(upload.offered)} of ${count(upload.phrasings)} sorted…`)];
+            return [waiting(`Sorting ${one ? "it" : "them"} into ${shelf.name}'s cards: ${sorted} sorted${lastPass ? ", and a last pass over the unsorted" : ""}…`)];
           case "sorted":
             return [el("p", undefined, upload.phrasings === 0 ? "There was nothing new to sort." : `${one ? "It's" : "They're"} sorted into ${shelf.name}'s cards.`)];
           case "failed": {
             const lines: Node[] = [notice(upload.error ?? "The sort failed.")];
-            if (upload.offered > 0) lines.push(el("p", undefined, `${count(upload.offered)} of ${count(upload.phrasings)} were sorted before it stopped. Trying again carries on from there.`));
+            if (lastPass) lines.push(el("p", undefined, `${sorted} were sorted, and it stopped on the last pass over the unsorted. Trying again runs that pass.`));
+            else if (upload.offered > 0) lines.push(el("p", undefined, `${sorted} were sorted before it stopped. Trying again carries on from there.`));
             return [...lines, button("Try again", () => void retry(upload), "retry")];
           }
         }

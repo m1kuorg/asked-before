@@ -3,12 +3,13 @@
 // this script and never in the app: each app's ANTHROPIC_BASE_URL points
 // at a stand-in that answers as the answer key sorts the demo export,
 // unless a step queues another answer. Finishing an upload starts its sort,
-// which ends sorted with the cards and unsorted phrasings the key says, in
-// margin-key order; the model sees only short ids, skills, and texts cut
-// to 300 characters. The code checks hold: a new skill named like a card
-// joins it, one of a single phrasing makes no card, and an answer that
-// breaks a rule is asked again with the error, then fails the sort with no
-// card made. A failed sort resumes on retry from the first phrasing not yet
+// which ends sorted once its batches and its second pass over the unsorted
+// (m1kuorg/basics#56) are done, with the cards and unsorted phrasings the
+// key says, in margin-key order; the model sees only short ids, skills, and
+// texts cut to 300 characters. The code checks hold: a new skill named
+// like a card joins it, one of a single phrasing makes no card, and an
+// answer that breaks a rule is asked again with the error, then fails the
+// sort with no card made. A failed sort resumes on retry from the first phrasing not yet
 // offered; sorts run one at a time on a shelf and side by side across
 // shelves; deleting a shelf stops its sort; after a hard kill of the app
 // mid-sort, starting it again on the same state carries on the sort it cut
@@ -109,7 +110,17 @@ try {
     check(finished.status === "waiting" && finished.offered === 0, `the finish answers ${finished.status}, ${finished.offered} offered`);
     const end = await sortEnds(ada, finished.id);
     check(end.status === "sorted" && end.offered === 27 && end.phrasings === 27 && end.error === null, `it ends ${end.status}, ${end.offered} of ${end.phrasings} offered, error ${end.error}`);
-    check(main.model.requests.length === 1, `in ${main.model.requests.length} model request at effort ${main.model.requests[0]?.body.output_config?.effort}`);
+    const [batch, pass] = main.model.requests;
+    const effort = (request: typeof batch) => request?.body.output_config?.effort;
+    check(
+      main.model.requests.length === 2 && effort(batch) === "medium" && effort(pass) === "high",
+      `in ${main.model.requests.length} model requests: the batch at effort ${effort(batch)}, then the second pass at ${effort(pass)}`,
+    );
+    const again = pass ? sentNames(pass) : [];
+    check(
+      again.length === key.oneOffs.length && key.oneOffs.every((id) => again.includes(id)) && sortRequest(pass!).cards.length === key.skills.length,
+      `the second pass offered the ${again.length} unsorted again (${again.join(" ")}), against the ${pass ? sortRequest(pass).cards.length : 0} cards the batch made`,
+    );
   });
 
   await step("3. Its cards match the answer key, in margin-key order, each with its borrows word for word and no reps", async () => {
@@ -200,7 +211,7 @@ try {
     );
     const end = await sortEnds(ada, (await upload(ada, work.id, [r1!, r2!])).id);
     const again = sortRequest(main.model.requests[before + 1]!);
-    check(end.status === "sorted" && main.model.requests.length === before + 2, `asked twice, then ${end.status}`);
+    check(end.status === "sorted" && main.model.requests.length === before + 3, `asked twice, then once more for the second pass, then ${end.status}`);
     check(/c99/.test(again.note) && again.phrasings.length === sortRequest(main.model.requests[before]!).phrasings.length, `the second request adds the error: "${again.note.trim()}"`);
     check((await cardNamed(ada, work.id, "Rename a git branch"))?.count === 2, "and its answer made the card");
 
@@ -248,7 +259,7 @@ try {
     const end = await sortEnds(small.client, failed.id);
     const resumed = sentNames(small.model.requests[2]!);
     check(resumed.slice(0, 10).join(" ") === "m11 m12 m13 m14 m15 m16 m17 m18 m19 m20", `the retry starts again at m11: ${resumed.slice(0, 10).join(" ")}`);
-    check(end.status === "sorted" && small.model.requests.length === 4, `then ends ${end.status}, in ${small.model.requests.length} requests in all`);
+    check(end.status === "sorted" && small.model.requests.length === 5, `then ends ${end.status}, in ${small.model.requests.length} requests in all: three batches, the refused one, and the second pass`);
     const { problems } = await compareWithKey(small.client, shelf.id);
     check(problems.length === 0, problems.length ? problems.join("; ") : "and its cards match the key");
   });
@@ -263,14 +274,14 @@ try {
     await held.reached;
     const second = await upload(small.client, one.id, phrasings.slice(5, 10));
     const elsewhere = await upload(small.client, other.id, phrasings.slice(0, 5));
-    await small.model.arrived(before + 2);
+    await small.model.arrived(before + 3);
     await Bun.sleep(500);
     const waiting = await small.client.uploads.get(second.id);
-    check(small.model.requests.length === before + 2, `with One's first sort held, Other's sort still asked the model (${small.model.requests.length - before} requests)`);
+    check(small.model.requests.length === before + 3, `with One's first sort held, Other's sort still asked the model, for its batch and its second pass (${small.model.requests.length - before} requests)`);
     check(waiting.status === "waiting", `and One's second upload waits: ${waiting.status}`);
     held.release(reply(keySorter));
     const ends = [await sortEnds(small.client, first.id), await sortEnds(small.client, second.id), await sortEnds(small.client, elsewhere.id)];
-    check(ends.every((u) => u.status === "sorted") && small.model.requests.length === before + 3, `all three end ${ends.map((u) => u.status).join(", ")}, in ${small.model.requests.length - before} requests`);
+    check(ends.every((u) => u.status === "sorted") && small.model.requests.length === before + 6, `all three end ${ends.map((u) => u.status).join(", ")}, in ${small.model.requests.length - before} requests, two each`);
   });
 
   await step("11. Deleting a shelf stops its sort", async () => {
@@ -310,7 +321,7 @@ try {
       const again = after.browser().client;
       await again.auth.logIn({ email: "cy@example.com", password: "jacquard loom" });
       const end = await sortEnds(again, cut.id);
-      check(end.status === "sorted" && model.requests.length === 2, `the restarted app asked the model again and the upload ends ${end.status}`);
+      check(end.status === "sorted" && model.requests.length === 3, `the restarted app asked the model again, for the batch cut off and the second pass, and the upload ends ${end.status}`);
       const { problems } = await compareWithKey(again, shelf.id);
       check(problems.length === 0, problems.length ? problems.join("; ") : "and its cards match the key");
     } finally {
@@ -406,17 +417,17 @@ try {
     }
   });
 
-  const capped = await copy({ DAILY_MODEL_REQUESTS: "2" });
+  const capped = await copy({ DAILY_MODEL_REQUESTS: "4" });
   await step("16. Past the daily cap, the next model request gets 429, and the upload says so", async () => {
     const shelf = await capped.client.shelves.create({ name: "Capped" });
     const first = await sortEnds(capped.client, (await upload(capped.client, shelf.id, phrasings.slice(0, half))).id);
     const second = await sortEnds(capped.client, (await upload(capped.client, shelf.id, phrasings.slice(half))).id);
-    check(first.status === "sorted" && second.status === "sorted" && capped.model.requests.length === 2, `two sorts spend the day's 2 requests: ${first.status}, ${second.status}`);
+    check(first.status === "sorted" && second.status === "sorted" && capped.model.requests.length === 4, `two sorts, each a batch and a second pass, spend the day's 4 requests: ${first.status}, ${second.status}`);
     const third = await sortEnds(capped.client, (await upload(capped.client, shelf.id, extra("how do i undo a commit i already pushed", "push a branch to a new remote"))).id);
-    check(third.status === "failed" && /today's 2 model requests/.test(third.error ?? "") && capped.model.requests.length === 2, `the third: ${third.status}, "${third.error}", and the model wasn't asked (${capped.model.requests.length} requests)`);
+    check(third.status === "failed" && /today's 4 model requests/.test(third.error ?? "") && capped.model.requests.length === 4, `the third: ${third.status}, "${third.error}", and the model wasn't asked (${capped.model.requests.length} requests)`);
     await capped.client.uploads.retry(third.id);
     const retried = await sortEnds(capped.client, third.id);
-    check(retried.status === "failed" && /today's 2 model requests/.test(retried.error ?? ""), `retried the same day, it fails again: "${retried.error}"`);
+    check(retried.status === "failed" && /today's 4 model requests/.test(retried.error ?? ""), `retried the same day, it fails again: "${retried.error}"`);
   });
 
   await step("17. The logs hold no phrasing", async () => {

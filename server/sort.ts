@@ -4,9 +4,15 @@
 // per shelf and one batch per alarm, in batches of SORT_BATCH_SIZE
 // phrasings no sort has seen, each sent with as many of the shelf's most
 // recent unsorted phrasings, so a later borrow can still turn an earlier
-// one into a card. Later batches see the cards earlier ones made. An
-// unsorted phrasing older than that window is only compared again if it
-// falls inside a later batch's window: a known limit.
+// one into a card. Later batches see the cards earlier ones made. Once an
+// upload's batches are done, its second pass (m1kuorg/basics#56) offers
+// the window once more, at a higher effort, against the cards as they
+// stand then and each other, so a phrasing an earlier batch left unsorted
+// can still join a card a later one made; the upload is sorted once that
+// pass is applied. So an upload makes one request per batch and one more:
+// the demo export 2, and 2,000 phrasings 8. An unsorted phrasing older
+// than that window is only compared again if it falls inside a later
+// batch's window: a known limit.
 //
 // The model sees the cards as short ids, skills, and three sample phrasings,
 // and the phrasings as short ids and their words cut to 300 characters,
@@ -43,6 +49,13 @@ const TRIES = 3;
  * twice the time and tokens. Captures (m1kuorg/basics#50) go lower.
  */
 export const SORT_EFFORT: Effort = "medium";
+/**
+ * An upload's second pass, over the window once its batches are done
+ * (m1kuorg/basics#56). With `bun run check:sort-recall 10`, medium found
+ * 77.5% of the pairs at 89.7% precision and high 82.4% at 89.2%; xhigh cut
+ * off one answer in ten at 64,000 tokens, and max every one.
+ */
+const SECOND_PASS_EFFORT: Effort = "high";
 
 /** The model's reply to a sort request, before code checks it. */
 const Reply = z.object({
@@ -271,23 +284,25 @@ export async function sortCapture(env: Env, userId: string, shelfId: string, cap
 /**
  * One batch of the shelf's sort, for one alarm of its Durable Object: it
  * takes the shelf's next upload, one cut off first, and places up to
- * SORT_BATCH_SIZE of its phrasings no sort has seen, then marks it sorted
- * once none is left. A failure, a model's or the daily cap's 429 or a
- * check that failed three times, is recorded on the upload, which a retry
- * carries on. Whether the shelf has an upload still to sort, so the
- * Durable Object runs again; none when the shelf or the account is gone,
- * which ends its sort quietly.
+ * SORT_BATCH_SIZE of its phrasings no sort has seen; once none is left,
+ * the alarm after is its second pass, which marks it sorted. A failure, a
+ * model's or the daily cap's 429 or a check that failed three times, is
+ * recorded on the upload, which a retry carries on. Whether the shelf has
+ * an upload still to sort, so the Durable Object runs again; none when the
+ * shelf or the account is gone, which ends its sort quietly.
  */
 export async function sortNextBatch(env: Env, shelfId: string): Promise<boolean> {
   const upload = await store.startNext(env.DB, shelfId);
   if (!upload) return false;
   try {
-    const { fresh, window, cards } = await store.nextBatch(env.DB, upload, readConfig(env).sortBatchSize);
-    // With none of its phrasings left to offer, the upload is sorted; with no card to join and one phrasing alone, nothing can be placed. Either way the model isn't asked.
-    const batch = fresh.length ? [...fresh, ...window] : [];
+    const { fresh, window, cards, brought } = await store.nextBatch(env.DB, upload, readConfig(env).sortBatchSize);
+    // With none of its phrasings left to offer, this is the upload's second pass: the window again, against the cards as they stand now. An upload that brought nothing has none.
+    const last = fresh.length === 0;
+    const batch = last ? (brought ? window : []) : [...fresh, ...window];
+    // With nothing to offer, or no card to join and one phrasing alone, nothing can be placed, so the model isn't asked.
     const ask = batch.length > 0 && (cards.length > 0 || batch.length > 1);
-    const placement = ask ? await askPlacement(env, upload.userId, cards, orderByWords(batch), SORT_EFFORT) : NOTHING;
-    return await store.applyPlacement(env.DB, upload, placement, batch.map((p) => p.id));
+    const placement = ask ? await askPlacement(env, upload.userId, cards, orderByWords(batch), last ? SECOND_PASS_EFFORT : SORT_EFFORT) : NOTHING;
+    return await store.applyPlacement(env.DB, upload, placement, batch.map((p) => p.id), last);
   } catch (error) {
     // Its message is safe to show. The upload records it; the logs carry requests only.
     return store.markFailed(env.DB, upload, error instanceof HttpError ? error.message : "The sort failed on the server.");
