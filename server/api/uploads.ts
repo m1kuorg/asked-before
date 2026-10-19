@@ -1,14 +1,17 @@
 // Uploads: list a shelf's uploads, create one, append a chunk of up to
-// 2,000 phrasings, finish it, and get one (m1kuorg/basics#43); retry a
+// 500 phrasings, finish it, and get one (m1kuorg/basics#43); retry a
 // failed sort (m1kuorg/basics#44); delete one, which needs a session
 // (m1kuorg/basics#45).
 //
 // A chunk holds phrasings as { sourceId, text, time } and nothing else, so
 // no answer, title, or other part of an export can reach the server (ADR
-// 0001). A phrasing over 2,000 characters, or a chunk over 2,000 phrasings,
+// 0001). A phrasing over 2,000 characters, or a chunk over 500 phrasings,
 // is a 413; a phrasing dated more than 5 minutes after the server's clock
 // is a 400 (its time is a Unix timestamp, so no time zone runs ahead), lest
-// a card show borrowed again the moment it's returned. Finishing an upload
+// a card show borrowed again the moment it's returned. The phrasings a
+// chunk would store, those new to the shelf, count toward the account's
+// daily phrasings and the app's (store/usage.ts), or the chunk is a 429
+// that stores none of them once they'd pass either. Finishing an upload
 // answers with it waiting to be sorted, and starts the shelf's sort in its
 // Durable Object (worker/sorter.ts, server/sort.ts), which records its
 // progress and any failure on the upload; when that start fails, the
@@ -24,7 +27,8 @@ import { authed } from "../auth";
 import type { Env } from "../config";
 import { defineRoutes, HttpError, readJson, readPage } from "../http";
 import type { Db } from "../store/db";
-import { appendPhrasings, createUpload, deleteUpload, failUnstarted, finishUpload, getUpload, listUploads, retryUpload, type UploadChange } from "../store/uploads";
+import { spendPhrasings } from "../store/usage";
+import { appendPhrasings, createUpload, deleteUpload, failUnstarted, finishUpload, getUpload, listUploads, newPhrasings, retryUpload, type UploadChange } from "../store/uploads";
 
 /** How far past the server's clock a phrasing may be dated, for a clock that runs a little fast. */
 const AHEAD_MS = 5 * 60 * 1000;
@@ -34,7 +38,7 @@ const AHEAD_MS = 5 * 60 * 1000;
  * UTF-8, with room for their ids and times. A Worker has 128 MB, which
  * the body, its text, and its phrasings share while the chunk is stored.
  */
-const MAX_CHUNK_BYTES = 16 * 1024 * 1024;
+const MAX_CHUNK_BYTES = 4 * 1024 * 1024;
 
 const NewUpload = z.strictObject({
   source: z.enum(["chatgpt", "claude"], { error: "source is chatgpt or claude." }),
@@ -113,8 +117,8 @@ export const uploads = defineRoutes({
     ),
   },
   "/api/v1/uploads/:uploadId/phrasings": {
-    POST: authed(async (req, { db, params, auth }) => {
-      if (Number(req.headers.get("content-length")) > MAX_CHUNK_BYTES) throw new HttpError(413, "This chunk is too big. Send at most 2,000 phrasings at a time.");
+    POST: authed(async (req, { db, config, params, auth }) => {
+      if (Number(req.headers.get("content-length")) > MAX_CHUNK_BYTES) throw new HttpError(413, `This chunk is too big. Send at most ${MAX_CHUNK.toLocaleString("en-US")} phrasings at a time.`);
       const { phrasings } = await readJson(req, Chunk);
       if (phrasings.length > MAX_CHUNK) throw new HttpError(413, `A chunk can hold at most ${MAX_CHUNK.toLocaleString("en-US")} phrasings.`);
       const latest = Date.now() + AHEAD_MS;
@@ -124,6 +128,7 @@ export const uploads = defineRoutes({
         }
         if (Date.parse(time) > latest) throw new HttpError(400, `Phrasing ${i + 1} is dated more than 5 minutes after the server's clock.`);
       });
+      await spendPhrasings(db, auth.userId, await newPhrasings(db, auth.userId, params.uploadId, phrasings), config.dailyPhrasings);
       const appended = await appendPhrasings(db, auth.userId, params.uploadId, phrasings);
       return Response.json(changed(appended, "This upload is finished, so it takes no more phrasings. Start a new upload to add more."));
     }),

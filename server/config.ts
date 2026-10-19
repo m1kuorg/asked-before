@@ -24,16 +24,28 @@ export type Env = {
   SORTER_FAULT?: "start" | "database";
   PUBLIC_URL?: string;
   DAILY_MODEL_REQUESTS?: string;
+  SITE_DAILY_MODEL_REQUESTS?: string;
+  DAILY_PHRASINGS?: string;
+  SITE_DAILY_PHRASINGS?: string;
   SORT_BATCH_SIZE?: string;
 };
+
+/** A daily cap for each account, and one for the whole app, across every account, both counted per UTC day (store/usage.ts). */
+export type Caps = { account: number; site: number };
 
 export type Config = {
   /** The public URL, when set. Without it, a request's own origin is the app's origin. */
   publicUrl: URL | undefined;
   /** An https public URL makes the session cookie Secure and __Host- prefixed. */
   https: boolean;
-  /** Model requests one account may make per UTC day. */
-  dailyModelRequests: number;
+  /** Model requests per UTC day. */
+  dailyModelRequests: Caps;
+  /**
+   * Phrasings sent per UTC day, uploads and captures together, which keep
+   * the app under D1 Free's 100,000 rows written a day: each phrasing
+   * stored and sorted writes 7 to 9.
+   */
+  dailyPhrasings: Caps;
   /** Phrasings a sort sends the model at once, beside as many of the shelf's most recent unsorted ones (server/sort.ts). */
   sortBatchSize: number;
 };
@@ -44,13 +56,14 @@ export function readConfig(env: Env): Config {
   return {
     publicUrl,
     https: publicUrl?.protocol === "https:",
-    dailyModelRequests: wholeNumber(env, "DAILY_MODEL_REQUESTS", 300),
+    dailyModelRequests: { account: wholeNumber(env, "DAILY_MODEL_REQUESTS", 10), site: wholeNumber(env, "SITE_DAILY_MODEL_REQUESTS", 200) },
+    dailyPhrasings: { account: wholeNumber(env, "DAILY_PHRASINGS", 1000), site: wholeNumber(env, "SITE_DAILY_PHRASINGS", 8000) },
     sortBatchSize: wholeNumber(env, "SORT_BATCH_SIZE", 300),
   };
 }
 
 /** A setting that's a whole number of 1 or more, or `fallback` when it's unset. */
-function wholeNumber(env: Env, name: "DAILY_MODEL_REQUESTS" | "SORT_BATCH_SIZE", fallback: number): number {
+function wholeNumber(env: Env, name: "DAILY_MODEL_REQUESTS" | "SITE_DAILY_MODEL_REQUESTS" | "DAILY_PHRASINGS" | "SITE_DAILY_PHRASINGS" | "SORT_BATCH_SIZE", fallback: number): number {
   const value = Number(env[name] || fallback);
   if (!Number.isInteger(value) || value < 1) throw new Error(`${name} must be a whole number of 1 or more.`);
   return value;

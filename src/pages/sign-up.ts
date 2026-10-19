@@ -1,5 +1,6 @@
-// The sign-up page. A weak password or an email already in use gets the
-// server's message; signing up goes to `next`, or to the Desk.
+// The sign-up page. A weak password gets the SDK's message, since the
+// password never leaves the page (ADR 0006), and an email already in use
+// the server's; signing up goes to `next`, or to the Desk.
 
 import { field, form } from "../parts/fields";
 import { client, mountAccountPage, next } from "./account";

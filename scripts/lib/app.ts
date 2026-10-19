@@ -16,6 +16,9 @@ import { join } from "node:path";
 
 const ROOT = join(import.meta.dir, "..", "..");
 
+/** The daily caps every check starts with, past anything one makes; a check of a cap sets its own in `env`. */
+const LIFTED_CAPS = { DAILY_MODEL_REQUESTS: "1000000", SITE_DAILY_MODEL_REQUESTS: "1000000", DAILY_PHRASINGS: "1000000", SITE_DAILY_PHRASINGS: "1000000" };
+
 export type App = {
   /** The app's origin, as "http://localhost:51234". */
   url: string;
@@ -50,7 +53,8 @@ export type StartOptions = {
 
 /**
  * Starts the app. `env` adds to or overrides the Worker's vars, such as
- * DAILY_MODEL_REQUESTS or ANTHROPIC_BASE_URL. First it checks for Node.js
+ * DAILY_MODEL_REQUESTS or ANTHROPIC_BASE_URL; every daily cap is lifted
+ * unless `env` sets it. First it checks for Node.js
  * 22 or later, builds the pages into a folder of their own, and applies the
  * migrations to the state's database.
  */
@@ -80,8 +84,9 @@ export async function startApp(env: Record<string, string> = {}, { state, port, 
   const databasePath = databaseIn(persist);
   if (!databasePath) await fail("The migrations made no database", persist);
 
-  // PUBLIC_URL is emptied so that a value in .env can't point the app's origin elsewhere.
-  const vars = Object.entries({ PUBLIC_URL: "", ...env }).flatMap(([name, value]) => ["--var", `${name}:${value}`]);
+  // PUBLIC_URL is emptied so that a value in .env can't point the app's origin elsewhere, and the daily caps lifted,
+  // since the checks make more model requests and send more phrasings than a learner's day allows.
+  const vars = Object.entries({ PUBLIC_URL: "", ...LIFTED_CAPS, ...env }).flatMap(([name, value]) => ["--var", `${name}:${value}`]);
   // --test-scheduled only quiets Wrangler's warning that the cron doesn't run locally, which could land among the
   // Worker's lines. A check runs the cron at /cdn-cgi/local/scheduled: /__scheduled, the flag's own path, is the
   // static assets' here, since only /api/* reaches the Worker first.

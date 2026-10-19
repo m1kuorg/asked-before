@@ -2,10 +2,11 @@
 // Through the SDK: API keys, made once in the ab_<id>_<secret> form, listed,
 // used as a Bearer token with their last use stamped, and revoked; a wrong or
 // revoked key's 401; the one rule for what a key can't do (403); changing the
-// name and email; and changing the password, which needs the current one and
-// ends every other session. Then, in a real browser at 1920×1080, the
-// settings page: a key made there and used by the SDK, then revoked there;
-// the name; the password, logging out another browser; and the setup
+// name and email, a new email needing the password; and changing the
+// password, which needs the current one and ends every other session. Then,
+// in a real browser at 1920×1080, the settings page: a key made there and
+// used by the SDK, then revoked there; the name and the email; the
+// password, logging out another browser; and the setup
 // snippets carrying this server's address, the Claude Code plugin first. It
 // prints each step's checks, never a key, saves screenshots, and exits 1 if
 // any fails, naming the step.
@@ -151,26 +152,33 @@ await step("4. A key reads and adds, but gets 403 renaming or deleting, managing
   check(denied?.status === 401, `a revoked key deleting a shelf is a 401, not a 403: ${say(denied)}`);
 });
 
-await step("5. Change the name and the email, which is trimmed, lowercased, and not another account's", async () => {
+await step("5. Change the name and the email, which is trimmed, lowercased, not another account's, and needs the password", async () => {
   const renamed = await ada.client.account.update({ name: "  Augusta Ada King  " });
   check(renamed.name === "Augusta Ada King" && renamed.email === ADA.email, `the name alone: ${renamed.name}, ${renamed.email}`);
-  const moved = await ada.client.account.update({ email: "  Ada@Engine.Example " });
+  const unsaid = await failure(ada.client.account.update({ email: "ada@engine.example" }));
+  check(unsaid?.status === 400 && /password/.test(unsaid.message), `a new email without the password: ${say(unsaid)}`);
+  const wrong = await failure(ada.client.account.update({ email: "ada@engine.example", password: "the wrong password" }));
+  check(wrong?.status === 403, `a new email with a wrong password: ${say(wrong)}`);
+  check((await ada.client.auth.me()).email === ADA.email, "neither changed it");
+  const moved = await ada.client.account.update({ email: "  Ada@Engine.Example ", password: ADA.password });
   check(moved.email === "ada@engine.example" && moved.name === "Augusta Ada King", `the email alone: ${moved.name}, ${moved.email}`);
   const me = await ada.client.auth.me();
   check(me.name === moved.name && me.email === moved.email, `the current account shows both: ${me.name}, ${me.email}`);
 
-  const taken = await failure(ada.client.account.update({ email: "BEA@example.com" }));
+  const relogged = await app.browser().client.auth.logIn({ email: "ada@engine.example", password: ADA.password });
+  check(relogged.account.id === moved.id, "the password logs in with the new email");
+  const taken = await failure(ada.client.account.update({ email: "BEA@example.com", password: ADA.password }));
   check(taken?.status === 409, `Bea's email: ${say(taken)}`);
   for (const [what, change] of [
     ["a blank name", { name: "  " }],
-    ["a bad email", { email: "not an email" }],
+    ["a bad email", { email: "not an email", password: ADA.password }],
     ["nothing to change", {}],
   ] as const) {
     const error = await failure(ada.client.account.update(change));
     check(error?.status === 400, `${what}: ${say(error)}`);
   }
   check((await ada.client.auth.me()).email === "ada@engine.example", "none of them changed it");
-  const back = await ada.client.account.update({ name: ADA.name, email: ADA.email });
+  const back = await ada.client.account.update({ name: ADA.name, email: ADA.email, password: ADA.password });
   check(back.name === ADA.name && back.email === ADA.email, `both at once, back again: ${back.name}, ${back.email}`);
   const loggedIn = await app.browser().client.auth.logIn({ email: ADA.email, password: ADA.password });
   check(loggedIn.account.id === back.id, "logging in takes the email as it is now");
@@ -271,21 +279,42 @@ try {
     check((await ada.client.keys.list()).map((k) => k.name).join(", ") === "Spare", "the SDK lists only the Spare key");
   });
 
-  await step("8. Change the name in the page, and the navigation shows it", async () => {
+  await step("8. Change the name in the page, and the navigation shows it; a new email needs the password", async () => {
     const profile = section("Profile");
     await profile.getByLabel("Name", { exact: true }).fill("Ada King");
     await profile.getByRole("button", { name: "Save profile" }).click();
     await page.locator("body > nav .nav-account", { hasText: "Ada King" }).waitFor();
     check((await profile.locator("[role=status]").textContent())?.includes("saved") ?? false, `the profile says "${await profile.locator("[role=status]").textContent()}"`);
     check((await ada.client.auth.me()).name === "Ada King", "the SDK sees the new name");
+
+    /** Saves the profile and waits for its refusal. */
+    const refusal = async () => {
+      await profile.getByRole("button", { name: "Save profile" }).click();
+      const shown = profile.locator(".error");
+      await shown.waitFor();
+      return (await shown.textContent()) ?? "";
+    };
+    const marked = (label: string) => profile.getByLabel(label, { exact: true }).getAttribute("aria-invalid");
     await profile.getByLabel("Email", { exact: true }).fill("bea@example.com");
-    await profile.getByRole("button", { name: "Save profile" }).click();
-    const taken = profile.locator(".error");
-    await taken.waitFor();
-    const marked = await profile.getByLabel("Email", { exact: true }).getAttribute("aria-invalid");
-    check(marked === "true", `Bea's email is refused with "${await taken.textContent()}", and the email field is marked`);
+    const unsaid = await refusal();
+    check(unsaid === "Changing the email needs your password.", `a new email without the password says "${unsaid}"`);
+    await profile.getByLabel("Your password", { exact: true }).fill("the wrong password");
+    const wrong = await refusal();
+    check(wrong === "That isn't your password." && (await marked("Your password")) === "true", `a wrong password says "${wrong}", and the password field is marked`);
+    await profile.getByLabel("Your password", { exact: true }).fill(ADA.password);
+    const taken = await refusal();
+    check((await marked("Email")) === "true", `Bea's email is refused with "${taken}", and the email field is marked`);
     await screenshot(page, "profile-refused");
-    await ada.client.account.update({ name: ADA.name, email: ADA.email });
+
+    await profile.getByLabel("Email", { exact: true }).fill("ada@engine.example");
+    await profile.getByLabel("Your password", { exact: true }).fill(ADA.password);
+    await profile.getByRole("button", { name: "Save profile" }).click();
+    await profile.locator("[role=status]").waitFor();
+    check((await ada.client.auth.me()).email === "ada@engine.example", "the SDK sees the new email");
+    check((await profile.getByLabel("Your password", { exact: true }).inputValue()) === "", "the password field is cleared");
+    const relogged = await app.browser().client.auth.logIn({ email: "ada@engine.example", password: ADA.password });
+    check(relogged.account.email === "ada@engine.example", "the password logs in with the new email");
+    await ada.client.account.update({ name: ADA.name, email: ADA.email, password: ADA.password });
   });
 
   await step("9. Changing the password in the page needs the current one and logs out another browser", async () => {
