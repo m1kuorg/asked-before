@@ -38,7 +38,7 @@ const check = (ok: boolean, what: string) => {
 
 await mkdir(OUT, { recursive: true });
 const model = await startModelStub(reply(keySorter));
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url, SORT_BATCH_SIZE: "10", DAILY_MODEL_REQUESTS: String(CAP) });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, SORT_BATCH_SIZE: "10", SITE_DAILY_MODEL_REQUESTS: String(CAP) });
 const browser = await chromium.launch();
 
 const learner = app.browser();
@@ -139,7 +139,7 @@ try {
     await send(shelf.id, CLAUDE);
     await page.locator(".block .error").waitFor();
     const said = await text(".block .error");
-    check(said === `You've used today's ${CAP} model requests. More open at midnight UTC.`, `the notice says "${said}"`);
+    check(said === "Asked Before has used today's model requests for everyone. More open at midnight UTC.", `the notice says "${said}"`);
     const upload = await learner.client.uploads.get(uploadId());
     check(upload.status === "failed" && upload.error === said && model.requests.length === CAP, `the API has it ${upload.status}, and the model wasn't asked (${model.requests.length} requests)`);
     await page.locator(".block").getByRole("button", { name: "Try again" }).click();

@@ -6,8 +6,8 @@
 // characters once trimmed (413 past it), stamped with the server's clock.
 // The same words on the same shelf within ten minutes answer 200 with
 // that earlier capture and add no borrow. Otherwise it counts toward the
-// account's daily phrasings and the app's (store/usage.ts), a 429 past
-// either, and it's stored and answers 201: words that match a phrasing on
+// app's daily phrasings, for everyone (store/usage.ts), a 429 past them,
+// and it's stored and answers 201: words that match a phrasing on
 // a card, ignoring case and spacing, join that card without asking the
 // model; anything else is placed by the sort's own request and checks
 // (sortCapture in server/sort.ts), at a lower effort, against the shelf's
@@ -48,10 +48,10 @@ export const captures = defineRoutes({
       const found = await lookUp(db, auth.userId, shelfId, capture);
       if (!found) throw new HttpError(404, NO_SHELF);
       if ("earlier" in found) return answer(db, auth.userId, found.earlier, true);
-      await spendPhrasings(db, auth.userId, 1, config.dailyPhrasings);
+      await spendPhrasings(db, 1, config.dailyPhrasings);
       const placement = found.cardId
         ? { joins: [{ cardId: found.cardId, phrasingIds: [capture.id] }], newCards: [] }
-        : await sortCapture(env, auth.userId, shelfId, capture);
+        : await sortCapture(env, shelfId, capture);
       const stored = await storeCapture(db, auth.userId, shelfId, capture, placement);
       if (!stored) throw new HttpError(404, NO_SHELF);
       return answer(db, auth.userId, stored.id, stored.alreadyCaptured);

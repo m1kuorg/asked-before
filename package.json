@@ -13,7 +13,7 @@
     "check:accounts": "bun run scripts/check-accounts.ts",
     "check:passwords": "bun run scripts/check-passwords.ts",
     "check:caps": "bun run scripts/check-caps.ts",
-    "check:fresh-accounts": "bun run scripts/check-fresh-accounts.ts",
+    "check:guest": "bun run scripts/check-guest.ts",
     "check:shell": "bun run scripts/check-shell.ts",
     "check:readers": "bun run scripts/check-readers.ts",
     "check:uploads": "bun run scripts/check-uploads.ts",

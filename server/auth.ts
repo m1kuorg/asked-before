@@ -1,7 +1,9 @@
 // Who is calling. authed() wraps every handler that needs an account: a
 // Bearer API key when one is sent, and the cookie is then ignored; or else
 // the session cookie, whose mutating requests must also pass sameOrigin().
-// A route only a session may use says so, and a key gets 403 there. The
+// A route only a session may use says so, and a key gets 403 there; so
+// does a route the shared guest may not use (settings: the account and its
+// keys, m1kuorg/basics#73), and a guest's session gets 403 there. The
 // session cookie is read here, and its Set-Cookie line made here for the
 // handler to answer with.
 
@@ -10,6 +12,7 @@ import type { Config } from "./config";
 import { HttpError, type Context, type Handler } from "./http";
 import { useKey } from "./store/keys";
 import { createSession, findSession, SESSION_DAYS } from "./store/sessions";
+import { GUEST_ID } from "./store/users";
 
 export type Auth =
   | { via: "session"; userId: string; sessionId: string }
@@ -22,11 +25,12 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 export function authed<P extends string>(
   handler: (req: Request, ctx: Context<P> & { auth: Auth }) => Response | Promise<Response>,
-  { sessionOnly = false } = {},
+  { sessionOnly = false, notGuest = false } = {},
 ): Handler<P> {
   return async (req, ctx) => {
     const auth = await authenticate(req, ctx);
     if (sessionOnly && auth.via === "key") throw new HttpError(403, "An API key can't do this. Log in to Asked Before to do it.");
+    if (notGuest && auth.userId === GUEST_ID) throw new HttpError(403, "A guest can't do this. Sign up for an account of your own to do it.");
     return handler(req, { ...ctx, auth });
   };
 }

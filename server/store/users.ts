@@ -1,5 +1,7 @@
 // Accounts. Emails arrive trimmed and lowercased, and password keys
 // already hashed (server/passwords.ts); no password ever reaches the server.
+// One account is the shared Guest account (m1kuorg/basics#73, migration
+// 0006), which anyone signs in as without a password.
 
 import type { Account } from "@asked-before/sdk";
 import { iso, newId, type Db } from "./db";
@@ -12,47 +14,24 @@ const ACCOUNT_COLUMNS = "id, name, email, created_at";
 /** Account ?1, as an AccountRow, for the account itself, a new session (store/sessions.ts), and the download (store/account-data.ts). */
 export const ACCOUNT = `SELECT ${ACCOUNT_COLUMNS} FROM users WHERE id = ?1`;
 
-export const toAccount = (row: AccountRow): Account => ({ id: row.id, name: row.name, email: row.email, createdAt: iso(row.created_at) });
+/** The shared Guest account's id. Every other account's is a UUIDv7. */
+export const GUEST_ID = "guest";
+/** The Guest account's password hash: none that server/passwords.ts stores, so no password's key ever matches it. */
+export const GUEST_PASSWORD_HASH = "none";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+export const toAccount = (row: AccountRow): Account => ({ id: row.id, name: row.name, email: row.email, createdAt: iso(row.created_at), guest: row.id === GUEST_ID });
 
-/**
- * The new account, made from `network` (an IPv4 address, or an IPv6 /64)
- * while it has made fewer than `cap` today, a UTC day; or why not: "taken"
- * when the email already has one, whatever the network's count, or
- * "capped" when the network has made today's. One batch: the network's
- * count today is a row of the throttle table, "signups:<network>", whose
- * window ends at midnight UTC, and counts only an account made, so a
- * sign-up refused for any reason counts nothing.
- */
-export async function createUser(
-  db: Db,
-  input: { name: string; email: string; passwordHash: string },
-  { network, cap }: { network: string; cap: number },
-): Promise<Account | "taken" | "capped"> {
-  const id = newId();
-  const now = Date.now();
-  const midnight = (Math.floor(now / DAY_MS) + 1) * DAY_MS;
-  const key = `signups:${network}`;
-  const [before, created] = await db.batch<{ taken: number } & AccountRow>([
-    db.prepare("SELECT EXISTS (SELECT 1 FROM users WHERE email = ?1) AS taken").bind(input.email),
-    db
-      .prepare(
-        `INSERT INTO users (id, name, email, password_hash, created_at) SELECT ?3, ?4, ?5, ?6, ?2 WHERE coalesce((SELECT tries FROM throttle WHERE address = ?1 AND ends_at > ?2), 0) < ?7
-         ON CONFLICT (email) DO NOTHING
-         RETURNING ${ACCOUNT_COLUMNS}`,
-      )
-      .bind(key, now, id, input.name, input.email, input.passwordHash, cap),
-    db
-      .prepare(
-        `INSERT INTO throttle (address, tries, ends_at) SELECT ?1, 1, ?3 WHERE EXISTS (SELECT 1 FROM users WHERE id = ?4)
-         ON CONFLICT (address) DO UPDATE SET tries = CASE WHEN ends_at > ?2 THEN tries + 1 ELSE 1 END, ends_at = ?3`,
-      )
-      .bind(key, now, midnight, id),
-  ]);
-  const row = created?.results[0];
-  if (row) return toAccount(row);
-  return before?.results[0]?.taken ? "taken" : "capped";
+/** The new account; or null when the email already has one. */
+export async function createUser(db: Db, input: { name: string; email: string; passwordHash: string }): Promise<Account | null> {
+  const row = await db
+    .prepare(
+      `INSERT INTO users (id, name, email, password_hash, created_at) VALUES (?1, ?2, ?3, ?4, ?5)
+       ON CONFLICT (email) DO NOTHING
+       RETURNING ${ACCOUNT_COLUMNS}`,
+    )
+    .bind(newId(), input.name, input.email, input.passwordHash, Date.now())
+    .first<AccountRow>();
+  return row && toAccount(row);
 }
 
 export async function getAccount(db: Db, userId: string): Promise<Account | null> {
@@ -130,7 +109,7 @@ export async function changePasswordHash(db: Db, userId: string, { from, to, kee
 /**
  * Deletes the account while its hash is still `hash`, the one the password
  * was just checked against, and with it, by cascade, everything in it: its
- * sessions, keys, usage, and shelves, with their uploads, phrasings, cards,
+ * sessions, keys, and shelves, with their uploads, phrasings, cards,
  * and reps. One statement, so it's whole or nothing. False, deleting
  * nothing, when the hash isn't `hash` any more: the password changed
  * meanwhile, or the account is gone.

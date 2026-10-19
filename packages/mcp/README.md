@@ -19,7 +19,7 @@ Contents:
 | `start_cold_rep` | Starts a cold rep on a card: the problem, and the lesson on its first cold rep or after a failed one. |
 | `check_answer` | Checks your answer to a cold rep, as you wrote it: the verdict, the reason, and the card's status. |
 
-A tool that works on a shelf takes it by name or id, or else uses the default shelf. Recording a question the model has to place, starting a cold rep, and checking an answer each count toward your account's daily cap of model requests. Past it, the tool answers with an error, and a question it couldn't record is lost unless the agent sends it again.
+A tool that works on a shelf takes it by name or id, or else uses the default shelf. Recording a question the model has to place, starting a cold rep, and checking an answer each count toward the server's daily cap of model requests, one for everyone who uses it. Past it, the tool answers with an error, and a question it couldn't record is lost unless the agent sends it again.
 
 ## Settings
 

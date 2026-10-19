@@ -1,14 +1,14 @@
 // The one way the app asks the model, for every route and the sort. Every
 // request is a structured output from claude-haiku-5-5 with effort set
-// explicitly. A request made for an account first spends one of its daily
-// model requests and one of the app's (store/usage.ts), or fails with 429.
+// explicitly. Every request first spends one of the app's daily model
+// requests, counted for everyone (store/usage.ts), or fails with 429.
 // A route lets a ModelError propagate; answer() (server/http.ts) answers it
 // with 502 { error }. Requests are streamed, so a long answer (a sort batch
 // of hundreds of phrasings) has room to finish; only the final message is
 // read. The thinking before it is never sent, only its signature, so a
 // stream stays a few hundred events, which take a few milliseconds of the
 // 10 ms of CPU an alarm has on Workers Free. The key, the database, and the
-// caps come from the Worker's env, passed in by the handler or the sort's
+// cap come from the Worker's env, passed in by the handler or the sort's
 // Durable Object, since a Worker has none at module scope.
 
 import Anthropic from "@anthropic-ai/sdk";
@@ -39,8 +39,6 @@ export class ModelError extends HttpError {
 export async function askStructured<S extends z.ZodType>(
   /** The Worker's bindings: the key, and the database the daily cap is counted in. */
   env: Env,
-  /** The account the request is for, which spends one of its daily model requests. */
-  userId: string,
   system: string,
   userText: string,
   schema: S,
@@ -50,7 +48,7 @@ export async function askStructured<S extends z.ZodType>(
   if (!env.ANTHROPIC_API_KEY) {
     throw new ModelError("The server has no ANTHROPIC_API_KEY. Set it in .env, as the README says.");
   }
-  await spendModelRequest(env.DB, userId, readConfig(env).dailyModelRequests);
+  await spendModelRequest(env.DB, readConfig(env).dailyModelRequests);
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, baseURL: env.ANTHROPIC_BASE_URL || undefined });
   const format = zodOutputFormat(schema);
 

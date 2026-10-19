@@ -285,7 +285,6 @@ await step("4. Deleted, the account and everything in it are gone, every session
       users: left("users", "id", [before.account.id]),
       sessions: left("sessions", "user_id", [before.account.id]),
       api_keys: left("api_keys", "user_id", [before.account.id]),
-      usage: left("usage", "user_id", [before.account.id]),
       shelves: left("shelves", "id", shelves.map((p) => p.id)),
       uploads: left("uploads", "id", shelves.flatMap((p) => p.uploads.map((u) => u.id))),
       upload_messages: left("upload_messages", "upload_id", shelves.flatMap((p) => p.uploads.map((u) => u.id))),
@@ -294,7 +293,7 @@ await step("4. Deleted, the account and everything in it are gone, every session
       reps: left("reps", "id", shelves.flatMap((p) => p.cards.flatMap((c) => c.reps.map((r) => r.id)))),
     };
     const held = Object.entries(counts).filter(([, n]) => n > 0);
-    check(held.length === 0, `no row is left in users, sessions, keys, usage, shelves, uploads, phrasings, cards, or reps${held.length ? `: ${JSON.stringify(Object.fromEntries(held))}` : ""}`);
+    check(held.length === 0, `no row is left in users, sessions, keys, shelves, uploads, phrasings, cards, or reps${held.length ? `: ${JSON.stringify(Object.fromEntries(held))}` : ""}`);
   } finally {
     store.close();
   }

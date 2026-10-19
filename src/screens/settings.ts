@@ -8,14 +8,16 @@
 // downloaded as one JSON file, and deleting the account, which takes the
 // password and then a confirmation, and logs out to the landing page. Both
 // say that the host keeps deleted data in its backups for up to 30 days
-// (D1's Time Travel, which can't be turned off; m1kuorg/basics#63).
+// (D1's Time Travel, which can't be turned off; m1kuorg/basics#63). The
+// shared guest (m1kuorg/basics#73) has none of it, only the way to an
+// account of one's own.
 
 import type { Account, AccountData, ApiKey, CreatedApiKey } from "@asked-before/sdk";
 import { connectSnippets, PLACEHOLDERS } from "../../packages/mcp/src/connect";
 import type { ScreenProps } from "../app/router";
 import { codeBlock } from "../parts/code-block";
 import { confirmDelete } from "../parts/confirm";
-import { button, el, type Child } from "../parts/dom";
+import { button, el, link, type Child } from "../parts/dom";
 import { emptyState } from "../parts/empty";
 import { field, form } from "../parts/fields";
 import { frame, load } from "../parts/frame";
@@ -23,6 +25,7 @@ import { stamp } from "../parts/library";
 import { rows } from "../parts/rows";
 
 export function mountSettings(root: HTMLElement, props: ScreenProps) {
+  if (props.account.guest) return guestSettings(root);
   const { block } = frame(root, [
     el("p", undefined, "Your name shows in the navigation, and your email is how you log in."),
     el("p", undefined, "An API key lets a script or an agent reach your shelves without your password. Make one for each, so you can revoke one alone."),
@@ -38,6 +41,19 @@ export function mountSettings(root: HTMLElement, props: ScreenProps) {
     agents(location.origin),
     yourData(props),
     deleteAccount(props),
+  );
+}
+
+/** The shared guest's settings: none, since the account is every guest's, and the way to one's own. */
+function guestSettings(root: HTMLElement) {
+  const { block } = frame(root, [el("p", undefined, "Every guest shares the Guest account, so it has no profile, password, or API keys, and its data is every guest's.")]);
+  block.append(
+    el("h1", undefined, "Settings"),
+    emptyState(
+      "Settings are for your own account",
+      "Sign up for an account of your own to have a profile, a password, API keys for your agents, and shelves only you see, which you can download or delete.",
+      link("Sign up", "/signup", "button"),
+    ),
   );
 }
 

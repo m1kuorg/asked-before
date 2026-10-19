@@ -1,0 +1,193 @@
+{
+  "label": "Demo data: the demo export (demo/export.json), a made-up chat export, as Asked Before's real sort placed it, held to demo/answer-key.json. The guest workspace's demo shelf is restored from it every day. Recorded by scripts/fixtures/record-sorted-demo.ts.",
+  "sortedAt": "2026-10-19T14:17:19.610Z",
+  "model": "claude-haiku-5-5",
+  "upload": {
+    "source": "chatgpt",
+    "fileName": "demo-export.json"
+  },
+  "cards": [
+    {
+      "skill": "Undo a git commit",
+      "phrasings": [
+        "d199914c-35c9-4bb5-943d-33033b7639a2",
+        "d48a7885-c784-41e5-98cf-5b99da7a27ae",
+        "a83ed348-af99-4073-a2cb-8b96e231f062",
+        "f3f80e82-0b46-462e-b983-aa23ae2c884c",
+        "ebae3302-693d-4242-af40-c731960f926a",
+        "c9b29fd8-7742-455a-bae0-8a443e4a72e8",
+        "7180b45e-256a-48f0-a8a5-b500b2dc16f2",
+        "e0e543e6-a87b-4dff-8180-6381aad30e6f",
+        "15c62ae4-d2c1-47d6-9c90-d06ef51aba66"
+      ]
+    },
+    {
+      "skill": "Center an element in CSS",
+      "phrasings": [
+        "b15bd8ed-4697-4dff-943e-97c08601bb4a",
+        "5c95b1c3-f773-4b4f-b88a-420ac8c5db60",
+        "695adec7-9383-4d2a-9e6f-381c1c95797d",
+        "8e726f7c-119f-420d-965a-28a63138078d"
+      ]
+    },
+    {
+      "skill": "Free a network port held by a process",
+      "phrasings": [
+        "627cd8fd-6caf-4566-843b-7f24b831714d",
+        "5e6f54d5-a330-4d07-bfcd-87b613f36d78",
+        "d458e1cf-c6fc-4665-8ea9-d9a75212c780"
+      ]
+    },
+    {
+      "skill": "Parse a date string in JavaScript",
+      "phrasings": [
+        "ec9b3dca-c70b-41ea-888a-45d8ee18ceb8",
+        "e87ae351-baad-4c7e-b1aa-c0a11a8fe7be"
+      ]
+    },
+    {
+      "skill": "Sort a list of dictionaries by a key in Python",
+      "phrasings": [
+        "b31d9df6-c189-4c2d-a0e6-9e5df2b68e1b",
+        "6a0ac40c-4660-4d01-a123-2fdbcc456392"
+      ]
+    }
+  ],
+  "phrasings": [
+    {
+      "sourceId": "d199914c-35c9-4bb5-943d-33033b7639a2",
+      "text": "how do i undo my last git commit",
+      "time": "2025-03-04T09:12:40.000Z"
+    },
+    {
+      "sourceId": "996ae668-51c4-46b8-8b45-6a7132955b0f",
+      "text": "write a cover letter opening for a junior frontend developer role at a small agency",
+      "time": "2025-03-21T20:41:05.412Z"
+    },
+    {
+      "sourceId": "b15bd8ed-4697-4dff-943e-97c08601bb4a",
+      "text": "how to center a div horizontally and vertically",
+      "time": "2025-04-02T13:05:51.412Z"
+    },
+    {
+      "sourceId": "b31d9df6-c189-4c2d-a0e6-9e5df2b68e1b",
+      "text": "python sort list of dicts by the 'age' key",
+      "time": "2025-04-28T16:22:19.412Z"
+    },
+    {
+      "sourceId": "d48a7885-c784-41e5-98cf-5b99da7a27ae",
+      "text": "I committed to the wrong branch, how do I take that commit back?",
+      "time": "2025-05-19T11:47:02.412Z"
+    },
+    {
+      "sourceId": "627cd8fd-6caf-4566-843b-7f24b831714d",
+      "text": "port 3000 already in use, how do i find and kill whatever is using it",
+      "time": "2025-06-11T08:30:27.412Z"
+    },
+    {
+      "sourceId": "0566eeb2-e3f2-4113-9dd7-db1f6e9b5155",
+      "text": "what does HTTP 418 mean",
+      "time": "2025-06-30T22:03:44.412Z"
+    },
+    {
+      "sourceId": "a83ed348-af99-4073-a2cb-8b96e231f062",
+      "text": "git: remove the most recent commit but keep my changes",
+      "time": "2025-07-08T15:16:09.412Z"
+    },
+    {
+      "sourceId": "8bd969d0-1617-44cb-b775-7e0ab5b509a9",
+      "text": "explain big O notation like I'm new to programming",
+      "time": "2025-08-02T10:58:33.412Z"
+    },
+    {
+      "sourceId": "5c95b1c3-f773-4b4f-b88a-420ac8c5db60",
+      "text": "css: my login box won't center in the page, what's the cleanest way",
+      "time": "2025-08-15T19:24:56.412Z"
+    },
+    {
+      "sourceId": "f3f80e82-0b46-462e-b983-aa23ae2c884c",
+      "text": "just made a commit by mistake, how do I reverse it before I push",
+      "time": "2025-09-23T17:39:12.412Z"
+    },
+    {
+      "sourceId": "ec9b3dca-c70b-41ea-888a-45d8ee18ceb8",
+      "text": "convert '2025-10-09' string to a Date in javascript without timezone weirdness",
+      "time": "2025-10-09T12:10:48.412Z"
+    },
+    {
+      "sourceId": "7fbfdccd-3180-42d8-8e74-c14141f95d13",
+      "text": "quick dinner ideas with eggs, spinach and rice",
+      "time": "2025-10-27T18:45:21.412Z"
+    },
+    {
+      "sourceId": "ebae3302-693d-4242-af40-c731960f926a",
+      "text": "what's the difference between git reset --soft and --hard for undoing a commit",
+      "time": "2025-11-30T14:02:37.412Z"
+    },
+    {
+      "sourceId": "5e6f54d5-a330-4d07-bfcd-87b613f36d78",
+      "text": "EADDRINUSE :::8080 how to free the port on mac",
+      "time": "2025-12-03T09:51:14.412Z"
+    },
+    {
+      "sourceId": "c9b29fd8-7742-455a-bae0-8a443e4a72e8",
+      "text": "revert last commit git",
+      "time": "2026-01-14T21:33:58.412Z"
+    },
+    {
+      "sourceId": "00bcb70e-c5e7-4878-a5f4-e17ffaac5e2b",
+      "text": "here's a screenshot of my VS Code sidebar, how do I get the file explorer back?",
+      "time": "2026-01-29T16:07:25.412Z"
+    },
+    {
+      "sourceId": "695adec7-9383-4d2a-9e6f-381c1c95797d",
+      "text": "flexbox center element in middle of screen",
+      "time": "2026-02-10T10:14:03.412Z"
+    },
+    {
+      "sourceId": "7180b45e-256a-48f0-a8a5-b500b2dc16f2",
+      "text": "I pushed a commit that broke prod. how do I undo it without rewriting history?",
+      "time": "2026-03-27T23:20:41.412Z"
+    },
+    {
+      "sourceId": "6a0ac40c-4660-4d01-a123-2fdbcc456392",
+      "text": "how do I sort a list of dictionaries by one of the values in python, descending",
+      "time": "2026-04-14T13:48:30.412Z"
+    },
+    {
+      "sourceId": "7efa6bd2-f9e5-48bc-9d43-7690f05b1af5",
+      "text": "how do I set up a python virtual environment on windows",
+      "time": "2026-04-30T08:26:52.412Z"
+    },
+    {
+      "sourceId": "d458e1cf-c6fc-4665-8ea9-d9a75212c780",
+      "text": "how do I stop the process that's holding port 5432",
+      "time": "2026-05-06T19:55:16.412Z"
+    },
+    {
+      "sourceId": "e0e543e6-a87b-4dff-8180-6381aad30e6f",
+      "text": "can you uncommit something in git? haven't pushed yet",
+      "time": "2026-06-09T12:31:09.412Z"
+    },
+    {
+      "sourceId": "8e726f7c-119f-420d-965a-28a63138078d",
+      "text": "what's the modern way to center something in css, both axes",
+      "time": "2026-07-21T15:42:47.412Z"
+    },
+    {
+      "sourceId": "d38edac6-af54-4927-82e1-76b6c1f94a45",
+      "text": "is it worth learning rust as my second language after javascript",
+      "time": "2026-08-05T20:18:34.412Z"
+    },
+    {
+      "sourceId": "e87ae351-baad-4c7e-b1aa-c0a11a8fe7be",
+      "text": "js parse date from string yyyy-mm-dd",
+      "time": "2026-08-18T11:03:22.412Z"
+    },
+    {
+      "sourceId": "15c62ae4-d2c1-47d6-9c90-d06ef51aba66",
+      "text": "oops, wrong commit message and wrong files. how do I roll back the last commit?",
+      "time": "2026-09-02T17:09:55.412Z"
+    }
+  ]
+}

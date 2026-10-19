@@ -45,7 +45,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/auth/signup",
         sdk: "auth.signUp",
         who: "None",
-        does: "Signs up with { name, email, passwordKey } and starts a session: 201 with { account, next }. The SDK takes a password of 10 to 200 characters and sends only its key. An email that has an account already is a 409. It must come from the page, with its Origin, and allows 20 tries from one network in 15 minutes, and 3 accounts from one network a day.",
+        does: "Signs up with { name, email, passwordKey } and starts a session: 201 with { account, next }. The SDK takes a password of 10 to 200 characters and sends only its key. An email that has an account already is a 409. It must come from the page, with its Origin, and allows 20 tries from one network in 15 minutes.",
       },
       {
         method: "POST",
@@ -54,8 +54,15 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         who: "None",
         does: "Logs in with { email, passwordKey } and starts a session: { account, next }. A wrong email and a wrong password get the same 401. It must come from the page, and shares signing up's tries.",
       },
+      {
+        method: "POST",
+        path: "/auth/guest",
+        sdk: "auth.signInAsGuest",
+        who: "None",
+        does: "Signs in as the shared guest, with no password, and starts a session: { account, next }. Every guest shares the Guest account's shelves, cards, uploads, and cold reps, which are wiped at midnight UTC each day, when the demo shelf comes back already sorted. It must come from the page, and allows 20 tries from one network in 15 minutes, apart from signing up's and logging in's.",
+      },
       { method: "POST", path: "/auth/logout", sdk: "auth.logOut", who: SESSION, does: "Ends this session: 204." },
-      { method: "GET", path: "/auth/me", sdk: "auth.me", who: KEY, does: "The account: { id, name, email, createdAt }." },
+      { method: "GET", path: "/auth/me", sdk: "auth.me", who: KEY, does: "The account: { id, name, email, createdAt, guest }, guest true for the shared guest." },
     ],
   },
   {
@@ -217,11 +224,11 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
 const STATUSES: [string, string][] = [
   ["400", "The body or query isn't valid. The message names the first problem."],
   ["401", "No session or key came with the request, the key is wrong or revoked, or the email or password is wrong."],
-  ["403", "An API key on an endpoint that needs a session; a cookie request that changes something without the page's Origin or a JSON body; or a wrong password when changing it or deleting the account."],
+  ["403", "An API key on an endpoint that needs a session; the shared guest on the account's endpoints or its keys; a cookie request that changes something without the page's Origin or a JSON body; or a wrong password when changing it or deleting the account."],
   ["404", "There's no such endpoint, or the shelf, upload, card, key, or cold rep isn't yours. Another account's is a 404 at any depth."],
   ["409", "A conflict: an email that has an account, an upload finished already, a retry of a sort that hasn't failed, or a cold rep checked already."],
   ["413", `A phrasing or capture over ${count(MAX_PHRASING_LENGTH)} characters, an append over ${count(MAX_CHUNK)} phrasings, or an answer over 4,000 characters.`],
-  ["429", "Too many sign-up or log-in tries from one network, or password tries on one account, 20 in 15 minutes; a network's accounts for the day are made; or a daily cap is spent: the account's or the app's model requests, or its phrasings, or the share of the app's that accounts made today get."],
+  ["429", "Too many sign-up or log-in tries from one network, guest sign-ins from one network, or password tries on one account, 20 in 15 minutes; or one of the app's daily caps is spent, its model requests or its phrasings, for everyone."],
   ["500", "The server failed. Its message says nothing more."],
   ["502", "The model failed. Nothing was stored, so send the request again."],
 ];
@@ -247,6 +254,7 @@ function api(): Section {
       ),
       p("A key can read your shelves, cards, uploads, and the Desk, and make shelves, uploads, captures, and cold reps. Deleting anything, downloading your data, managing keys, and changing the account need a session: a key gets 403 there."),
       p("The page uses the session cookie that logging in sets, for 30 days. A cookie request that changes something must carry the page's Origin and a JSON body, or it's a 403, so another site can't act for you."),
+      p("Signing in as a guest sets the same cookie, for the shared Guest account, which every guest uses at once. A guest can do what a session can, but the account's endpoints and API keys answer it 403, and the Guest account can't be logged into with a password."),
       p(
         "Your password never leaves your computer. Wherever the API takes it, it takes a password key instead: scrypt of the password, in Unicode's NFC form, with N=2^14, r=8, and p=5, salted with ",
         code("asked-before/1:"),
@@ -270,34 +278,19 @@ function api(): Section {
       h3("Errors"),
       table("docs-statuses", { caption: "Error statuses", columns: [{ label: "Status", className: "is-status", cell: ([status]) => status }, { label: "When", cell: ([, when]) => when }], items: STATUSES }),
       h3("The daily caps"),
-      p("Daily caps, each counted per UTC day, keep Asked Before inside Cloudflare's free plan, and keep new accounts from spending a day's share for everyone else. Each is a setting of the server's, given here with its default."),
+      p("Two daily caps, each counted per UTC day for the whole app, once for everyone, guests included, keep Asked Before inside Cloudflare's free plan. Each is a setting of the server's, given here with its default."),
       p(
-        "Every model request counts toward your account's cap, 10 a day (",
-        code("DAILY_MODEL_REQUESTS"),
-        "), and the app's, 200 a day across every account (",
+        "Every model request counts toward the app's cap, 20 a day (",
         code("SITE_DAILY_MODEL_REQUESTS"),
         "). An upload's sort makes one request per batch of up to 300 phrasings, and one more for its last pass over the unsorted, each asked up to twice more when an answer breaks a rule: so the demo export takes 2, and an upload of 2,000 phrasings 8. A capture the model places makes one; so do starting a cold rep and checking an answer.",
       ),
       p(
-        "Every phrasing sent counts toward your account's cap, 1,000 a day, uploads and captures together (",
-        code("DAILY_PHRASINGS"),
-        "), and the app's, 8,000 a day across every account (",
+        "Every phrasing sent counts toward the app's cap, 8,000 a day, uploads and captures together (",
         code("SITE_DAILY_PHRASINGS"),
-        "). A chunk counts every phrasing it carries, even one the shelf holds already, since recording that the upload sent it writes too. So an export bigger than a day's phrasings is carried on the next day in the same upload, with Try again on the upload page.",
+        "). A chunk counts every phrasing it carries, even one the shelf holds already, since recording that the upload sent it writes too. The guest workspace's daily wipe counts the phrasings it deletes toward the new day's, since deleting them writes too. So an export bigger than what's left of a day is carried on the next day in the same upload, with Try again on the upload page.",
       ),
-      p(
-        "An account on its first day, the UTC day it was made, reaches only part of the app's caps: 100 a day of the app's model requests (",
-        code("FIRST_DAY_SITE_DAILY_MODEL_REQUESTS"),
-        "), and 4,000 a day of its phrasings (",
-        code("FIRST_DAY_SITE_DAILY_PHRASINGS"),
-        "). Once the app has counted that many today, across every account, an account made today gets a 429, while older accounts carry on up to the app's whole cap.",
-      ),
-      p("Past a cap, the request is a 429 and counts toward neither: a chunk stores none of its phrasings and can be sent again, a sort fails with that message and can be retried, and a capture is lost unless it's sent again. More open at midnight UTC."),
-      p(
-        "Signing up and logging in count tries by network: an IPv4 address, or an IPv6 address's /64, since one connection is usually given a whole /64. Sign-ups are capped at 3 a day from one network (",
-        code("NETWORK_DAILY_SIGNUPS"),
-        "), counting only the accounts made.",
-      ),
+      p("Past a cap, the request is a 429 and counts toward nothing: a chunk stores none of its phrasings and can be sent again, a sort fails with that message and can be retried, and a capture is lost unless it's sent again. More open at midnight UTC."),
+      p("Signing up and logging in count tries by network: an IPv4 address, or an IPv6 address's /64, since one connection is usually given a whole /64. Signing in as a guest counts its own tries the same way."),
     ],
   };
 }
