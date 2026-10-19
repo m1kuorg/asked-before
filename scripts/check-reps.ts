@@ -1,8 +1,12 @@
 // Proves cold reps with the real model (m1kuorg/basics#46), through the
 // SDK, on the demo skill, "Undo a git commit": card A of the demo shelf,
-// on a fresh copy of the app. The sort is a stand-in in this script that
-// sorts as the answer key does (the sort has its own check); every rep and
-// check request goes on to the real model. Five reps in turn on card A,
+// on a fresh copy of the app. First, with no model, the give-away rule
+// runs on real-model problems labeled by hand
+// (scripts/fixtures/rep-problems.json, m1kuorg/basics#65): it must flag
+// every one that gives the fix away and none of the rest. The sort is a
+// stand-in in this script that sorts as the answer key does (the sort has
+// its own check); every rep and check request goes on to the real model.
+// Five reps in turn on card A,
 // answered with the known wrong, right, wrong, right, and wrong answers:
 // the first brings the lesson, and each start after a failed rep brings it
 // again, but none after a pass; every problem differs from the earlier
@@ -16,6 +20,7 @@
 // Run: bun run check:reps
 
 import { ApiError } from "@asked-before/sdk";
+import { join } from "node:path";
 import { phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
 import { startModelStub } from "./lib/model-stub";
@@ -53,9 +58,32 @@ const similarity = (a: string, b: string) => {
 };
 /** Problems more alike than this count as a repeat. */
 const MAX_SIMILARITY = 0.5;
-/** What solves this skill, named or described. A problem that says it gives its answer away. */
-const GIVEAWAY = /\b(reset|revert|revers)\w*|--(soft|hard|mixed|amend)\b|cherry-pick|\bHEAD[~^]|\bnew commit\b|\bcancel(s|ed|ing)? out\b|\bbacked out\b/i;
+/**
+ * What solves this skill, named or described. A problem that says it gives its answer away: it names one of the
+ * skill's commands or flags, even as something to avoid ("without anyone having to reset their copy"), or says what
+ * the fix does to the change. A new commit counts only as the fix: one that undoes the change or reaches everyone, or
+ * the undo or the fix made as one. A new commit for the learner's own kept edits ("ready for a new commit") is their
+ * next step, not the fix (m1kuorg/basics#65).
+ */
+const GIVEAWAY = new RegExp(
+  [
+    String.raw`\b(reset|revert|revers|amend|rebas)\w*|--(soft|hard|mixed)\b|cherry-pick|\bforce[- ]?push|\bHEAD[~^]`,
+    String.raw`\bcancel(s|ed|ing)? out\b|\bback(s|ed|ing)? out\b`,
+    String.raw`\bnew commit (that|which) (\w+ ){0,2}?(undo|revers|cancel|bring|everyone|teammates)|\bnew commit record`,
+    String.raw`\b(undone|(the|your) fix|correct\w*) (\w+ ){0,3}?(with|in|as) (a|one) new commit`,
+  ].join("|"),
+  "i",
+);
 const TIME = /\d{4}-\d{2}-\d{2}|\b1[67]\d{11}\b/;
+
+console.log("The give-away rule, on real-model problems labeled by hand");
+const labeled: { problems: { source: string; problem: string; givesAway: boolean }[] } = await Bun.file(join(import.meta.dir, "fixtures", "rep-problems.json")).json();
+const missed = labeled.problems.filter((p) => p.givesAway && !GIVEAWAY.test(p.problem));
+const misflagged = labeled.problems.filter((p) => !p.givesAway && GIVEAWAY.test(p.problem));
+const giveaways = labeled.problems.filter((p) => p.givesAway).length;
+check(missed.length === 0, `it flags all ${giveaways} problems that give the fix away${missed.map((p) => `\n       missed (${p.source}): ${p.problem}`).join("")}`);
+check(misflagged.length === 0, `and none of the ${labeled.problems.length - giveaways} that don't${misflagged.map((p) => `\n       flagged (${p.source}, "${p.problem.match(GIVEAWAY)![0]}"): ${p.problem}`).join("")}`);
+console.log();
 
 const model = await startModelStub(sortsByKey());
 const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
