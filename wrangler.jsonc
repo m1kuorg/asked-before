@@ -8,14 +8,24 @@
   "main": "worker/index.ts",
   // Node.js's APIs (node:crypto) are on by default from 2026-08-04.
   "compatibility_date": "2026-10-12",
+  // Served at https://asked-before.m1kuorg.workers.dev, with no per-version preview addresses.
+  "workers_dev": true,
+  "preview_urls": false,
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page",
     "run_worker_first": ["/api/*"]
   },
-  // No database_id until the remote database is made: locally it isn't needed,
-  // and `wrangler d1 create asked-before --binding DB` writes it here.
-  "d1_databases": [{ "binding": "DB", "database_name": "asked-before", "migrations_dir": "migrations" }],
+  // The remote database, made with `wrangler d1 create asked-before --binding DB`.
+  // Locally the id isn't used: `bun run dev` and the checks keep their own.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "asked-before",
+      "database_id": "c3ffeaed-2700-4640-933e-4a41e6615718",
+      "migrations_dir": "migrations"
+    }
+  ],
   // Each shelf's sort, one Durable Object per shelf, named by its id (worker/sorter.ts).
   "durable_objects": { "bindings": [{ "name": "SORTER", "class_name": "Sorter" }] },
   "exports": { "Sorter": { "type": "durable-object", "storage": "sqlite" } },
@@ -29,8 +39,8 @@
   // counts as the app's, and an https one makes the session cookie Secure.
   // `bun run dev` and the checks always run with it unset, on localhost.
   "vars": {
-    "PUBLIC_URL": "",
-    "DAILY_MODEL_REQUESTS": "300",
+    "PUBLIC_URL": "https://asked-before.m1kuorg.workers.dev",
+    "DAILY_MODEL_REQUESTS": "10",
     "SORT_BATCH_SIZE": "300"
   },
   // A Worker secret in production; locally, read from .env or the shell.
