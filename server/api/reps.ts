@@ -40,7 +40,7 @@ export const reps = defineRoutes({
       const card = await repSource(db, auth.userId, params.cardId);
       if (!card) throw new HttpError(404, "There's no such card.");
       const withLesson = card.lesson === null;
-      const written = await writeRep(env, auth.userId, { skill: card.skill, phrasings: card.phrasings, earlierProblems: card.earlierProblems, withLesson });
+      const written = await writeRep(env, { skill: card.skill, phrasings: card.phrasings, earlierProblems: card.earlierProblems, withLesson });
       const added = await addRep(db, params.cardId, written.problem, written.lesson);
       if (!added) throw new HttpError(404, "There's no such card.");
       const showLesson = withLesson || card.lastVerdict !== "pass";
@@ -55,7 +55,7 @@ export const reps = defineRoutes({
       if (!found) throw new HttpError(404, "There's no such cold rep.");
       if (found.state === "checked") throw new HttpError(409, CHECKED);
       if (found.state === "superseded") throw new HttpError(409, SUPERSEDED);
-      const { verdict, reason } = await judge(env, auth.userId, { skill: found.skill, problem: found.rep.problem, answer });
+      const { verdict, reason } = await judge(env, { skill: found.skill, problem: found.rep.problem, answer });
       const rep = await recordCheck(db, found.rep.id, { answer, verdict, reason });
       if (!rep) {
         const now = await findRep(db, auth.userId, params.repId);

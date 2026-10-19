@@ -417,17 +417,17 @@ try {
     }
   });
 
-  const capped = await copy({ DAILY_MODEL_REQUESTS: "4" });
+  const capped = await copy({ SITE_DAILY_MODEL_REQUESTS: "4" });
   await step("16. Past the daily cap, the next model request gets 429, and the upload says so", async () => {
     const shelf = await capped.client.shelves.create({ name: "Capped" });
     const first = await sortEnds(capped.client, (await upload(capped.client, shelf.id, phrasings.slice(0, half))).id);
     const second = await sortEnds(capped.client, (await upload(capped.client, shelf.id, phrasings.slice(half))).id);
     check(first.status === "sorted" && second.status === "sorted" && capped.model.requests.length === 4, `two sorts, each a batch and a second pass, spend the day's 4 requests: ${first.status}, ${second.status}`);
     const third = await sortEnds(capped.client, (await upload(capped.client, shelf.id, extra("how do i undo a commit i already pushed", "push a branch to a new remote"))).id);
-    check(third.status === "failed" && /today's 4 model requests/.test(third.error ?? "") && capped.model.requests.length === 4, `the third: ${third.status}, "${third.error}", and the model wasn't asked (${capped.model.requests.length} requests)`);
+    check(third.status === "failed" && /today's model requests for everyone/.test(third.error ?? "") && capped.model.requests.length === 4, `the third: ${third.status}, "${third.error}", and the model wasn't asked (${capped.model.requests.length} requests)`);
     await capped.client.uploads.retry(third.id);
     const retried = await sortEnds(capped.client, third.id);
-    check(retried.status === "failed" && /today's 4 model requests/.test(retried.error ?? ""), `retried the same day, it fails again: "${retried.error}"`);
+    check(retried.status === "failed" && /today's model requests for everyone/.test(retried.error ?? ""), `retried the same day, it fails again: "${retried.error}"`);
   });
 
   await step("17. The logs hold no phrasing", async () => {

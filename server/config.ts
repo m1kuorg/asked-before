@@ -23,39 +23,24 @@ export type Env = {
   /** A fault in the sort's Durable Object (worker/sorter.ts): only a check sets it. "start" makes every start() throw, and "database" every query an alarm makes. */
   SORTER_FAULT?: "start" | "database";
   PUBLIC_URL?: string;
-  DAILY_MODEL_REQUESTS?: string;
   SITE_DAILY_MODEL_REQUESTS?: string;
-  DAILY_PHRASINGS?: string;
   SITE_DAILY_PHRASINGS?: string;
-  FIRST_DAY_SITE_DAILY_MODEL_REQUESTS?: string;
-  FIRST_DAY_SITE_DAILY_PHRASINGS?: string;
-  NETWORK_DAILY_SIGNUPS?: string;
   SORT_BATCH_SIZE?: string;
 };
-
-/**
- * A daily cap for each account, and one for the whole app, across every
- * account, both counted per UTC day (store/usage.ts); and `firstDay`, the
- * app's cap as an account on its first UTC day, the day it was made, sees
- * it: a smaller share, so accounts made today can't spend the app's whole day.
- */
-export type Caps = { account: number; site: number; firstDay: number };
 
 export type Config = {
   /** The public URL, when set. Without it, a request's own origin is the app's origin. */
   publicUrl: URL | undefined;
   /** An https public URL makes the session cookie Secure and __Host- prefixed. */
   https: boolean;
-  /** Model requests per UTC day. */
-  dailyModelRequests: Caps;
+  /** Model requests the whole app makes per UTC day, for everyone, guests included (store/usage.ts). */
+  dailyModelRequests: number;
   /**
-   * Phrasings sent per UTC day, uploads and captures together, which keep
-   * the app under D1 Free's 100,000 rows written a day: each phrasing
-   * stored and sorted writes 7 to 9.
+   * Phrasings the whole app takes per UTC day, uploads and captures
+   * together, for everyone, which keep it under D1 Free's 100,000 rows
+   * written a day: each phrasing stored and sorted writes 7 to 9.
    */
-  dailyPhrasings: Caps;
-  /** Accounts one network, an IPv4 address or an IPv6 /64, may make per UTC day (store/users.ts). */
-  dailySignups: number;
+  dailyPhrasings: number;
   /** Phrasings a sort sends the model at once, beside as many of the shelf's most recent unsorted ones (server/sort.ts). */
   sortBatchSize: number;
 };
@@ -66,17 +51,8 @@ export function readConfig(env: Env): Config {
   return {
     publicUrl,
     https: publicUrl?.protocol === "https:",
-    dailyModelRequests: {
-      account: wholeNumber(env, "DAILY_MODEL_REQUESTS", 10),
-      site: wholeNumber(env, "SITE_DAILY_MODEL_REQUESTS", 200),
-      firstDay: wholeNumber(env, "FIRST_DAY_SITE_DAILY_MODEL_REQUESTS", 100),
-    },
-    dailyPhrasings: {
-      account: wholeNumber(env, "DAILY_PHRASINGS", 1000),
-      site: wholeNumber(env, "SITE_DAILY_PHRASINGS", 8000),
-      firstDay: wholeNumber(env, "FIRST_DAY_SITE_DAILY_PHRASINGS", 4000),
-    },
-    dailySignups: wholeNumber(env, "NETWORK_DAILY_SIGNUPS", 3),
+    dailyModelRequests: wholeNumber(env, "SITE_DAILY_MODEL_REQUESTS", 20),
+    dailyPhrasings: wholeNumber(env, "SITE_DAILY_PHRASINGS", 8000),
     sortBatchSize: wholeNumber(env, "SORT_BATCH_SIZE", 300),
   };
 }
@@ -84,15 +60,7 @@ export function readConfig(env: Env): Config {
 /** A setting that's a whole number of 1 or more, or `fallback` when it's unset. */
 function wholeNumber(
   env: Env,
-  name:
-    | "DAILY_MODEL_REQUESTS"
-    | "SITE_DAILY_MODEL_REQUESTS"
-    | "FIRST_DAY_SITE_DAILY_MODEL_REQUESTS"
-    | "DAILY_PHRASINGS"
-    | "SITE_DAILY_PHRASINGS"
-    | "FIRST_DAY_SITE_DAILY_PHRASINGS"
-    | "NETWORK_DAILY_SIGNUPS"
-    | "SORT_BATCH_SIZE",
+  name: "SITE_DAILY_MODEL_REQUESTS" | "SITE_DAILY_PHRASINGS" | "SORT_BATCH_SIZE",
   fallback: number,
 ): number {
   const value = Number(env[name] || fallback);

@@ -86,7 +86,7 @@ type Links = ReturnType<typeof links>;
 const onCards = (l: Links) => l.cardOf.filter((p) => p.card_id !== null).length;
 
 // The app's own tables, with the uploads' messages, the throttle, the daily caps' counters, the card_status view, and Wrangler's record of the migrations.
-const SCHEMA = ["api_keys", "card_status", "cards", "d1_migrations", "phrasings", "reps", "sessions", "shelves", "site_usage", "throttle", "upload_messages", "uploads", "usage", "users"];
+const SCHEMA = ["api_keys", "card_status", "cards", "d1_migrations", "phrasings", "reps", "sessions", "shelves", "site_usage", "throttle", "upload_messages", "uploads", "users"];
 
 /** The repo's migrations, as Wrangler lists them: the .sql files in migrations/, in name order. */
 const MIGRATIONS = (await readdir(join(ROOT, "migrations"))).filter((file) => file.endsWith(".sql")).sort();

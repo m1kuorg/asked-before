@@ -1,13 +1,14 @@
-// Auth: sign up, log in, log out, and the current account
-// (m1kuorg/basics#41). Signing up and logging in must come from the page's
-// own origin, and are then throttled per network (an IPv4 address, or an
-// IPv6 /64), so another site's forged request can't use up a visitor's
-// tries; and one network makes at most NETWORK_DAILY_SIGNUPS accounts a UTC
-// day, so fresh accounts can't spend the app's daily caps
-// (m1kuorg/basics#69). Both take the key the SDK derives from the password,
-// never the password itself (ADR 0006), so the password's rules are the
-// SDK's. A wrong email and a wrong password get the same answer, in about
-// the same time, so neither says whether an account exists.
+// Auth: sign up, log in, sign in as the shared guest, log out, and the
+// current account (m1kuorg/basics#41, #73). Signing up, logging in, and
+// signing in as a guest must come from the page's own origin, and are then
+// throttled per network (an IPv4 address, or an IPv6 /64,
+// m1kuorg/basics#69), so another site's forged request can't use up a
+// visitor's tries, or sign a visitor in as the guest, and guessing a
+// password takes a network's 20 tries at a time. Signing up and logging in
+// take the key the SDK derives from the password, never the password
+// itself (ADR 0006), so the password's rules are the SDK's. A wrong email
+// and a wrong password get the same answer, in about the same time, so
+// neither says whether an account exists.
 
 import type { Account, Session } from "@asked-before/sdk";
 import { z } from "zod";
@@ -16,7 +17,8 @@ import { defineRoutes, HttpError, readJson } from "../http";
 import { hashKey, PasswordKey, verifyKey } from "../passwords";
 import { deleteSession } from "../store/sessions";
 import { throttle } from "../store/throttle";
-import { createUser, findLogin, getAccount } from "../store/users";
+import { resetGuestWorkspace } from "../store/guest";
+import { createUser, findLogin, getAccount, GUEST_ID, GUEST_PASSWORD_HASH } from "../store/users";
 
 /** The app's home, the Desk, where signing up or logging in goes when `next` is missing or outside the app. */
 const APP_HOME = "/app/desk";
@@ -37,6 +39,8 @@ const SignUp = z.strictObject({
   passwordKey: PasswordKey("passwordKey"),
   next: z.string().optional(),
 });
+
+const GuestSignIn = z.strictObject({ next: z.string().optional() });
 
 const LogIn = z.strictObject({
   email: z.string({ error: "An email is needed." }).trim().toLowerCase(),
@@ -82,16 +86,11 @@ export const auth = defineRoutes({
   "/api/v1/auth/signup": {
     async POST(req, ctx) {
       sameOrigin(req, ctx.config);
-      const network = callerNetwork(req);
-      await throttle(ctx.db, network);
+      await throttle(ctx.db, callerNetwork(req));
       const { name, email, passwordKey, next } = await readJson(req, SignUp);
       const passwordHash = hashKey(passwordKey);
-      const cap = ctx.config.dailySignups;
-      const created = await createUser(ctx.db, { name, email, passwordHash }, { network, cap });
-      if (created === "taken") throw new HttpError(409, "That email already has an account. Log in instead.");
-      if (created === "capped") {
-        throw new HttpError(429, `Asked Before makes at most ${cap} ${cap === 1 ? "account" : "accounts"} a day from one internet connection, and this one has made today's. More open at midnight UTC.`);
-      }
+      const created = await createUser(ctx.db, { name, email, passwordHash });
+      if (!created) throw new HttpError(409, "That email already has an account. Log in instead.");
       const session = await startSession(req, ctx, { userId: created.id, passwordHash });
       if (!session) throw new HttpError(401, "Log in first.");
       return Response.json({ account: session.account, next: appPath(next) } satisfies Session, {
@@ -110,6 +109,22 @@ export const auth = defineRoutes({
       const matches = verifyKey(passwordKey, login?.passwordHash ?? null);
       const session = login && matches ? await startSession(req, ctx, { userId: login.id, passwordHash: login.passwordHash }) : null;
       if (!session) throw new HttpError(401, WRONG_LOGIN);
+      return Response.json({ account: session.account, next: appPath(next) } satisfies Session, { headers: { "set-cookie": session.setCookie } });
+    },
+  },
+
+  // The shared guest (m1kuorg/basics#73): no password and no account of one's own. Its tries are counted apart from
+  // signing up's and logging in's, since there's no password to guess, so a room of guests behind one address
+  // doesn't lock its learners out of logging in.
+  "/api/v1/auth/guest": {
+    async POST(req, ctx) {
+      sameOrigin(req, ctx.config);
+      await throttle(ctx.db, `guest:${callerNetwork(req)}`);
+      const { next } = await readJson(req, GuestSignIn);
+      // The day's reset, if the cron hasn't reached it yet, so the guest workspace has its demo shelf.
+      await resetGuestWorkspace(ctx.db, Date.now());
+      const session = await startSession(req, ctx, { userId: GUEST_ID, passwordHash: GUEST_PASSWORD_HASH });
+      if (!session) throw new HttpError(404, "There's no guest workspace here.");
       return Response.json({ account: session.account, next: appPath(next) } satisfies Session, { headers: { "set-cookie": session.setCookie } });
     },
   },

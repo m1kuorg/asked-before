@@ -12,8 +12,8 @@
 import type { D1PreparedStatement } from "@cloudflare/workers-types";
 import { newId, slices, type Db } from "./db";
 
-/** An upload to sort, with the account its model requests count against. */
-export type SortUpload = { id: string; shelfId: string; userId: string };
+/** An upload to sort. */
+export type SortUpload = { id: string; shelfId: string };
 
 /** A phrasing as a sort sees it: its id and its words, never its time. */
 export type SortPhrasing = { id: string; text: string };
@@ -46,7 +46,7 @@ export async function startNext(db: Db, shelfId: string): Promise<SortUpload | n
          SELECT id FROM uploads WHERE shelf_id = ?1 AND status IN ('sorting', 'waiting')
          ORDER BY status = 'sorting' DESC, finished_at, id LIMIT 1
        )
-       RETURNING id, shelf_id AS shelfId, (SELECT user_id FROM shelves WHERE shelves.id = uploads.shelf_id) AS userId`,
+       RETURNING id, shelf_id AS shelfId`,
     )
     .bind(shelfId)
     .first<SortUpload>();

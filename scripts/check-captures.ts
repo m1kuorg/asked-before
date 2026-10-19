@@ -269,7 +269,7 @@ try {
   });
 
   await step("12. Past the daily cap, a capture the model must sort is a 429 and keeps nothing; the same words again need no model", async () => {
-    const capped = await startApp({ ANTHROPIC_BASE_URL: model.url, DAILY_MODEL_REQUESTS: "1" });
+    const capped = await startApp({ ANTHROPIC_BASE_URL: model.url, SITE_DAILY_MODEL_REQUESTS: "1" });
     try {
       const { client } = capped.browser();
       await client.auth.signUp({ name: "Cy Example", email: "cy@example.com", password: "jacquard loom" });

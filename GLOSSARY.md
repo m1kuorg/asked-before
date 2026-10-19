@@ -69,3 +69,13 @@ _Avoid_: Relapsed, overdue, expired
 **Desk**:
 The circulation desk: the cards still borrowed across your shelves, with your latest borrows and returns.
 _Avoid_: Dashboard, overview
+
+### Guests
+
+**Guest**:
+A visitor signed in as the one shared Guest account, without a password or an account of their own, and with no settings.
+_Avoid_: Anonymous user, demo user, visitor
+
+**Guest workspace**:
+The shelves, uploads, cards, and reps every guest shares, wiped at midnight UTC each day back to one sorted demo shelf.
+_Avoid_: Sandbox, playground, demo account

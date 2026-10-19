@@ -6,9 +6,7 @@
 // email or the password or to delete the account, counts per account, since
 // that check takes microseconds where scrypt took 70 ms (ADR 0006). A try
 // past the limit writes nothing, so a flood of them spends none of D1's
-// rows written. The table also holds each network's sign-ups today,
-// "signups:<network>", whose window ends at midnight UTC (store/users.ts's
-// createUser()), swept here like any other.
+// rows written.
 
 import { HttpError } from "../http";
 import type { Db } from "./db";

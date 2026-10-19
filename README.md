@@ -28,7 +28,7 @@ cp .env.example .env        # then set ANTHROPIC_API_KEY=...
 bun run dev
 ```
 
-`bun run dev` builds the pages into `dist/`, applies the schema's migrations to a local database in `.wrangler/`, and starts the app with `wrangler dev`. Then open the address it prints, <http://localhost:8787> unless that port is taken, sign up, and make a shelf. A new learner can try the demo shelf, made from a made-up demo export and labeled as demo data, before finding their own export. The Worker isn't the only reader of the key: Wrangler gives it to the Worker from `.env`, and Bun loads the same file into the check scripts, which read the key too, to check for it before calling the real model and to pass it on to the `wrangler dev` they start. `.env` is gitignored; a key exported in your shell works too, and wins over `.env`.
+`bun run dev` builds the pages into `dist/`, applies the schema's migrations to a local database in `.wrangler/`, and starts the app with `wrangler dev`. Then open the address it prints, <http://localhost:8787> unless that port is taken, sign up, and make a shelf. A new learner can try the demo shelf, made from a made-up demo export and labeled as demo data, before finding their own export. Or sign in as a guest, with no account: every guest shares one workspace, the Guest account's, whose demo shelf comes already sorted, from `demo/sorted.json`, and which is wiped at midnight UTC each day. The Worker isn't the only reader of the key: Wrangler gives it to the Worker from `.env`, and Bun loads the same file into the check scripts, which read the key too, to check for it before calling the real model and to pass it on to the `wrangler dev` they start. `.env` is gitignored; a key exported in your shell works too, and wins over `.env`.
 
 Your local data stays in `.wrangler/` from one run to the next; delete that folder to start again with an empty database. Wrangler reloads the Worker when its code changes, but not the pages: run `bun run build:pages` to see a change to them.
 
@@ -38,13 +38,8 @@ The key is the only setting you need. The others are vars in `wrangler.jsonc`, e
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | none | The model key, from `.env` or your shell, and a Worker secret once deployed. The app starts without it, but every sort and cold rep fails. |
 | `PUBLIC_URL` | empty | The address people reach the deployed app at. Empty, a request's own origin counts as the app's; an `https` address makes the session cookie `Secure`. `bun run dev` always runs with it empty. |
-| `DAILY_MODEL_REQUESTS` | `10` | Model requests one account may make per UTC day. |
-| `SITE_DAILY_MODEL_REQUESTS` | `200` | Model requests the whole app may make per UTC day, across every account. |
-| `DAILY_PHRASINGS` | `1000` | Phrasings one account may send per UTC day, uploads and captures together. |
-| `SITE_DAILY_PHRASINGS` | `8000` | Phrasings the whole app may take per UTC day, across every account. |
-| `FIRST_DAY_SITE_DAILY_MODEL_REQUESTS` | `100` | The part of `SITE_DAILY_MODEL_REQUESTS` an account on its first UTC day, the day it was made, may reach: once the whole app has made this many today, across every account, only older accounts carry on. |
-| `FIRST_DAY_SITE_DAILY_PHRASINGS` | `4000` | The part of `SITE_DAILY_PHRASINGS` an account on its first UTC day may reach, counted the same way. |
-| `NETWORK_DAILY_SIGNUPS` | `3` | Accounts one network, an IPv4 address or an IPv6 /64, may make per UTC day. Signing up and logging in also allow 20 tries from one network in 15 minutes. |
+| `SITE_DAILY_MODEL_REQUESTS` | `20` | Model requests the whole app may make per UTC day, counted once for everyone, guests included. |
+| `SITE_DAILY_PHRASINGS` | `8000` | Phrasings the whole app may take per UTC day, uploads and captures together, counted once for everyone, guests included. |
 | `SORT_BATCH_SIZE` | `300` | Phrasings a sort sends the model at once. |
 
 The schema is a series of Wrangler's D1 migrations, the numbered files in `migrations/`; see [Deploy it](#deploy-it).
@@ -71,10 +66,10 @@ The other checks:
 | --- | --- | --- |
 | `bun run check:smoke` | The app on Workers: every page, an asset, and the demo export with the security headers, one content security policy, the answer key never served, an unknown endpoint's 404 JSON, and signing up | |
 | `bun run check:key` | The demo export's answer key against the export | |
-| `bun run check:accounts` | Accounts and shelves through the SDK: sessions, `next`, 404s across accounts, the Origin rule, the logs, the throttle | |
+| `bun run check:accounts` | Accounts and shelves through the SDK: sessions, `next`, 404s across accounts, the Origin rule, the logs, the throttle, by IPv4 address or IPv6 /64 | |
+| `bun run check:guest` | Signing in as a guest: two browsers sharing the sorted demo shelf and a cold rep, settings hidden and refused, the upload page's warning, and the daily reset through the local cron route, with no model request and every guest still signed in | Chromium |
 | `bun run check:passwords` | The password never reaching the server: every request the page sends to sign up, log in, change the password or email, and delete the account, the API refusing anything but a key, and the database keeping only its salted hash | Chromium |
-| `bun run check:caps` | The daily caps, set small: an account's phrasings, the app's phrasings, and the app's model requests, each a 429 through the SDK and in the upload page, and a refused request counting toward neither the account nor the app | Chromium |
-| `bun run check:fresh-accounts` | What keeps fresh accounts from draining the app's day, set small: the throttle by IPv6 /64, a network's daily sign-ups, and the share of the app's caps that accounts made today get, each a 429 through the SDK and in the page | Chromium |
+| `bun run check:caps` | The app's two daily caps, set small: two accounts and the guest spending its model requests and phrasings between them, then a 429 for whoever sends the next, through the SDK and in the upload page, and a refused request counting toward nothing | Chromium |
 | `bun run check:shell` | The app's shell: sign up, the Desk, your shelves, log out, and the redirect to log in and back | Chromium |
 | `bun run check:landing` | The landing page's card against the answer key, and signing up and logging in from it | Chromium |
 | `bun run check:readers` | The SDK's export readers on every fixture, and on broken exports | |
@@ -104,7 +99,7 @@ A check that needs the key and stubs nothing calls the real model; the others st
 
 ## Deploy it
 
-The app runs on [Workers Free](https://developers.cloudflare.com/workers/platform/pricing/). Free gives a request, a cron run, and each of the sort's Durable Object alarms 10 ms of CPU time, so the server never hashes a password: the SDK, in the page or your script, derives a key from it with scrypt, and the server keeps only a salted SHA-256 of that key (ADR 0006). Free's real ceiling is D1's 100,000 rows written a day for the whole Cloudflare account, past which every query fails, logging in too; a phrasing stored and sorted writes 7 to 9. The daily caps in [Run it](#run-it) keep the app under it: 1,000 phrasings an account and 8,000 for the app, and 10 model requests an account and 200 for the app. An upload's sort makes one model request for each batch of up to 300 phrasings and one more for its last pass over the unsorted, so the demo export takes 2 and an upload of 2,000 phrasings 8. So that fresh accounts can't spend the app's whole day and lock everyone out until midnight UTC, an account made today stops once the app has used half of either cap, and one network makes at most 3 accounts a day. [Workers Paid](https://developers.cloudflare.com/workers/platform/pricing/), $5 a month, lifts the CPU and D1 limits; raise the caps in `wrangler.jsonc`'s `vars` to match. Deploying is a one-time setup on a Cloudflare account, from your clone, with your key exported in your shell:
+The app runs on [Workers Free](https://developers.cloudflare.com/workers/platform/pricing/). Free gives a request, a cron run, and each of the sort's Durable Object alarms 10 ms of CPU time, so the server never hashes a password: the SDK, in the page or your script, derives a key from it with scrypt, and the server keeps only a salted SHA-256 of that key (ADR 0006). Free's real ceiling is D1's 100,000 rows written a day for the whole Cloudflare account, past which every query fails, logging in too; a phrasing stored and sorted writes 7 to 9. The two daily caps in [Run it](#run-it) keep the app under it, each for the whole app and counted once for everyone, guests included: 8,000 phrasings and 20 model requests a day. An upload's sort makes one model request for each batch of up to 300 phrasings and one more for its last pass over the unsorted, so the demo export takes 2 and an upload of 2,000 phrasings 8. The cron, every five minutes, resets the guest workspace on its first run after midnight UTC: it deletes the Guest account's shelves, counting the phrasings deleted toward the new day's, since deleting writes too, and restores its demo shelf from `demo/sorted.json` with no model request. [Workers Paid](https://developers.cloudflare.com/workers/platform/pricing/), $5 a month, lifts the CPU and D1 limits; raise the caps in `wrangler.jsonc`'s `vars` to match. Deploying is a one-time setup on a Cloudflare account, from your clone, with your key exported in your shell:
 
 1. Log in to that account:
 

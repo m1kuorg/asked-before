@@ -174,7 +174,8 @@ try {
     await bea.auth.signUp({ name: "Bea", email: "bea@example.com", password: ADA.password });
     await cy.auth.signUp({ name: "Cy", email: "cy@example.com", password: ADA.password });
     const store = new Database(app.databasePath, { readonly: true, strict: true });
-    const hashes = store.query("SELECT email, password_hash AS hash FROM users ORDER BY email").all() as { email: string; hash: string }[];
+    // Every account but the shared Guest account, which has no password (check:guest).
+    const hashes = store.query("SELECT email, password_hash AS hash FROM users WHERE id <> 'guest' ORDER BY email").all() as { email: string; hash: string }[];
     store.close();
     const stored = /^sha256\$([0-9a-f]{32})\$([0-9a-f]{64})$/;
     for (const { email, hash } of hashes) {

@@ -850,6 +850,7 @@ var auth = (request) => ({
     checkPassword(password, "A password");
     return request("POST", "/auth/login", { ...input, passwordKey: await passwordKey(password, input.email) });
   },
+  signInAsGuest: (input = {}) => request("POST", "/auth/guest", input),
   logOut: () => request("POST", "/auth/logout"),
   me: () => request("GET", "/auth/me")
 });
