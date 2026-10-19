@@ -1,10 +1,10 @@
 // Auth: sign up, log in, sign in as the shared guest, log out, and the
 // current account (m1kuorg/basics#41, #73). Signing up, logging in, and
-// signing in as a guest must come from the page's own origin, and are then
-// throttled per network (an IPv4 address, or an IPv6 /64,
-// m1kuorg/basics#69), so another site's forged request can't use up a
-// visitor's tries, or sign a visitor in as the guest, and guessing a
-// password takes a network's 20 tries at a time. Signing up and logging in
+// signing in as a guest must come from the page's own origin, so another
+// site can't sign a visitor in as someone else, the guest included, or use
+// up a visitor's tries; then they're throttled per network (an IPv4
+// address, or an IPv6 /64, m1kuorg/basics#69), so guessing a password
+// takes a network's 20 tries at a time. Signing up and logging in
 // take the key the SDK derives from the password, never the password
 // itself (ADR 0006), so the password's rules are the SDK's. A wrong email
 // and a wrong password get the same answer, in about the same time, so
