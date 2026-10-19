@@ -3,8 +3,9 @@
 // (m1kuorg/basics#49). All of them need a session: authed(..., { sessionOnly: true }).
 // Each takes the keys the SDK derives from a password, never the password
 // (ADR 0006). The email salts the key, so a new email needs the key the
-// current one salts, and the key the new one does. Changing the password
-// needs the current one's key, and ends every other session.
+// current one salts, and the key the new one does, and ends every other
+// session, as changing the password does, which needs the current one's
+// key. Checking a key is throttled per account (store/throttle.ts).
 // The download is the account and everything in it, as the API shows it,
 // read in one batch (store/account-data.ts) and written out a piece at a
 // time. Deleting the account needs its password's key, deletes everything
@@ -16,6 +17,7 @@ import { authed, clearSessionCookie } from "../auth";
 import { defineRoutes, HttpError, readJson } from "../http";
 import { hashKey, PasswordKey, verifyKey } from "../passwords";
 import { accountData } from "../store/account-data";
+import { throttle } from "../store/throttle";
 import { changeEmail, changePasswordHash, deleteUser, passwordHashOf, renameAccount } from "../store/users";
 import { AccountName, Email } from "./auth";
 
@@ -37,6 +39,9 @@ const PasswordChange = z.strictObject({
 const Deletion = z.strictObject({ passwordKey: PasswordKey("passwordKey") });
 
 const sessionOnly = { sessionOnly: true };
+
+/** The throttle's caller for checking an account's password key (store/throttle.ts): the account, whichever address it's from. */
+const keyChecks = (userId: string) => `account:${userId}`;
 const NOT_CURRENT = "That isn't your current password.";
 const NOT_YOURS = "That isn't your password.";
 
@@ -91,16 +96,18 @@ export const account = defineRoutes({
         if (!renamed) throw new HttpError(401, "Log in first.");
         return Response.json(renamed satisfies Account);
       }
+      await throttle(db, keyChecks(auth.userId));
       const hash = await passwordHashOf(db, auth.userId);
       if (!hash || !verifyKey(currentPasswordKey!, hash)) throw new HttpError(403, NOT_YOURS);
       // Moved only while the hash is the one just checked, so a password changed meanwhile moves nothing.
-      const moved = await changeEmail(db, auth.userId, { name, email, from: hash, to: hashKey(newPasswordKey!) });
+      const moved = await changeEmail(db, auth.userId, { name, email, from: hash, to: hashKey(newPasswordKey!), keepSessionId: auth.via === "session" ? auth.sessionId : null });
       if (moved === "taken") throw new HttpError(409, "That email already has an account.");
       if (moved === "changed") throw new HttpError(403, NOT_YOURS);
       return Response.json(moved satisfies Account);
     }, sessionOnly),
     DELETE: authed(async (req, { db, auth, config }) => {
       const { passwordKey } = await readJson(req, Deletion);
+      await throttle(db, keyChecks(auth.userId));
       const hash = await passwordHashOf(db, auth.userId);
       if (!hash || !verifyKey(passwordKey, hash)) throw new HttpError(403, NOT_YOURS);
       // Deleted only while the hash is the one just checked, so a password changed meanwhile deletes nothing.
@@ -111,6 +118,7 @@ export const account = defineRoutes({
   "/api/v1/account/password": {
     POST: authed(async (req, { db, auth }) => {
       const { currentPasswordKey, newPasswordKey } = await readJson(req, PasswordChange);
+      await throttle(db, keyChecks(auth.userId));
       const hash = await passwordHashOf(db, auth.userId);
       if (!hash || !verifyKey(currentPasswordKey, hash)) throw new HttpError(403, NOT_CURRENT);
       const changed = await changePasswordHash(db, auth.userId, { from: hash, to: hashKey(newPasswordKey), keepSessionId: auth.via === "session" ? auth.sessionId : null });

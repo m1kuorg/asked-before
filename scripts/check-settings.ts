@@ -2,8 +2,9 @@
 // Through the SDK: API keys, made once in the ab_<id>_<secret> form, listed,
 // used as a Bearer token with their last use stamped, and revoked; a wrong or
 // revoked key's 401; the one rule for what a key can't do (403); changing the
-// name and email, a new email needing the password; and changing the
-// password, which needs the current one and ends every other session. Then,
+// name and email, a new email needing the password and ending every other
+// session; and changing the password, which needs the current one and ends
+// every other session. Then,
 // in a real browser at 1920×1080, the settings page: a key made there and
 // used by the SDK, then revoked there; the name and the email; the
 // password, logging out another browser; and the setup
@@ -160,10 +161,14 @@ await step("5. Change the name and the email, which is trimmed, lowercased, not 
   const wrong = await failure(ada.client.account.update({ email: "ada@engine.example", password: "the wrong password" }));
   check(wrong?.status === 403, `a new email with a wrong password: ${say(wrong)}`);
   check((await ada.client.auth.me()).email === ADA.email, "neither changed it");
+  const other = app.browser();
+  await other.client.auth.logIn({ email: ADA.email, password: ADA.password });
   const moved = await ada.client.account.update({ email: "  Ada@Engine.Example ", password: ADA.password });
   check(moved.email === "ada@engine.example" && moved.name === "Augusta Ada King", `the email alone: ${moved.name}, ${moved.email}`);
   const me = await ada.client.auth.me();
   check(me.name === moved.name && me.email === moved.email, `the current account shows both: ${me.name}, ${me.email}`);
+  const ended = await failure(other.client.auth.me());
+  check(ended?.status === 401, `a new email ends every other session, as a new password does: ${say(ended)}`);
 
   const relogged = await app.browser().client.auth.logIn({ email: "ada@engine.example", password: ADA.password });
   check(relogged.account.id === moved.id, "the password logs in with the new email");

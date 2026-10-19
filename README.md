@@ -40,8 +40,8 @@ The key is the only setting you need. The others are vars in `wrangler.jsonc`, e
 | `PUBLIC_URL` | empty | The address people reach the deployed app at. Empty, a request's own origin counts as the app's; an `https` address makes the session cookie `Secure`. `bun run dev` always runs with it empty. |
 | `DAILY_MODEL_REQUESTS` | `10` | Model requests one account may make per UTC day. |
 | `SITE_DAILY_MODEL_REQUESTS` | `200` | Model requests the whole app may make per UTC day, across every account. |
-| `DAILY_PHRASINGS` | `1000` | Phrasings one account may store per UTC day, uploads and captures together. One the shelf holds already counts nothing. |
-| `SITE_DAILY_PHRASINGS` | `8000` | Phrasings the whole app may store per UTC day, across every account. |
+| `DAILY_PHRASINGS` | `1000` | Phrasings one account may send per UTC day, uploads and captures together. |
+| `SITE_DAILY_PHRASINGS` | `8000` | Phrasings the whole app may take per UTC day, across every account. |
 | `SORT_BATCH_SIZE` | `300` | Phrasings a sort sends the model at once. |
 
 The schema is a series of Wrangler's D1 migrations, the numbered files in `migrations/`; see [Deploy it](#deploy-it).

@@ -5,8 +5,7 @@
 // answering as the answer key sorts the demo export. Through the SDK and in
 // the upload page, in a real browser at 1920×1080: an account past its
 // phrasings gets 429, for a capture and for an upload's chunk, and the page
-// shows it, though an export sent again, which stores nothing new, counts
-// nothing; the app past its one model request fails the next sort, which
+// shows it; the app past its one model request fails the next sort, which
 // the page shows, and answers a cold rep 429; and the app past its
 // phrasings answers any account's chunk 429, which the page shows, while a
 // chunk that just fits is stored. A refused request counts toward neither
@@ -142,8 +141,6 @@ try {
     const chunk = await failure(cy.client.uploads.append(open.id, fresh(1, "cy")));
     check(chunk?.status === 429 && chunk.message === PAST_ACCOUNT, `a chunk of one: ${say(chunk)}`);
     check((await cy.client.uploads.get(open.id)).messages === 0, "and the chunk stored nothing");
-    const again = await cy.client.uploads.append(open.id, phrasings);
-    check(again.messages === 27 && again.phrasings === 0, `the demo export sent again, all of it on the shelf already, counts nothing: ${again.messages} messages, ${again.phrasings} new`);
   });
 
   await step("2. The upload page shows an account past its phrasings", async () => {

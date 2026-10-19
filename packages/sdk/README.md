@@ -110,4 +110,4 @@ try {
 
 A zip is read from its directory, inflating only its `conversations.json` or its numbered `conversations-NNN.json` shards, so an export full of images never has to fit in memory. ChatGPT's conversations are walked from their current message, so edited-away branches don't count. An export the reader can't use throws `ExportError`, whose message names the field, never your words.
 
-Send phrasings with `uploads.append`, at most `MAX_CHUNK` (500) at a time. The phrasings an upload stores, and captures, count toward the server's daily caps; past one, a request throws `ApiError` with a 429, and a chunk stores none of its phrasings.
+Send phrasings with `uploads.append`, at most `MAX_CHUNK` (500) at a time. Every phrasing an upload is sent, and each capture, counts toward the server's daily caps; past one, a request throws `ApiError` with a 429, and a chunk stores none of its phrasings.

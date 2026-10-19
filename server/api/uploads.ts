@@ -8,18 +8,18 @@
 // 0001). A phrasing over 2,000 characters, or a chunk over 500 phrasings,
 // is a 413; a phrasing dated more than 5 minutes after the server's clock
 // is a 400 (its time is a Unix timestamp, so no time zone runs ahead), lest
-// a card show borrowed again the moment it's returned. The phrasings a
-// chunk would store, those new to the shelf, count toward the account's
-// daily phrasings and the app's (store/usage.ts), or the chunk is a 429
-// that stores none of them once they'd pass either. Finishing an upload
-// answers with it waiting to be sorted, and starts the shelf's sort in its
-// Durable Object (worker/sorter.ts, server/sort.ts), which records its
-// progress and any failure on the upload; when that start fails, the
-// upload answers failed, so a retry starts it again. Retrying a failed
-// sort carries on from the first phrasing it hadn't offered; anything but
-// a failed upload is a 409. Deleting an upload deletes its phrasings, and
-// any card left with fewer than two borrows, whose remaining phrasing
-// becomes unsorted; a sort under way on it stops.
+// a card show borrowed again the moment it's returned. Every phrasing a
+// chunk carries counts toward the account's daily phrasings and the app's
+// (store/usage.ts), or the chunk is a 429 that stores none of them once
+// they'd pass either. Finishing an upload answers with it waiting to be
+// sorted, and starts the shelf's sort in its Durable Object
+// (worker/sorter.ts, server/sort.ts), which records its progress and any
+// failure on the upload; when that start fails, the upload answers failed,
+// so a retry starts it again. Retrying a failed sort carries on from the
+// first phrasing it hadn't offered; anything but a failed upload is a 409.
+// Deleting an upload deletes its phrasings, and any card left with fewer
+// than two borrows, whose remaining phrasing becomes unsorted; a sort under
+// way on it stops.
 
 import { MAX_CHUNK, MAX_PHRASING_LENGTH, type Upload } from "@asked-before/sdk";
 import { z } from "zod";
@@ -28,7 +28,7 @@ import type { Env } from "../config";
 import { defineRoutes, HttpError, readJson, readPage } from "../http";
 import type { Db } from "../store/db";
 import { spendPhrasings } from "../store/usage";
-import { appendPhrasings, createUpload, deleteUpload, failUnstarted, finishUpload, getUpload, listUploads, newPhrasings, retryUpload, type UploadChange } from "../store/uploads";
+import { appendPhrasings, createUpload, deleteUpload, failUnstarted, finishUpload, getUpload, listUploads, retryUpload, type UploadChange } from "../store/uploads";
 
 /** How far past the server's clock a phrasing may be dated, for a clock that runs a little fast. */
 const AHEAD_MS = 5 * 60 * 1000;
@@ -128,7 +128,7 @@ export const uploads = defineRoutes({
         }
         if (Date.parse(time) > latest) throw new HttpError(400, `Phrasing ${i + 1} is dated more than 5 minutes after the server's clock.`);
       });
-      await spendPhrasings(db, auth.userId, await newPhrasings(db, auth.userId, params.uploadId, phrasings), config.dailyPhrasings);
+      await spendPhrasings(db, auth.userId, phrasings.length, config.dailyPhrasings);
       const appended = await appendPhrasings(db, auth.userId, params.uploadId, phrasings);
       return Response.json(changed(appended, "This upload is finished, so it takes no more phrasings. Start a new upload to add more."));
     }),

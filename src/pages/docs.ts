@@ -66,7 +66,7 @@ const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/account",
         sdk: "account.update",
         who: SESSION,
-        does: "Changes { name, email }, either or both: the account. A new email changes the password's key, so it comes with { currentPasswordKey, newPasswordKey }, the key the current email and the new one each make; the SDK takes the password. A wrong password is a 403, and an email another account has a 409.",
+        does: "Changes { name, email }, either or both: the account. A new email changes the password's key, so it comes with { currentPasswordKey, newPasswordKey }, the key the current email and the new one each make; the SDK takes the password. A wrong password is a 403, and an email another account has a 409. A new email ends every other session.",
       },
       {
         method: "POST",
@@ -221,7 +221,7 @@ const STATUSES: [string, string][] = [
   ["404", "There's no such endpoint, or the shelf, upload, card, key, or cold rep isn't yours. Another account's is a 404 at any depth."],
   ["409", "A conflict: an email that has an account, an upload finished already, a retry of a sort that hasn't failed, or a cold rep checked already."],
   ["413", `A phrasing or capture over ${count(MAX_PHRASING_LENGTH)} characters, an append over ${count(MAX_CHUNK)} phrasings, or an answer over 4,000 characters.`],
-  ["429", "Too many sign-up or log-in tries from one address, or a daily cap is spent: the account's or the app's model requests, or its phrasings."],
+  ["429", "Too many sign-up or log-in tries from one address, or password tries on one account, 20 in 15 minutes; or a daily cap is spent: the account's or the app's model requests, or its phrasings."],
   ["500", "The server failed. Its message says nothing more."],
   ["502", "The model failed. Nothing was stored, so send the request again."],
 ];
@@ -279,11 +279,11 @@ function api(): Section {
         "). A sort makes one request per batch, and up to two more when an answer breaks a rule; a capture the model places makes one; so do starting a cold rep and checking an answer.",
       ),
       p(
-        "Every phrasing stored counts toward your account's cap, 1,000 a day, uploads and captures together (",
+        "Every phrasing sent counts toward your account's cap, 1,000 a day, uploads and captures together (",
         code("DAILY_PHRASINGS"),
         "), and the app's, 8,000 a day across every account (",
         code("SITE_DAILY_PHRASINGS"),
-        "). A phrasing the shelf holds already counts nothing, so an export bigger than a day's phrasings can be uploaded again the next day, and carries on where it stopped.",
+        "). A chunk counts every phrasing it carries, even one the shelf holds already, since recording that the upload sent it writes too. So an export bigger than a day's phrasings is carried on the next day in the same upload, with Try again on the upload page.",
       ),
       p("Past a cap, the request is a 429 and counts toward neither: a chunk stores none of its phrasings and can be sent again, a sort fails with that message and can be retried, and a capture is lost unless it's sent again. More open at midnight UTC."),
     ],

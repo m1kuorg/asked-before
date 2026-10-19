@@ -7,11 +7,12 @@
 // key Bun's SDK derives, and never the password. Then the API itself: a
 // password, or anything that isn't a key, is a 400; the database keeps
 // only a salted SHA-256 of the key, different for two accounts with the
-// same password; and Wrangler's output holds no password and no key. It
+// same password; checking an account's key is throttled; and Wrangler's
+// output holds no password and no key. It
 // prints each step's checks and exits 1 if any fails, naming the step.
 // Run: bun run check:passwords
 
-import { passwordKey } from "@asked-before/sdk";
+import { ApiError, passwordKey } from "@asked-before/sdk";
 import { Database } from "bun:sqlite";
 import { createHash } from "node:crypto";
 import { chromium, type Page } from "playwright";
@@ -71,6 +72,18 @@ async function sends(call: string, want: Record<string, [password: string, email
     check(body?.[name] === key, `its ${name} is the key Bun's SDK derives from the password and ${email}: ${String(body?.[name]).slice(0, 12)}…`);
   }
 }
+
+/** The ApiError a call fails with, or null when it doesn't fail. */
+async function failure(call: Promise<unknown>): Promise<ApiError | null> {
+  try {
+    await call;
+    return null;
+  } catch (error) {
+    if (error instanceof ApiError) return error;
+    throw error;
+  }
+}
+const say = (error: ApiError | null) => (error ? `${error.status} "${error.message}"` : "no error");
 
 const section = (p: Page, name: string) => p.locator("section", { has: p.getByRole("heading", { name, exact: true }) });
 
@@ -173,7 +186,21 @@ try {
     check(hashes.length === 2 && hashes[0]!.hash !== hashes[1]!.hash, "the same password on two accounts is stored two ways");
   });
 
-  await step("6. Wrangler's output holds no password and no key", async () => {
+  await step("6. Checking an account's password is throttled: 20 tries in 15 minutes", async () => {
+    const dee = app.browser().client;
+    await dee.auth.signUp({ name: "Dee", email: "dee@example.com", password: ADA.password });
+    let tries = 0;
+    let refused: ApiError | null = null;
+    while (tries < 25 && refused?.status !== 429) {
+      tries++;
+      refused = await failure(dee.account.delete({ password: "the wrong password" }));
+    }
+    check(tries === 21 && refused?.status === 429, `after ${tries - 1} wrong passwords, the next try: ${say(refused)}`);
+    const right = await failure(dee.account.delete({ password: ADA.password }));
+    check(right?.status === 429 && (await dee.auth.me()).email === "dee@example.com", `then even the right one, and the account is still there: ${say(right)}`);
+  });
+
+  await step("7. Wrangler's output holds no password and no key", async () => {
     const keys = await Promise.all([passwordKey(ADA.password, ADA.email), passwordKey(NEW_PASSWORD, NEW_EMAIL)]);
     const log = app.log().toLowerCase();
     const found = [...PASSWORDS, ...keys].filter((secret) => log.includes(secret.toLowerCase()));
