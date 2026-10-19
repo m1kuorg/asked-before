@@ -54,12 +54,15 @@ const A = key.skills[0]!;
 /** Card A's borrows in the demo export, oldest first. */
 const borrowsOfA = A.messageIds.map((id) => phrasings[Number(id.slice(1)) - 1]!).sort((a, b) => Date.parse(a.time) - Date.parse(b.time));
 const today = new Date().toISOString().slice(0, 10);
-const ADA = { name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" };
+// JOURNEY_URL walks a deployed app instead of starting one; its learner gets a
+// fresh email, since the deployed app keeps every account.
+const LIVE_URL = process.env.JOURNEY_URL?.replace(/\/$/, "");
+const ADA = { name: "Ada Lovelace", email: LIVE_URL ? `ada+${Date.now()}@example.com` : "ada@example.com", password: "analytical engine" };
 const SHELF = "Work";
 const REPHRASING = "how do I undo the commit I just made? I haven't pushed it yet";
 
 await mkdir(OUT, { recursive: true });
-const app = await startApp();
+const app = LIVE_URL ? { url: LIVE_URL, stop: async () => {} } : await startApp();
 let browser: Browser;
 try {
   browser = await chromium.launch();

@@ -6,7 +6,7 @@
 // a stand-in in this script, answering as the demo export's answer key does,
 // so no sort reaches the real model. Uploading the same export again into
 // the shelf stores nothing new; onto another shelf it stores it all. A
-// phrasing over 2,000 characters, or a chunk over 2,000 phrasings, gets
+// phrasing over 2,000 characters, or a chunk over 500 phrasings, gets
 // 413, and the largest chunk of all is stored whole; one dated more than 5
 // minutes after the server's clock gets 400, as does anything but
 // { sourceId, text, time }. Another account's upload is a 404, an API key
@@ -16,7 +16,7 @@
 // the step.
 // Run: bun run check:uploads
 
-import { ApiError, createClient, readExport, type Phrasing, type Shelf, type Upload } from "@asked-before/sdk";
+import { ApiError, createClient, MAX_CHUNK, readExport, type Phrasing, type Shelf, type Upload } from "@asked-before/sdk";
 import { join } from "node:path";
 import { compareWithKey, keySorter, sortEnds } from "./lib/answer-key";
 import { startApp } from "./lib/app";
@@ -68,7 +68,7 @@ let bootcamp: Shelf;
 let first: Upload;
 
 /** Uploads phrasings onto a shelf as the page does: create, chunks of `size`, finish. */
-async function upload(shelf: Shelf, phrasings: Phrasing[], size = 2000): Promise<Upload> {
+async function upload(shelf: Shelf, phrasings: Phrasing[], size = MAX_CHUNK): Promise<Upload> {
   const made = await ada.client.uploads.create(shelf.id, { source: "chatgpt", fileName: "conversations.json" });
   for (let i = 0; i < phrasings.length; i += size) await ada.client.uploads.append(made.id, phrasings.slice(i, i + size));
   return ada.client.uploads.finish(made.id);
@@ -114,27 +114,27 @@ try {
   await step("4. Upload the same export again: nothing new on the shelf, everything new on another", async () => {
     const repeat = await upload(work, demo.phrasings);
     check(repeat.messages === 27 && repeat.phrasings === 0 && repeat.status === "waiting", `again into Work: ${counts(repeat)}`);
-    const elsewhere = await upload(bootcamp, demo.phrasings, 2000);
+    const elsewhere = await upload(bootcamp, demo.phrasings, MAX_CHUNK);
     check(elsewhere.messages === 27 && elsewhere.phrasings === 27, `into Bootcamp: ${counts(elsewhere)}`);
     const claude = await ada.client.uploads.create(work.id, { source: "claude", fileName: "conversations.json" });
     check(claude.source === "claude", `a Claude upload is made as ${claude.source}`);
   });
 
-  await step("5. A phrasing over 2,000 characters, or a chunk over 2,000 phrasings, gets 413", async () => {
+  await step("5. A phrasing over 2,000 characters, or a chunk over 500 phrasings, gets 413", async () => {
     const open = await ada.client.uploads.create(work.id, { source: "chatgpt", fileName: "conversations.json" });
     const long = await failure(ada.client.uploads.append(open.id, [phrasing("long-1", "x".repeat(2001))]));
     check(long?.status === 413 && !long.message.includes("xxxx"), `2,001 characters: ${say(long)}`);
     const atLimit = await ada.client.uploads.append(open.id, [phrasing("long-2", "y".repeat(2000))]);
     check(atLimit.phrasings === 1, `exactly 2,000 characters is stored: ${counts(atLimit)}`);
-    const many = Array.from({ length: 2001 }, (_, i) => phrasing(`many-${i}`));
+    const many = Array.from({ length: MAX_CHUNK + 1 }, (_, i) => phrasing(`many-${i}`));
     const big = await failure(ada.client.uploads.append(open.id, many));
-    check(big?.status === 413, `a chunk of 2,001: ${say(big)}`);
-    const full = await ada.client.uploads.append(open.id, many.slice(0, 2000));
-    check(full.phrasings === 2001, `a chunk of 2,000 is stored: ${counts(full)}`);
-    // About 12 MB of JSON, which D1 takes only in slices: a bound value holds at most 2 MB.
+    check(big?.status === 413 && MAX_CHUNK === 500, `a chunk of ${MAX_CHUNK + 1}: ${say(big)}`);
+    const full = await ada.client.uploads.append(open.id, many.slice(0, MAX_CHUNK));
+    check(full.phrasings === MAX_CHUNK + 1, `a chunk of ${MAX_CHUNK} is stored: ${counts(full)}`);
+    // About 3 MB of JSON, which D1 takes only in slices: a bound value holds at most 2 MB.
     const wide = await ada.client.uploads.create((await ada.client.shelves.create({ name: "Wide" })).id, { source: "chatgpt", fileName: "conversations.json" });
-    const widest = await ada.client.uploads.append(wide.id, Array.from({ length: 2000 }, (_, i) => phrasing(`wide-${i}`, `${i} ${"語".repeat(1990)}`)));
-    check(widest.phrasings === 2000 && widest.messages === 2000, `the largest chunk, 2,000 phrasings of 2,000 characters of three bytes each, is stored whole: ${counts(widest)}`);
+    const widest = await ada.client.uploads.append(wide.id, Array.from({ length: MAX_CHUNK }, (_, i) => phrasing(`wide-${i}`, `${i} ${"語".repeat(1990)}`)));
+    check(widest.phrasings === MAX_CHUNK && widest.messages === MAX_CHUNK, `the largest chunk, ${MAX_CHUNK} phrasings of 2,000 characters of three bytes each, is stored whole: ${counts(widest)}`);
   });
 
   await step("6. A phrasing dated more than 5 minutes after the server's clock, or shaped otherwise, gets 400", async () => {

@@ -1,13 +1,15 @@
 // The one way the app asks the model, for every route and the sort. Every
 // request is a structured output from claude-haiku-5-5 with effort set
 // explicitly. A request made for an account first spends one of its daily
-// model requests (store/usage.ts), or fails with 429. A route lets a
-// ModelError propagate; answer() (server/http.ts) answers it with 502
-// { error }. Requests are streamed, so a long answer (a sort batch of
-// hundreds of phrasings) has room to finish; only the final message is
-// read. The key, the database, and the cap come from the Worker's env,
-// passed in by the handler or the sort's Durable Object, since a Worker has
-// none at module scope.
+// model requests and one of the app's (store/usage.ts), or fails with 429.
+// A route lets a ModelError propagate; answer() (server/http.ts) answers it
+// with 502 { error }. Requests are streamed, so a long answer (a sort batch
+// of hundreds of phrasings) has room to finish; only the final message is
+// read. The thinking before it is never sent, only its signature, so a
+// stream stays a few hundred events, which take a few milliseconds of the
+// 10 ms of CPU an alarm has on Workers Free. The key, the database, and the
+// caps come from the Worker's env, passed in by the handler or the sort's
+// Durable Object, since a Worker has none at module scope.
 
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
@@ -63,6 +65,7 @@ export async function askStructured<S extends z.ZodType>(
         max_tokens: MAX_TOKENS,
         system,
         messages: [{ role: "user", content: userText }],
+        thinking: { type: "adaptive", display: "omitted" },
         output_config: { effort, format: { type: format.type, schema: format.schema } },
       })
       .finalMessage();

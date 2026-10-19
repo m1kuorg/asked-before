@@ -38,7 +38,10 @@ The key is the only setting you need. The others are vars in `wrangler.jsonc`, e
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | none | The model key, from `.env` or your shell, and a Worker secret once deployed. The app starts without it, but every sort and cold rep fails. |
 | `PUBLIC_URL` | empty | The address people reach the deployed app at. Empty, a request's own origin counts as the app's; an `https` address makes the session cookie `Secure`. `bun run dev` always runs with it empty. |
-| `DAILY_MODEL_REQUESTS` | `300` | Model requests one account may make per UTC day. |
+| `DAILY_MODEL_REQUESTS` | `10` | Model requests one account may make per UTC day. |
+| `SITE_DAILY_MODEL_REQUESTS` | `200` | Model requests the whole app may make per UTC day, across every account. |
+| `DAILY_PHRASINGS` | `1000` | Phrasings one account may send per UTC day, uploads and captures together. |
+| `SITE_DAILY_PHRASINGS` | `8000` | Phrasings the whole app may take per UTC day, across every account. |
 | `SORT_BATCH_SIZE` | `300` | Phrasings a sort sends the model at once. |
 
 The schema is a series of Wrangler's D1 migrations, the numbered files in `migrations/`; see [Deploy it](#deploy-it).
@@ -66,6 +69,8 @@ The other checks:
 | `bun run check:smoke` | The app on Workers: every page, an asset, and the demo export with the security headers, one content security policy, the answer key never served, an unknown endpoint's 404 JSON, and signing up | |
 | `bun run check:key` | The demo export's answer key against the export | |
 | `bun run check:accounts` | Accounts and shelves through the SDK: sessions, `next`, 404s across accounts, the Origin rule, the logs, the throttle | |
+| `bun run check:passwords` | The password never reaching the server: every request the page sends to sign up, log in, change the password or email, and delete the account, the API refusing anything but a key, and the database keeping only its salted hash | Chromium |
+| `bun run check:caps` | The daily caps, set small: an account's phrasings, the app's phrasings, and the app's model requests, each a 429 through the SDK and in the upload page | Chromium |
 | `bun run check:shell` | The app's shell: sign up, the Desk, your shelves, log out, and the redirect to log in and back | Chromium |
 | `bun run check:landing` | The landing page's card against the answer key, and signing up and logging in from it | Chromium |
 | `bun run check:readers` | The SDK's export readers on every fixture, and on broken exports | |
@@ -90,11 +95,11 @@ The other checks:
 | `bun run check:styles` | The stylesheets at 1080p, surface by surface (`scripts/styles/`) | Chromium |
 | `bun run check:migrations` | The schema's D1 migrations: each applied once on a fresh database; a new one, added in a copy of the app, that rebuilds a table and keeps the data beneath it; and a failing one applying nothing | |
 
-A check that needs the key and stubs nothing calls the real model; the others stub it inside the script, never in the app, so they need no key. After a change to the MCP server or the SDK, `bun run build:plugin` rebuilds the plugin's server, which `check:plugin` fails on until you do. A new API route needs its row on the docs page, `src/pages/docs.ts`, or `check:docs` fails. [`docs/code-map.md`](docs/code-map.md) says where each piece lives.
+A check that needs the key and stubs nothing calls the real model; the others stub it inside the script, never in the app, so they need no key. Every check starts its app with the daily caps lifted, unless it checks one. After a change to the MCP server or the SDK, `bun run build:plugin` rebuilds the plugin's server, which `check:plugin` fails on until you do. A new API route needs its row on the docs page, `src/pages/docs.ts`, or `check:docs` fails. [`docs/code-map.md`](docs/code-map.md) says where each piece lives.
 
 ## Deploy it
 
-The app needs [Workers Paid](https://developers.cloudflare.com/workers/platform/pricing/), $5 a month, for scrypt's CPU time and the sort's Durable Object: Workers Free allows a request 10 ms of CPU time, less than one password's hash takes. Deploying is a one-time setup on a Cloudflare account on that plan, from your clone, with your key exported in your shell:
+The app runs on [Workers Free](https://developers.cloudflare.com/workers/platform/pricing/). Free gives a request, a cron run, and each of the sort's Durable Object alarms 10 ms of CPU time, so the server never hashes a password: the SDK, in the page or your script, derives a key from it with scrypt, and the server keeps only a salted SHA-256 of that key (ADR 0006). Free's real ceiling is D1's 100,000 rows written a day for the whole Cloudflare account, past which every query fails, logging in too; a phrasing stored and sorted writes 7 to 9. The daily caps in [Run it](#run-it) keep the app under it: 1,000 phrasings an account and 8,000 for the app, and 10 model requests an account and 200 for the app. [Workers Paid](https://developers.cloudflare.com/workers/platform/pricing/), $5 a month, lifts the CPU and D1 limits; raise the caps in `wrangler.jsonc`'s `vars` to match. Deploying is a one-time setup on a Cloudflare account, from your clone, with your key exported in your shell:
 
 1. Log in to that account:
 
@@ -139,7 +144,7 @@ bun run build:pages
 bunx wrangler deploy
 ```
 
-Wrangler applies, in order, only the migrations the database hasn't had, recording each in its `d1_migrations` table, and stops at one that fails; locally, `check:migrations` proves that a failing one applies nothing. D1's Time Travel keeps 30 days of the database's history, so it can be restored to a minute before a bad migration, and it can't be turned off: what a learner deletes stays in Cloudflare's backups for up to 30 days, which the settings page says.
+Wrangler applies, in order, only the migrations the database hasn't had, recording each in its `d1_migrations` table, and stops at one that fails; locally, `check:migrations` proves that a failing one applies nothing. D1's Time Travel keeps 7 days of the database's history on Free and 30 on Paid, so it can be restored to a minute before a bad migration, and it can't be turned off: what a learner deletes stays in Cloudflare's backups for up to 30 days, which the settings page says.
 
 ## The SDK
 
