@@ -3,7 +3,8 @@
 // built from its own components (data-ui), labelled Example or Demo data,
 // inert (nothing in it can be focused or pressed, and none holds a real file
 // input), with its text alternative beside it. The last response, the pass,
-// breaks out wider; then the photograph of a closed-book examination.
+// breaks out wider. The last sentence carries a photograph of a pupil working
+// a sum at the blackboard; then the photograph of a closed-book examination.
 import { useEffect, useRef, useState } from "react";
 import { FileArchiveIcon } from "lucide-react";
 import { AskStrip } from "@/components/ask-strip";
@@ -16,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ANSWER_LABEL, DEMO_DATA, PRIVACY_LINE, READ_LOCALLY } from "@/lib/copy";
 import { askedTimes, count, longDate, plural, shortDate } from "@/lib/format";
 import { AXIS, CARD_A, CARDS, DEMO_MESSAGES } from "./demo";
+import { Photo } from "./photo";
 
 const FILE = "chatgpt-export.zip";
 /** Every ask on the demo shelf's cards: the shelf's subline counts these (brief section 7). */
@@ -98,7 +100,19 @@ export function HowItWorksChapter() {
               </Response>
             </Exchange>
 
-            <Exchange sentence="Finally, prove it without AI.">
+            <Exchange
+              sentence="Finally, prove it without AI."
+              aside={
+                <Photo
+                  src="/images/pupil-blackboard-1956.jpg"
+                  width={1080}
+                  height={1080}
+                  alt="A schoolboy in a sweater stands at a blackboard, chin in hand, his chalk on the last line of a long multiplication he is working out."
+                  caption="A pupil during a mathematics lesson"
+                  date="September 1956"
+                />
+              }
+            >
               <Call alternative={`Example: a cold rep answer being typed in the box labelled ${ANSWER_LABEL}: ${ANSWER}.`}>
                 <TypedAnswer />
               </Call>
@@ -128,34 +142,32 @@ export function HowItWorksChapter() {
       </div>
 
       {/* The padding above and below holds the photograph's drift (landing.css), so the whole picture stays inside its figure. */}
-      <figure data-reveal="fade" data-chapter-ink="dark" className="mt-16 pt-12 pb-4 md:mt-28">
-        <div className="photo-frame h-[min(64svh,100vw)] bg-plum-surface md:h-[min(84svh,64vw)]">
-          <img
-            src="/images/exam-hall-1958.jpg"
-            width={1200}
-            height={769}
-            loading="lazy"
-            decoding="async"
-            alt="A school hall in 1958: students at single wooden desks, set well apart, write their examination by hand while a teacher stands at the back."
-            className="h-[106%] w-full object-cover object-[50%_40%]"
-          />
-        </div>
-        <figcaption className="t-small mt-3 flex flex-wrap justify-between gap-x-6 gap-y-1 text-muted-foreground">
-          <span>The matriculation examination at Nurmes coeducational lyceum, Finland</span>
-          <span>March 30, 1958</span>
-        </figcaption>
-      </figure>
+      <Photo
+        src="/images/exam-hall-1958.jpg"
+        width={1200}
+        height={769}
+        alt="A school hall in 1958: students at single wooden desks, set well apart, write their examination by hand while a teacher stands at the back."
+        caption="The matriculation examination at Nurmes coeducational lyceum, Finland"
+        date="March 30, 1958"
+        drift
+        frame="h-[min(64svh,100vw)] md:h-[min(84svh,64vw)]"
+        position="object-[50%_40%]"
+        className="mt-16 pt-12 pb-4 md:mt-28"
+      />
     </section>
   );
 }
 
-/** One exchange: its sentence opens it (on a wide screen it holds in the left margin while its call and response pass), then the call, then the response. */
-function Exchange({ sentence, children }: { sentence: string; children: React.ReactNode }) {
+/** One exchange: its sentence opens it (on a wide screen it holds in the left margin, with its picture under it, while its call and response pass), then the call, then the response. Without that margin, the picture comes first at three-fifths of the width, so the sentence still leads straight into its call. */
+function Exchange({ sentence, aside, children }: { sentence: string; aside?: React.ReactNode; children: React.ReactNode }) {
   return (
     <li className="flex flex-col gap-4 lg:grid lg:grid-cols-12 lg:gap-x-6">
-      <p data-reveal="" className="t-lead font-medium text-balance lg:sticky lg:top-28 lg:col-span-3 lg:self-start">
-        {sentence}
-      </p>
+      <div className="flex flex-col gap-8 lg:sticky lg:top-28 lg:col-span-3 lg:self-start">
+        <p data-reveal="" className="t-lead font-medium text-balance">
+          {sentence}
+        </p>
+        {aside && <div className="w-3/5 max-lg:-order-1 lg:w-auto">{aside}</div>}
+      </div>
       <div className="flex flex-col gap-4 lg:col-span-8 lg:col-start-4">{children}</div>
     </li>
   );

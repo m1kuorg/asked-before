@@ -4,16 +4,15 @@
 // the last ask (brief sections 4 and 7; taste-sheet-app.md, "home").
 //
 // The grid: a centred 1100px column of 12 columns, 77px wide with 16px
-// gutters (12 x 77 + 11 x 16 = 1100). The four tiles take 3 columns each,
-// then Prove next and Your shelves take 9 + 3 (821 + 16 + 263 = 1100), then
-// Latest asks and Latest proven 6 + 6 (542 + 16 + 542 = 1100), so every
-// internal edge meets one above it. Below a 1100px canvas the 9 + 3 and the
-// 6 + 6 stack; on a phone the tiles are 2 x 2.
-//
-// Each panel keeps its own height (app-screens section 4.2, align-items:
-// start): Prove next runs 1 to 10 rows beside a learner's few shelves, and
-// the ten latest asks sit beside only the passes there are. Stretching the
-// short one would leave a tinted band as tall as six rows.
+// gutters (12 x 77 + 11 x 16 = 1100). The four tiles take 3 columns each.
+// Then 8 + 4 (729 + 16 + 355 = 1100): on the left, Prove next over Your
+// shelves over Latest proven, the queue, where it comes from, and where it
+// goes; on the right, Latest asks, the stream of your own words beside them
+// (app-screens section 3.4: a right rail for recent items). The left column
+// stacks the blocks whose sizes pull against each other (every card is
+// either still to prove or proven), so it keeps nearly one height whatever
+// the split, and the row stretches so both sides end level (section 4.2).
+// Below a 1100px canvas everything stacks; on a phone the tiles are 2 x 2.
 import type { ScreenProps } from "@/app/router";
 import { useResource } from "@/app/use-resource";
 import { ErrorNotice } from "@/components/error-notice";
@@ -26,11 +25,10 @@ import { greeting, queueOf, subline } from "./home/sentences";
 import { Tiles, TilesLoading } from "./home/tiles";
 import { YourShelves } from "./home/your-shelves";
 
-const nine = "@min-[68.75rem]/home:col-span-9";
-const three = "@min-[68.75rem]/home:col-span-3 @min-[68.75rem]/home:self-start";
-const six = "@min-[68.75rem]/home:col-span-6 @min-[68.75rem]/home:self-start";
+const eight = "flex min-w-0 flex-col gap-4 @min-[68.75rem]/home:col-span-8";
+const four = "@min-[68.75rem]/home:col-span-4";
 
-export function Home({ client, navigate }: ScreenProps) {
+export function Home({ client, navigate, signal }: ScreenProps) {
   const desk = useResource(() => client.desk.get(), []);
   const shelves = useResource(() => client.shelves.list(), []);
 
@@ -64,10 +62,12 @@ export function Home({ client, navigate }: ScreenProps) {
       <p className="mt-3 text-sm text-muted-foreground">{STATUS_NOTE}</p>
 
       <div className="mt-6 grid grid-cols-1 gap-4 @min-[68.75rem]/home:grid-cols-12">
-        {data ? <ProveNext desk={data} empty={empty} className={nine} /> : <ProveNextLoading className={nine} />}
-        <YourShelves shelves={shelves} className={three} />
-        {data ? <LatestAsks asks={data.latestBorrows} className={six} /> : <LatestLoading title="Latest asks" rows={3} className={six} />}
-        {data ? <LatestProven cards={data.latestReturns} className={six} /> : <LatestLoading title="Latest proven" rows={1} className={six} />}
+        <div className={eight}>
+          {data ? <ProveNext desk={data} empty={empty} signal={signal} /> : <ProveNextLoading />}
+          <YourShelves shelves={shelves} />
+          {data ? <LatestProven cards={data.latestReturns} next={data.mostBorrowed[0]} className="flex-1" /> : <LatestLoading title="Latest proven" rows={1} className="flex-1" />}
+        </div>
+        {data ? <LatestAsks asks={data.latestBorrows} className={four} /> : <LatestLoading title="Latest asks" rows={3} className={four} />}
       </div>
     </div>
   );

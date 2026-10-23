@@ -15,14 +15,17 @@ export function toLogIn(): void {
   location.assign(`/login?next=${encodeURIComponent(location.pathname + location.search + location.hash)}`);
 }
 
-export const client = createClient({
-  fetch: async (url, init) => {
-    const response = await fetch(url, init);
-    if (response.status !== 401) return response;
-    toLogIn();
-    return new Promise<Response>(() => {});
-  },
-});
+async function send(url: string, init: RequestInit): Promise<Response> {
+  const response = await fetch(url, init);
+  if (response.status !== 401) return response;
+  toLogIn();
+  return new Promise<Response>(() => {});
+}
+
+export const client = createClient({ fetch: send });
+
+/** The app's client with every request aborted when `signal` is: for what a screen fetches on its own after it draws, which leaving the screen cancels. */
+export const clientFor = (signal: AbortSignal) => createClient({ fetch: (url, init) => send(url, { ...init, signal }) });
 
 export const publicClient = createClient();
 

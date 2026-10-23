@@ -1,11 +1,13 @@
 // "Prove next" (brief sections 4 and 7), the panel that answers Home's
 // question: up to 10 cards that need a cold rep, most asked first, each a
 // white row card with the skill (to the card, which spends no model request),
-// its shelf, the ask span on one axis shared by every row (the earliest first
+// its shelf, its ask strip on one axis shared by every row (the earliest first
 // ask to today), "asked 9 times", and "Start a cold rep" to
 // /app/cards/<id>?rep=start. The top row's is the screen's one filled
 // primary. The rows share their column lines through a subgrid, so every
-// strip starts and ends on the same x.
+// strip starts and ends on the same x. Each strip draws the span first, then
+// one dot per ask once that card's detail arrives (useAskTimes), in the same
+// box, so nothing moves.
 import type { Desk, DeskCard } from "@asked-before/sdk";
 import type { ReactNode } from "react";
 import { cn } from "cn";
@@ -18,6 +20,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COLD_REP_GLOSS, START_REP, startRepName } from "@/lib/copy";
 import { count, shortMonths } from "@/lib/format";
+import { useAskTimes } from "@/lib/use-ask-times";
 import { Panel, nameLink, rowCard } from "./panel";
 import { queueOf } from "./sentences";
 
@@ -25,7 +28,7 @@ const GLOSS = `${COLD_REP_GLOSS.charAt(0).toUpperCase()}${COLD_REP_GLOSS.slice(1
 
 // Narrow (a phone, or a stacked panel): the skill beside the action, the strip beside the count, in two fixed
 // columns so every strip has one width. From 40rem: four columns shared through a subgrid.
-const columns = "@min-[40rem]/rows:grid-cols-[minmax(0,1.2fr)_minmax(7rem,1fr)_auto_auto] @min-[40rem]/rows:gap-x-4";
+const columns = "@min-[40rem]/rows:grid-cols-[minmax(0,1.9fr)_minmax(6rem,1fr)_auto_auto] @min-[40rem]/rows:gap-x-4";
 const narrow = "grid grid-cols-[minmax(0,1fr)_8.5rem] gap-x-3 [grid-template-areas:'id_action'_'strip_count']";
 const wide = "@min-[40rem]/rows:col-span-full @min-[40rem]/rows:grid-cols-subgrid @min-[40rem]/rows:[grid-template-areas:none]";
 // Literal class names, so Tailwind finds them in this file.
@@ -36,7 +39,7 @@ const area = {
   action: "[grid-area:action] @min-[40rem]/rows:[grid-area:auto]",
 };
 
-export function ProveNext({ desk, empty, className }: { desk: Desk; empty?: ReactNode; className?: string }) {
+export function ProveNext({ desk, empty, signal, className }: { desk: Desk; empty?: ReactNode; signal: AbortSignal; className?: string }) {
   const rows = desk.mostBorrowed;
   const queue = queueOf(desk.totals);
   return (
@@ -54,20 +57,21 @@ export function ProveNext({ desk, empty, className }: { desk: Desk; empty?: Reac
       description={rows.length ? `Most asked first. ${GLOSS}` : GLOSS}
       footer={rows.length < queue && <Truncated shown={rows.length} queue={queue} />}
     >
-      {rows.length ? <Rows rows={rows} /> : empty}
+      {rows.length ? <Rows rows={rows} signal={signal} /> : empty}
     </Panel>
   );
 }
 
-function Rows({ rows }: { rows: DeskCard[] }) {
+function Rows({ rows, signal }: { rows: DeskCard[]; signal: AbortSignal }) {
   const axis = askAxis(rows.map((row) => row.firstBorrowAt));
+  const timesOf = useAskTimes(rows, signal);
   return (
     <div className="@container/rows">
       <div className={cn("flex flex-col gap-2 @min-[40rem]/rows:grid", columns)}>
         <AxisLabels axis={axis} />
         <ol className="flex flex-col gap-2 @min-[40rem]/rows:col-span-full @min-[40rem]/rows:grid @min-[40rem]/rows:grid-cols-subgrid">
           {rows.map((row, i) => (
-            <Row key={row.id} card={row} axis={axis} top={i === 0} />
+            <Row key={row.id} card={row} axis={axis} times={timesOf(row)} top={i === 0} />
           ))}
         </ol>
       </div>
@@ -88,7 +92,7 @@ function AxisLabels({ axis }: { axis: Axis }) {
   );
 }
 
-function Row({ card, axis, top }: { card: DeskCard; axis: Axis; top: boolean }) {
+function Row({ card, axis, times, top }: { card: DeskCard; axis: Axis; times: string[] | undefined; top: boolean }) {
   const cardPath = `/app/cards/${encodeURIComponent(card.id)}`;
   const askedAgain = card.status === "borrowed_again";
   return (
@@ -110,7 +114,11 @@ function Row({ card, axis, top }: { card: DeskCard; axis: Axis; top: boolean }) 
           </span>
         )}
       </div>
-      <AskStrip axis={axis} first={card.firstBorrowAt} last={card.lastBorrowAt} count={card.count} provenAt={card.returnedAt} showCount={false} className={area.strip} />
+      {times ? (
+        <AskStrip axis={axis} asks={times} provenAt={card.returnedAt} inRow className={area.strip} />
+      ) : (
+        <AskStrip axis={axis} first={card.firstBorrowAt} last={card.lastBorrowAt} count={card.count} provenAt={card.returnedAt} showCount={false} className={area.strip} />
+      )}
       <span className={cn(area.count, "text-right text-sm whitespace-nowrap text-muted-foreground")}>
         asked <Figure n={card.count} className="font-medium text-foreground" /> {card.count === 1 ? "time" : "times"}
       </span>

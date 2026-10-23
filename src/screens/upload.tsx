@@ -7,7 +7,8 @@
 // ?upload= names an upload (on this shelf, or it's not found); else
 // ?export=demo on a demo shelf uploads the demo export; else the drop target.
 // Grid: 12 columns, 16px gutters, 8 + 4 once the canvas is 896px or wider
-// (1100 = 12 x 77 + 11 x 16; 8 columns are 728, 4 are 356).
+// (1100 = 12 x 77 + 11 x 16; 8 columns are 728, 4 are 356); while a file is
+// chosen, the drop target takes all 12 above the 8 + 4.
 
 import { useEffect } from "react";
 import { notFound, type ScreenProps } from "@/app/router";
@@ -66,9 +67,9 @@ export function Upload({ client, params, query, account, navigate, setTitle, sig
           <AlertDescription>{GUEST_UPLOAD_WARNING}</AlertDescription>
         </Alert>
       )}
-      {/* While a file is being chosen, the drop target and the side panel end level; after that, each keeps its own height. */}
-      <div className="grid items-start gap-6 @min-[56rem]:grid-cols-12 @min-[56rem]:gap-4 has-[[data-step=choose]]:items-stretch">
-        <div className="flex min-w-0 flex-col gap-6 @min-[56rem]:col-span-8">{main}</div>
+      {/* While a file is chosen, the choose step's pieces join this grid (flow.tsx), so the side panel sits under the drop target. */}
+      <div className="grid items-start gap-6 @min-[56rem]:grid-cols-12 @min-[56rem]:gap-4">
+        <div className="flex min-w-0 flex-col gap-6 @min-[56rem]:col-span-8 @min-[56rem]:has-[[data-step=choose]]:contents">{main}</div>
         <HowTo className="@min-[56rem]:col-span-4" />
       </div>
     </div>

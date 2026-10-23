@@ -4,8 +4,7 @@
 // a drop takes the first file. While a file is read, the frame stays and says
 // so. The hint ends with the line that it's read on this computer, and the
 // privacy line closes the frame; the input is described by both. The frame
-// grows to fill its column (`className`), so it can end level with its
-// neighbour.
+// is as tall as what it holds, and keeps that height while a file is read.
 
 import { useId, useRef, useState, type RefObject } from "react";
 import { FileArchiveIcon } from "lucide-react";
@@ -55,7 +54,7 @@ export function DropZone({ onFile, reading, problemId, input, className }: DropZ
         if (file && !reading) onFile(file);
       }}
       className={cn(
-        "group flex min-h-72 flex-col rounded-2xl border border-dashed border-input bg-background transition-colors",
+        "group flex flex-col rounded-2xl border border-dashed border-input bg-background transition-colors",
         "data-over:border-solid data-over:border-primary data-over:bg-panel",
         "has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-ring",
         className,
@@ -76,10 +75,9 @@ export function DropZone({ onFile, reading, problemId, input, className }: DropZ
         }}
         className="sr-only"
       />
-      {reading ? (
-        <WaitLine className="m-auto px-6 py-10">{`Reading ${reading}…`}</WaitLine>
-      ) : (
-        <label htmlFor={ids.input} className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 px-6 py-10 text-center">
+      {/* While a file is read, the label keeps its room, unseen, and the wait line sits over it. */}
+      <div className="relative flex flex-col">
+        <label htmlFor={ids.input} className={cn("flex cursor-pointer flex-col items-center gap-3 px-6 py-8 text-center", reading && "invisible")}>
           <FileArchiveIcon aria-hidden="true" className="size-5 text-muted-foreground" />
           <span id={ids.title} className="text-base font-medium">
             Drop your chat export here
@@ -91,7 +89,8 @@ export function DropZone({ onFile, reading, problemId, input, className }: DropZ
             Choose a file
           </span>
         </label>
-      )}
+        {reading && <WaitLine className="absolute inset-0 justify-center px-6">{`Reading ${reading}…`}</WaitLine>}
+      </div>
       <p id={ids.privacy} className="border-t border-dashed border-input px-5 py-4 text-sm text-muted-foreground">
         {PRIVACY_LINE}
       </p>

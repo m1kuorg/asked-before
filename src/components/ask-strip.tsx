@@ -10,6 +10,11 @@
 //   const axis = askAxis(cards.map((card) => card.firstBorrowAt));
 //   <AskStrip axis={axis} first={card.firstBorrowAt} last={card.lastBorrowAt} count={card.count} provenAt={card.returnedAt} />
 //   <AskStrip axis={askAxis([first])} asks={card.borrows.map((ask) => ask.time)} provenAt={card.returnedAt} />
+//
+// A list row that has fetched its card's asks draws its dots `inRow`: in the
+// span's own box, so the row trades its span for its dots without moving.
+//
+//   <AskStrip axis={axis} asks={times} provenAt={card.returnedAt} inRow />
 
 import { cn } from "cn";
 import { Figure } from "@/components/figure";
@@ -29,7 +34,7 @@ export function askAxis(firstAsks: string[], now = Date.now()): Axis {
 const DOT = 4.5;
 
 type Common = { axis: Axis; provenAt?: string | null; className?: string };
-type EveryAsk = Common & { asks: string[] };
+type EveryAsk = Common & { asks: string[]; inRow?: boolean };
 type Span = Common & { first: string; last: string; count: number; showCount?: boolean };
 
 export function AskStrip(props: EveryAsk | Span) {
@@ -41,8 +46,8 @@ export function AskStrip(props: EveryAsk | Span) {
     const label = sorted.length ? `${said(sorted.length, sorted[0]!, sorted.at(-1)!)}${provenText(provenAt)}` : "Not asked yet";
     // Asks on one day are drawn side by side around that day, a dot and a gap apart.
     const days = Map.groupBy(sorted, isoDate);
-    return (
-      <svg role="img" aria-label={label} className={cn("h-5 w-full overflow-visible", className)}>
+    const strip = (
+      <svg role="img" aria-label={label} className={props.inRow ? "h-3.5 w-full min-w-16 overflow-visible" : cn("h-5 w-full overflow-visible", className)}>
         <line x1="0" x2="100%" y1="50%" y2="50%" className="stroke-track" strokeWidth={2} />
         {[...days.values()].flatMap((onDay) =>
           onDay.map((iso, i) => (
@@ -60,6 +65,7 @@ export function AskStrip(props: EveryAsk | Span) {
         {provenAt && <ProvenTick x={x(provenAt)} />}
       </svg>
     );
+    return props.inRow ? <span className={cn("flex min-w-0 items-center gap-2", className)}>{strip}</span> : strip;
   }
 
   const { first, last, count, showCount = true } = props;

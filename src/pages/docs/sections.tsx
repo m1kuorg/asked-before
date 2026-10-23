@@ -12,6 +12,7 @@ import { connectSnippets, PLACEHOLDERS, PLUGIN, SERVER_NAME } from "../../../pac
 import { CopyBlock } from "@/components/copy-block";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "cn";
+import { STATUS_WORDS } from "@/lib/copy";
 import { count } from "@/lib/format";
 import { MAX_PHRASING_LENGTH } from "@asked-before/sdk";
 import { AREAS, mcpSettings, STATUSES, TOOLS, type Endpoint } from "./reference";
@@ -96,6 +97,13 @@ function Endpoints({ area, endpoints }: { area: string; endpoints: Endpoint[] })
   );
 }
 
+/** The API's card statuses, each with the label the app's screens show for it and what it means. */
+const CARD_STATUSES: [string, string][] = [
+  ["borrowed", `${STATUS_WORDS.borrowed}: no cold rep on it has passed yet.`],
+  ["returned", `${STATUS_WORDS.returned}: a cold rep passed after its latest ask.`],
+  ["borrowed_again", `${STATUS_WORDS.borrowed_again}: asked again after it was proven, so it needs a fresh cold rep.`],
+];
+
 const api: Section = {
   id: "api",
   title: "The API",
@@ -119,8 +127,9 @@ const api: Section = {
         Times are ISO timestamps, and ids are opaque strings. A list comes inside an object, such as {"{ shelves }"}. A list that can grow without bound comes a page at a time, newest first: pass <C>limit</C> (1 to 100, 50 by default), and <C>cursor</C>, the <C>next</C> of the page before, which is null on the last page.
       </P>
       <P>
-        A phrasing is sent as {"{ sourceId, text, time }"} and nothing else: the export's own message id, your words, and when you sent them. It has at most {count(MAX_PHRASING_LENGTH)} characters, and a time more than 5 minutes after the server's clock is a 400. A card's status is <C>borrowed</C>, <C>returned</C>, or <C>borrowed_again</C>.
+        A phrasing is sent as {"{ sourceId, text, time }"} and nothing else: the export's own message id, your words, and when you sent them. It has at most {count(MAX_PHRASING_LENGTH)} characters, and a time more than 5 minutes after the server's clock is a 400. A card's status is one of three, each shown in the app under its own label:
       </P>
+      <Pairs caption="Card statuses and their labels in the app" name="Status" what="Shown as" rows={CARD_STATUSES} />
       <H3>Errors</H3>
       <Pairs className="docs-statuses" caption="Error statuses" name="Status" what="When" rows={STATUSES} code={false} />
       <H3>The daily caps</H3>
@@ -243,7 +252,7 @@ const plugin: Section = {
       <P>The skill tells Claude Code when to use the tools:</P>
       <ul className="flex max-w-[70ch] list-disc flex-col gap-2 pl-5">
         <li>When you ask how to do something, it records your question in your own words, never its answer, your code, or secrets.</li>
-        <li>When the question is on a card you asked before, it says how many times you've borrowed it, and offers a cold rep before it answers.</li>
+        <li>When the question is on a card you asked before, it says how many times you've asked it, and offers a cold rep before it answers.</li>
         <li>During a cold rep, it shows the problem as written, gives no hints and no answer, and passes on your answer as you wrote it.</li>
       </ul>
       <H3>Permissions</H3>

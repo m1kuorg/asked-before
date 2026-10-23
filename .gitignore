@@ -16,3 +16,4 @@ dist/
 /.taste-skill/app/*
 !/.taste-skill/app/direction.json
 /.impeccable/questions/
+/.impeccable/review/

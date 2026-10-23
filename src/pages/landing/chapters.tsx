@@ -3,6 +3,7 @@
 // computer, the agents, the questions, the closing question, and the footer.
 // Every word is the brief's copy deck (sections 5 and 7); the lines with
 // product or privacy weight come from copy.ts.
+import { Fragment } from "react";
 import { cn } from "cn";
 import { AskStrip } from "@/components/ask-strip";
 import { DemoChip } from "@/components/demo-chip";
@@ -12,6 +13,8 @@ import { GUEST_NOTE, PRIVACY_LINE } from "@/lib/copy";
 import { months, plural } from "@/lib/format";
 import { AXIS, CARD_A } from "./demo";
 import { GuestAction, PINK } from "./guest";
+import { Footage, Photo } from "./photo";
+import CREDITS from "../../../public/images/credits.json";
 
 export function HeroChapter() {
   return (
@@ -35,7 +38,7 @@ export function HeroChapter() {
   );
 }
 
-/** The idea's set piece: card A's nine phrasings, word for word, each with its date. */
+/** The idea's set piece: card A's nine phrasings, word for word, each with its date; then a photograph of a card catalog, on the phrasings' column. */
 export function NineWaysChapter() {
   const asks = CARD_A.borrows;
   const first = asks[0]!.at;
@@ -69,6 +72,18 @@ export function NineWaysChapter() {
           </li>
         ))}
       </ol>
+      <Photo
+        src="/images/card-catalog-1932.jpg"
+        width={2400}
+        height={2006}
+        alt="Two men in shirtsleeves at long wooden card-catalog cabinets; the nearer one draws a single card from an open drawer of entries filed under Jones."
+        caption="A card catalog"
+        date="1932"
+        drift
+        frame="h-[min(56svh,72vw)] md:h-[min(80svh,52vw)]"
+        position="object-[50%_62%]"
+        className="mt-16 pt-12 pb-4 md:mt-24 md:ml-[calc((100%-11*1.5rem)/12*2+3rem)]"
+      />
     </section>
   );
 }
@@ -200,16 +215,25 @@ const FAQ: [question: string, answer: string][] = [
   ["Can my coding agent use it?", "Yes, with an API key from Settings: the MCP server, the Claude Code plugin, or the SDK."],
 ];
 
-/** Answers as reading text: each question a run-in, two columns on a wide screen. */
+/** Answers as reading text: each question a run-in, two columns on a wide screen, with a film of a written examination under the heading (under the answers on a tablet). */
 export function FaqChapter() {
   return (
-    <section aria-labelledby="faq-title" data-chapter-ink="dark" className="grid grid-cols-12 gap-x-6 gap-y-10 bg-white px-(--margin) py-28 text-navy-ink md:py-40">
-      <h2 id="faq-title" data-reveal="" className="t-head col-span-12 md:col-span-3">
+    <section aria-labelledby="faq-title" data-chapter-ink="dark" className="grid grid-cols-12 gap-x-6 gap-y-10 bg-white px-(--margin) py-28 text-navy-ink md:py-40 lg:grid-rows-[auto_1fr]">
+      <h2 id="faq-title" data-reveal="" className="t-head col-span-12 md:col-span-3 lg:col-span-4">
         Fair questions
       </h2>
-      <div className="t-body col-span-12 gap-x-14 md:col-span-8 md:col-start-5 lg:columns-2">
-        {FAQ.map(([question, answer], i) => (
-          <p key={question} data-reveal="" data-delay={String(Math.min(i, 6))} className="mb-5 break-inside-avoid text-pretty">
+      <Footage
+        src="/images/exam-dictation-1946.mp4"
+        poster="/images/exam-dictation-1946.jpg"
+        width={688}
+        height={550}
+        caption="The dictation in an examination in Frisian, Leeuwarden, 1946"
+        className="col-span-12 md:col-span-8 md:col-start-5 md:row-start-2 lg:col-span-4 lg:col-start-1"
+      />
+      <div className="t-body col-span-12 gap-x-14 md:col-span-8 md:col-start-5 md:row-start-1 lg:row-span-2 lg:columns-2">
+        {FAQ.map(([question, answer]) => (
+          // Reading text, so it's there when the eye arrives: no entrance, only the heading above it moves.
+          <p key={question} className="mb-5 break-inside-avoid text-pretty">
             <span className="font-semibold">{question}</span> {answer}
           </p>
         ))}
@@ -253,7 +277,7 @@ export function CtaChapter() {
 /** The links, the credits, the legal line, then the name at full width, cut by the bottom edge. */
 export function Footer() {
   return (
-    <footer data-chapter-ink="light" className="overflow-clip bg-plum-black px-(--margin) pt-28 text-white [--ring:var(--ring-on-dark)] md:pt-32">
+    <footer data-chapter-ink="light" className="@container overflow-clip bg-plum-black px-(--margin) pt-28 text-white [--ring:var(--ring-on-dark)] md:pt-32">
       <div className="grid grid-cols-12 gap-x-6 gap-y-14">
         {/* Each link is at least 44px tall, for a finger. */}
         <ul className="col-span-12 flex flex-col gap-1 text-[clamp(1.25rem,1.1rem+0.7vw,1.625rem)] leading-[1.1] font-semibold tracking-[-0.035em] md:col-span-5 lg:text-[min(4vw,4rem)]">
@@ -278,15 +302,21 @@ export function Footer() {
         </ul>
         <div className="t-body col-span-12 flex flex-col gap-4 md:col-span-6 md:col-start-7">
           <p>
-            The photograph is{" "}
-            <a className="ink-link" data-rest="underlined" href="https://commons.wikimedia.org/wiki/File:Nurmeksen_yhteislyseo_vuonna_1958_Ylioppilaskirjoitukset_(5394%2B(numero)).jpg">
-              “Nurmeksen yhteislyseo vuonna 1958. Ylioppilaskirjoitukset.”
-            </a>{" "}
-            by Topi Toivanen,{" "}
-            <a className="ink-link" data-rest="underlined" href="https://creativecommons.org/licenses/by/4.0/">
-              CC BY 4.0
-            </a>
-            , via Wikimedia Commons.
+            Pictures and footage:{" "}
+            {CREDITS.map((credit, i) => (
+              <Fragment key={credit.file}>
+                {i > 0 && "; "}
+                <a className="ink-link" data-rest="underlined" href={credit.page}>
+                  “{credit.title}”
+                </a>{" "}
+                by {credit.creator},{" "}
+                <a className="ink-link" data-rest="underlined" href={credit.licenseUrl}>
+                  {credit.license}
+                </a>
+                , via {credit.via}
+              </Fragment>
+            ))}
+            .
           </p>
           <p className="text-muted-on-dark">Set in Schibsted Grotesk, under the SIL Open Font License.</p>
         </div>
@@ -297,7 +327,8 @@ export function Footer() {
           Back to top
         </a>
       </div>
-      <p aria-hidden="true" className="t-display mt-12 -mb-[0.1em] text-[15.6vw] leading-[0.8] whitespace-nowrap md:mt-16">
+      {/* Sized to the footer's width: the name's ink runs 6.109em at this weight and tracking, so 1/6.15 of the width fits it between the margins at every width, cut by the bottom edge only. */}
+      <p aria-hidden="true" className="t-display mt-12 -mb-[0.1em] text-[length:calc(100cqw/6.15)] leading-[0.8] whitespace-nowrap md:mt-16">
         Asked Before
       </p>
     </footer>
