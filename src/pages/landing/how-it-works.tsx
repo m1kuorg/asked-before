@@ -32,7 +32,7 @@ const FRAGMENT = "rounded-2xl bg-white text-sm text-foreground [--radius:10px]";
 
 export function HowItWorksChapter() {
   return (
-    <section aria-labelledby="how-title" data-chapter-ink="dark" className="overflow-x-clip bg-white px-(--margin) pt-28 pb-24 text-navy-ink md:pt-40 md:pb-32">
+    <section aria-labelledby="how-title" data-chapter-ink="dark" className="min-h-svh overflow-x-clip bg-white px-(--margin) pt-28 pb-24 text-navy-ink md:pt-40 md:pb-32">
       <div className="grid grid-cols-12 gap-x-6">
         <div className="col-span-12 md:col-span-8 md:col-start-3 lg:col-span-12 lg:col-start-1">
           <h2 id="how-title" data-reveal="" className="t-head">

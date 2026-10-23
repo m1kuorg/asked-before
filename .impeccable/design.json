@@ -454,7 +454,7 @@
       "kind": "card",
       "refersTo": "panel",
       "description": "A tonal panel holding white row cards (the only white cards in a panel), each with its skill, shelf, its ask strip on a shared axis (span first, then one dot per ask once the card arrives), and its action.",
-      "html": "<section class=\"ds-panel\"><div class=\"ds-panel-head\"><h2>Prove next</h2><span class=\"ds-pill-to-prove-sm\">4</span></div><p class=\"ds-sub\">Most asked first.</p><div class=\"ds-row\"><div><a href=\"#\" class=\"ds-name\">Undo a git commit</a><p class=\"ds-sub\">Work · asked 9 times</p></div><span class=\"ds-span\"><svg width=\"100%\" height=\"14\" aria-label=\"Asked 9 times, March 2025 to September 2026\" role=\"img\"><line x1=\"0\" x2=\"100%\" y1=\"50%\" y2=\"50%\" stroke=\"#e3dae0\" stroke-width=\"2\"/><line x1=\"12%\" x2=\"86%\" y1=\"50%\" y2=\"50%\" stroke=\"#ff488b\" stroke-width=\"4\" stroke-linecap=\"round\"/></svg><span class=\"ds-n\">9</span></span><button class=\"ds-row-btn\">Start a cold rep</button></div></section>",
+      "html": "<section class=\"ds-panel\"><div class=\"ds-panel-head\"><h2>Prove next</h2><span class=\"ds-pill-to-prove-sm\">4</span></div><p class=\"ds-sub\">Most asked first.</p><div class=\"ds-row\"><div><a href=\"#\" class=\"ds-name\">Undo a git commit</a><p class=\"ds-sub\">Work \u00b7 asked 9 times</p></div><span class=\"ds-span\"><svg width=\"100%\" height=\"14\" aria-label=\"Asked 9 times, March 2025 to September 2026\" role=\"img\"><line x1=\"0\" x2=\"100%\" y1=\"50%\" y2=\"50%\" stroke=\"#e3dae0\" stroke-width=\"2\"/><line x1=\"12%\" x2=\"86%\" y1=\"50%\" y2=\"50%\" stroke=\"#ff488b\" stroke-width=\"4\" stroke-linecap=\"round\"/></svg><span class=\"ds-n\">9</span></span><button class=\"ds-row-btn\">Start a cold rep</button></div></section>",
       "css": ".ds-panel{display:flex;flex-direction:column;gap:16px;max-width:640px;padding:20px;border-radius:16px;background:var(--panel,#f7f2f5);font:400 14px 'Schibsted Grotesk',ui-sans-serif,sans-serif;color:var(--foreground,#101421);}.ds-panel-head{display:flex;align-items:center;gap:8px;}.ds-panel-head h2{margin:0;font-size:14px;font-weight:600;}.ds-pill-to-prove-sm{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:9999px;background:#efe7ec;color:#3b3240;font-size:12px;font-weight:500;}.ds-sub{margin:4px 0 0;color:var(--muted-foreground,#5d5562);}.ds-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(7rem,1fr) auto;align-items:center;gap:16px;min-height:63px;padding:10px 16px;border:1px solid var(--border,#ece4e9);border-radius:12px;background:#fff;}.ds-name{font-weight:500;color:inherit;text-decoration:none;text-underline-offset:4px;}.ds-name:hover{text-decoration:underline;}.ds-span{display:flex;align-items:center;gap:8px;}.ds-n{font-size:12px;color:var(--muted-foreground,#5d5562);font-variant-numeric:tabular-nums;}.ds-row-btn{height:32px;padding:0 12px;border:0;border-radius:10px;background:#0d060b;color:#fff;font:500 14px inherit;font-family:inherit;cursor:pointer;}.ds-row-btn:hover{background:color-mix(in oklab,#0d060b 85%,transparent);}.ds-row-btn:focus-visible{outline:2px solid var(--ring,#0d060b);outline-offset:2px;}"
     },
     {
@@ -488,6 +488,14 @@
       "description": "The card page's one authored moment after a pass: tilted, in the Proven pair.",
       "html": "<span class=\"ds-stamp\"><span class=\"ds-stamp-word\">Proven</span><span class=\"ds-stamp-date\">Oct 23, 2026</span></span>",
       "css": ".ds-stamp{display:inline-flex;flex-direction:column;gap:4px;padding:10px 16px 8px;border:2px solid color-mix(in oklab,#04250e 70%,transparent);border-radius:12px;background:#dcfae5;color:#04250e;transform:rotate(-2deg);font-family:'Schibsted Grotesk',ui-sans-serif,sans-serif;}.ds-stamp-word{font-size:24px;line-height:1;font-weight:600;}.ds-stamp-date{font-size:14px;font-weight:500;}"
+    },
+    {
+      "name": "ASCII Field",
+      "kind": "background",
+      "refersTo": "ascii-field",
+      "description": "A canvas behind a dark landing chapter that rebuilds one found photograph from the demo's own phrasings in JetBrains Mono (13px rows, 10px on phones, at most 4,000 cells): empty below 0.55 luminance, pink glyphs on a faint pink tile above it, white at the brightest, capped by a per-field peak alpha; Proof uses 4x4 Bayer dots. Cleared under every text box. Drifts one cell per 200ms and brightens within 120px of the pointer, only while near the viewport; one still frame under reduced motion.",
+      "html": "<section class=\"ds-chapter-dark\"><canvas class=\"ds-ascii-field\" aria-hidden=\"true\"></canvas><h2>Asked it before?</h2></section>",
+      "css": ".ds-chapter-dark{position:relative;isolation:isolate;min-height:100svh;background:#470c35;color:#fff}.ds-ascii-field{position:absolute;inset:0;z-index:-1;width:100%;height:100%;pointer-events:none}"
     }
   ],
   "narrative": {
@@ -515,7 +523,7 @@
       },
       {
         "name": "The Colour By Chapter Rule",
-        "body": "On the landing, each chapter is one full-bleed field with one ink: hero `plum-field`/white, Nine ways white/navy, Showcase `plum-black`/white, How it works white/navy, Proof `plum-surface`/white, Features `panel`/navy beside `plum-black` rows, FAQ white/navy, CTA `plum-field`/white, footer `plum-black` with pink links. The found pictures sit only on white chapters (Nine ways, How it works, FAQ) and belong to them. The fixed header's two corners take the ink and the ground of the chapter beneath them, so the header stays a solid patch of that chapter over a picture and never shows it through its words.",
+        "body": "On the landing, each chapter is one full-bleed field with one ink: hero `plum-field`/white, Nine ways white/navy, Showcase `plum-black`/white, How it works white/navy, Proof `plum-surface`/white, Features `panel`/navy beside `plum-black` rows, FAQ white/navy, CTA `plum-field`/white, footer `plum-black` with pink links. The found pictures sit untouched only on white chapters (Nine ways, How it works, FAQ) and belong to them. The dark chapters (hero, Showcase, Proof, Features' dark half, CTA, footer) carry the same pictures as an ASCII field instead: the photograph rebuilt in the demo's own phrasings. Every chapter is at least one viewport tall (`min-h-svh`). The fixed header's two corners take the ink and the ground of the chapter beneath them, so the header stays a solid patch of that chapter over a picture and never shows it through its words.",
         "section": "colors"
       },
       {
@@ -571,7 +579,7 @@
       "Don't put the ask strip, or any pink, on the panel tint.",
       "Don't animate forever: no infinite loops, no `animate-pulse`, no spinner outside an in-flight request. The landing's newsreel is the one loop: muted, in view only, with Pause beside it, still under reduced motion.",
       "Don't give reading text an entrance; only headings and set pieces rise.",
-      "Don't tint, duotone, round, or overlay text on a found picture.",
+      "Don't tint, duotone, round, or overlay text on a found picture shown as itself. Its ASCII field on a dark chapter is a separate, credited treatment and is cleared under text.",
       "Don't open a modal to confirm a delete."
     ]
   }
