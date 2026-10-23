@@ -3,26 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Asked Before</title>
-    <meta name="description" content="Asked Before turns the questions you keep asking a chatbot into library cards, and won't stamp a card returned until you pass a cold rep without AI." />
-    <link rel="stylesheet" href="./styles/base.css" />
-    <link rel="stylesheet" href="./styles/shell.css" />
-    <link rel="stylesheet" href="./styles/parts.css" />
-    <link rel="stylesheet" href="./styles/stack.css" />
-    <link rel="stylesheet" href="./styles/landing.css" />
+    <title>Asked Before: turn a question you keep asking into one you can answer without AI</title>
+    <meta name="description" content="Turn a question you keep asking into one you can answer without AI. Asked Before finds the how-tos you keep asking in your own chat history, then tests you on each one without AI." />
+    <meta property="og:title" content="Asked Before: turn a question you keep asking into one you can answer without AI" />
+    <meta property="og:description" content="Turn a question you keep asking into one you can answer without AI. Asked Before finds the how-tos you keep asking in your own chat history, then tests you on each one without AI." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#470c35" />
+    <link rel="preload" href="/fonts/SchibstedGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../src/styles/globals.css" />
   </head>
   <body>
-    <nav aria-label="Asked Before">
-      <a class="nav-name" href="/" aria-current="page">Asked Before</a>
-      <ul>
-        <li><a class="nav-item" href="/docs">Docs</a></li>
-      </ul>
-      <div class="nav-end">
-        <a class="nav-item" href="/login">Log in</a>
-        <a class="button" href="/signup">Sign up</a>
-      </div>
-    </nav>
-    <div id="app" data-screen="landing"></div>
-    <script type="module" src="../src/pages/landing.ts"></script>
+    <div id="app"></div>
+    <script type="module" src="../src/pages/landing.tsx"></script>
   </body>
 </html>

@@ -1,0 +1,220 @@
+/*
+ * Every page's one stylesheet: Tailwind CSS v4, compiled at build time by
+ * scripts/tailwind-plugin.ts from the classes used under src/, with the
+ * shadcn/ui variables mapped onto Asked Before's tokens (the redesign brief,
+ * section 3). The app is light and soft; the landing page's plum palette is
+ * here too, as extra colours, and the landing sets its own square corners by
+ * setting --radius: 0 on its root (its data-ui fragments set it back).
+ *
+ * The CSP is default-src 'self': fonts are files at /fonts/ (never data:
+ * URIs), and nothing here or in the components injects a <style> element.
+ */
+
+@import "tailwindcss" source("../");
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Schibsted Grotesk (SIL OFL, public/fonts/SchibstedGrotesk-OFL.txt), the one typeface: one variable file, weights 400 to 900. */
+@font-face {
+  font-family: "Schibsted Grotesk";
+  src: url("/fonts/SchibstedGrotesk-Variable.woff2") format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+/* JetBrains Mono (SIL OFL, public/fonts/JetBrainsMono-OFL.txt): only code, API keys, and IDs. */
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* shadcn's roles, on the app's light tokens. */
+  --background: #ffffff; /* the ground */
+  --foreground: #101421; /* navy-black ink */
+  --card: #ffffff; /* row cards */
+  --card-foreground: #101421;
+  --popover: #ffffff;
+  --popover-foreground: #101421;
+  --primary: #0d060b; /* near-black plum: the one filled button per screen */
+  --primary-foreground: #ffffff;
+  --secondary: #ffffff; /* the secondary button: white with a 1px edge (--edge) */
+  --secondary-foreground: #101421;
+  --muted: #f7f2f5; /* the panel, one step off white toward the plum */
+  --muted-foreground: #5d5562; /* grey text: 7.1:1 on white, 6.5:1 on the panel */
+  --accent: #efe7ec; /* hover and highlight in menus, the same neutral as the active nav pill */
+  --accent-foreground: #101421;
+  --destructive: #c4242a; /* the outlined negative button and invalid fields: 5.8:1 on white */
+  --border: #ece4e9; /* row-card and panel edges */
+  --input: #857b8a; /* control borders (inputs, textarea, select, segmented control, drop target): 4.0:1 on white, for WCAG 1.4.11 */
+  --ring: #0d060b; /* the focus outline; set it lighter on the landing's plum grounds */
+  --radius: 10px; /* controls; panels are rounded-2xl (16px), chips rounded-full */
+
+  /* The app's own tokens. */
+  --panel: #f7f2f5;
+  --edge: #d9cfd6; /* a quieter edge for what isn't an input: the secondary button, dashed empty frames */
+  --rule: #f0e9ee; /* row rules inside tables and lists */
+  --faint: #6b6470; /* meta and placeholders: 5.7:1 on white, 5.2:1 on the panel */
+  --active: #efe7ec; /* the active nav pill, and the To prove pill */
+  --active-foreground: #3b3240;
+  --ask: #ff488b; /* hot pink: the ask strip's dots and span, and the sidebar mark; on white only, under 2% of pixels */
+  --ask-ink: #c0185a; /* pink as text: 6.0:1 on white */
+  --track: #e3dae0; /* the ask strip's 2px grey track */
+  --positive: #dcfae5; /* Proven */
+  --positive-foreground: #04250e;
+  --notice: #fffbeb; /* Asked since proven, and quiet notices such as the guest upload warning */
+  --notice-foreground: #92400e;
+  --notice-border: #fde68a;
+  --negative: #ffedea; /* failures: Not yet, error notices */
+  --negative-foreground: #831c1e;
+  --selection: #f9cfe0;
+  --selection-foreground: #101421;
+
+  /* The landing palette (taste-sheet-landing.md). */
+  --plum-black: #0d060b; /* landing ground, ink on pink */
+  --plum-surface: #1b0e17; /* landing panels */
+  --plum-field: #470c35; /* the hero field, one chapter */
+  --pink: #ff488b; /* landing primary buttons */
+  --pink-hover: #ff6fa3; /* a pink button under the pointer */
+  --ring-on-dark: #ffffff; /* the focus outline on the plum grounds */
+  --navy-ink: #101421; /* text on white */
+  --muted-on-dark: #9a8f97; /* secondary text on the plum grounds only: 6.4:1 on plum-black, 4.9:1 on plum-field; on white use muted-foreground */
+}
+
+@theme inline {
+  --font-sans: "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-panel: var(--panel);
+  --color-edge: var(--edge);
+  --color-rule: var(--rule);
+  --color-faint: var(--faint);
+  --color-active: var(--active);
+  --color-active-foreground: var(--active-foreground);
+  --color-ask: var(--ask);
+  --color-ask-ink: var(--ask-ink);
+  --color-track: var(--track);
+  --color-positive: var(--positive);
+  --color-positive-foreground: var(--positive-foreground);
+  --color-notice: var(--notice);
+  --color-notice-foreground: var(--notice-foreground);
+  --color-notice-border: var(--notice-border);
+  --color-negative: var(--negative);
+  --color-negative-foreground: var(--negative-foreground);
+
+  --color-plum-black: var(--plum-black);
+  --color-plum-surface: var(--plum-surface);
+  --color-plum-field: var(--plum-field);
+  --color-pink: var(--pink);
+  --color-pink-hover: var(--pink-hover);
+  --color-navy-ink: var(--navy-ink);
+  --color-muted-on-dark: var(--muted-on-dark);
+
+  /* Soft, from --radius (10px): sm 6, md 8, lg 10 (controls), xl 12, 2xl 16 (panels), 3xl 20, 4xl 24. */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.2);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-3xl: calc(var(--radius) * 2);
+  --radius-4xl: calc(var(--radius) * 2.4);
+}
+
+/*
+ * The landing's display type (brief section 3): 800, -0.05em, leading 0.88,
+ * as font-extrabold tracking-display leading-display. The app keeps
+ * tracking 0 and the sizes 12/14/16/24 (text-xs, text-sm, text-base,
+ * text-2xl), nothing over 32px.
+ */
+@theme {
+  --tracking-display: -0.05em;
+  --leading-display: 0.88;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scrollbar-color: var(--edge) transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  /* Under 1024px the app's 48px top bar is sticky: whatever takes focus or is scrolled to stops below it. */
+  @media (width < 64rem) {
+    html:has(main[data-screen]) {
+      scroll-padding-top: 4rem;
+    }
+  }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+  ::selection {
+    background-color: var(--selection);
+    color: var(--selection-foreground);
+  }
+  input,
+  textarea {
+    caret-color: var(--ask-ink);
+  }
+  /* One focus mark for every control: a 2px outline 2px out, in the ring colour. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  /* A heading the router or a screen focuses (tabIndex -1), and <main> after "Skip to content", take focus without a mark. */
+  :is(h1, h2, h3, main)[tabindex="-1"]:focus {
+    outline: none;
+  }
+  /* A row that "Show more" or "Show all" moves focus to keeps the mark, inside it, so a scrolling table doesn't cut it off. */
+  :is(tr, li)[tabindex="-1"]:focus-visible {
+    outline-offset: -2px;
+  }
+  pre,
+  code,
+  kbd,
+  samp {
+    font-family: var(--font-mono);
+  }
+}
+
+/* Feedback only, and none of it for those who ask the system for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

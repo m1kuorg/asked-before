@@ -1,5 +1,5 @@
 // The SDK's quickstart, for the docs page. It runs as a Bun macro when the
-// pages are bundled (`with { type: "macro" }` in docs.ts), so the page shows
+// pages are bundled (`with { type: "macro" }` in docs.tsx), so the page shows
 // packages/sdk/examples/quickstart.ts as it is: the same file the SDK's
 // README shows and `bun run check:docs` runs.
 

@@ -1,0 +1,240 @@
+/*
+ * The landing page's own type steps and motion (taste-sheet-landing.md,
+ * brief sections 5 and 7). Plain CSS beside the Tailwind stylesheet: the five
+ * type steps, the hero's load sequence, the entrances that run once as each
+ * chapter arrives, the header's ink following the chapter beneath it, and
+ * the photograph's slow settle with the scroll. Transform and opacity only,
+ * nothing loops, and every hidden starting state sits inside
+ * prefers-reduced-motion: no-preference, so the reduced page is the
+ * finished page.
+ */
+
+/* The fixed header covers the top of the page: whatever takes focus or is scrolled to stops below it. */
+html {
+  scroll-padding-top: 6rem;
+}
+
+.landing {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --margin: 20px;
+  letter-spacing: -0.01em;
+}
+@media (min-width: 768px) {
+  .landing {
+    --margin: 32px;
+  }
+}
+
+/* The five steps: small, body, lead, head, and display (sized where it's used). */
+.t-small {
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+.t-body {
+  font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  line-height: 1.5;
+}
+.t-lead {
+  font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  line-height: 1.3;
+}
+.t-head {
+  font-size: clamp(2rem, 1.3rem + 3.2vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+}
+.t-display {
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.88;
+}
+
+/* A display line inside its own mask, with room below for descenders. */
+.line {
+  display: block;
+  overflow: clip;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+.line > span {
+  display: block;
+}
+
+/* Each corner of the fixed header takes the ink of the chapter under it, in 300ms: the page's white, or navy on a light chapter. */
+.ink-probe {
+  --ring: var(--ring-on-dark);
+  transition:
+    color 300ms var(--ease-out),
+    background-color 300ms var(--ease-out);
+}
+.ink-probe[data-ink="dark"] {
+  color: var(--navy-ink);
+  --ring: var(--plum-black);
+}
+
+/* Links that answer the pointer: the underline arrives. */
+.ink-link {
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+  transition:
+    color 300ms var(--ease-out),
+    background-color 300ms var(--ease-out),
+    text-decoration-color 180ms ease;
+}
+.ink-link[data-rest="underlined"] {
+  text-decoration-color: currentColor;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ink-link:hover {
+    text-decoration-color: currentColor;
+  }
+}
+.ink-link:focus-visible {
+  text-decoration-color: currentColor;
+}
+
+/* The showcase's input: the headline you can type, on one line, with the native caret in pink. */
+.ask-input {
+  caret-color: var(--pink);
+}
+.ask-input::placeholder {
+  color: var(--muted-on-dark);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The hero arrives in 1.2 s: the two lines rise out of their masks, then the sentence and the corners. */
+  .load-line {
+    animation: rise-line 900ms var(--ease-expo) both;
+  }
+  .load-line[data-n="1"] {
+    animation-delay: 110ms;
+  }
+  .load-line[data-n="2"] {
+    animation-delay: 220ms;
+  }
+  .load-fade {
+    animation: rise-soft 600ms var(--ease-out) both;
+    animation-delay: 480ms;
+  }
+  .load-fade[data-n="2"] {
+    animation-delay: 560ms;
+  }
+
+  /* Each chapter's parts rise once as it enters, in reading order (page.tsx marks them). */
+  .reveal-on [data-reveal] {
+    transition:
+      opacity 700ms var(--ease-out),
+      transform 900ms var(--ease-expo);
+  }
+  .reveal-on [data-reveal]:not([data-in]) {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  .reveal-on [data-reveal="fade"]:not([data-in]) {
+    transform: none;
+  }
+  /* A display line rises out of its own mask instead. */
+  .reveal-on [data-reveal="line"]:not([data-in]) {
+    opacity: 1;
+    transform: none;
+  }
+  .reveal-on [data-reveal="line"] > span {
+    transition: transform 900ms var(--ease-expo);
+    transition-delay: inherit;
+  }
+  .reveal-on [data-reveal="line"]:not([data-in]) > span {
+    transform: translateY(105%);
+  }
+  .reveal-on [data-reveal][data-delay="1"] {
+    transition-delay: 70ms;
+  }
+  .reveal-on [data-reveal][data-delay="2"] {
+    transition-delay: 140ms;
+  }
+  .reveal-on [data-reveal][data-delay="3"] {
+    transition-delay: 210ms;
+  }
+  .reveal-on [data-reveal][data-delay="4"] {
+    transition-delay: 280ms;
+  }
+  .reveal-on [data-reveal][data-delay="5"] {
+    transition-delay: 350ms;
+  }
+  .reveal-on [data-reveal][data-delay="6"] {
+    transition-delay: 420ms;
+  }
+  .reveal-on [data-reveal][data-delay="7"] {
+    transition-delay: 490ms;
+  }
+  .reveal-on [data-reveal][data-delay="8"] {
+    transition-delay: 560ms;
+  }
+  .reveal-on [data-reveal][data-delay="9"] {
+    transition-delay: 630ms;
+  }
+  .reveal-on [data-reveal][data-delay="10"] {
+    transition-delay: 700ms;
+  }
+
+  /* A new answer in the showcase settles in. */
+  .answer-in {
+    animation: rise-soft 420ms var(--ease-out) both;
+  }
+
+  /* Buttons give on press. */
+  .press {
+    transition:
+      background-color 180ms ease,
+      color 180ms ease,
+      transform 140ms var(--ease-out);
+  }
+  .press:active {
+    transform: scale(0.97);
+  }
+}
+
+/* The photograph drifts inside its frame as it passes, locked to the scroll (it's 106% of the frame's height). */
+.photo-frame {
+  overflow: clip;
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .photo-frame > img {
+      animation: settle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% exit 100%;
+    }
+  }
+}
+
+@keyframes rise-line {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes rise-soft {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes settle {
+  from {
+    transform: translateY(-5.66%);
+  }
+  to {
+    transform: none;
+  }
+}

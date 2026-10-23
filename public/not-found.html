@@ -4,28 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Page not found · Asked Before</title>
-    <link rel="stylesheet" href="./styles/base.css" />
-    <link rel="stylesheet" href="./styles/shell.css" />
-    <link rel="stylesheet" href="./styles/parts.css" />
-    <link rel="stylesheet" href="./styles/account.css" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#470c35" />
+    <link rel="preload" href="/fonts/SchibstedGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../src/styles/globals.css" />
   </head>
   <body>
-    <nav aria-label="Asked Before">
-      <a class="nav-name" href="/">Asked Before</a>
-      <ul>
-        <li><a class="nav-item" href="/docs">Docs</a></li>
-      </ul>
-      <div class="nav-end">
-        <a class="nav-item" href="/login">Log in</a>
-        <a class="button" href="/signup">Sign up</a>
-      </div>
-    </nav>
-    <div id="app" data-screen="not-found">
-      <main class="block">
-        <h1>This page doesn't exist</h1>
-        <p>Nothing is filed at this address. It may be mistyped, or the page may have moved.</p>
-        <p><a href="/">Go to the start of Asked Before</a></p>
-      </main>
-    </div>
+    <div id="app"></div>
+    <script type="module" src="../src/pages/not-found.tsx"></script>
   </body>
 </html>
