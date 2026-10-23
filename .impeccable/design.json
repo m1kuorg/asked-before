@@ -1,194 +1,371 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-16T14:36:15.543Z",
+  "generatedAt": "2026-10-23T17:44:37.782Z",
   "title": "Design System: Asked Before",
   "extensions": {
     "colorMeta": {
-      "rubric": {
+      "plum-black": {
         "role": "primary",
-        "displayName": "Rubric Vermilion",
-        "canonical": "#B42D16",
+        "displayName": "Plum Black",
+        "canonical": "oklch(13.6% 0.018 336)",
         "tonalRamp": [
-          "#3B0D05",
-          "#5E1609",
-          "#83200E",
-          "#B42D16",
-          "#D4492F",
-          "#E8806B",
-          "#F3B6A9",
-          "#FBE4DE"
+          "#0e0a0d",
+          "#272226",
+          "#463c43",
+          "#655a61",
+          "#887c84",
+          "#aca1a9",
+          "#d3c6cf",
+          "#f3ecf1"
         ]
       },
-      "proof-gray": {
-        "role": "neutral",
-        "displayName": "Proof Gray",
-        "canonical": "#E8EBED",
+      "plum-field": {
+        "role": "primary",
+        "displayName": "Exam-Hall Plum",
+        "canonical": "oklch(27.8% 0.100 343)",
         "tonalRamp": [
-          "#E8EBED",
-          "#D5D9DC",
-          "#C3C8CC",
-          "#606263",
-          "#373839",
-          "#1A1A1A"
+          "#180311",
+          "#341a2a",
+          "#62264d",
+          "#84456c",
+          "#aa6790",
+          "#d18bb5",
+          "#f9b1dc",
+          "#ffe2f7"
         ]
       },
-      "block-white": {
-        "role": "neutral",
-        "displayName": "Block White",
-        "canonical": "#FFFFFF",
+      "plum-surface": {
+        "role": "primary",
+        "displayName": "Plum Surface",
+        "canonical": "oklch(18.6% 0.027 338)",
         "tonalRamp": [
-          "#FFFFFF",
-          "#E8EBED",
-          "#D5D9DC",
-          "#C3C8CC",
-          "#606263",
-          "#373839",
-          "#1A1A1A"
+          "#0f090d",
+          "#292226",
+          "#4a3a45",
+          "#695863",
+          "#8c7a86",
+          "#b19eaa",
+          "#d7c4d1",
+          "#f5ebf2"
         ]
       },
-      "iron-black": {
-        "role": "neutral",
-        "displayName": "Iron Black",
-        "canonical": "#1A1A1A",
+      "pink": {
+        "role": "secondary",
+        "displayName": "Hot Pink",
+        "canonical": "oklch(68.1% 0.223 3)",
         "tonalRamp": [
-          "#E8EBED",
-          "#D5D9DC",
-          "#C3C8CC",
-          "#606263",
-          "#373839",
-          "#1A1A1A"
+          "#290007",
+          "#4a001f",
+          "#8e0034",
+          "#b60051",
+          "#e12573",
+          "#ff5697",
+          "#ff80bc",
+          "#ffcfe7"
         ]
       },
-      "rule-gray": {
-        "role": "neutral",
-        "displayName": "Rule Gray",
-        "canonical": "#C3C8CC",
+      "pink-hover": {
+        "role": "secondary",
+        "displayName": "Pink Under the Pointer"
+      },
+      "ask-ink": {
+        "role": "secondary",
+        "displayName": "Pink Ink",
+        "canonical": "oklch(52.7% 0.200 5)",
         "tonalRamp": [
-          "#E8EBED",
-          "#D5D9DC",
-          "#C3C8CC",
-          "#606263",
-          "#373839",
-          "#1A1A1A"
+          "#270006",
+          "#47031d",
+          "#880030",
+          "#af004d",
+          "#da386f",
+          "#ff6392",
+          "#ff8bb7",
+          "#ffd3e5"
         ]
       },
-      "gray-200": {
+      "selection": {
+        "role": "secondary",
+        "displayName": "Selection Pink"
+      },
+      "muted-on-dark": {
         "role": "neutral",
-        "displayName": "Hover Gray",
-        "canonical": "#D5D9DC",
+        "displayName": "Muted on Dark"
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "White"
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Navy-Black Ink",
+        "canonical": "oklch(19.4% 0.027 270)",
         "tonalRamp": [
-          "#E8EBED",
-          "#D5D9DC",
-          "#C3C8CC",
-          "#606263",
-          "#373839",
-          "#1A1A1A"
+          "#090b11",
+          "#21242b",
+          "#3a3f4e",
+          "#585d6d",
+          "#7a8091",
+          "#9ea4b6",
+          "#c4cadd",
+          "#ebeef8"
         ]
       },
-      "gray-600": {
+      "panel": {
         "role": "neutral",
-        "displayName": "Disabled Gray",
-        "canonical": "#606263",
+        "displayName": "Plum Panel",
+        "canonical": "oklch(96.6% 0.007 340)",
         "tonalRamp": [
-          "#E8EBED",
-          "#D5D9DC",
-          "#C3C8CC",
-          "#606263",
-          "#373839",
-          "#1A1A1A"
+          "#0c0b0c",
+          "#252324",
+          "#423e41",
+          "#605c5f",
+          "#837f81",
+          "#a8a3a6",
+          "#cec9cc",
+          "#f0eeef"
         ]
       },
-      "gray-800": {
+      "border": {
         "role": "neutral",
-        "displayName": "Pressed Iron",
-        "canonical": "#373839",
+        "displayName": "Panel Edge"
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Row Rule"
+      },
+      "edge": {
+        "role": "neutral",
+        "displayName": "Quiet Edge"
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Control Edge",
+        "canonical": "oklch(59.7% 0.025 314)",
         "tonalRamp": [
-          "#E8EBED",
-          "#D5D9DC",
-          "#C3C8CC",
-          "#606263",
-          "#373839",
-          "#1A1A1A"
+          "#0d0a0f",
+          "#262228",
+          "#453c49",
+          "#635a68",
+          "#867c8b",
+          "#aba0b0",
+          "#d1c6d6",
+          "#f2ecf4"
         ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Muted Grey",
+        "canonical": "oklch(46.2% 0.023 312)",
+        "tonalRamp": [
+          "#0d0a0f",
+          "#262228",
+          "#443c49",
+          "#625a67",
+          "#857c8a",
+          "#aaa1af",
+          "#d0c6d6",
+          "#f1ecf4"
+        ]
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Faint Grey"
+      },
+      "active": {
+        "role": "neutral",
+        "displayName": "Active Pill",
+        "canonical": "oklch(93.6% 0.011 339)",
+        "tonalRamp": [
+          "#0d0a0c",
+          "#262325",
+          "#443e42",
+          "#625b60",
+          "#857e82",
+          "#a9a2a7",
+          "#d0c8cd",
+          "#f1edf0"
+        ]
+      },
+      "active-foreground": {
+        "role": "neutral",
+        "displayName": "Active Pill Ink"
+      },
+      "track": {
+        "role": "neutral",
+        "displayName": "Track Grey"
+      },
+      "destructive": {
+        "role": "status",
+        "displayName": "Destructive Red",
+        "canonical": "oklch(53.2% 0.194 25)",
+        "tonalRamp": [
+          "#280000",
+          "#480508",
+          "#8b0000",
+          "#b10119",
+          "#dc3f3e",
+          "#ff6962",
+          "#ff9087",
+          "#ffd6cd"
+        ]
+      },
+      "positive": {
+        "role": "status",
+        "displayName": "Proven Green",
+        "canonical": "oklch(95.8% 0.042 155)",
+        "tonalRamp": [
+          "#050e07",
+          "#1c2720",
+          "#2d4636",
+          "#4b6553",
+          "#6d8875",
+          "#91ad99",
+          "#b6d3bf",
+          "#e4f3e8"
+        ]
+      },
+      "positive-foreground": {
+        "role": "status",
+        "displayName": "Proven Ink"
+      },
+      "notice": {
+        "role": "status",
+        "displayName": "Asked Since Proven Amber",
+        "canonical": "oklch(98.7% 0.021 95)",
+        "tonalRamp": [
+          "#0c0b06",
+          "#26241e",
+          "#434033",
+          "#615e50",
+          "#848072",
+          "#a8a596",
+          "#cfcbbb",
+          "#f0efe7"
+        ]
+      },
+      "notice-foreground": {
+        "role": "status",
+        "displayName": "Asked Since Proven Ink"
+      },
+      "notice-border": {
+        "role": "status",
+        "displayName": "Asked Since Proven Edge"
+      },
+      "negative": {
+        "role": "status",
+        "displayName": "Not Yet Pale"
+      },
+      "negative-foreground": {
+        "role": "status",
+        "displayName": "Not Yet Ink"
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "The skill name or heading at the head of the block; 40px on narrow screens."
-      },
-      "count": {
-        "displayName": "Count",
-        "purpose": "The number on the reversed plate, and nowhere else."
+        "purpose": "Public pages only: the hero, chapter statements, the CTA question, the footer wordmark, the log-in and sign-up h1, the showcase input. Sized 9.5 to 21vw where used."
       },
       "headline": {
-        "displayName": "Headline",
-        "purpose": "The rep's problem."
+        "displayName": "Head",
+        "purpose": "Public chapter h2s."
       },
-      "title": {
-        "displayName": "Title",
-        "purpose": "The headings of the lesson, the problem, and the verdict."
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Public supporting sentences, dark-row titles, 'Read the docs'."
       },
-      "body": {
-        "displayName": "Body",
-        "purpose": "Prose, captions, and the answer box, capped at 60ch; tabular figures."
+      "body-public": {
+        "displayName": "Body (public)",
+        "purpose": "Public paragraphs, the Proof table, FAQ answers, button labels."
       },
-      "body-row": {
-        "displayName": "Body, rail rows",
-        "purpose": "Phrasings (italic) and dates in the rail, so nine rows fit the 1080 frame."
+      "small-public": {
+        "displayName": "Small (public)",
+        "purpose": "Dates, header links, table heads, the legal line."
       },
-      "label": {
-        "displayName": "Label",
-        "purpose": "The margin list and the plate's caption; key letters at weight 800."
+      "app-title": {
+        "displayName": "App title",
+        "purpose": "Each app screen's h1, two lines at most."
       },
-      "label-small": {
-        "displayName": "Small label",
-        "purpose": "The privacy line; margin notes take its size and leading at weight 500."
+      "app-greeting": {
+        "displayName": "App greeting",
+        "purpose": "Home's data sentence h1."
       },
-      "apparatus": {
-        "displayName": "Apparatus",
-        "purpose": "Tracked uppercase margin headings, standing in for small caps."
+      "app-body": {
+        "displayName": "App body",
+        "purpose": "The app's default text; 500 for row names, 600 for panel titles."
       },
-      "label-button": {
-        "displayName": "Button label",
-        "purpose": "Primary and retry button labels: 800, 18px, 1.2."
+      "app-label": {
+        "displayName": "App label",
+        "purpose": "Pills, chips, captions, axis labels, counts."
       },
-      "label-nav": {
-        "displayName": "Navigation label",
-        "purpose": "The top navigation's text: 700, 18px, 1.2; the product name inside it is 900, 20px."
-      },
-      "label-stamp": {
-        "displayName": "Stamp label",
-        "purpose": "Framed small labels: the demo-data label, the end rule, and the verdict's returned stamp: 700, 16px, 1.3."
-      },
-      "display-narrow": {
-        "displayName": "Display, narrow",
-        "purpose": "The display heading at 67.5rem and below: 40px."
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Code, API keys, and IDs only."
       }
     },
-    "shadows": [],
+    "shadows": [
+      {
+        "name": "menu",
+        "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+        "purpose": "Dropdown menus."
+      },
+      {
+        "name": "overlay",
+        "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        "purpose": "The phone nav sheet, submenus, and toasts. Nothing at rest carries a shadow."
+      }
+    ],
     "motion": [
       {
-        "name": "drop-duration",
-        "value": "400ms",
-        "purpose": "One rail key's drop into its detent."
+        "name": "ease-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Public pages: header ink (300ms), link and button colour, answer and hero fades, the 0.97 press."
       },
       {
-        "name": "drop-step",
-        "value": "55ms",
-        "purpose": "Delay between successive keys, in date order across the year cut; nine keys seat in 840ms."
+        "name": "ease-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Public pages: display lines rising out of their masks and chapter entrances (900ms, 70ms stagger)."
       },
       {
-        "name": "drop-ease",
-        "value": "linear(0, 0.036 4%, 0.12 8%, 0.224 12%, 0.333 16%, 0.438 20%, 0.555 25%, 0.654 30%, 0.749 36%, 0.821 42%, 0.888 50%, 0.941 60%, 0.974 72%, 0.992 86%, 1)",
-        "purpose": "A critically damped spring: it rises to rest and never passes it. The key falls from translate 0 -120%; none under reduced motion or on a returned card."
+        "name": "press-public",
+        "value": "transform: scale(0.97) over 140ms",
+        "purpose": "Public buttons on press."
+      },
+      {
+        "name": "press-app",
+        "value": "transform: translateY(1px)",
+        "purpose": "App buttons on press; the app has feedback only, no entrances."
+      },
+      {
+        "name": "stamp-settle",
+        "value": "fade in from scale 1.05, 300ms ease-out, once",
+        "purpose": "The Proven stamp after a pass."
+      },
+      {
+        "name": "reduced",
+        "value": "prefers-reduced-motion: every hidden starting state lives inside no-preference",
+        "purpose": "The reduced page is the finished page."
       }
     ],
     "breakpoints": [
       {
-        "name": "narrow",
-        "value": "67.5rem",
-        "purpose": "At and below: one column, margin above the block, rail outboard on the left, plate in flow."
+        "name": "sm",
+        "value": "640px",
+        "purpose": "App tables become two-line rows below it."
+      },
+      {
+        "name": "md",
+        "value": "768px",
+        "purpose": "Public margin grows from 20px to 32px; chapters take their wide compositions."
+      },
+      {
+        "name": "lg",
+        "value": "1024px",
+        "purpose": "The app sidebar folds into a 48px top bar below it; account pages split in two above it; small controls grow to 44px below it."
+      },
+      {
+        "name": "canvas",
+        "value": "1100px",
+        "purpose": "The app canvas width (Settings 1152px); Home's 9 + 3 and 6 + 6 stack below it."
       }
     ]
   },
@@ -197,140 +374,169 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The one action closing a block: iron fill, printed brackets on focus, Pressed Iron when pressed.",
-      "html": "<button class=\"ds-btn\">Open key A</button> <button class=\"ds-btn\" disabled>Check my answer</button>",
-      "css": ".ds-btn { position: relative; appearance: none; margin: 0; padding: 0.875rem var(--space-5); border: 1px solid var(--iron-black); border-radius: 0; color: var(--block-white); background: var(--iron-black); font: 800 var(--label-size) / 1.2 var(--face); cursor: pointer; } .ds-btn:active { border-color: var(--gray-800); background: var(--gray-800); } .ds-btn:disabled { border: 1px dotted var(--gray-600); color: var(--gray-600); background: transparent; cursor: not-allowed; } .ds-btn:focus-visible { outline: none; } .ds-btn:focus-visible::before, .ds-btn:focus-visible::after { content: ''; position: absolute; top: -6px; bottom: -6px; width: 10px; border: 2px solid var(--iron-black); pointer-events: none; } .ds-btn:focus-visible::before { left: -8px; border-right: 0; } .ds-btn:focus-visible::after { right: -8px; border-left: 0; }"
+      "description": "The near-black plum fill; one per app screen.",
+      "html": "<button class=\"ds-btn-primary\">Start a cold rep</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border:1px solid transparent;border-radius:var(--radius,10px);font:500 14px/1 'Schibsted Grotesk',ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s,border-color .15s,color .15s;background:var(--primary,#0d060b);color:var(--primary-foreground,#fff);}.ds-btn-primary:hover{background:color-mix(in oklab,var(--primary,#0d060b) 85%,transparent);}.ds-btn-primary:active{transform:translateY(1px);}.ds-btn-primary:focus-visible{outline:2px solid var(--ring,#0d060b);outline-offset:2px;}"
     },
     {
-      "name": "Retry Button",
+      "name": "Secondary Button",
       "kind": "button",
-      "refersTo": "button-retry",
-      "description": "The outlined secondary button after an error: instant Hover Gray, Rule Gray when pressed.",
-      "html": "<button class=\"ds-btn-retry\">Try again</button>",
-      "css": ".ds-btn-retry { position: relative; appearance: none; margin: 0; padding: 0.875rem var(--space-5); border: 1px solid var(--iron-black); border-radius: 0; color: var(--iron-black); background: var(--block-white); font: 800 var(--label-size) / 1.2 var(--face); cursor: pointer; } @media (hover: hover) { .ds-btn-retry:hover { background: var(--gray-200); } } .ds-btn-retry:active { border-color: var(--iron-black); background: var(--gray-300); } .ds-btn-retry:focus-visible { outline: none; } .ds-btn-retry:focus-visible::before, .ds-btn-retry:focus-visible::after { content: ''; position: absolute; top: -6px; bottom: -6px; width: 10px; border: 2px solid var(--iron-black); pointer-events: none; } .ds-btn-retry:focus-visible::before { left: -8px; border-right: 0; } .ds-btn-retry:focus-visible::after { right: -8px; border-left: 0; }"
+      "refersTo": "button-secondary",
+      "description": "White with a 1px quiet edge.",
+      "html": "<button class=\"ds-btn-secondary\">Choose another file</button>",
+      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border:1px solid transparent;border-radius:var(--radius,10px);font:500 14px/1 'Schibsted Grotesk',ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s,border-color .15s,color .15s;background:#fff;color:var(--foreground,#101421);border-color:var(--edge,#d9cfd6);}.ds-btn-secondary:hover{border-color:var(--input,#857b8a);background:var(--panel,#f7f2f5);}.ds-btn-secondary:active{transform:translateY(1px);}.ds-btn-secondary:focus-visible{outline:2px solid var(--ring,#0d060b);outline-offset:2px;}"
     },
     {
-      "name": "Margin Keys",
-      "kind": "custom",
-      "refersTo": "margin-key",
-      "description": "The margin's card list: vermilion letter, skill, count; current fills white, returned is struck in iron.",
-      "html": "<ol class=\"ds-keys\"><li><button class=\"ds-margin-key\" aria-current=\"true\"><b>A</b> <span>Undo a git commit</span> <span>9</span></button></li><li><button class=\"ds-margin-key\"><b>B</b> <span>Center an element with CSS</span> <span>4</span></button></li><li><button class=\"ds-margin-key is-returned\"><b>C</b> <span>Free a port that's already in use</span> <span>3</span></button></li></ol>",
-      "css": ".ds-keys { list-style: none; margin: 0; padding: 0; width: 24rem; } .ds-keys li:last-child > .ds-margin-key { border-bottom: var(--hairline); } .ds-margin-key { position: relative; display: grid; grid-template-columns: 1.5em minmax(0, 1fr) auto; column-gap: var(--space-3); align-items: baseline; width: 100%; margin: 0; padding: var(--space-3) var(--space-2); border: 0; border-top: var(--hairline); border-radius: 0; color: var(--iron-black); background: transparent; font: 600 var(--label-size) / 1.3 var(--face); font-variant-numeric: tabular-nums; text-align: left; cursor: pointer; } .ds-margin-key > :first-child { color: var(--rubric); font-weight: 800; } .ds-margin-key > :last-child { text-align: right; } .ds-margin-key[aria-current='true'] { background: var(--block-white); font-weight: 800; } .ds-margin-key.is-returned { text-decoration: line-through 2px var(--iron-black); } @media (hover: hover) { .ds-margin-key:not([aria-current='true']):hover { background: var(--gray-200); } } .ds-margin-key:active { background: var(--gray-300); } .ds-margin-key:focus-visible { outline: none; } .ds-margin-key:focus-visible::before, .ds-margin-key:focus-visible::after { content: ''; position: absolute; top: -6px; bottom: -6px; width: 10px; border: 2px solid var(--iron-black); pointer-events: none; } .ds-margin-key:focus-visible::before { left: -8px; border-right: 0; } .ds-margin-key:focus-visible::after { right: -8px; border-left: 0; }"
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "No edge until hovered; row actions.",
+      "html": "<button class=\"ds-btn-ghost\">Start a cold rep</button>",
+      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border:1px solid transparent;border-radius:var(--radius,10px);font:500 14px/1 'Schibsted Grotesk',ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s,border-color .15s,color .15s;background:transparent;color:var(--foreground,#101421);}.ds-btn-ghost:hover{background:var(--panel,#f7f2f5);}.ds-btn-ghost:focus-visible{outline:2px solid var(--ring,#0d060b);outline-offset:2px;}"
     },
     {
-      "name": "The Rail",
-      "kind": "custom",
-      "refersTo": "rail-key",
-      "description": "One year's rail: phrasing, a vermilion key in one continuous gray bar, the date; keys drop in date order.",
-      "html": "<ol class=\"ds-rail\"><li><span class=\"ds-phrasing\">how do i undo my last git commit</span><span class=\"ds-rail-key\"></span><span class=\"ds-stamp\">2025-03-04</span></li><li style=\"--row: 1\"><span class=\"ds-phrasing\">revert last commit git</span><span class=\"ds-rail-key\"></span><span class=\"ds-stamp\">2026-01-14</span></li></ol>",
-      "css": ".ds-rail { position: relative; list-style: none; margin: 0; padding: 0; border-top: var(--hairline); background: var(--block-white); font: 400 var(--body-size) / var(--row-leading) var(--face); font-variant-numeric: tabular-nums; color: var(--iron-black); } .ds-rail::before { content: ''; position: absolute; top: 0; bottom: 0; left: calc(50% - var(--rail-width) / 2); width: var(--rail-width); border: var(--hairline); border-top: 0; background: var(--proof-gray); pointer-events: none; } .ds-rail > li { display: grid; grid-template-columns: minmax(0, 1fr) var(--rail-width) minmax(0, 1fr); } .ds-phrasing, .ds-stamp { grid-row: 1; padding: var(--row-pad) var(--space-4); border-bottom: var(--row-rule); } .ds-phrasing { grid-column: 1; font-style: italic; text-align: right; } .ds-stamp { grid-column: 3; font-weight: 500; } .ds-rail-key { grid-column: 2; grid-row: 1; justify-self: center; align-self: start; position: relative; overflow: hidden; width: var(--detent); height: var(--detent); margin-top: calc(var(--row-pad) + var(--body-size) * var(--row-leading) / 2 - var(--detent) / 2); } .ds-rail-key::before { content: ''; position: absolute; inset: calc((var(--detent) - var(--key)) / 2); background: var(--rubric); animation: ds-key-drop var(--drop-duration) var(--drop-ease) backwards; animation-delay: calc(var(--row, 0) * var(--drop-step)); } @keyframes ds-key-drop { from { translate: 0 -120%; } } @media (prefers-reduced-motion: reduce) { .ds-rail-key::before { animation: none; } }"
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Outlined negative, for irreversible actions in an in-place confirmation.",
+      "html": "<button class=\"ds-btn-destructive\">Delete Work</button>",
+      "css": ".ds-btn-destructive{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border:1px solid transparent;border-radius:var(--radius,10px);font:500 14px/1 'Schibsted Grotesk',ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color .15s,border-color .15s,color .15s;background:#fff;color:var(--destructive,#c4242a);border-color:color-mix(in oklab,var(--destructive,#c4242a) 60%,transparent);}.ds-btn-destructive:hover{border-color:var(--destructive,#c4242a);background:var(--negative,#ffedea);}.ds-btn-destructive:focus-visible{outline:2px solid var(--ring,#0d060b);outline-offset:2px;}"
     },
     {
-      "name": "Reversed Plate",
-      "kind": "custom",
-      "refersTo": "plate",
-      "description": "The one number that matters on a screen, white on an iron plate.",
-      "html": "<p class=\"ds-plate\"><b>9</b> <span>times borrowed, not returned</span></p>",
-      "css": ".ds-plate { width: min-content; min-width: 14rem; margin: 0; padding: var(--space-4) var(--space-5) var(--space-5); color: var(--block-white); background: var(--iron-black); font: 600 var(--label-size) / 1.3 var(--face); letter-spacing: 0.01em; font-variant-numeric: tabular-nums; } .ds-plate > :first-child { display: block; font-size: var(--count-size); font-weight: 900; line-height: 0.85; letter-spacing: -0.02em; } .ds-plate > :first-child ~ * { display: block; margin-top: var(--space-3); text-wrap: balance; }"
+      "name": "Public Pink Button",
+      "kind": "button",
+      "refersTo": "button-public",
+      "description": "The landing and account pages' primary action: square, pink, plum-black words.",
+      "html": "<button class=\"ds-btn-pink\">Try it as a guest</button>",
+      "css": ".ds-btn-pink{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 24px;border:0;border-radius:0;background:var(--pink,#ff488b);color:var(--plum-black,#0d060b);font:600 clamp(1.0625rem,1rem + .25vw,1.1875rem)/1 'Schibsted Grotesk',ui-sans-serif,sans-serif;letter-spacing:-.01em;cursor:pointer;transition:background-color 180ms ease,transform 140ms cubic-bezier(.22,1,.36,1);}.ds-btn-pink:hover{background:var(--pink-hover,#ff6fa3);}.ds-btn-pink:active{transform:scale(.97);}.ds-btn-pink:focus-visible{outline:2px solid #fff;outline-offset:2px;}"
     },
     {
-      "name": "Verdict",
-      "kind": "card",
-      "refersTo": "verdict",
-      "description": "The check's verdict: a 1px iron frame with a stamp for Returned, a 3px frame for Still borrowed.",
-      "html": "<section class=\"ds-verdict\"><h2>Returned</h2><p>You correctly say a pushed commit should be reverted.</p><p class=\"ds-verdict-stamp\">Stamped returned 2026-10-16</p></section><section class=\"ds-verdict is-failed\"><h2>Still borrowed</h2><p>Stash does not remove a commit from main.</p></section>",
-      "css": ".ds-verdict { max-width: var(--measure); margin: 0 0 var(--space-5); padding: var(--space-4) var(--space-5); border: var(--hairline); background: var(--block-white); color: var(--iron-black); font: 400 var(--body-size) / var(--prose-leading) var(--face); } .ds-verdict h2 { margin: 0 0 var(--space-2); font: 800 var(--body-size) / 1.2 var(--face); } .ds-verdict p { margin: 0; } .ds-verdict.is-failed { padding: calc(var(--space-4) - 2px) calc(var(--space-5) - 2px); border-width: 3px; } .ds-verdict-stamp { display: inline-block; margin-top: var(--space-3) !important; padding: var(--space-1) var(--space-3); border: var(--hairline); font: 700 var(--small-label-size) / 1.3 var(--face); font-variant-numeric: tabular-nums; }"
-    },
-    {
-      "name": "Answer Box",
+      "name": "Text Input",
       "kind": "input",
-      "refersTo": "answer-box",
-      "description": "A square textarea; focus is an offset 2px rule; locked drops to a dotted gray frame and grows up to 13 lines.",
-      "html": "<form class=\"ds-answer\"><label>Your answer, in your own words, without AI<textarea rows=\"6\" placeholder=\"Type it as you would at a terminal\"></textarea></label><label>Locked<textarea rows=\"2\" readonly>git revert HEAD, then git push.</textarea></label></form>",
-      "css": ".ds-answer { display: grid; gap: var(--space-4); max-width: var(--measure); } .ds-answer label { display: grid; gap: var(--space-2); font: 700 var(--label-size) / 1.3 var(--face); color: var(--iron-black); } .ds-answer textarea { appearance: none; display: block; width: 100%; min-height: 9.5rem; margin: 0; padding: var(--space-3) var(--space-4); border: var(--hairline); border-radius: 0; color: var(--iron-black); background: var(--block-white); font: 400 var(--body-size) / var(--prose-leading) var(--face); resize: vertical; } .ds-answer textarea::placeholder { color: var(--gray-600); opacity: 1; } .ds-answer textarea:focus-visible { outline: 2px solid var(--iron-black); outline-offset: 3px; } .ds-answer textarea:is(:disabled, :read-only) { border-style: dotted; border-color: var(--gray-600); field-sizing: content; max-block-size: calc(13lh + var(--space-3) + 2px); overflow-y: auto; resize: none; } .ds-answer textarea:disabled { color: var(--gray-600); }"
+      "refersTo": "input",
+      "description": "40px, white even on a panel, control-grey border, pink-ink caret.",
+      "html": "<input class=\"ds-input\" placeholder=\"Name your first shelf\" />",
+      "css": ".ds-input{height:40px;width:100%;max-width:320px;padding:4px 12px;border:1px solid var(--input,#857b8a);border-radius:var(--radius,10px);background:#fff;color:var(--foreground,#101421);font:400 14px 'Schibsted Grotesk',ui-sans-serif,sans-serif;caret-color:var(--ask-ink,#c0185a);transition:border-color .15s;}.ds-input::placeholder{color:var(--faint,#6b6470);}.ds-input:focus-visible{outline:2px solid var(--ring,#0d060b);outline-offset:2px;}.ds-input[aria-invalid=true]{border-color:var(--destructive,#c4242a);box-shadow:0 0 0 3px color-mix(in oklab,var(--destructive,#c4242a) 15%,transparent);}"
     },
     {
-      "name": "Waiting Line and Error Notice",
-      "kind": "custom",
-      "refersTo": "error",
-      "description": "A wait opens with an empty piece of rail; an error is a frame with a 3px head rule, then a retry.",
-      "html": "<p class=\"ds-waiting\" role=\"status\">Cataloging your questions…</p><p class=\"ds-error\" role=\"alert\">Your questions couldn't be cataloged. The model timed out.</p>",
-      "css": ".ds-waiting { position: relative; display: flex; align-items: center; min-height: 3rem; margin: 0 0 var(--space-5); padding-left: calc(var(--rail-width) + var(--space-4)); color: var(--iron-black); font: 500 var(--body-size) / var(--prose-leading) var(--face); cursor: progress; } .ds-waiting::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: var(--rail-width); border-inline: var(--hairline); background: var(--proof-gray); } .ds-error { max-width: var(--measure); margin: 0; padding: var(--space-3) var(--space-4); border: var(--hairline); border-top-width: 3px; background: var(--block-white); color: var(--iron-black); font: 400 var(--body-size) / var(--prose-leading) var(--face); }"
+      "name": "Status Pills",
+      "kind": "chip",
+      "refersTo": "pill-to-prove",
+      "description": "One status per row: To prove, Proven, Asked since proven, Not yet; and the outline Demo data chip.",
+      "html": "<span class=\"ds-pills\"><span class=\"ds-pill ds-pill-to-prove\">To prove</span><span class=\"ds-pill ds-pill-proven\">Proven</span><span class=\"ds-pill ds-pill-again\">Asked since proven</span><span class=\"ds-pill ds-pill-no\">Not yet</span><span class=\"ds-pill ds-pill-demo\">Demo data</span></span>",
+      "css": ".ds-pills{display:flex;flex-wrap:wrap;gap:8px;}.ds-pill{display:inline-flex;align-items:center;height:20px;padding:0 8px;border:1px solid transparent;border-radius:9999px;font:500 12px/1 'Schibsted Grotesk',ui-sans-serif,sans-serif;white-space:nowrap;}.ds-pill-to-prove{background:#efe7ec;color:#3b3240;}.ds-pill-proven{background:#dcfae5;color:#04250e;}.ds-pill-again{background:#fffbeb;color:#92400e;border-color:#fde68a;}.ds-pill-no{background:#ffedea;color:#831c1e;}.ds-pill-demo{background:#fff;color:#5d5562;border-color:#d9cfd6;}"
     },
     {
-      "name": "Top Navigation",
+      "name": "Sidebar Navigation",
       "kind": "nav",
-      "refersTo": "nav",
-      "description": "The standard top bar with the product name and the always-visible demo-data label.",
-      "html": "<nav class=\"ds-nav\"><span class=\"ds-nav-name\">Asked Before</span> <span class=\"ds-demo-label\">Demo data: a made-up chat export</span></nav>",
-      "css": ".ds-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-5); min-height: 3.75rem; padding: var(--space-3) var(--space-7); border-bottom: var(--hairline); background: var(--proof-gray); color: var(--iron-black); font: 700 var(--label-size) / 1.2 var(--face); } .ds-nav-name { font-size: var(--body-size); font-weight: 900; } .ds-demo-label { margin-left: auto; padding: var(--space-1) var(--space-3); border: var(--hairline); font: 700 var(--small-label-size) / 1.3 var(--face); }"
+      "refersTo": "nav-item",
+      "description": "Open-plane sidebar rows: 32px, muted, the current page as the neutral active pill; the mark at the top.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-brand\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\" stroke=\"#e3dae0\" stroke-width=\"2\" stroke-linecap=\"round\"/><circle cx=\"5.5\" cy=\"12\" r=\"2.5\" fill=\"#ff488b\"/><circle cx=\"10.5\" cy=\"12\" r=\"2.5\" fill=\"#ff488b\"/><circle cx=\"15.5\" cy=\"12\" r=\"2.5\" fill=\"#ff488b\"/><line x1=\"20.5\" y1=\"5.5\" x2=\"20.5\" y2=\"18.5\" stroke=\"#0d060b\" stroke-width=\"2\" stroke-linecap=\"round\"/></svg>Asked Before</a><a class=\"ds-nav-item\" aria-current=\"page\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg><span class=\"ds-grow\">Home</span><span class=\"ds-count\">4</span></a><p class=\"ds-nav-group\">Shelves</p><a class=\"ds-nav-item ds-indent\" href=\"#\">Work</a><a class=\"ds-nav-item ds-indent\" href=\"#\">Demo</a></nav>",
+      "css": ".ds-nav{display:flex;flex-direction:column;gap:2px;width:240px;padding:12px;background:#fff;border-right:1px solid var(--border,#ece4e9);font:400 14px 'Schibsted Grotesk',ui-sans-serif,sans-serif;}.ds-nav-brand{display:flex;align-items:center;gap:8px;height:40px;margin-bottom:16px;padding:0 8px;font-weight:600;font-size:16px;color:var(--foreground,#101421);text-decoration:none;}.ds-nav-item{display:flex;align-items:center;gap:10px;height:32px;padding:0 8px;border-radius:8px;color:var(--muted-foreground,#5d5562);text-decoration:none;transition:background-color .15s,color .15s;}.ds-nav-item:hover{background:var(--panel,#f7f2f5);color:var(--foreground,#101421);}.ds-nav-item[aria-current=page]{background:var(--active,#efe7ec);color:var(--foreground,#101421);}.ds-nav-item:focus-visible{outline:2px solid var(--ring,#0d060b);outline-offset:2px;}.ds-indent{padding-left:34px;}.ds-grow{flex:1;}.ds-count{font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted-foreground,#5d5562);}.ds-nav-group{margin:20px 0 4px;padding:0 8px;font-size:12px;color:var(--muted-foreground,#5d5562);}"
+    },
+    {
+      "name": "Prove Next Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "A tonal panel holding white row cards, each with its skill, shelf, the ask span on a shared axis, and its action.",
+      "html": "<section class=\"ds-panel\"><div class=\"ds-panel-head\"><h2>Prove next</h2><span class=\"ds-pill-to-prove-sm\">4</span></div><p class=\"ds-sub\">Most asked first.</p><div class=\"ds-row\"><div><a href=\"#\" class=\"ds-name\">Undo a git commit</a><p class=\"ds-sub\">Work · asked 9 times</p></div><span class=\"ds-span\"><svg width=\"100%\" height=\"14\" aria-label=\"Asked 9 times, March 2025 to September 2026\" role=\"img\"><line x1=\"0\" x2=\"100%\" y1=\"50%\" y2=\"50%\" stroke=\"#e3dae0\" stroke-width=\"2\"/><line x1=\"12%\" x2=\"86%\" y1=\"50%\" y2=\"50%\" stroke=\"#ff488b\" stroke-width=\"4\" stroke-linecap=\"round\"/></svg><span class=\"ds-n\">9</span></span><button class=\"ds-row-btn\">Start a cold rep</button></div></section>",
+      "css": ".ds-panel{display:flex;flex-direction:column;gap:16px;max-width:640px;padding:20px;border-radius:16px;background:var(--panel,#f7f2f5);font:400 14px 'Schibsted Grotesk',ui-sans-serif,sans-serif;color:var(--foreground,#101421);}.ds-panel-head{display:flex;align-items:center;gap:8px;}.ds-panel-head h2{margin:0;font-size:14px;font-weight:600;}.ds-pill-to-prove-sm{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:9999px;background:#efe7ec;color:#3b3240;font-size:12px;font-weight:500;}.ds-sub{margin:4px 0 0;color:var(--muted-foreground,#5d5562);}.ds-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(7rem,1fr) auto;align-items:center;gap:16px;min-height:63px;padding:10px 16px;border:1px solid var(--border,#ece4e9);border-radius:12px;background:#fff;}.ds-name{font-weight:500;color:inherit;text-decoration:none;text-underline-offset:4px;}.ds-name:hover{text-decoration:underline;}.ds-span{display:flex;align-items:center;gap:8px;}.ds-n{font-size:12px;color:var(--muted-foreground,#5d5562);font-variant-numeric:tabular-nums;}.ds-row-btn{height:32px;padding:0 12px;border:0;border-radius:10px;background:#0d060b;color:#fff;font:500 14px inherit;font-family:inherit;cursor:pointer;}.ds-row-btn:hover{background:color-mix(in oklab,#0d060b 85%,transparent);}.ds-row-btn:focus-visible{outline:2px solid var(--ring,#0d060b);outline-offset:2px;}"
+    },
+    {
+      "name": "Ask Strip",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The signature element: one pink dot per ask on a 2px grey track, and a plum-black proven tick. On white only.",
+      "html": "<svg class=\"ds-strip\" role=\"img\" aria-label=\"Asked 9 times, March 2025 to September 2026, proven October 23, 2026\"><line x1=\"0\" x2=\"100%\" y1=\"50%\" y2=\"50%\" stroke=\"#e3dae0\" stroke-width=\"2\"/><circle cx=\"6%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"18%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"31%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"40%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"52%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"61%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"70%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"79%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"86%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><line x1=\"94%\" x2=\"94%\" y1=\"0\" y2=\"100%\" stroke=\"#0d060b\" stroke-width=\"2\"/></svg>",
+      "css": ".ds-strip{display:block;width:100%;max-width:560px;height:20px;overflow:visible;background:#fff;}"
+    },
+    {
+      "name": "Proven Stamp",
+      "kind": "custom",
+      "refersTo": "pill-proven",
+      "description": "The card page's one authored moment after a pass: tilted, in the Proven pair.",
+      "html": "<span class=\"ds-stamp\"><span class=\"ds-stamp-word\">Proven</span><span class=\"ds-stamp-date\">Oct 23, 2026</span></span>",
+      "css": ".ds-stamp{display:inline-flex;flex-direction:column;gap:4px;padding:10px 16px 8px;border:2px solid color-mix(in oklab,#04250e 70%,transparent);border-radius:12px;background:#dcfae5;color:#04250e;transform:rotate(-2deg);font-family:'Schibsted Grotesk',ui-sans-serif,sans-serif;}.ds-stamp-word{font-size:24px;line-height:1;font-weight:600;}.ds-stamp-date{font-size:14px;font-weight:500;}"
     }
   ],
   "narrative": {
-    "northStar": "The Centre Rail",
-    "overview": "Every screen is set like a page of a wide-margin reference edition drawn by a ruling engine. A small, dense block holds the work; a wide margin around it carries the apparatus; and down the middle of the block runs one rail with a vermilion key on it for every borrow. Your own words sit on one side of the rail and what they point to sits on the other, so the keys show how often you asked before any number does.\n\nThe surface is for operating, not reading: navigation, buttons, and inputs stay the web's standard controls, and the world lends only type, palette, density, and the rail. The edition's bone stock and text serif are translated to proof gray and a grotesk, because a warm cream ground with a serif is the default look the user ruled out. Density is high and calm: one block per screen, ruled in 1px hairlines, with nothing that glows, floats, or bounces.\n\nMotion has one grammar: a key drops into its detent along a single damped axis with no overshoot. That drop is the only orchestrated motion. It runs in date order, across the year cut, every time a borrowed card is set in the block: each key falls 120% of its height into its detent over 400ms, one 55ms step after the key before it, so nine keys are seated in 840ms. The easing is a critically damped spring written as `linear()` that never passes 1, and the detent clips the key, so nothing fades. A returned card's keys are already seated and don't drop. Under reduced motion the keys are simply in place.",
+    "northStar": "The Repeated Question, Typeset",
+    "overview": "Asked Before has two rooms built from one palette and one typeface. The public pages (landing, log in, sign up, 404) are type and nothing else: full-bleed fields of plum and white, one enormous statement per chapter in Schibsted Grotesk at 800, everything else small, square corners, and colour that changes by chapter instead of pictures. The visitor's own material, the same question asked nine different ways, is the picture. The app (`/app/*`) and the docs page are the opposite temperature: a light, soft, editorial workspace on a white ground, a 240px open-plane sidebar behind one hairline, tonal panels one step off white toward the plum, regular-weight numbers, and nothing louder than 24px.\n\nWhat ties the rooms together is the ask strip: pink dots on a 2px grey track, one per time you asked, with a plum-black tick on the day you proved you could do it without AI. It is the product's mark, the main data element of every list, and the one place pink appears inside the app. Pink is rare on purpose: in the app it is data, not decoration.\n\nDensity in the app is calm and readable (14px body, 32px nav rows, 8px gaps between row cards). The public pages run at the opposite extreme of scale: 9 to 21vw display lines against 15 to 19px text, with nothing in between.",
     "keyCharacteristics": [
-      "One rail per block, one vermilion key per borrow.",
-      "Proof-gray ground, white block, iron-black ink, one rubric.",
-      "One reversed black plate per screen, for the number that matters.",
-      "Square corners and 1px hairlines; no shadows and no radius.",
-      "Standard controls in the world's type, never a costume of a printed page."
+      "One typeface (Schibsted Grotesk, 400 to 900); JetBrains Mono only in code, API keys, and IDs.",
+      "Public pages: square (0 radius), plum-black / plum-field / plum-surface / white chapters, pink primary buttons with plum-black words.",
+      "App: white ground, `#f7f2f5` tonal panels at 16px radius, white row cards at 12px, 10px controls, fully round pills.",
+      "The ask strip is the signature: pink on white only, a plum-black proven tick.",
+      "Flat at rest; shadows only on menus, sheets, and toasts.",
+      "Pale status pairs with dark ink of the same hue: To prove, Proven, Asked since proven, Not yet."
     ],
     "rules": [
       {
-        "name": "The One Rubric Rule",
-        "body": "Vermilion appears only on the rail's keys and the margin's key letters. On a heading, a border, a background, or a state, it's wrong.",
+        "name": "The Pink Is Data Rule",
+        "body": "In the app, pink appears only in the ask strip and the sidebar mark, under 2% of pixels. Buttons, links, headings, and highlights are never pink inside `/app`.",
         "section": "colors"
       },
       {
-        "name": "The One Ramp Rule",
-        "body": "Every neutral comes from one fixed ramp between Proof Gray and Iron Black, stepped in OKLab: Proof Gray, Hover Gray, Rule Gray, Disabled Gray, Pressed Iron, Iron Black. No one-off grays.",
+        "name": "The White Behind Pink Rule",
+        "body": "The ask strip sits on white (a row card, the card page, a `data-ui` fragment), never directly on the panel tint, where pink drops under 3:1.",
         "section": "colors"
       },
       {
-        "name": "The No New Ink Rule",
-        "body": "States add no color: a returned card's margin key is struck through in iron black, and a failed rep's verdict frame goes from 1px to 3px iron black.",
+        "name": "The Colour By Chapter Rule",
+        "body": "On the landing, each chapter is one full-bleed field with one ink: hero `plum-field`/white, Nine ways white/navy, Showcase `plum-black`/white, How it works white/navy, Proof `plum-surface`/white, Features `panel`/navy beside `plum-black` rows, FAQ white/navy, CTA `plum-field`/white, footer `plum-black` with pink links. The fixed header's two corners take the ink and ground of the chapter beneath them.",
         "section": "colors"
       },
       {
-        "name": "The 1080p Floor Rule",
-        "body": "In the demo video's 1080p frame, body text renders at 20px or more and labels and apparatus at 14px or more; size the CSS for the viewport the video records. Judges may only see the video, and one builder's rule for product videos is \"body text ≥ 20px at 1080p\" ([@elie2222][x-video]). The sketch's 13px and 17px sizes fall below it and don't carry over.",
+        "name": "The Red Is For Failure Rule",
+        "body": "Red (destructive, negative) marks a failing fact or an irreversible action, never emphasis.",
+        "section": "colors"
+      },
+      {
+        "name": "The Nothing In Between Rule",
+        "body": "On public pages, a size is one of the five steps. The jump from body to display is the point; don't add a 32px subhead to soften it.",
         "section": "typography"
       },
       {
-        "name": "The No Display Face Rule",
-        "body": "No display face beyond the text family, and no monospace. Apparatus stays in tracked capitals of the same family.",
+        "name": "The Thirty-Two Ceiling Rule",
+        "body": "Nothing in the app is larger than 32px, and screen headings are 24px. Scale in the app comes from space and tone, not size.",
         "section": "typography"
       },
       {
-        "name": "The Reversed Plate Rule",
-        "body": "One element per screen sits on a black plate with white type: the number that matters most on that screen. A second plate means the first one isn't the point.",
+        "name": "The Sentence Case Rule",
+        "body": "Every label is sentence case at tracking 0 or tighter. No uppercase, no letter-spaced labels, no text above a heading to introduce it.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat At Rest Rule",
+        "body": "No shadow on panels, tiles, row cards, buttons, or inputs. Only menus, sheets, popovers, and toasts lift.",
         "section": "elevation"
       },
       {
-        "name": "The Plate Holds Rule",
-        "body": "Once a screen has its count, every state keeps its one plate, inside the block's padding: waiting and error too. Until then, while a screen waits for the count itself (its first load, or a file being read) or fails to get it, there's no plate, since the Plate Counts Rule leaves nothing to put on one. A plate that drops out of a short state once its count is known, such as a shelf's card that failed to come, or hangs past the block's foot, is wrong.",
+        "name": "The One Layer Rule",
+        "body": "A panel holds its title and content directly; a white row card sits inside a panel only for list rows. Never a panel inside a panel, or a tray around every block.",
         "section": "elevation"
-      },
-      {
-        "name": "The One Bar Rule",
-        "body": "Each year's rail is one continuous gray bar between two iron hairlines, and a key has no cell or frame of its own. Keys in separate gray cells read as a column of checkboxes.",
-        "section": "shapes"
       }
     ],
     "dos": [
-      "**Do** build from the chosen sketch and the world's [quality-bar board][board], not from adjectives; a builder's advice for avoiding the model's default look is \"Steal a reference, don't describe one\" ([@ArchiveExplorer][x-ref]).",
-      "**Do** keep to three signature elements: the rail, the reversed plate, and the hairlines. One designer's checklist for distinctive AI-built UI says \"1–3 strong custom elements beat 20 random assets\" ([@Hartdrawss][x-mood]).",
-      "**Do** take texture only from the real object, the ruling engine's hairlines. One post calls the skeuomorphism revival \"already as obnoxious and overplayed\" ([@PalmyrPar][x-revival]), and a reply says \"we don't need AI to give a UI a paper texture and a fun font\" ([@Mirteaaa][x-costume]).",
-      "**Do** keep the reversed plate's number readable at thumbnail size, and let motion settle before the next interaction, so a recording never shows half-moved state."
+      "Do keep pink in the app to the ask strip and the sidebar mark, on white surfaces only.",
+      "Do use the four status words and their pairs exactly: To prove, Proven, Asked since proven, and Not yet for a failed check; \"Not on a card\" for messages no card asks yet; \"Start a cold rep\" as the one rep verb.",
+      "Do set numbers at regular weight with the `Figure` component's tabular digits.",
+      "Do use one filled primary button per app screen, and one pink action per landing chapter.",
+      "Do keep confirmations in place under their row, with focus on the safe choice and Escape to keep.",
+      "Do show loading as flat bars in the panel-edge grey (8px corners) at the final size, with no shimmer and no layout shift.",
+      "Do set `--radius: 10px` on any app fragment shown on a square public page.",
+      "Do keep every hidden starting state of an entrance inside `prefers-reduced-motion: no-preference`."
     ],
     "donts": [
-      "**Don't** use a warm cream ground or a serif display face; together they're the bookish default the user ruled out.",
-      "**Don't** make it feel like an app kit: no rounded cards, soft shadows, toasts, or progress bars. The user ruled these out too.",
-      "**Don't** use the tells from a widely shared list of reasons a site \"looks vibe-coded\": Inter, Geist, or Space Grotesk; Lucide icons; emoji; sparkle icons; bento grids; dot grids; a colored left stripe; soft corner radius; hover animations ([@suraj_sharma14][x-vibe]).",
-      "**Don't** fade or slide sections in on load, and don't stagger reveals; \"everything fading in\" is the model's default look ([@ArchiveExplorer][x-ref]), even though a widely shared aesthetics prompt recommends staggered reveals ([@vincenteliezer][x-stagger]). The rail's key drop is the only orchestrated motion.",
-      "**Don't** add purple gradients, all-caps eyebrow labels above headings, or \"→\" on buttons ([the PRD's Avoid list](/devpost/prd.md#look-and-feel)). Apparatus lives in the margin, never as an eyebrow.",
-      "**Don't** draw streaks, flames, badges, scores, or charts. [The PRD's Avoid list](/devpost/prd.md#look-and-feel) rules out streaks, badges, scores, and charts, and one critique says Duolingo \"monetizes guilt through streaks, badges & reminders\" ([@StockSavvyShay][x-guilt])."
+      "Don't put shadows on anything at rest; only menus, sheets, popovers, and toasts lift.",
+      "Don't use gradients, glass, glow, violet or indigo, or cream with terracotta.",
+      "Don't put a small label, number, or tracked uppercase line above a heading to introduce it.",
+      "Don't set icons in tinted squares or use emoji; icons are 16px lucide outlines in grey.",
+      "Don't use the monospace outside code, API keys, and IDs.",
+      "Don't go above 24px for an app heading, or add a sixth type step on public pages.",
+      "Don't put the ask strip, or any pink, on the panel tint.",
+      "Don't animate forever: no infinite loops, no `animate-pulse`, no spinner outside an in-flight request.",
+      "Don't open a modal to confirm a delete."
     ]
   }
 }

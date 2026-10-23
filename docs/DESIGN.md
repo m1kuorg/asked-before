@@ -1,522 +1,406 @@
 ---
 name: Asked Before
-description: Your own phrasings and their dates, twinned around one rail with a vermilion key for every borrow.
+description: Your own repeated questions, set as type on plum and pink outside, and as pink dots on a grey track inside a light, soft app.
 colors:
-  rubric: "#B42D16"
-  proof-gray: "#E8EBED"
-  block-white: "#FFFFFF"
-  iron-black: "#1A1A1A"
-  rule-gray: "#C3C8CC"
-  gray-200: "#D5D9DC"
-  gray-600: "#606263"
-  gray-800: "#373839"
+  plum-black: "#0d060b"
+  plum-surface: "#1b0e17"
+  plum-field: "#470c35"
+  pink: "#ff488b"
+  pink-hover: "#ff6fa3"
+  ask-ink: "#c0185a"
+  muted-on-dark: "#9a8f97"
+  background: "#ffffff"
+  foreground: "#101421"
+  panel: "#f7f2f5"
+  border: "#ece4e9"
+  rule: "#f0e9ee"
+  edge: "#d9cfd6"
+  input: "#857b8a"
+  muted-foreground: "#5d5562"
+  faint: "#6b6470"
+  active: "#efe7ec"
+  active-foreground: "#3b3240"
+  track: "#e3dae0"
+  selection: "#f9cfe0"
+  destructive: "#c4242a"
+  positive: "#dcfae5"
+  positive-foreground: "#04250e"
+  notice: "#fffbeb"
+  notice-foreground: "#92400e"
+  notice-border: "#fde68a"
+  negative: "#ffedea"
+  negative-foreground: "#831c1e"
 typography:
   display:
-    fontFamily: "Hanken Grotesk, sans-serif"
-    fontSize: "3.375rem"
-    fontWeight: 900
-    lineHeight: 1
-    letterSpacing: "-0.02em"
-  display-narrow:
-    fontFamily: "Hanken Grotesk, sans-serif"
-    fontSize: "2.5rem"
-    fontWeight: 900
-    lineHeight: 1
-    letterSpacing: "-0.02em"
-  count:
-    fontFamily: "Hanken Grotesk, sans-serif"
-    fontSize: "9.375rem"
-    fontWeight: 900
-    lineHeight: 0.85
-    letterSpacing: "-0.02em"
-  headline:
-    fontFamily: "Hanken Grotesk, sans-serif"
-    fontSize: "1.5rem"
-    fontWeight: 500
-    lineHeight: 1.4
-  title:
-    fontFamily: "Hanken Grotesk, sans-serif"
-    fontSize: "1.25rem"
+    fontFamily: "Schibsted Grotesk, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "15.6vw"
     fontWeight: 800
-    lineHeight: 1.2
-  body:
-    fontFamily: "Hanken Grotesk, sans-serif"
-    fontSize: "1.25rem"
+    lineHeight: 0.88
+    letterSpacing: "-0.05em"
+  headline:
+    fontFamily: "Schibsted Grotesk, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "clamp(2rem, 1.3rem + 3.2vw, 4rem)"
+    fontWeight: 800
+    lineHeight: 0.95
+    letterSpacing: "-0.05em"
+  lead:
+    fontFamily: "Schibsted Grotesk, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem)"
+    fontWeight: 400
+    lineHeight: 1.3
+    letterSpacing: "-0.01em"
+  body-public:
+    fontFamily: "Schibsted Grotesk, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem)"
     fontWeight: 400
     lineHeight: 1.5
-    fontFeature: "tnum"
-  body-row:
-    fontFamily: "Hanken Grotesk, sans-serif"
-    fontSize: "1.25rem"
-    fontWeight: 400
-    lineHeight: 1.25
-    fontFeature: "tnum"
-  label:
-    fontFamily: "Hanken Grotesk, sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 600
-    lineHeight: 1.3
-  label-small:
-    fontFamily: "Hanken Grotesk, sans-serif"
-    fontSize: "1rem"
-    fontWeight: 600
-    lineHeight: 1.45
-  label-button:
-    fontFamily: "Hanken Grotesk, sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 800
-    lineHeight: 1.2
-  label-nav:
-    fontFamily: "Hanken Grotesk, sans-serif"
-    fontSize: "1.125rem"
-    fontWeight: 700
-    lineHeight: 1.2
-  label-stamp:
-    fontFamily: "Hanken Grotesk, sans-serif"
-    fontSize: "1rem"
-    fontWeight: 700
-    lineHeight: 1.3
-  apparatus:
-    fontFamily: "Hanken Grotesk, sans-serif"
+    letterSpacing: "-0.01em"
+  small-public:
+    fontFamily: "Schibsted Grotesk, ui-sans-serif, system-ui, sans-serif"
     fontSize: "0.9375rem"
-    fontWeight: 700
-    lineHeight: 1.3
-    letterSpacing: "0.08em"
+    fontWeight: 400
+    lineHeight: 1.4
+    letterSpacing: "-0.01em"
+  app-title:
+    fontFamily: "Schibsted Grotesk, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.5rem"
+    fontWeight: 600
+    lineHeight: 1.33
+    letterSpacing: "0"
+  app-greeting:
+    fontFamily: "Schibsted Grotesk, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.5rem"
+    fontWeight: 400
+    lineHeight: 1.33
+    letterSpacing: "0"
+  app-body:
+    fontFamily: "Schibsted Grotesk, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.875rem"
+    fontWeight: 400
+    lineHeight: 1.43
+    letterSpacing: "0"
+  app-label:
+    fontFamily: "Schibsted Grotesk, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.75rem"
+    fontWeight: 500
+    lineHeight: 1.33
+    letterSpacing: "0"
+  mono:
+    fontFamily: "JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, monospace"
+    fontSize: "0.75rem"
+    fontWeight: 400
+    lineHeight: 1.5
 rounded:
   none: "0px"
+  sm: "6px"
+  md: "8px"
+  lg: "10px"
+  xl: "12px"
+  2xl: "16px"
+  full: "9999px"
 spacing:
-  space-1: "0.25rem"
-  space-2: "0.5rem"
-  space-3: "0.75rem"
-  space-4: "1rem"
-  space-5: "1.5rem"
-  space-6: "2rem"
-  space-7: "2.5rem"
-  column: "32.5rem"
-  rail-width: "4.5rem"
-  measure: "60ch"
+  "1": "4px"
+  "2": "8px"
+  "3": "12px"
+  "4": "16px"
+  "5": "20px"
+  "6": "24px"
+  "8": "32px"
+  public-margin-phone: "20px"
+  public-margin: "32px"
 components:
   button-primary:
-    backgroundColor: "{colors.iron-black}"
-    textColor: "{colors.block-white}"
-    typography: "{typography.label-button}"
-    rounded: "{rounded.none}"
-    padding: "0.875rem 1.5rem"
-  button-primary-active:
-    backgroundColor: "{colors.gray-800}"
-    textColor: "{colors.block-white}"
-  button-primary-disabled:
-    backgroundColor: "transparent"
-    textColor: "{colors.gray-600}"
-  button-retry:
-    backgroundColor: "{colors.block-white}"
-    textColor: "{colors.iron-black}"
-    typography: "{typography.label-button}"
-    rounded: "{rounded.none}"
-    padding: "0.875rem 1.5rem"
-  button-retry-hover:
-    backgroundColor: "{colors.gray-200}"
-  button-retry-active:
-    backgroundColor: "{colors.rule-gray}"
+    backgroundColor: "{colors.plum-black}"
+    textColor: "{colors.background}"
+    typography: "{typography.app-body}"
+    rounded: "{rounded.lg}"
+    padding: "0 16px"
+    height: "40px"
   button-secondary:
-    backgroundColor: "{colors.block-white}"
-    textColor: "{colors.iron-black}"
-    typography: "{typography.label-button}"
+    backgroundColor: "{colors.background}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.lg}"
+    padding: "0 16px"
+    height: "40px"
+  button-secondary-hover:
+    backgroundColor: "{colors.panel}"
+  button-ghost:
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.lg}"
+    padding: "0 16px"
+    height: "40px"
+  button-ghost-hover:
+    backgroundColor: "{colors.panel}"
+  button-destructive:
+    backgroundColor: "{colors.background}"
+    textColor: "{colors.destructive}"
+    rounded: "{rounded.lg}"
+    padding: "0 16px"
+    height: "40px"
+  button-destructive-hover:
+    backgroundColor: "{colors.negative}"
+  button-public:
+    backgroundColor: "{colors.pink}"
+    textColor: "{colors.plum-black}"
+    typography: "{typography.body-public}"
     rounded: "{rounded.none}"
-    padding: "0.875rem 1.5rem"
-  button-quiet:
-    backgroundColor: "transparent"
-    textColor: "{colors.iron-black}"
-    typography: "{typography.label-nav}"
-    padding: "0.5rem 0.75rem"
-  button-quiet-hover:
-    backgroundColor: "{colors.gray-200}"
-  margin-key:
-    backgroundColor: "transparent"
-    textColor: "{colors.iron-black}"
-    typography: "{typography.label}"
-    padding: "0.75rem 0.5rem"
-  margin-key-hover:
-    backgroundColor: "{colors.gray-200}"
-  margin-key-active:
-    backgroundColor: "{colors.rule-gray}"
-  margin-key-current:
-    backgroundColor: "{colors.block-white}"
-  margin-key-letter:
-    textColor: "{colors.rubric}"
-  rail-channel:
-    backgroundColor: "{colors.proof-gray}"
-    width: "{spacing.rail-width}"
-  rail-key:
-    backgroundColor: "{colors.rubric}"
-    rounded: "{rounded.none}"
-    size: "1.375rem"
-  rail-detent:
-    size: "1.875rem"
-  plate:
-    backgroundColor: "{colors.iron-black}"
-    textColor: "{colors.block-white}"
-    typography: "{typography.label}"
-    padding: "1rem 1.5rem 1.5rem"
-    width: "14rem"
-  block:
-    backgroundColor: "{colors.block-white}"
-    rounded: "{rounded.none}"
-    padding: "{spacing.space-7}"
-  verdict:
-    textColor: "{colors.iron-black}"
-    padding: "1rem 1.5rem"
-  answer-box:
-    backgroundColor: "{colors.block-white}"
-    textColor: "{colors.iron-black}"
-    typography: "{typography.body}"
-    rounded: "{rounded.none}"
-    padding: "0.75rem 1rem"
-    height: "9.5rem"
-  answer-box-disabled:
-    textColor: "{colors.gray-600}"
-  error:
-    textColor: "{colors.iron-black}"
-    padding: "0.75rem 1rem"
-  demo-label:
-    textColor: "{colors.iron-black}"
-    typography: "{typography.label-stamp}"
-    padding: "0.25rem 0.75rem"
-  nav:
-    backgroundColor: "{colors.proof-gray}"
-    textColor: "{colors.iron-black}"
-    typography: "{typography.label-nav}"
-    padding: "0 2.5rem"
-    height: "3.75rem"
+    padding: "0 24px"
+    height: "48px"
+  button-public-hover:
+    backgroundColor: "{colors.pink-hover}"
+  input:
+    backgroundColor: "{colors.background}"
+    textColor: "{colors.foreground}"
+    rounded: "{rounded.lg}"
+    padding: "4px 12px"
+    height: "40px"
+  pill-to-prove:
+    backgroundColor: "{colors.active}"
+    textColor: "{colors.active-foreground}"
+    typography: "{typography.app-label}"
+    rounded: "{rounded.full}"
+    padding: "0 8px"
+    height: "20px"
+  pill-proven:
+    backgroundColor: "{colors.positive}"
+    textColor: "{colors.positive-foreground}"
+    typography: "{typography.app-label}"
+    rounded: "{rounded.full}"
+    padding: "0 8px"
+    height: "20px"
+  pill-asked-since-proven:
+    backgroundColor: "{colors.notice}"
+    textColor: "{colors.notice-foreground}"
+    typography: "{typography.app-label}"
+    rounded: "{rounded.full}"
+    padding: "0 8px"
+    height: "20px"
+  pill-not-yet:
+    backgroundColor: "{colors.negative}"
+    textColor: "{colors.negative-foreground}"
+    typography: "{typography.app-label}"
+    rounded: "{rounded.full}"
+    padding: "0 8px"
+    height: "20px"
+  chip-demo-data:
+    backgroundColor: "{colors.background}"
+    textColor: "{colors.muted-foreground}"
+    typography: "{typography.app-label}"
+    rounded: "{rounded.full}"
+    padding: "0 8px"
+    height: "20px"
+  panel:
+    backgroundColor: "{colors.panel}"
+    rounded: "{rounded.2xl}"
+    padding: "20px"
+  row-card:
+    backgroundColor: "{colors.background}"
+    rounded: "{rounded.xl}"
+    padding: "10px 16px"
+    height: "63px"
+  count-tile:
+    backgroundColor: "{colors.panel}"
+    rounded: "{rounded.2xl}"
+    padding: "16px"
+    height: "128px"
   nav-item:
-    backgroundColor: "transparent"
-    textColor: "{colors.iron-black}"
-    typography: "{typography.label-nav}"
-    padding: "0 0.75rem"
-    height: "3.6875rem"
-  nav-item-hover:
-    backgroundColor: "{colors.gray-200}"
-  nav-item-current:
-    backgroundColor: "{colors.block-white}"
-  field-input:
-    backgroundColor: "{colors.block-white}"
-    textColor: "{colors.iron-black}"
-    typography: "{typography.body-row}"
-    rounded: "{rounded.none}"
-    padding: "0.75rem 1rem"
-    width: "{spacing.column}"
-  field-input-locked:
-    textColor: "{colors.iron-black}"
-  rows:
-    textColor: "{colors.iron-black}"
-    typography: "{typography.body-row}"
-    padding: "0.5625rem 1rem"
-  rows-header:
-    typography: "{typography.label-stamp}"
-  confirm:
-    backgroundColor: "{colors.block-white}"
-    textColor: "{colors.iron-black}"
-    padding: "1rem 1.5rem 1.5rem"
-  drop-zone:
-    backgroundColor: "{colors.proof-gray}"
-    textColor: "{colors.iron-black}"
-    padding: "{spacing.space-6}"
-    height: "15rem"
-  drop-zone-over:
-    backgroundColor: "{colors.gray-200}"
-  code-block:
-    backgroundColor: "{colors.proof-gray}"
-    textColor: "{colors.iron-black}"
-    typography: "{typography.body}"
-    padding: "1rem 1.5rem"
+    textColor: "{colors.muted-foreground}"
+    typography: "{typography.app-body}"
+    rounded: "{rounded.md}"
+    padding: "0 8px"
+    height: "32px"
+  nav-item-active:
+    backgroundColor: "{colors.active}"
+    textColor: "{colors.foreground}"
+  sidebar:
+    backgroundColor: "{colors.background}"
+    width: "240px"
 ---
 
-# Asked Before design
-
-The visual world for Asked Before, chosen in [impeccable](/.claude/skills/impeccable/SKILL.md)'s direction workshop on October 16, 2026, with rules grounded in a search of X the same day, and recorded from the shipped stylesheets, now split per surface under `public/styles/`. The frontmatter's tokens are normative and match the custom properties in `public/styles/base.css`. [The scope](/devpost/scope.md) owns what the product is, the [card stack surface brief](/.impeccable/surfaces/apps-src-index-tsx.md) owns that screen's composition, the [app shell surface brief](/.impeccable/surfaces/src-app-main-ts.md) owns the shell's and the shared parts', and the [landing page surface brief](/.impeccable/surfaces/src-pages-landing-ts.md) owns the landing page's; this file is strictly visual. When a review catches a visual mistake, add a one-line Named Rule here.
-
-Contents:
-
-1.  [Overview](#overview)
-1.  [Colors](#colors)
-    1.  [Primary colors](#primary-colors)
-    1.  [Neutral colors](#neutral-colors)
-    1.  [Color rules](#color-rules)
-1.  [Typography](#typography)
-    1.  [Type hierarchy](#type-hierarchy)
-    1.  [Type rules](#type-rules)
-1.  [Layout](#layout)
-1.  [Elevation & Depth](#elevation--depth)
-1.  [Shapes](#shapes)
-1.  [Components](#components)
-    1.  [Buttons](#buttons)
-    1.  [Navigation](#navigation)
-    1.  [Links](#links)
-    1.  [Margin keys](#margin-keys)
-    1.  [The rail](#the-rail)
-    1.  [The reversed plate](#the-reversed-plate)
-    1.  [Verdicts](#verdicts)
-    1.  [The answer box](#the-answer-box)
-    1.  [Waits and errors](#waits-and-errors)
-    1.  [Form fields](#form-fields)
-    1.  [Rows](#rows)
-    1.  [Empty states](#empty-states)
-    1.  [The delete confirmation](#the-delete-confirmation)
-    1.  [Wells: the drop zone and code blocks](#wells-the-drop-zone-and-code-blocks)
-    1.  [The landing page](#the-landing-page)
-    1.  [The Desk](#the-desk)
-    1.  [The docs page](#the-docs-page)
-1.  [Do's and Don'ts](#dos-and-donts)
-    1.  [Design do's](#design-dos)
-    1.  [Design don'ts](#design-donts)
-1.  [See also](#see-also)
+# Design System: Asked Before
 
 ## Overview
 
-**Creative North Star: "The Centre Rail"**
+**Creative North Star: "The Repeated Question, Typeset"**
 
-Every screen is set like a page of a wide-margin reference edition drawn by a ruling engine. A small, dense block holds the work; a wide margin around it carries the apparatus; and down the middle of the block runs one rail with a vermilion key on it for every borrow. Your own words sit on one side of the rail and what they point to sits on the other, so the keys show how often you asked before any number does.
+Asked Before has two rooms built from one palette and one typeface. The public pages (landing, log in, sign up, 404) are type and nothing else: full-bleed fields of plum and white, one enormous statement per chapter in Schibsted Grotesk at 800, everything else small, square corners, and colour that changes by chapter instead of pictures. The visitor's own material, the same question asked nine different ways, is the picture. The app (`/app/*`) and the docs page are the opposite temperature: a light, soft, editorial workspace on a white ground, a 240px open-plane sidebar behind one hairline, tonal panels one step off white toward the plum, regular-weight numbers, and nothing louder than 24px.
 
-The surface is for operating, not reading: navigation, buttons, and inputs stay the web's standard controls, and the world lends only type, palette, density, and the rail. The edition's bone stock and text serif are translated to proof gray and a grotesk, because a warm cream ground with a serif is the default look the user ruled out. Density is high and calm: one block per screen, ruled in 1px hairlines, with nothing that glows, floats, or bounces.
+What ties the rooms together is the ask strip: pink dots on a 2px grey track, one per time you asked, with a plum-black tick on the day you proved you could do it without AI. It is the product's mark, the main data element of every list, and the one place pink appears inside the app. Pink is rare on purpose: in the app it is data, not decoration.
 
-Motion has one grammar: a key drops into its detent along a single damped axis with no overshoot. That drop is the only orchestrated motion. It runs in date order, across the year cut, every time a borrowed card is set in the block: each key falls 120% of its height into its detent over 400ms, one 55ms step after the key before it, so nine keys are seated in 840ms. The easing is a critically damped spring written as `linear()` that never passes 1, and the detent clips the key, so nothing fades. A returned card's keys are already seated and don't drop. Under reduced motion the keys are simply in place.
+Density in the app is calm and readable (14px body, 32px nav rows, 8px gaps between row cards). The public pages run at the opposite extreme of scale: 9 to 21vw display lines against 15 to 19px text, with nothing in between.
 
 **Key Characteristics:**
-
-- One rail per block, one vermilion key per borrow.
-- Proof-gray ground, white block, iron-black ink, one rubric.
-- One reversed black plate per screen, for the number that matters.
-- Square corners and 1px hairlines; no shadows and no radius.
-- Standard controls in the world's type, never a costume of a printed page.
+- One typeface (Schibsted Grotesk, 400 to 900); JetBrains Mono only in code, API keys, and IDs.
+- Public pages: square (0 radius), plum-black / plum-field / plum-surface / white chapters, pink primary buttons with plum-black words.
+- App: white ground, `#f7f2f5` tonal panels at 16px radius, white row cards at 12px, 10px controls, fully round pills.
+- The ask strip is the signature: pink on white only, a plum-black proven tick.
+- Flat at rest; shadows only on menus, sheets, and toasts.
+- Pale status pairs with dark ink of the same hue: To prove, Proven, Asked since proven, Not yet.
 
 ## Colors
 
-Two inks on proof gray: iron black does the work, and rubric vermilion marks only the borrows.
+A near-black plum and a hot pink, bracketing a white working surface whose greys all lean slightly toward the plum.
 
-### Primary colors
+### Primary
+- **Plum Black** (`plum-black`): the landing's ground and the footer, ink on pink buttons, the app's one filled primary button per screen, the focus ring on light grounds, and the proven tick on the ask strip. In the app it is also `--primary`.
+- **Exam-Hall Plum** (`plum-field`): the hero and CTA chapters of the landing, the left half of log in and sign up, and the 404 field. The deepest saturated colour; it carries white ink only.
+- **Plum Surface** (`plum-surface`): the landing's Proof chapter and the alternating dark rows (tables, agent rows) on plum-black.
 
-- **Rubric Vermilion** (#B42D16): the rail's keys and the key letters in the margin list. It meets 5.3:1 on proof gray and 6.3:1 on white.
+### Secondary
+- **Hot Pink** (`pink`, the app's `--ask`): on the public pages, primary buttons and footer links on plum; in the app, only the ask strip's dots and span, and the sidebar mark. It sits under 3:1 on the tinted panel, so it goes on white or plum only. `pink-hover` is the pink button under the pointer.
+- **Pink Ink** (`ask-ink`): pink when it has to be text on white (6.0:1), and the caret colour of every input and textarea.
+- **Selection Pink** (`selection`): text selection, with navy ink.
 
-### Neutral colors
+### Neutral
+- **White** (`background`): the app's ground, row cards, inputs, and the landing's white chapters.
+- **Navy-Black Ink** (`foreground`): all text on white and on the panel.
+- **Plum Panel** (`panel`): the tonal panel of Home, settings panels, the Features statement cell on the landing. One step off white toward the plum; the face of the app.
+- **Panel Edge** (`border`): row-card and panel edges, table and tab rules.
+- **Row Rule** (`rule`): the quietest line, between rows inside lists.
+- **Quiet Edge** (`edge`): what isn't an input but needs an edge: the secondary button, the outline Demo data chip, dashed empty frames.
+- **Control Edge** (`input`): every control's border (inputs, textarea, segmented control, drop target). 4.0:1 on white, for WCAG 1.4.11.
+- **Muted Grey** (`muted-foreground`): sublines, captions, nav labels at rest. 7.1:1 on white, 6.5:1 on the panel.
+- **Faint Grey** (`faint`): meta and placeholders.
+- **Active Pill** (`active` / `active-foreground`): the active nav item, menu highlight, and the To prove pill.
+- **Track Grey** (`track`): the ask strip's 2px track.
+- **Muted on Dark** (`muted-on-dark`): secondary text on plum grounds only (6.4:1 on plum-black); on white use Muted Grey.
 
-- **Proof Gray** (#E8EBED): the page ground, the margin, and the rail's recessed bar.
-- **Block White** (#FFFFFF): the block that holds the work, the answer box, the current margin key, and the retry button.
-- **Iron Black** (#1A1A1A): text, hairlines, the reversed plate, and the primary button.
-- **Rule Gray** (#C3C8CC): the rules between rows inside the block, and the pressed fill of the retry button and margin keys.
-- **Hover Gray** (#D5D9DC): the instant hover fill of the retry button and margin keys.
-- **Disabled Gray** (#606263): disabled text and dotted frames, placeholders, and the locked answer's frame; 5.1:1 on proof gray.
-- **Pressed Iron** (#373839): the pressed primary button.
+### Status
+- **Proven** (`positive` / `positive-foreground`), **Asked since proven** (`notice` / `notice-foreground`, with `notice-border`), **Not yet and errors** (`negative` / `negative-foreground`): pale grounds with dark ink of the same hue. **Destructive Red** (`destructive`) is the outlined delete button and invalid-field border only.
 
-### Color rules
+### Named Rules
+**The Pink Is Data Rule.** In the app, pink appears only in the ask strip and the sidebar mark, under 2% of pixels. Buttons, links, headings, and highlights are never pink inside `/app`.
 
-**The One Rubric Rule.** Vermilion appears only on the rail's keys and the margin's key letters. On a heading, a border, a background, or a state, it's wrong.
+**The White Behind Pink Rule.** The ask strip sits on white (a row card, the card page, a `data-ui` fragment), never directly on the panel tint, where pink drops under 3:1.
 
-**The One Ramp Rule.** Every neutral comes from one fixed ramp between Proof Gray and Iron Black, stepped in OKLab: Proof Gray, Hover Gray, Rule Gray, Disabled Gray, Pressed Iron, Iron Black. No one-off grays.
+**The Colour By Chapter Rule.** On the landing, each chapter is one full-bleed field with one ink: hero `plum-field`/white, Nine ways white/navy, Showcase `plum-black`/white, How it works white/navy, Proof `plum-surface`/white, Features `panel`/navy beside `plum-black` rows, FAQ white/navy, CTA `plum-field`/white, footer `plum-black` with pink links. The fixed header's two corners take the ink and ground of the chapter beneath them.
 
-**The No New Ink Rule.** States add no color: a returned card's margin key is struck through in iron black, and a failed rep's verdict frame goes from 1px to 3px iron black.
+**The Red Is For Failure Rule.** Red (destructive, negative) marks a failing fact or an irreversible action, never emphasis.
 
 ## Typography
 
-**Body and UI font:** Hanken Grotesk (with sans-serif), self-hosted as the roman and italic variable faces under the OFL.
-**Apparatus:** tracked capitals in Hanken Grotesk. It has no true small caps (`smcp`), and at 15px the capitals' height matches the 20px body's x-height, so they read as small caps without a second family.
+**Display Font:** Schibsted Grotesk (variable 400 to 900, self-hosted, with ui-sans-serif, system-ui)
+**Body Font:** Schibsted Grotesk
+**Label/Mono Font:** JetBrains Mono 400/500 (self-hosted), for `<pre>`, `<code>`, API keys, and IDs only
 
-**Character:** a plain, sturdy grotesk standing in for the edition's text serif, so the page reads as a reference work without reading as a bookish default. Figures are tabular wherever a date or count appears, and your own phrasings are set in the italic.
+**Character:** One grotesk doing two jobs: set at 800 with -0.05em tracking it becomes a poster; set at 14/400 with tracking 0 it is a quiet working face. Schibsted replaced the dealt General Sans for licence reasons, so its tabular figures are used through the `Figure` component, which keeps the comma and period proportional.
 
-### Type hierarchy
+### Hierarchy
+Public pages use five steps (small, body, lead, head, display) and nothing between them.
+- **Display** (800, 9.5 to 21vw, line-height 0.88, -0.05em): the hero "Asked before?", chapter statements ("Your words, / not your data", "Agents file it / as you ask."), the CTA's question at both edges, the cropped footer wordmark, the log-in and sign-up h1, the showcase input. Each line sits in its own clipped mask with 0.14em of room for descenders.
+- **Headline** (800, clamp 32 to 64px, 0.95, -0.05em): chapter h2s such as "Nine ways to ask one thing", "How it works", "Fair questions".
+- **Lead** (400 or 600, clamp 20 to 26px, 1.3): the hero's supporting sentence, the privacy line, row titles in dark rows, "Read the docs".
+- **Body** (400, clamp 17 to 19px, 1.5): paragraphs, the Proof table, FAQ answers with the question as a 600 run-in, button labels.
+- **Small** (400 or 600, 15px, 1.4): dates, the header links, table heads, footer legal line.
 
-- **Display** (900, 54px, 1.0, −0.02em): the skill name or heading at the head of the block; 40px on narrow screens.
-- **Count** (900, 150px, 0.85, −0.02em): the number on the reversed plate, and nowhere else.
-- **Headline** (500, 24px, 1.4): the rep's problem.
-- **Title** (800, 20px, 1.2): the headings of the lesson, the problem, and the verdict.
-- **Body** (400, 20px, 1.5): prose, captions, and the answer box, capped at 60ch. In the rail rows the line height is 1.25, so nine rows fit the 1080 frame.
-- **Label** (600–800, 16–18px): navigation, buttons, the margin list, the plate's caption, the demo-data label, and the privacy line. Key letters are single capitals at 18px, weight 800.
-- **Apparatus** (700, 15px, +0.08em, uppercase): margin headings only. Margin notes stay in sentence case at the 16px label size.
+The app uses four sizes only: 12, 14, 16, 24, tracking 0, weights 400/500/600.
+- **App Title** (600, 24px): each screen's h1, clamped to two lines.
+- **App Greeting** (400, 24px): Home's h1, a sentence built from the data ("4 cards need a cold rep, 1 is proven."), with a 14px grey line under it.
+- **Body** (400, 14px): the app's default text; 600 for panel titles, 500 for row names, settings section titles at 16/500.
+- **Label** (500, 12px): pills, chips, captions, axis labels, counts beside strips.
+- **Figures** (24/400 in tiles, tabular): numbers are set at regular weight, never bold.
 
-### Type rules
+### Named Rules
+**The Nothing In Between Rule.** On public pages, a size is one of the five steps. The jump from body to display is the point; don't add a 32px subhead to soften it.
 
-**The 1080p Floor Rule.** In the demo video's 1080p frame, body text renders at 20px or more and labels and apparatus at 14px or more; size the CSS for the viewport the video records. Judges may only see the video, and one builder's rule for product videos is "body text ≥ 20px at 1080p" ([@elie2222][x-video]). The sketch's 13px and 17px sizes fall below it and don't carry over.
+**The Thirty-Two Ceiling Rule.** Nothing in the app is larger than 32px, and screen headings are 24px. Scale in the app comes from space and tone, not size.
 
-**The No Display Face Rule.** No display face beyond the text family, and no monospace. Apparatus stays in tracked capitals of the same family.
-
-[x-video]: https://x.com/elie2222/status/2107186094777434454
+**The Sentence Case Rule.** Every label is sentence case at tracking 0 or tighter. No uppercase, no letter-spaced labels, no text above a heading to introduce it.
 
 ## Layout
 
-The block holds its measure and the margin absorbs the width: two short columns of equal measure (520px, about 52 characters) around a 72px rail, inside 40px of padding, which makes the block 1194px. Extra desktop width goes to the margins in a 5:3 split, never to the line length: the wide left margin carries the keys, notes, and the privacy line at its foot, and the narrower right margin holds the plate. The block sits 32px below the navigation. Space steps are 4, 8, 12, 16, 24, 32, and 40px, and rail rows are padded 9px top and bottom.
+**App: open plane.** A 240px sidebar on the white ground, separated from the canvas by one 1px `border` hairline: the mark and name at the top, Home with its queue count, a 12px grey "Shelves" group label with 20px of air above, each shelf (truncated, with a tooltip when cut), All shelves, then Docs, Settings, and the user row pushed to the bottom. Nav rows are 32px on a 34px pitch, with 16px outline icons at 1.5px stroke. The canvas is fluid to `max-width: 1100px` (Settings 1152px) with 32px gutters, 36px from the top. Under 1024px the sidebar folds into a sticky 48px top bar with the screen's name and a menu button opening a full-screen sheet; content takes 16px margins.
 
-The cold rep keeps the same two columns either side of a centre hairline: the verdict and lesson on the left, the problem and answer box on the right. After a pass, "Back to the stack" sits under the Returned verdict in the left column, so it stays in the frame however long the locked answer runs. On a card's page the rep comes first, under the skill and the plate; the card's phrasings on the rail, closed by its end rule once returned, and its earlier cold reps in rows follow it, each opening 40px below under a 20px weight 800 heading.
+**Home grid.** A 12-column grid with 16px gutters whose spans change by row but share column lines: four count tiles at 3/3/3/3 (128px, 2 x 2 on a phone), then Prove next at 9 beside Your shelves at 3, then Latest asks and Latest proven at 6 + 6. Spans stack below a 1100px container. Prove next's rows share their columns through a subgrid so every ask strip starts and ends on the same x.
 
-At 67.5rem (1080px) and below there's one column, with the margin above the block, 16px of page padding, and 16px of block padding. The rail moves outboard to the text's left edge as the same gray bar, each key spanning its phrasing and the date under it; it never becomes a colored edge stripe. The plate goes in flow with 24px above it, hanging 12px past the block's right edge.
+**Settings.** Each section is one row: a label column (16/500 title, 14px grey description) beside a panel, in a 5fr + 32px + 8fr grid, stacking under 64rem.
 
-**The Rows Stack Rule.** A row's actions and its notice never scroll out of a narrow screen; a wide list stacks its cells. A shelves table that scrolled sideways inside its hairlines, hiding Rename and Delete and clipping its delete confirmation at 390px, was the mistake.
+**Public pages.** One pair of page margins (20px, 32px from 768px) and a 12-column grid with 24px gutters. Chapters are full bleed with 112px vertical padding (160px from 768px). Each chapter moves to a different horizontal position (statement left, sentence right, table full, FAQ pushed to columns 5 to 12), so the page moves without imagery. Log in and sign up split in half from 1024px: plum field left, white form column (max 384px) right.
 
-**The Rail's Columns Rule.** Every section below a card sits on the rail's columns: its heading and each item's title on the left, set against the centre, and their words on the right. Landing sections with headings across the block and prose running across the centre, out of the rail's columns, were the mistake.
+**Rhythm.** A 4px base: 8px between row cards and in-row groups, 16px between panels and fields, 20px panel padding, 32px section gutters. Tables become two-line rows below 640px.
 
-**The Narrow Wins Rule.** On a narrow screen every heading and title sits flush left with its words, and the narrow rule must outrank the desktop one. Section headings stuck right-aligned on a narrow screen, because the desktop rule's selector outranked the narrow one, were the mistake.
+**Motion.** The app has feedback only: hover colour, a 1px press, focus, a sheet or menu opening, and the Proven stamp settling in once. The landing has entrances: the hero's lines rise out of their masks in 1.2s, each chapter's parts rise 24px once as they arrive (70ms stagger, `cubic-bezier(0.16, 1, 0.3, 1)` over 900ms), the header's ink follows the chapter in 300ms, buttons scale to 0.97 on press, and the exam-hall photograph drifts inside its frame with the scroll. Nothing loops, and every hidden starting state is inside `prefers-reduced-motion: no-preference`, so the reduced page is the finished page.
 
 ## Elevation & Depth
 
-The system is flat. Nothing has a shadow; depth comes from 1px hairlines, from the rail's bar recessed in proof gray, and from one reversed plate that hangs over the block's edge. That overlap is the only place one surface sits on another, and it overlaps only 32px of the block's 40px padding, never a stamp or the rep's problem.
+Flat. Depth in the app is tonal: white ground, a panel one step toward the plum, a white row card inside it with a border one step darker. On the landing, depth is the change of field between chapters and the tone alternation of dark rows. Shadows appear only on things that float above the page.
 
-**The Reversed Plate Rule.** One element per screen sits on a black plate with white type: the number that matters most on that screen. A second plate means the first one isn't the point.
+### Shadow Vocabulary
+- **Menu** (`box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)`): dropdown menus.
+- **Overlay** (`box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)`): the phone nav sheet, submenus, and toasts.
 
-**The Plate Counts Rule.** A plate holds a count from the library, never a status code or a label. A "404" plate on the not-found page, which counted nothing and ran past the outer margin, was the mistake.
+### Named Rules
+**The Flat At Rest Rule.** No shadow on panels, tiles, row cards, buttons, or inputs. Only menus, sheets, popovers, and toasts lift.
 
-**The Plate Holds Rule.** Once a screen has its count, every state keeps its one plate, inside the block's padding: waiting and error too. Until then, while a screen waits for the count itself (its first load, or a file being read) or fails to get it, there's no plate, since the Plate Counts Rule leaves nothing to put on one. A plate that drops out of a short state once its count is known, such as a shelf's card that failed to come, or hangs past the block's foot, is wrong.
+**The One Layer Rule.** A panel holds its title and content directly; a white row card sits inside a panel only for list rows. Never a panel inside a panel, or a tray around every block.
 
 ## Shapes
 
-Square everywhere: no radius on blocks, buttons, inputs, plates, or keys. Keys are small vermilion squares (22px) seated in square detents (30px) along the rail's bar. Frames are 1px iron-black rules; heavier rules carry meaning, at one 3px weight: a failed verdict's frame, a returned rail's end rule, and the head rule of a notice (an error, or a delete confirmation). Control states use the world's printed marks: square brackets for focus, a fill one ramp step down for pressed, and a dotted frame for disabled or locked. None reuses the 2px strike that marks a returned card.
-
-**The One Bar Rule.** Each year's rail is one continuous gray bar between two iron hairlines, and a key has no cell or frame of its own. Keys in separate gray cells read as a column of checkboxes.
+Two corner languages, switched by one variable. The app is soft: controls at 10px (`--radius`), row cards and in-place confirmations at 12px, panels and tiles at 16px, nav items at 8px, pills and chips fully round. The public pages set `--radius: 0` on their root, so buttons, notices, and the guest panel are square; any `data-ui` fragment (a real app piece shown on the landing) sets `--radius: 10px` back and keeps the app's soft corners. Borders are 1px throughout; the only 2px lines are the ask strip's track, the active tab's underline, and the showcase input's bottom rule. The Proven stamp is the one tilted shape (-2deg, 2px border).
 
 ## Components
 
-Standard controls, set in the world's type and printed marks. Hover fills are instant, with no transition.
-
 ### Buttons
+- **Shape:** gently rounded (10px) in the app, square on public pages.
+- **Primary:** plum-black fill, white 14/500 label, 40px tall, 16px sides; one per screen (on Home, only the top Prove next row's "Start a cold rep"). Hover lightens to 85%.
+- **Secondary:** white with a 1px quiet edge; hover darkens the edge to the control grey and fills with the panel tint.
+- **Ghost:** no edge until hovered (panel tint), used for row actions.
+- **Destructive:** outlined in red at 60%, red text on white; hover fills with the pale negative.
+- **Link:** ink text with a control-grey underline that turns ink on hover.
+- **Public primary:** pink fill, plum-black 600 label at the body step, 48px (56px in the CTA), square, `pink-hover` under the pointer, scale 0.97 on press. On log in and sign up, the form's primary takes these colours through `--primary`.
+- **Sizes and busy:** 32px and 28px small sizes grow to 44px under 1024px or on a coarse pointer. A busy button is disabled at 60% with a spinner before its words, only while the request is in flight.
 
-- **Shape:** square (0px), with a 1px iron frame.
-- **Primary:** iron-black fill, white label at 18px weight 800, padded 14px by 24px. Pressed fills Pressed Iron.
-- **Retry and secondary:** the same shape outlined, white fill and iron label; it fills Hover Gray on hover and Rule Gray when pressed. The secondary is the safe choice beside a primary one, such as "Keep it" beside a delete.
-- **Quiet:** a row's or the navigation's action, such as Rename or Delete in a list: no frame, an underlined label at 18px weight 700, filled Hover Gray on hover and Rule Gray with an iron frame when pressed.
-- **Links styled as buttons** take the primary or secondary look, for an action that goes somewhere, such as "Upload a chat export" or "Open key A".
-- **Focus:** printed square brackets, 2px iron, standing 8px outside each side and 6px above and below; anything that isn't a button gets a 2px iron outline offset 3px.
-- **Disabled:** the frame drops to a dotted Disabled Gray rule, the fill lifts, and the label goes Disabled Gray.
+### Pills and Chips
+- **Style:** 20px tall, 12/500, fully round, a pale ground with dark ink of the same hue.
+- **Status:** To prove (active pair), Proven (positive pair), Asked since proven (notice pair with its amber border), Not yet (negative pair). One status mark per row.
+- **Demo data chip:** outline variant, white with a quiet edge and grey text, beside any demo shelf name and on every demo fragment.
 
-**The Pressed Link Rule.** A link drawn as the primary button fills Pressed Iron when pressed, as a button does. "Open key A" as a link that stayed iron black under the pointer while pressed, because its hover rule outranked the press, was the mistake.
+### Cards / Containers
+- **Panel:** panel tint, 16px corners, 20px padding (16px on a phone), a 14/600 title with an optional count pill and link on its right, a 14px grey line under it. No border, no shadow.
+- **Row card:** white, 12px corners, 1px panel-edge border, at least 63px tall, 10px by 16px padding, 8px apart.
+- **Count tile:** panel tint, 16px corners, 128px tall, 16px padding: a 14/500 label, the value at 24/400 in tabular figures, a 12px grey caption pinned to the bottom. The four tiles sum visibly.
+- **In-place confirmation:** a white 12px box with a 1px border under the row it confirms (`role="group"`), a 14/600 heading naming what goes, the destructive action and "Keep it", focus on the safe choice. Never a modal.
+
+### Inputs / Fields
+- **Style:** 40px, white even on a panel, 1px control-grey border, 10px corners, 12px sides, faint placeholder, pink-ink caret. Textareas grow with content from 96px.
+- **Focus:** the one focus mark everywhere: a 2px outline 2px out in the ring colour (plum-black on light, white on plum, pink in the showcase).
+- **Error / Disabled:** invalid turns the border red with a 3px red ring at 15%; disabled and read-only fill with the panel tint.
+- **Segmented control:** panel tint inside a 1px control border, 10px corners, 2px inset; the pressed segment turns white with a panel-edge border.
 
 ### Navigation
+- **App sidebar:** 14/400 muted rows, 32px tall, 8px corners, 16px outline icons. Hover tints the row with the panel and inks the text; the current page is the neutral active pill with ink text. Counts sit right-aligned at 12px grey in tabular figures.
+- **Tabs:** underline tabs on a 1px rule, 14/500 grey labels, 24px apart; the active tab is ink with a 2px ink line under it.
+- **Public header:** fixed, no bar: the wordmark top left and Docs, Log in, and the pink action top right, each corner taking its chapter's ink. Links use an underline that arrives on hover (0.08em thick, 0.2em offset).
 
-The web's standard top bar on proof gray, 60px tall, closed by an iron hairline. The product name is 20px weight 900 and leads home. The app's places (Desk, Shelves, Settings) are cells at 18px weight 700 that run the bar's full height; the current one fills Block White from the bar's top to its hairline and goes to weight 800, like the current margin key, and the others fill Hover Gray on hover. The learner's name (weight 600) and Log out, a cell too, sit at the far right. A cell's focus is the 2px iron rule set 4px inside it, so it stays within the bar. A public page's bar carries Docs, then Log in as a cell and Sign up as a compact primary button; on the log-in or sign-up page, that page's own item is the current cell. On narrow screens the bar wraps.
+### Ask Strip (signature)
+The card's asks on a time axis shared by every strip in a list (from the first day of the earliest ask's month to today), drawn as a small SVG that takes the width it's given, with an `aria-label` such as "Asked 9 times, March 2025 to September 2026, proven October 23, 2026".
+- **Every ask** (card page, landing): a 2px track-grey line, a 4.5px-radius pink dot per ask with a 1.5px white stroke; asks on the same day sit side by side, a dot and a gap apart.
+- **Span** (list rows): a 4px round-capped pink bar from first to last ask, never narrower than 6px, with the count beside it at 12px grey.
+- **Proven tick:** a 2px plum-black vertical line at the strip's full height, taller than the bar.
+- **The mark:** the same grammar at 24px (three pink dots on the track, the plum-black tick) beside "Asked Before" in the sidebar. Never a letter in a square.
 
-**The Full Cell Rule.** A navigation cell runs the bar's full height, so the current page fills it edge to edge, like a current key. Cells floating as short white tabs inside the bar were the mistake.
-
-The demo-data label is a 1px iron frame at 16px weight 700 that sits beside a demo shelf's name, in its heading and in its row, wherever it shows.
-
-### Links
-
-Underlined iron, 1px, offset 0.2em, filled Hover Gray on hover, instantly.
-
-### Margin keys
-
-Full-width rows between iron hairlines: the vermilion key letter, the skill, and its count right-aligned in tabular figures. The current key fills Block White and goes to weight 800; others fill Hover Gray on hover and Rule Gray when pressed. A returned key is struck through with a 2px iron line; a key borrowed again isn't struck, and says "Borrowed again" under its skill at weight 500. The margin heading above them is in apparatus capitals, and when a card's borrows span more than one year the margin carries the note "A cut in the rail marks a new year of asking."
-
-On a shelf's page the margin opens with the shelf's name at 20px weight 800, beside its demo-data label, then the way to its views (Cards, Unsorted phrasings, Upload history, and Upload a chat export) as underlined notes, the view on screen at weight 800 without its underline, then the keys. The block holds the chosen card, or one view's list in rows under the shelf's plate of cards. A card borrowed again closes its rail with the line "Returned <date>, then borrowed again." and its keys drop again.
-
-### The rail
-
-One rail per year of borrows, each opening on an iron hairline. Each row sets the phrasing right-aligned in italic, the key in the bar, and the date in tabular figures, with Rule Gray rules between rows. The bar is Proof Gray between two iron hairlines, closed at its foot; the 12px gap between rails is the year cut. The detent has no fill or frame and only clips the key's drop. A returned card's rail closes with a 3px iron end rule carrying "Returned" and the date.
-
-### The reversed plate
-
-An iron-black plate, at least 14rem wide, with the count at 150px over a balanced white caption at 18px weight 600. On desktop it hangs from the block's top padding, overlapping only the padding and standing outboard into the right margin. A short block (waiting, error) has a 19.5rem minimum height, so it holds the whole plate.
-
-### Verdicts
-
-A framed note at the head of the rep's left column: 1px iron for Returned, with a framed "Stamped returned" date stamp at 16px weight 700; 3px iron for Still borrowed. The lesson and the problem open on an iron hairline instead of a frame.
-
-### The answer box
-
-A square textarea with a 1px iron frame, white fill, body type, a 152px minimum height, and Disabled Gray placeholder. While locked (read-only or disabled), its words stay readable and its frame drops to a dotted Disabled Gray rule; it grows to fit its text up to 13 whole lines, then scrolls, so the 1080 frame never cuts a line.
-
-### Waits and errors
-
-A waiting line opens with a short piece of rail, the same gray bar empty of keys, with the line beside it at weight 500. An error is a notice: a 1px iron frame with a 3px head rule, so it can't be mistaken for a disabled control, followed by an outlined retry. A form's notice sits above its button (under it, when the field and button share a line), and the button locks while the form is sent.
-
-### Form fields
-
-A label at 18px weight 700 over a square box: a 1px iron frame, white fill, body type at 20px, 12px by 16px of padding, one column (520px) wide, with Disabled Gray placeholders. A hint sits under the box at 16px weight 500, and the box is described by it. When a failure's message names one field, that field's frame goes to 3px iron, it's described by the notice too, and it takes focus; a message that names several, such as "Wrong email or password.", marks none. A locked box keeps its words in iron and drops its frame to a dotted Disabled Gray rule. Fields stack one under another with 24px between them; a single field and its button can share one line, the button seated on the field's foot. The browser's autofill tint is held off, so a saved password brings no new ink.
-
-### Rows
-
-A list is a table set between two iron hairlines: a header row in 16px weight 700 closed by a hairline, then rows in body type at the rail rows' leading and padding, with Rule Gray between them. Words sit flush with the block's heading; counts and dates are right-aligned in tabular figures; quiet actions close each row. A row can open a full-width row under it, such as its delete confirmation. On a narrow screen the header row goes and each row stacks: its title, a line of its counts each led by its column's name at 16px weight 600, then its actions and any notice at the screen's width.
-
-### Empty states
-
-A section that opens on an iron hairline, like the lesson and the problem: a 20px weight 800 title that names what isn't here yet, one sentence on how it gets here, and the action that leads there.
-
-### The delete confirmation
-
-A notice in place, never a modal: the error's frame with its 3px head rule, on white, under the row it deletes. It asks "Delete Work?", names everything that goes and that it can't be undone, and offers the delete as a primary button named for what it deletes, then "Keep it", outlined, which takes focus first; Escape keeps it too. Nothing turns red.
-
-### Wells: the drop zone and code blocks
-
-A well is recessed proof gray inside the white block, framed by a 1px iron rule, like the rail's bar. The drop zone is a 240px well with its title at 20px weight 800, a line on what it takes, and a "Choose a file" control drawn as an outlined button; a file held over it fills it Hover Gray, and it takes the focus rule from the keyboard. A code block is a well holding a setup snippet in Hanken Grotesk at 20px (the world has no monospace), scrolling sideways inside itself, under a 18px weight 700 caption with an outlined Copy button that says "Copied" for two seconds.
-
-### The landing page
-
-The landing page sets one real card and the sections after it in the block, with their apparatus in the margin.
-
-- **The head:** the pitch at display size across the block, then the lede at weight 500 in the left column and Sign up in the right, seated on the lede's first line.
-- **The card:** card A of the demo export, with the card stack's rail markup. It opens on an iron hairline 24px below the pitch, with 16px of padding, so its whole rail closes inside the 1080 frame. Its name is 40px weight 900 beside the demo-data label, over its borrow line at weight 500; the rails start 16px below, 12px apart at the year cut. The plate hangs over the block's right edge level with the card's name, overlapping only the padding. On a narrow screen the plate goes in flow with 24px above it, hanging 12px past the block's right edge.
-- **Sections:** each opens on an iron hairline, 40px below the last, with 24px of padding, set on the rail's columns. The heading (40px weight 900) and each item's title (20px weight 800) sit right-aligned against the centre on the left, facing their words on the right; items are padded 16px, with Rule Gray between rows. What leaves the computer is said once, at the headline size. On a narrow screen there's one column, with everything flush left.
-- **Side-notes:** margin notes in sentence case, as the margin sets them. Each hangs into the margin column level with the section it annotates, starting at the section's padding. On a narrow screen it goes in flow under its section: 16px under the card's rail, and one 24px row gap under a section.
-
-**The Clear Notes Rule.** A side-note is placed absolutely and pushes nothing, so each must end above the next one at every desktop width, down to the 16rem margin at 1440. Side-notes about to collide where the margin narrows to 16rem at 1440 were the mistake.
-
-**The Phrasings First Rule.** On a narrow screen the card's phrasings come before its side-note. A narrow card that put its explanation before its phrasings was the mistake.
-
-### The Desk
-
-The Desk sets what's still borrowed in the block, the latest borrows on the rail, and the latest returns in rows, with the totals in the margin.
-
-- **The ledger:** under "Your cards" in apparatus capitals, the margin counts your cards as hairline rows at the 18px label size: Borrowed, Borrowed again, and Returned, each word left and its count right at weight 800 in tabular figures, with Rule Gray between rows. All cards closes it under an iron hairline at weight 800, as a sum is ruled off. Margin notes under it name the shelves counted and what borrowed, returned, and borrowed again mean; when the latest borrows span more than one year, a note says "A cut in the rail marks where the year turns."
-- **Still borrowed:** the heading at display size, a one-line lede, and the plate's count of cards not returned hanging over the block's right edge. The cards follow in rows, most borrowed first: the skill, its shelf with the demo-data label, borrows, and the last borrow's date. A card borrowed again says "Borrowed again" under its skill at weight 500, in words and no new ink. The section closes 32px below its rows with "Take a cold rep on <skill>", a link drawn as the primary button, for the top card.
-- **Latest borrows:** 40px below, under a 20px weight 800 heading and a lede, the rail, newest first, so its keys are already seated and don't drop. Your phrasing sits on the left in italic; on the right the stamp, then the card's skill as a link at weight 400, wrapping in its own column. On a narrow screen the skill goes under the stamp, at the text's whole width.
-- **Latest returns:** 40px below, in rows: the skill, its shelf, and the day it was returned. A returned card's skill is struck through by the 2px iron line its margin key carries; a card borrowed again since isn't struck, and says "Borrowed again <date>" under its skill.
-- **Empty states:** the same heading over a plate of 0. With no shelves, "No cards yet" offers "Try the demo shelf", then a field, "Or name your first shelf", that shares a line with an outlined "Upload a chat export" and goes to that shelf's upload. With shelves but no cards, "No cards yet" leads to them with "Go to your shelves". When no card is still borrowed, "Every card is returned" takes the rows' place; when none is returned yet, Latest returns keeps its heading over one line on how a card gets stamped.
-
-**The Narrow Stamp Rule.** On a narrow screen a rail row's stamp and skill stack in one column, so the skill keeps the text's whole width. A right cell that kept its two columns on a narrow screen and squeezed a skill to four lines was the mistake.
-
-**The Whole Status Rule.** A status line under a skill finishes its thought, with its date. A returned card borrowed again that said only "Borrowed again since", ending mid-thought, was the mistake.
-
-### The docs page
-
-The docs page is a reference set in one block, with no plate, since it counts nothing from the library.
-
-- **The margin:** "Contents" in apparatus capitals over the sections as links, then a note naming this server's API. It stays in view while the block scrolls by; on a narrow screen it goes above the block, in flow.
-- **Sections:** each opens on an iron hairline 40px below the last, with 24px of padding, under a 40px weight 900 heading, as the landing page's do. Its parts open 32px below under 20px weight 800 headings. Prose keeps the 60ch measure; rows and code blocks run the block's width.
-- **Rows:** the endpoints, by area, then the error statuses, the tools, and the settings, as the shared rows set them, with cells aligned to their top and prose leading in the words. An endpoint's method sits at weight 800 before its path, over its SDK method.
-- **Code in prose:** a path, a setting, or a tool's name inside a sentence is set in the text family at weight 600, never in a monospace, and breaks anywhere rather than push the line past the measure.
+### Proven Stamp
+The card page's one authored moment: "Proven" at 24/600 over its date, in the positive pair with a 2px border at 70%, 12px corners, tilted -2deg. After a pass it fades in from 105% and settles in 300ms, once.
 
 ## Do's and Don'ts
 
-These hold for every screen. The ones from X cite the post they came from; the rest come from the user's answers in the direction workshop, [the scope's voice](/devpost/scope.md#inspiration--identity), and [the PRD's look and feel](/devpost/prd.md#look-and-feel).
+### Do:
+- **Do** keep pink in the app to the ask strip and the sidebar mark, on white surfaces only.
+- **Do** use the four status words and their pairs exactly: To prove, Proven, Asked since proven, and Not yet for a failed check; "Not on a card" for messages no card asks yet; "Start a cold rep" as the one rep verb.
+- **Do** set numbers at regular weight with the `Figure` component's tabular digits.
+- **Do** use one filled primary button per app screen, and one pink action per landing chapter.
+- **Do** keep confirmations in place under their row, with focus on the safe choice and Escape to keep.
+- **Do** show loading as flat bars in the panel-edge grey (8px corners) at the final size, with no shimmer and no layout shift.
+- **Do** set `--radius: 10px` on any app fragment shown on a square public page.
+- **Do** keep every hidden starting state of an entrance inside `prefers-reduced-motion: no-preference`.
 
-### Design do's
-
-- **Do** build from the chosen sketch and the world's [quality-bar board][board], not from adjectives; a builder's advice for avoiding the model's default look is "Steal a reference, don't describe one" ([@ArchiveExplorer][x-ref]).
-- **Do** keep to three signature elements: the rail, the reversed plate, and the hairlines. One designer's checklist for distinctive AI-built UI says "1–3 strong custom elements beat 20 random assets" ([@Hartdrawss][x-mood]).
-- **Do** take texture only from the real object, the ruling engine's hairlines. One post calls the skeuomorphism revival "already as obnoxious and overplayed" ([@PalmyrPar][x-revival]), and a reply says "we don't need AI to give a UI a paper texture and a fun font" ([@Mirteaaa][x-costume]).
-- **Do** keep the reversed plate's number readable at thumbnail size, and let motion settle before the next interaction, so a recording never shows half-moved state.
-
-[board]: https://impeccable.style/worlds/cards/rw-centre-rail-reference-setting.webp
-[x-mood]: https://x.com/Hartdrawss/status/2027768326852681798
-[x-revival]: https://x.com/PalmyrPar/status/2018395048878936451
-[x-costume]: https://x.com/Mirteaaa/status/2066932459632017499
-
-### Design don'ts
-
-- **Don't** use a warm cream ground or a serif display face; together they're the bookish default the user ruled out.
-- **Don't** make it feel like an app kit: no rounded cards, soft shadows, toasts, or progress bars. The user ruled these out too.
-- **Don't** use the tells from a widely shared list of reasons a site "looks vibe-coded": Inter, Geist, or Space Grotesk; Lucide icons; emoji; sparkle icons; bento grids; dot grids; a colored left stripe; soft corner radius; hover animations ([@suraj_sharma14][x-vibe]).
-- **Don't** fade or slide sections in on load, and don't stagger reveals; "everything fading in" is the model's default look ([@ArchiveExplorer][x-ref]), even though a widely shared aesthetics prompt recommends staggered reveals ([@vincenteliezer][x-stagger]). The rail's key drop is the only orchestrated motion.
-- **Don't** add purple gradients, all-caps eyebrow labels above headings, or "→" on buttons ([the PRD's Avoid list](/devpost/prd.md#look-and-feel)). Apparatus lives in the margin, never as an eyebrow.
-- **Don't** draw streaks, flames, badges, scores, or charts. [The PRD's Avoid list](/devpost/prd.md#look-and-feel) rules out streaks, badges, scores, and charts, and one critique says Duolingo "monetizes guilt through streaks, badges & reminders" ([@StockSavvyShay][x-guilt]).
-
-[x-vibe]: https://x.com/suraj_sharma14/status/2102254059151565233
-[x-stagger]: https://x.com/vincenteliezer/status/1991480152585347102
-[x-guilt]: https://x.com/StockSavvyShay/status/2014690330952806725
-
-## See also
-
-- [Card stack surface brief](/.impeccable/surfaces/apps-src-index-tsx.md), with the direction contract
-- [App shell surface brief](/.impeccable/surfaces/src-app-main-ts.md), with the shell's direction contract
-- [Landing page surface brief](/.impeccable/surfaces/src-pages-landing-ts.md), with the landing page's direction contract
-- [Chosen card stack sketch](/.impeccable/mocks/decision/r2-lead.html) and its [Centre Rail figure](/.impeccable/mocks/decision/r2-lead.png)
-- [Asked Before scope](/devpost/scope.md)
-- [Asked Before product requirements](/devpost/prd.md)
-- [Asked Before technical spec, Look and Feel](/devpost/spec.md#look-and-feel)
-
-[x-ref]: https://x.com/ArchiveExplorer/status/2105023417716191488
+### Don't:
+- **Don't** put shadows on anything at rest; only menus, sheets, popovers, and toasts lift.
+- **Don't** use gradients, glass, glow, violet or indigo, or cream with terracotta.
+- **Don't** put a small label, number, or tracked uppercase line above a heading to introduce it.
+- **Don't** set icons in tinted squares or use emoji; icons are 16px lucide outlines in grey.
+- **Don't** use the monospace outside code, API keys, and IDs.
+- **Don't** go above 24px for an app heading, or add a sixth type step on public pages.
+- **Don't** put the ask strip, or any pink, on the panel tint.
+- **Don't** animate forever: no infinite loops, no `animate-pulse`, no spinner outside an in-flight request.
+- **Don't** open a modal to confirm a delete.

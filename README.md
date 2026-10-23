@@ -1,10 +1,10 @@
 # Asked Before
 
-It turns the questions you keep asking a chatbot into library cards, stamped once per borrow, and won't stamp a card returned until you pass a cold rep: a fresh problem of the same kind, solved without AI.
+It finds the questions you keep asking a chatbot, puts each one on a card that counts every time you asked it, and won't mark a card Proven until you pass a cold rep: a fresh problem of the same kind, solved without AI.
 
-You sign up, make a shelf for each part of your life, and upload a ChatGPT or Claude export onto it. Your browser reads the export and sends only your own messages, with when you sent them; the chatbot's answers and your titles never leave your computer, and the model sees your words only, never your dates. Asked Before sorts them into cards, most borrowed first, and the Desk shows what's still borrowed across your shelves. A TypeScript SDK, an MCP server, and a Claude Code plugin let your scripts and coding agents reach the same cards, so a question you ask an agent lands on its card as you ask it.
+You sign up, make a shelf for each part of your life, and upload a ChatGPT or Claude export onto it. Your browser reads the export and sends only your own messages, with when you sent them; the chatbot's answers and your titles never leave your computer, and the model sees your words only, never your dates. Asked Before sorts them into cards, most asked first, and Home shows the cards across your shelves that still need a cold rep. A TypeScript SDK, an MCP server, and a Claude Code plugin let your scripts and coding agents reach the same cards, so a question you ask an agent lands on its card as you ask it.
 
-The app runs on Cloudflare Workers, with its data in D1 ([ADR 0005](docs/adr/0005-cloudflare-workers-d1-and-a-durable-object-per-shelf.md)). Until it merged into `main` on October 18, 2026, `main` held the proof of concept submitted to the hackathon, a single page on a made-up demo export; that's `main`'s history up to commit `6bfe2dc`.
+The app runs on Cloudflare Workers, with its data in D1 ([ADR 0005](docs/adr/0005-cloudflare-workers-d1-and-a-durable-object-per-shelf.md)), and its pages are React, Tailwind CSS, and shadcn/ui, bundled by Bun. Until it merged into `main` on October 18, 2026, `main` held the proof of concept submitted to the hackathon, a single page on a made-up demo export; that's `main`'s history up to commit `6bfe2dc`.
 
 Contents:
 
@@ -58,7 +58,7 @@ Then walk the whole product:
 bun run journey
 ```
 
-It needs the key, and makes 7 model calls, with nothing stubbed. In Chromium at 1920×1080, it signs up from the landing page, makes a shelf, uploads the demo export through the upload page's file input, and checks card A against the demo export's answer key, word for word. It fails a cold rep on card A with a known wrong answer and passes the next with a known right one, sees the return on the Desk, and makes an API key in Settings. Then it lists the cards through the SDK with that key, and records a rephrasing of card A's question through the MCP server, so card A's count goes up by one and it's borrowed again. It saves a screenshot of each step in your temp folder, or in `<dir>` with `bun run journey <dir>`. With `--video`, it also records the run to `journey.webm` there; `--pause <ms>` holds each step that long, for a watchable pace; and `--demo-shelf` takes the Desk's demo shelf instead of making a shelf and choosing the export, so the demo-data label shows. `JOURNEY_URL=<address>` walks a deployed app instead of starting one, as a new learner whose email it prints, and leaves that account there.
+It needs the key, and makes 7 model calls, with nothing stubbed. In Chromium at 1920×1080, it signs up from the landing page, makes a shelf, uploads the demo export through the upload page's file input, and checks card A against the demo export's answer key, word for word. It fails a cold rep on card A with a known wrong answer and passes the next with a known right one, sees card A under Latest proven on Home, and makes an API key in Settings. Then it lists the cards through the SDK with that key, and records a rephrasing of card A's question through the MCP server, so card A's count goes up by one and it's Asked since proven. It saves a screenshot of each step in your temp folder, or in `<dir>` with `bun run journey <dir>`. With `--video`, it also records the run to `journey.webm` there; `--pause <ms>` holds each step that long, for a watchable pace; and `--demo-shelf` takes Home's "Try the demo shelf" instead of making a shelf and choosing the export, so the Demo data label shows. `JOURNEY_URL=<address>` walks a deployed app instead of starting one, as a new learner whose email it prints, and leaves that account there.
 
 The other checks:
 
@@ -70,20 +70,20 @@ The other checks:
 | `bun run check:guest` | Signing in as a guest: two browsers sharing the sorted demo shelf and a cold rep, settings hidden and refused, the upload page's warning, and the daily reset through the local cron route, with no model request and every guest still signed in | Chromium |
 | `bun run check:passwords` | The password never reaching the server: every request the page sends to sign up, log in, change the password or email, and delete the account, the API refusing anything but a key, and the database keeping only its salted hash | Chromium |
 | `bun run check:caps` | The app's two daily caps, set small: two accounts and the guest spending its model requests and phrasings between them, then a 429 for whoever sends the next, through the SDK and in the upload page, and a refused request counting toward nothing | Chromium |
-| `bun run check:shell` | The app's shell: sign up, the Desk, your shelves, log out, and the redirect to log in and back | Chromium |
-| `bun run check:landing` | The landing page's card against the answer key, and signing up and logging in from it | Chromium |
+| `bun run check:shell` | The app's shell: sign up, Home, the sidebar, your shelves, log out, and the redirect to log in and back | Chromium |
+| `bun run check:landing` | The landing page's demo cards against the demo export, and signing up and logging in from it | Chromium |
 | `bun run check:readers` | The SDK's export readers on every fixture, and on broken exports | |
 | `bun run check:uploads` | The uploads endpoints, and uploading the same export twice | |
 | `bun run check:upload-page` | The upload page: the preview, what it sends, a zip read under the content security policy, failures, and the demo action | Chromium |
 | `bun run check:sort` | Sorting the demo export three ways, against the answer key; `bun run check:sort 10` for 10 runs | Key |
 | `bun run check:sort-recall` | Sorting a made-up history of 469 labeled phrasings, scored against its labels by recall and precision; `bun run check:sort-recall 3` for 3 runs | Key |
 | `bun run check:sort-rules` | The sort's rules and the cards endpoints, with the model stubbed, a sort that carries on after `wrangler dev` is killed mid-sort, and sorts that fail to start or stall, which a retry or the cron starts again | |
-| `bun run check:sort-page` | The upload page's sort progress, its last pass over the unsorted, failure, retry, and daily cap, with the model stubbed | Chromium |
-| `bun run check:shelf` | A shelf's card stack, statuses, unsorted phrasings, and upload history | Chromium |
+| `bun run check:sort-page` | The upload page's sort progress, its last pass over the messages not on a card, failure, retry, and daily cap, with the model stubbed | Chromium |
+| `bun run check:shelf` | A shelf's cards and their statuses, its messages not on a card, and its uploads | Chromium |
 | `bun run check:reps` | Five cold reps on card A: lessons, problems, and verdicts | Key |
 | `bun run check:rep-rules` | The cold reps' rules through the SDK, with the model stubbed | |
-| `bun run check:card-page` | A card's page and its cold rep: card A with the real model, then waits and failures stubbed | Key, Chromium |
-| `bun run check:desk` | The Desk through the SDK and in the page | Chromium |
+| `bun run check:card-page` | A card's page and its cold rep: card A failed, then Proven, with the real model; then waits and failures stubbed | Key, Chromium |
+| `bun run check:desk` | The Desk endpoint through the SDK, and Home in the page | Chromium |
 | `bun run check:settings` | API keys and the account, through the SDK and in the settings page | Chromium |
 | `bun run check:data` | Downloading and deleting your data, a big account's too, each download read in one D1 batch | Chromium |
 | `bun run check:captures` | Captures' rules through the SDK, with the model stubbed | |
@@ -92,10 +92,10 @@ The other checks:
 | `bun run check:plugin` | The Claude Code plugin: validated, its server's build fresh, and the build run from a copy as Claude Code runs it | `claude` |
 | `bun run check:docs` | The docs page against the server's route table, and the SDK's quickstart run on the demo export | Chromium |
 | `bun run check:sdk` | The SDK's build, used from a package outside the repo, in Bun and in Node | |
-| `bun run check:styles` | The stylesheets at 1080p, surface by surface (`scripts/styles/`) | Chromium |
+| `bun run check:styles` | Every public page, logged out too, and every app screen, as a learner and as the guest, at 1440×900 and 390×844: no sideways scroll, one h1, the font loaded, no text under 12px, contrast of 4.5:1 (3:1 for large text), and no console errors | Chromium |
 | `bun run check:migrations` | The schema's D1 migrations: each applied once on a fresh database; a new one, added in a copy of the app, that rebuilds a table and keeps the data beneath it; and a failing one applying nothing | |
 
-A check that needs the key and stubs nothing calls the real model; the others stub it inside the script, never in the app, so they need no key. Every check starts its app with the daily caps lifted, unless it checks one. After a change to the MCP server or the SDK, `bun run build:plugin` rebuilds the plugin's server, which `check:plugin` fails on until you do. A new API route needs its row on the docs page, `src/pages/docs.ts`, or `check:docs` fails. [`docs/code-map.md`](docs/code-map.md) says where each piece lives.
+A check that needs the key and stubs nothing calls the real model; the others stub it inside the script, never in the app, so they need no key. Every check starts its app with the daily caps lifted, unless it checks one. After a change to the MCP server or the SDK, `bun run build:plugin` rebuilds the plugin's server, which `check:plugin` fails on until you do. A new API route needs its row on the docs page, in `src/pages/docs/reference.ts`, or `check:docs` fails. [`docs/code-map.md`](docs/code-map.md) says where each piece lives.
 
 ## Deploy it
 
@@ -171,4 +171,4 @@ The plugin installs once the repo is public. For Claude Desktop, Cursor, or Clau
 
 ## License
 
-[MIT](LICENSE). Third-party files keep their own licenses: the Skill Pack's MIT license, the impeccable skill's Apache 2.0 license, and the SIL Open Font License of the self-hosted Hanken Grotesk font. The plugin's built MCP server, `plugins/asked-before/dist/server.js`, carries the MCP TypeScript SDK (Apache 2.0) and zod (MIT) inside it.
+[MIT](LICENSE). Third-party files keep their own licenses: the Skill Pack's MIT license, the impeccable skill's Apache 2.0 license, the SIL Open Font License of the self-hosted Schibsted Grotesk and JetBrains Mono fonts in `public/fonts/`, and the CC BY 4.0 license of the landing page's photograph, "Nurmeksen yhteislyseo vuonna 1958. Ylioppilaskirjoitukset." by Topi Toivanen, via Wikimedia Commons, credited on the page and in `public/images/credits.json`. The components in `src/components/ui/` start from shadcn/ui's (MIT). The plugin's built MCP server, `plugins/asked-before/dist/server.js`, carries the MCP TypeScript SDK (Apache 2.0) and zod (MIT) inside it.

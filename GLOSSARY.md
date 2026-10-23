@@ -1,6 +1,6 @@
 # Asked Before
 
-Asked Before turns the questions you keep asking a chatbot into library cards, and won't stamp a card returned until you pass a cold rep without AI.
+Asked Before turns the questions you keep asking a chatbot into library cards, and won't stamp a card returned until you pass a cold rep without AI. The app's screens say some of these terms in plainer words, given under _On screen_; the API, the SDK, and the docs page keep the terms.
 
 ## Language
 
@@ -11,7 +11,8 @@ The conversations file a chatbot gives you when you request your data.
 _Avoid_: Dump, backup, history file
 
 **Phrasing**:
-One of your own messages to a chatbot, in your words, with the time you sent it. On screen, a count of what an export holds may say "messages", as in "your own messages", the privacy line's words.
+One of your own messages to a chatbot, in your words, with the time you sent it.
+_On screen_: Your message, or your words; a count says "messages", as in "27 of your own messages", the privacy line's words.
 _Avoid_: Prompt, query
 
 **Upload**:
@@ -38,10 +39,12 @@ _Avoid_: Flashcard, item
 
 **Borrow**:
 One time you asked, stamped with the date of the phrasing's own timestamp.
+_On screen_: An ask, as in "asked 9 times" and "Every time you asked". A card never returned is To prove.
 _Avoid_: Occurrence, hit, repeat
 
 **Unsorted**:
 A shelf's phrasings that aren't on a card, because nothing else so far asks the same thing.
+_On screen_: Not on a card. Never "asked once", since the sort misses some repeats.
 _Avoid_: Inbox, orphans, singletons
 
 **Sort**:
@@ -60,14 +63,17 @@ _Avoid_: Quiz, test, flashcard review
 
 **Returned**:
 A card whose latest passed cold rep came after its latest borrow, stamped with the date it passed.
+_On screen_: Proven, as in "Proven Oct 23, 2026".
 _Avoid_: Done, mastered, learned
 
 **Borrowed again**:
 A returned card with a borrow dated after its return stamp, which needs a fresh cold rep.
+_On screen_: Asked since proven, with "asked again" and the borrow's date on a card's row.
 _Avoid_: Relapsed, overdue, expired
 
 **Desk**:
 The circulation desk: the cards still borrowed across your shelves, with your latest borrows and returns.
+_On screen_: Home. The cards still borrowed, To prove and Asked since proven together, are the cards that "need a cold rep".
 _Avoid_: Dashboard, overview
 
 ### Guests
