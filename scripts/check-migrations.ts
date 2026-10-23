@@ -119,7 +119,7 @@ const said = (error: Error) =>
 /** A copy of the app's files in the work folder, sharing this repo's installed packages, to add migrations to without touching the repo. */
 async function copyApp(name: string): Promise<string> {
   const copy = join(work, name);
-  const paths = ["package.json", "tsconfig.json", "tsconfig.base.json", "wrangler.jsonc", "worker", "server", "src", "public", "demo", "packages", "migrations", join("scripts", "build-pages.ts")];
+  const paths = ["package.json", "tsconfig.json", "tsconfig.base.json", "wrangler.jsonc", "worker", "server", "src", "public", "demo", "packages", "migrations", "components.json", join("scripts", "build-pages.ts"), join("scripts", "tailwind-plugin.ts")];
   for (const path of paths) await cp(join(ROOT, path), join(copy, path), { recursive: true, verbatimSymlinks: true });
   await symlink(join(ROOT, "node_modules"), join(copy, "node_modules"));
   return copy;

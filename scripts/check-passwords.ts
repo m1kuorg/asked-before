@@ -15,7 +15,7 @@
 import { ApiError, passwordKey } from "@asked-before/sdk";
 import { Database } from "bun:sqlite";
 import { createHash } from "node:crypto";
-import { chromium, type Page } from "playwright";
+import { chromium, type Locator, type Page } from "playwright";
 import { startApp } from "./lib/app";
 
 const FRAME = { width: 1920, height: 1080 };
@@ -85,39 +85,52 @@ async function failure(call: Promise<unknown>): Promise<ApiError | null> {
 }
 const say = (error: ApiError | null) => (error ? `${error.status} "${error.message}"` : "no error");
 
-const section = (p: Page, name: string) => p.locator("section", { has: p.getByRole("heading", { name, exact: true }) });
+/** A settings section, the region its heading names. */
+const section = (p: Page, name: string) => p.getByRole("main").getByRole("region", { name, exact: true });
+/** A form's refusal: the role="alert" line inside `scope`. */
+const refusalIn = (scope: Locator) => scope.getByRole("alert");
+/** A section's status line once it says something (it's always in the page, empty until then). */
+const said = (scope: Locator) => scope.getByRole("status").filter({ hasText: /\S/ });
+/** Waits for the section's status line or its refusal, so a refusal fails at once instead of timing out. */
+async function saved(scope: Locator, what: string) {
+  await said(scope).or(refusalIn(scope)).first().waitFor();
+  const refused = await refusalIn(scope).count();
+  check(refused === 0, `${what} says "${refused ? await refusalIn(scope).first().textContent() : await said(scope).textContent()}"`);
+}
 
 try {
   await step("1. Signing up in the page sends the key, never the password; a weak one is refused before anything is sent", async () => {
     await page.goto(`${app.url}/signup`);
-    await page.getByLabel("Name").fill(ADA.name);
-    await page.getByLabel("Email").fill("  Ada@Example.COM ");
-    await page.getByLabel("Password").fill("too short");
-    await page.getByRole("button", { name: "Sign up" }).click();
-    const refusal = page.locator(".block .error");
+    const main = page.getByRole("main");
+    await main.getByLabel("Name", { exact: true }).fill(ADA.name);
+    await main.getByLabel("Email", { exact: true }).fill("  Ada@Example.COM ");
+    await main.getByLabel("Password", { exact: true }).fill("too short");
+    await main.getByRole("button", { name: "Sign up", exact: true }).click();
+    const refusal = refusalIn(main);
     await refusal.waitFor();
     check(/10 characters/.test((await refusal.textContent()) ?? ""), `a 9-character password says "${await refusal.textContent()}"`);
     check(!sent.some((request) => request.call === "POST /api/v1/auth/signup"), "and nothing was sent: the SDK holds the rule");
 
-    await page.getByLabel("Password").fill(ADA.password);
-    await page.getByRole("button", { name: "Sign up" }).click();
+    await main.getByLabel("Password", { exact: true }).fill(ADA.password);
+    await main.getByRole("button", { name: "Sign up", exact: true }).click();
     await page.waitForURL(/\/app\/desk$/);
     await sends("POST /api/v1/auth/signup", { passwordKey: [ADA.password, ADA.email] });
   });
 
   await step("2. Logging in sends the key, and a wrong password a wrong key", async () => {
-    await page.locator("body > nav").getByRole("button", { name: "Log out" }).click();
+    await page.getByRole("navigation", { name: "Asked Before" }).getByRole("button", { name: "Log out", exact: true }).click();
     await page.waitForURL(/\/login$/);
-    await page.getByLabel("Email").fill(ADA.email);
-    await page.getByLabel("Password").fill("the wrong password");
-    await page.getByRole("button", { name: "Log in" }).click();
-    const refusal = page.locator(".block .error");
+    const main = page.getByRole("main");
+    await main.getByLabel("Email", { exact: true }).fill(ADA.email);
+    await main.getByLabel("Password", { exact: true }).fill("the wrong password");
+    await main.getByRole("button", { name: "Log in", exact: true }).click();
+    const refusal = refusalIn(main);
     await refusal.waitFor();
     check((await refusal.textContent()) === "Wrong email or password.", `a wrong password says "${await refusal.textContent()}"`);
     await sends("POST /api/v1/auth/login", { passwordKey: ["the wrong password", ADA.email] });
 
-    await page.getByLabel("Password").fill(ADA.password);
-    await page.getByRole("button", { name: "Log in" }).click();
+    await main.getByLabel("Password", { exact: true }).fill(ADA.password);
+    await main.getByRole("button", { name: "Log in", exact: true }).click();
     await page.waitForURL(/\/app\/desk$/);
     await sends("POST /api/v1/auth/login", { passwordKey: [ADA.password, ADA.email] });
   });
@@ -125,25 +138,29 @@ try {
   await step("3. Settings sends keys to change the password and the email, and to delete the account", async () => {
     await page.goto(`${app.url}/app/settings`);
     const password = section(page, "Password");
-    await password.getByLabel("Current password").fill(ADA.password);
-    await password.getByLabel("New password").fill(NEW_PASSWORD);
-    await password.getByRole("button", { name: "Change password" }).click();
-    await password.locator("[role=status]").waitFor();
+    await password.getByLabel("Current password", { exact: true }).fill(ADA.password);
+    await password.getByLabel("New password", { exact: true }).fill(NEW_PASSWORD);
+    await password.getByRole("button", { name: "Change password", exact: true }).click();
+    await saved(password, "the password change");
     await sends("POST /api/v1/account/password", { currentPasswordKey: [ADA.password, ADA.email], newPasswordKey: [NEW_PASSWORD, ADA.email] });
 
     const profile = section(page, "Profile");
     await profile.getByLabel("Email", { exact: true }).fill(NEW_EMAIL);
-    await profile.getByLabel("Your password").fill(NEW_PASSWORD);
-    await profile.getByRole("button", { name: "Save profile" }).click();
-    await profile.locator("[role=status]").waitFor();
+    await profile.getByLabel("Your password", { exact: true }).fill(NEW_PASSWORD);
+    await profile.getByRole("button", { name: "Save profile", exact: true }).click();
+    await saved(profile, "the profile");
+    check(sent.filter((request) => request.call === "PATCH /api/v1/account").length === 1, "the name and the new email go in one call");
     await sends("PATCH /api/v1/account", { currentPasswordKey: [NEW_PASSWORD, ADA.email], newPasswordKey: [NEW_PASSWORD, NEW_EMAIL] });
     const relogged = await app.browser().client.auth.logIn({ email: NEW_EMAIL, password: NEW_PASSWORD });
     check(relogged.account.email === NEW_EMAIL, "the password logs in with the new email");
 
     const del = section(page, "Delete your account");
-    await del.getByLabel("Your password").fill(NEW_PASSWORD);
-    await del.getByRole("button", { name: "Delete your account" }).click();
-    await del.locator(".confirm").getByRole("button", { name: "Delete everything" }).click();
+    await del.getByLabel("Your password", { exact: true }).fill(NEW_PASSWORD);
+    await del.getByRole("button", { name: "Delete your account", exact: true }).click();
+    const confirmation = del.getByRole("group", { name: "Delete your account and everything in it?", exact: true });
+    await confirmation.waitFor();
+    check(!sent.some((request) => request.call === "DELETE /api/v1/account"), "nothing is deleted before the confirmation");
+    await confirmation.getByRole("button", { name: "Delete everything", exact: true }).click();
     await page.waitForURL(`${app.url}/`);
     await sends("DELETE /api/v1/account", { passwordKey: [NEW_PASSWORD, NEW_EMAIL] });
   });

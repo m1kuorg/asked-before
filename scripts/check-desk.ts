@@ -7,16 +7,17 @@
 // borrowed first, and the latest borrows as the key dates them; a passed
 // cold rep lists that return, and a newer borrow makes the card borrowed
 // again; its totals always equal the shelves' own counts added up; an API
-// key reads it, and another account sees none of it. In the browser: a new
-// account sees the empty state, whose demo action leads to a sorted demo
-// shelf, and whose first-upload field makes a shelf and goes to its
-// upload page; then the top card's skill opens its page asking the model
-// nothing, while the Desk's own cold rep link shows the rep's problem
-// in one click and leaves no start in the address, so going back and forward
-// asks nothing either; that rep, passed, shows on the Desk as a
-// return, with totals that match the
-// shelves' counts, the rows and the rail as the API lists them, stamps in
-// the learner's own time zone, and one request to /api/v1/desk.
+// key reads it, and another account sees none of it. In the browser, on
+// Home (/app/desk): a new account sees the empty state, whose demo action
+// leads to a sorted demo shelf, and whose first-upload field makes a shelf
+// and goes to its upload page; then the top card's skill opens its page
+// asking the model nothing, while Home's "Start a cold rep" link shows the
+// rep's problem in one click and leaves no start in the address, so going
+// back and forward asks nothing either; that rep, passed, shows on Home
+// under Latest proven, with tiles that match the shelves' counts, Prove next
+// and Latest asks as the API lists them, dates in the learner's own time
+// zone, and no request but the desk and the shelves, once for Home and
+// once for the sidebar, and no model request.
 // It prints ids, counts, and skill names, never phrasing text, and exits 1
 // if any check fails, naming the step.
 // Run: bun run check:desk [screenshot dir]
@@ -25,7 +26,7 @@ import { ApiError, createClient, type Client, type Desk, type Shelf } from "@ask
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { chromium, type Page } from "playwright";
+import { chromium, type Locator, type Page } from "playwright";
 import { compareWithKey, key, named, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp, type Browser as Learner } from "./lib/app";
 import { refuse, startModelStub } from "./lib/model-stub";
@@ -88,10 +89,26 @@ async function learnerPage(name: string, email: string): Promise<Watched> {
   return { learner, page, apiCalls, errors };
 }
 
-const text = async (page: Page, selector: string) => ((await page.locator(selector).first().textContent()) ?? "").replace(/\s+/g, " ").trim();
-/** A section's words without its heading. */
-const body = async (page: Page, selector: string) => (await page.locator(`${selector} p`).allTextContents()).join(" ");
-const utcDate = (iso: string) => new Date(iso).toISOString().slice(0, 10);
+/** The status words, as the pills say them. */
+const STATUS_WORDS = ["To prove", "Proven", "Asked since proven"];
+const say = async (locator: Locator) => ((await locator.first().textContent()) ?? "").replace(/\s+/g, " ").trim();
+
+/** Waits for `success`, or fails at once with what an alert in the page's main says. */
+async function settle(page: Page, success: Locator, timeout?: number) {
+  const alert = page.getByRole("main").getByRole("alert");
+  await success.or(alert).first().waitFor({ timeout });
+  if (!(await success.count())) throw new Error(`the page says "${await say(alert)}"`);
+}
+
+/** Home's count tiles, each as its label and value: "To prove 4". */
+const tiles = (page: Page) => page.getByRole("main").locator("dl > div").evaluateAll((all) => all.map((tile) => `${tile.querySelector("dt")?.textContent} ${tile.querySelector("dd")?.textContent}`));
+
+// Dates as the page writes them, in UTC as the browser here reads them.
+const shortDate = (iso: string) => new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
+const longDate = (iso: string) => new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
+const month = (iso: string) => new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
+/** "March 2025 to September 2026", or "in March 2025". */
+const months = (first: string, last: string) => (month(first) === month(last) ? `in ${month(first)}` : `${month(first)} to ${month(last)}`);
 
 const zero = (totals: Desk["totals"]) => totals.cards === 0 && totals.borrowed === 0 && totals.returned === 0 && totals.borrowedAgain === 0;
 
@@ -198,26 +215,28 @@ try {
     async () => {
       cy = await learnerPage("Cy Example", "cy@example.com");
       const { page, learner } = cy;
+      const main = page.getByRole("main");
       await page.goto(`${app.url}/app/desk`);
-      const empty = page.locator(".block .empty");
-      await empty.waitFor();
-      check((await text(page, ".block h1")) === "Still borrowed" && (await text(page, ".block .plate b")) === "0", `headed "${await text(page, ".block h1")}", over a plate of ${await text(page, ".block .plate b")}`);
-      check((await text(page, ".block .empty h2")) === "No cards yet", `the empty state says "${await text(page, ".block .empty h2")}"`);
-      check(await empty.getByRole("button", { name: "Try the demo shelf" }).isVisible(), "it offers the demo shelf");
-      check(await page.locator(".block").getByLabel("Or name your first shelf").isVisible(), "and a first shelf to upload into");
+      await settle(page, main.getByRole("heading", { level: 1, name: "No cards yet.", exact: true }));
+      check((await tiles(page)).join(", ") === "To prove 0, Asked since proven 0, Proven 0, All cards 0", `headed "${await say(main.getByRole("heading", { level: 1 }))}", over the tiles ${(await tiles(page)).join(", ")}`);
+      const prove = main.getByRole("region", { name: "Prove next" });
+      check(await prove.getByRole("button", { name: "Try the demo shelf", exact: true }).isVisible(), "it offers the demo shelf");
+      check(await prove.getByLabel("Or name your first shelf", { exact: true }).isVisible(), "and a first shelf to upload into");
       await page.screenshot({ path: join(OUT, `${++shot}-empty-state.png`) });
 
-      await empty.getByRole("button", { name: "Try the demo shelf" }).click();
-      await page.waitForURL(/\/app\/shelves\/[^/]+\/upload\?/);
+      await prove.getByRole("button", { name: "Try the demo shelf", exact: true }).click();
+      await page.waitForURL(/\/app\/shelves\/[^/]+\/upload/);
       const [made] = await learner.client.shelves.list();
       check(made?.demo === true, `it made "${made?.name}", flagged demo: ${made?.demo}`);
-      await page.getByText("They're sorted into Demo's cards.").waitFor({ timeout: 30_000 });
+      await settle(page, main.getByRole("status").filter({ hasText: /^They're sorted into the cards on Demo\.$/ }), 30_000);
       const compared = await compareWithKey(learner.client, made!.id);
       console.log(compared.lines.join("\n"));
       check(compared.problems.length === 0, `the demo shelf is sorted as the key says${compared.problems.length ? `: ${compared.problems.join("; ")}` : ""}`);
-      await page.getByRole("link", { name: "Go to Demo" }).click();
-      await page.locator(".block .rail").first().waitFor();
-      check((await text(page, ".block h1.skill")) === key.skills[0]!.name, `and its stack opens on card A, "${await text(page, ".block h1.skill")}"`);
+      await main.getByRole("link", { name: "Go to Demo", exact: true }).click();
+      const cards = main.getByRole("list", { name: "Cards on Demo, most asked first" });
+      await settle(page, cards);
+      const first = await say(cards.getByRole("listitem").first().getByRole("link"));
+      check(first === key.skills[0]!.name, `and its shelf lists card A first, "${first}"`);
     },
     () => cy?.page,
   );
@@ -228,121 +247,186 @@ try {
     async () => {
       dee = await learnerPage("Dee Example", "dee@example.com");
       const { page, learner } = dee;
+      const main = page.getByRole("main");
       await page.goto(`${app.url}/app/desk`);
-      const first = page.locator(".block").getByLabel("Or name your first shelf");
-      await first.waitFor();
-      await page.locator(".block").getByRole("button", { name: "Upload a chat export" }).click();
-      await page.locator(".block .first-shelf .error").waitFor();
-      check((await text(page, ".block .first-shelf .error")) === "A shelf needs a name.", `with no name, it says "${await text(page, ".block .first-shelf .error")}"`);
+      const first = main.getByLabel("Or name your first shelf", { exact: true });
+      await settle(page, first);
+      await main.getByRole("button", { name: "Upload a chat export", exact: true }).click();
+      const said = main.getByRole("alert");
+      await said.waitFor();
+      check((await say(said)) === "A shelf needs a name." && (await first.getAttribute("aria-invalid")) === "true", `with no name, it says "${await say(said)}", marking the field`);
       await first.fill("Bootcamp");
-      await page.locator(".block").getByRole("button", { name: "Upload a chat export" }).click();
-      await page.locator(".drop-zone").waitFor();
+      await main.getByRole("button", { name: "Upload a chat export", exact: true }).click();
+      await main.getByRole("heading", { level: 1, name: "Upload a chat export", exact: true }).waitFor();
       const [made] = await learner.client.shelves.list();
       check(made?.name === "Bootcamp" && !made.demo, `it made "${made?.name}"`);
-      check(new URL(page.url()).pathname === `/app/shelves/${made!.id}/upload`, `and went to its upload page (${new URL(page.url()).pathname})`);
+      check(new URL(page.url()).pathname === `/app/shelves/${made!.id}/upload` && (await main.locator('input[type="file"]').count()) === 1, `and went to its upload page, with its file input (${new URL(page.url()).pathname})`);
     },
     () => dee?.page,
   );
 
   await step(
-    "8. After one returned card, the Desk page lists that return, and its totals match the shelves' counts",
+    "8. After one Proven card, Home lists it, and its totals match the shelves' counts",
     async () => {
       const { page, learner, apiCalls, errors } = cy!;
+      const main = page.getByRole("main");
+      const A = key.skills[0]!.name;
       const [cardA] = await learner.client.cards.list((await learner.client.shelves.list())[0]!.id);
       const cardAt = `${app.url}/app/cards/${cardA!.id}`;
-      const takeOffered = page.locator(".block").getByRole("button", { name: "Take a cold rep" });
+      const repPanel = main.getByRole("region", { name: "Prove it without AI" });
+      const startOffered = repPanel.getByRole("button", { name: `Start a cold rep on ${A}`, exact: true });
+      const prove = main.getByRole("region", { name: "Prove next" });
       await page.goto(`${app.url}/app/desk`);
-      const take = page.locator(".block").getByRole("link", { name: `Take a cold rep on ${key.skills[0]!.name}` });
-      await take.waitFor();
+      const take = prove.getByRole("link", { name: `Start a cold rep on ${A}`, exact: true });
+      await settle(page, take);
 
-      // A plain visit, by the card's skill in the rows, opens the card and asks the model nothing.
+      // A plain visit, by the card's skill in Prove next, opens the card and asks the model nothing.
       let before = model.requests.length;
-      await page.locator(".block table.rows").first().getByRole("link", { name: key.skills[0]!.name, exact: true }).click();
-      await takeOffered.waitFor();
+      await prove.getByRole("link", { name: A, exact: true }).click();
+      await settle(page, startOffered);
       check(page.url() === cardAt && model.requests.length === before && (await learner.client.cards.get(cardA!.id)).reps.length === 0, `the skill's link opens the card, offering a cold rep, with ${model.requests.length - before} model requests and no rep`);
 
-      // The Desk's action starts the rep in one click: the card page, with its problem showing.
+      // Home's action starts the rep in one click: the card page, with its problem showing.
       await page.goBack();
       await take.waitFor();
       model.queue(repReply("A problem of the card's skill.", "The card's lesson."), verdictReply("pass", "You did it."));
       before = model.requests.length;
       await take.click();
-      await page.locator(".block .problem").waitFor();
+      const problem = repPanel.getByRole("heading", { name: "The problem", exact: true });
+      await settle(page, problem);
       const started = model.requests.slice(before).map(kindOf);
-      check(started.join() === "rep" && (await learner.client.cards.get(cardA!.id)).reps.length === 1, `one click on "Take a cold rep on ${key.skills[0]!.name}" shows the rep's problem, after one model request (${started.join(", ")})`);
-      check((await body(page, ".block .problem")) === "A problem of the card's skill." && (await takeOffered.count()) === 0, "the problem is the rep's, with no second Take a cold rep to click");
+      check(started.join() === "rep" && (await learner.client.cards.get(cardA!.id)).reps.length === 1, `one click on "Start a cold rep on ${A}" shows the rep's problem, after one model request (${started.join(", ")})`);
+      const words = await problem.evaluate((title) => title.nextElementSibling?.textContent ?? "");
+      check(words === "A problem of the card's skill." && (await startOffered.count()) === 0, "the problem is the rep's, with no second Start a cold rep to click");
       check(page.url() === cardAt, `the address keeps no start, so going back or reloading starts nothing (${new URL(page.url()).pathname}${new URL(page.url()).search})`);
-      await page.locator(".answer-box textarea").fill("My own answer.");
-      await page.getByRole("button", { name: "Check my answer" }).click();
-      await page.getByRole("button", { name: "Back to the stack" }).waitFor();
+      await repPanel.getByLabel("Your answer, in your own words, without AI", { exact: true }).fill("My own answer.");
+      await repPanel.getByRole("button", { name: "Check my answer", exact: true }).click();
+      await settle(page, repPanel.getByRole("link", { name: "Back to Home", exact: true }));
 
-      // Back to the Desk and forward again opens the returned card, and asks the model nothing.
+      // Back to Home and forward again opens the Proven card, and asks the model nothing.
       before = model.requests.length;
       await page.goBack();
-      await page.locator(".block .latest-returns table.rows").waitFor();
+      await main.getByRole("list", { name: "Latest proven, latest first" }).waitFor();
       await page.goForward();
-      await takeOffered.waitFor();
+      await startOffered.waitFor();
       check(page.url() === cardAt && model.requests.length === before && (await learner.client.cards.get(cardA!.id)).reps.length === 1, `back, then forward, opens the card with ${model.requests.length - before} model requests, still one rep`);
 
+      // A fresh load of Home, which the shell around it also loads its sidebar for.
       apiCalls.length = 0;
+      before = model.requests.length;
       await page.goto(`${app.url}/app/desk`);
-      await page.locator(".block .latest-returns table.rows").waitFor();
+      const nav = page.getByRole("navigation", { name: "Asked Before" });
+      await settle(page, main.getByRole("list", { name: "Latest proven, latest first" }));
+      await main.getByRole("list", { name: "Your shelves" }).waitFor();
+      await nav.getByRole("list", { name: "Shelves" }).waitFor();
+      await nav.getByRole("link", { name: /cards? needs? a cold rep$/ }).waitFor();
+      await page.waitForLoadState("networkidle");
       const desk = await learner.client.desk.get();
       const sums = await shelfSums(learner.client);
-      check(desk.latestReturns.length === 1 && desk.latestReturns[0]!.skill === key.skills[0]!.name, `the API lists card A's return (${desk.latestReturns.map((c) => c.skill).join(", ")})`);
+      check(desk.latestReturns.length === 1 && desk.latestReturns[0]!.skill === A, `the API lists card A as proven (${desk.latestReturns.map((c) => c.skill).join(", ")})`);
 
-      const returned = await page.locator(".block .latest-returns tbody tr").evaluateAll((all) => all.map((row) => [...row.querySelectorAll("td")].map((td) => (td.textContent ?? "").trim())));
-      const stampedOn = utcDate(desk.latestReturns[0]!.returnedAt!);
-      check(returned.length === 1 && returned[0]![0] === key.skills[0]!.name && returned[0]![1] === "DemoDemo data" && returned[0]![2] === stampedOn, `the page lists that return: ${JSON.stringify(returned)}, stamped ${stampedOn}`);
-      const strike = await page.locator(".block .latest-returns tbody .is-struck").evaluateAll((all) => all.map((skill) => getComputedStyle(skill).textDecoration));
-      check(strike.length === 1 && strike[0]!.includes("line-through") && strike[0]!.includes("2px"), `its skill is struck with the 2px line, as its margin key is (${strike.join(", ")})`);
-
-      const ledger = await page.locator(".margin .ledger > div").evaluateAll((all) => all.map((line) => `${line.querySelector("dt")?.textContent} ${line.querySelector("dd")?.textContent}`));
-      const want = [`Borrowed ${sums.borrowed}`, `Borrowed again ${sums.borrowedAgain}`, `Returned ${sums.returned}`, `All cards ${sums.cards}`];
-      check(ledger.join() === want.join(), `the margin's totals (${ledger.join(", ")}) match the shelves' counts added up (${want.join(", ")})`);
-      const plateCount = await text(page, ".block .plate b");
-      check(plateCount === String(sums.borrowed + sums.borrowedAgain), `the plate counts ${plateCount} cards borrowed, not returned`);
-
-      const most = await page.locator(".block table.rows").first().locator("tbody tr").evaluateAll((all) => all.map((row) => [...row.querySelectorAll("td")].map((td) => (td.textContent ?? "").trim())));
-      const wantMost = desk.mostBorrowed.map((card) => [card.skill, "DemoDemo data", String(card.count), utcDate(card.lastBorrowAt)]);
-      check(JSON.stringify(most) === JSON.stringify(wantMost), `the rows are the API's most borrowed, in order: ${most.map((r) => `${r[0]} ${r[2]}`).join(", ")}`);
-      const skills = await page.locator(".block table.rows").first().locator("tbody tr a").first().getAttribute("href");
-      check(skills === `/app/cards/${desk.mostBorrowed[0]!.id}`, `a card's skill leads to its page (${skills})`);
-      check((await text(page, ".block .take-rep")) === `Take a cold rep on ${desk.mostBorrowed[0]!.skill}`, `the block's action is "${await text(page, ".block .take-rep")}"`);
-
-      const rail = await page.locator(".block .latest-borrows .rail > li").evaluateAll((all) =>
-        all.map((li) => ({ text: li.querySelector(".phrasing")?.textContent ?? "", date: li.querySelector(".stamp time")?.textContent ?? "", skill: li.querySelector(".stamp a")?.textContent ?? "", key: li.querySelector(".rail-key") !== null })),
+      const proven = await main
+        .getByRole("list", { name: "Latest proven, latest first" })
+        .getByRole("listitem")
+        .evaluateAll(
+          (items, words) =>
+            items.map((item) => {
+              const spans = [...item.querySelectorAll("span")].map((span) => (span.textContent ?? "").trim());
+              return {
+                skill: item.querySelector("a")?.textContent ?? "",
+                shelf: spans.includes("Demo") && spans.includes("Demo data"),
+                dates: [...item.querySelectorAll("time")].map((time) => time.textContent),
+                status: spans.find((said) => words.includes(said)) ?? "",
+              };
+            }),
+          STATUS_WORDS,
+        );
+      const provenOn = shortDate(desk.latestReturns[0]!.returnedAt!);
+      check(
+        proven.length === 1 && proven[0]!.skill === A && proven[0]!.shelf && proven[0]!.dates.join() === provenOn && proven[0]!.status === "Proven",
+        `Latest proven lists it, on Demo, labeled as demo data: ${JSON.stringify(proven)}, proven ${provenOn}`,
       );
-      const wantRail = desk.latestBorrows.map((borrow) => ({ text: borrow.text, date: utcDate(borrow.time), skill: borrow.card.skill, key: true }));
-      check(JSON.stringify(rail) === JSON.stringify(wantRail), `the rail holds the ${rail.length} latest borrows, newest first, each with its key, stamp, and card`);
-      const years = await page.locator(".block .latest-borrows .rail").evaluateAll((all) => all.map((r) => r.getAttribute("aria-label")));
-      check(years.join() === "Borrowed in 2026, newest first,Borrowed in 2025, newest first", `cut where the year turns: ${years.join(" | ")}`);
-      check((await page.evaluate(() => document.getAnimations().length)) === 0, "its keys are already seated, with no drop");
 
-      const calls = apiCalls.filter((call) => call !== "GET /api/v1/auth/me");
-      check(calls.join() === "GET /api/v1/desk", `the page asks only the Desk endpoint (${calls.join(", ")})`);
+      const queue = sums.borrowed + sums.borrowedAgain;
+      const want = [`To prove ${sums.borrowed}`, `Asked since proven ${sums.borrowedAgain}`, `Proven ${sums.returned}`, `All cards ${sums.cards}`];
+      check((await tiles(page)).join(", ") === want.join(", "), `the tiles (${(await tiles(page)).join(", ")}) match the shelves' counts added up (${want.join(", ")})`);
+      const sum = await say(main.locator("dl > div").last().locator("dd").last());
+      check(sum === `${sums.borrowed} + ${sums.borrowedAgain} + ${sums.returned}`, `and All cards adds them up: "${sum}"`);
+      const greeting = await say(main.getByRole("heading", { level: 1 }));
+      check(greeting === `${queue} ${queue === 1 ? "card needs" : "cards need"} a cold rep, ${sums.returned} is proven.`, `the h1 counts the cards that need a cold rep: "${greeting}"`);
+      check((await nav.getByRole("link", { name: new RegExp(`^Home\\W+${queue} cards need a cold rep$`) }).count()) === 1, `the sidebar's Home counts them too (${queue})`);
+
+      const rows = await prove.getByRole("listitem").evaluateAll((items) =>
+        items.map((item) => {
+          const links = [...item.querySelectorAll("a")];
+          const start = links.find((link) => link.getAttribute("aria-label")?.startsWith("Start a cold rep on "));
+          const spans = [...item.querySelectorAll("span")].map((span) => (span.textContent ?? "").replace(/\s+/g, " ").trim());
+          return [
+            links[0]?.textContent ?? "",
+            links[0]?.getAttribute("href") ?? "",
+            `${links[1]?.textContent ?? ""}${spans.includes("Demo data") ? ", Demo data" : ""}`,
+            spans.find((said) => /^asked [\d,]+ times?$/.test(said)) ?? "",
+            item.querySelector('[role="img"]')?.getAttribute("aria-label") ?? "",
+            start?.getAttribute("aria-label") ?? "",
+            start?.getAttribute("href") ?? "",
+          ];
+        }),
+      );
+      const wantRows = desk.mostBorrowed.map((card) => [
+        card.skill,
+        `/app/cards/${card.id}`,
+        "Demo, Demo data",
+        `asked ${card.count} ${card.count === 1 ? "time" : "times"}`,
+        `Asked ${card.count} ${card.count === 1 ? "time" : "times"}, ${months(card.firstBorrowAt, card.lastBorrowAt)}${card.returnedAt ? `, proven ${longDate(card.returnedAt)}` : ""}`,
+        `Start a cold rep on ${card.skill}`,
+        `/app/cards/${card.id}?rep=start`,
+      ]);
+      check(JSON.stringify(rows) === JSON.stringify(wantRows), `Prove next is the API's most asked, in order, each with its shelf, count, span, and start: ${rows.map((r) => `${r[0]} (${r[3]})`).join(", ")}`);
+      check(rows.length === queue && (await prove.getByText(/^Showing /).count()) === 0, `all ${queue} that need a cold rep show, so nothing says some are left out`);
+
+      const asks = await main
+        .getByRole("list", { name: "Latest asks, newest first" })
+        .getByRole("listitem")
+        .evaluateAll((items) =>
+          items.map((item) => ({
+            text: item.querySelector("p")?.textContent ?? "",
+            date: item.querySelector("time")?.textContent ?? "",
+            datetime: item.querySelector("time")?.getAttribute("datetime") ?? "",
+            skill: item.querySelector("a")?.textContent ?? "",
+            href: item.querySelector("a")?.getAttribute("href") ?? "",
+          })),
+        );
+      const wantAsks = desk.latestBorrows.map((ask) => ({ text: ask.text, date: shortDate(ask.time), datetime: ask.time, skill: ask.card.skill, href: `/app/cards/${ask.card.id}` }));
+      check(JSON.stringify(asks) === JSON.stringify(wantAsks), `Latest asks holds the ${asks.length} latest, newest first, each word for word with its date and card`);
+
+      const home = apiCalls.filter((call) => call !== "GET /api/v1/auth/me").sort();
+      const me = apiCalls.length - home.length;
+      check(
+        me === 1 && home.join(", ") === "GET /api/v1/desk, GET /api/v1/desk, GET /api/v1/shelves, GET /api/v1/shelves",
+        `the page asks who's logged in once, then the desk and the shelves once for Home and once for the sidebar, nothing else (${apiCalls.join(", ")})`,
+      );
+      check(model.requests.length === before, `and makes no model request (${model.requests.length - before})`);
       check(errors.length === 0, `no console errors or policy violations${errors.length ? `: ${errors.slice(0, 3).join(" | ")}` : ""}`);
     },
     () => cy?.page,
   );
 
-  await step(
-    "9. The Desk in another time zone stamps dates in the learner's own",
-    async () => {
-      const { learner } = cy!;
-      const context = await browser.newContext({ viewport: FRAME, deviceScaleFactor: 1, timezoneId: "Pacific/Kiritimati" });
-      const cookies = learner.cookie().split("; ").map((pair) => pair.split("="));
-      await context.addCookies(cookies.map(([cookie, value]) => ({ name: cookie!, value: value!, url: app.url })));
-      const page = await context.newPage();
-      await page.goto(`${app.url}/app/desk`);
-      await page.locator(".block .latest-borrows .rail").first().waitFor();
-      const desk = await learner.client.desk.get();
-      const local = (iso: string) => new Date(Date.parse(iso) + 14 * 3_600_000).toISOString().slice(0, 10);
-      const dates = await page.locator(".block .latest-borrows .stamp time").evaluateAll((all) => all.map((t) => t.textContent));
-      check(dates.join() === desk.latestBorrows.map((b) => local(b.time)).join(), `the rail's stamps are dates at UTC+14 (${dates.slice(0, 3).join(", ")}, …)`);
-      await context.close();
-    },
-  );
+  await step("9. Home in another time zone dates asks in the learner's own", async () => {
+    const { learner } = cy!;
+    const ZONE = "Pacific/Kiritimati";
+    const context = await browser.newContext({ viewport: FRAME, deviceScaleFactor: 1, timezoneId: ZONE });
+    const cookies = learner.cookie().split("; ").map((pair) => pair.split("="));
+    await context.addCookies(cookies.map(([cookie, value]) => ({ name: cookie!, value: value!, url: app.url })));
+    const page = await context.newPage();
+    await page.goto(`${app.url}/app/desk`);
+    const latest = page.getByRole("main").getByRole("list", { name: "Latest asks, newest first" });
+    await settle(page, latest);
+    const desk = await learner.client.desk.get();
+    const there = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: ZONE });
+    const dates = await latest.locator("time").allTextContents();
+    check(dates.join() === desk.latestBorrows.map((b) => there.format(new Date(b.time))).join(), `Latest asks dates each ask at UTC+14 (${dates.slice(0, 3).join(", ")}, …)`);
+    await context.close();
+  });
 } finally {
   await browser.close();
   await app.stop();

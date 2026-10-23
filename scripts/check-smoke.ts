@@ -49,17 +49,21 @@ const wrongHeaders = (response: Response) => {
 
 const say = (wrong: string[]) => (wrong.length ? `missing or wrong: ${wrong.join(", ")}` : "every security header");
 
+/** The app's page, which every path under /app answers with: its own title (every page has the same root div). */
+const APP_PAGE = /<title>Asked Before<\/title>[\s\S]*<div id="app"><\/div>/;
+
 await step("1. Every page answers with the security headers", async () => {
   const pages: [string, string, number, RegExp][] = [
-    ["the landing page", "/", 200, /<title>Asked Before<\/title>/],
+    ["the landing page", "/", 200, /<title>Asked Before: turn a question you keep asking into one you can answer without AI<\/title>/],
     ["the docs", "/docs", 200, /<title>[^<]*Asked Before<\/title>/],
     ["log in", "/login", 200, /<title>[^<]*Asked Before<\/title>/],
     ["sign up", "/signup", 200, /<title>[^<]*Asked Before<\/title>/],
-    ["the app", "/app", 200, /<div id="app"><\/div>/],
-    ["the Desk, routed on the client", "/app/desk", 200, /<div id="app"><\/div>/],
-    ["a shelf, routed on the client", "/app/shelves/some-shelf", 200, /<div id="app"><\/div>/],
-    ["a card, routed on the client", "/app/cards/some-card", 200, /<div id="app"><\/div>/],
-    ["a page that isn't there", "/no-such-page", 404, /This page doesn't exist/],
+    ["the app", "/app", 200, APP_PAGE],
+    ["Home, routed on the client", "/app/desk", 200, APP_PAGE],
+    ["a shelf, routed on the client", "/app/shelves/some-shelf", 200, APP_PAGE],
+    ["a card, routed on the client", "/app/cards/some-card", 200, APP_PAGE],
+    // The not-found page draws "This page doesn't exist" in its script; its static HTML is known by its title.
+    ["a page that isn't there", "/no-such-page", 404, /<title>Page not found · Asked Before<\/title>/],
   ];
   for (const [what, path, status, body] of pages) {
     const response = await fetch(new URL(path, app.url));

@@ -1,6 +1,6 @@
 // Checks the app shell (m1kuorg/basics#42) in a real browser at 1920×1080, on
 // a fresh copy of the app: the public pages and the not-found page, signing
-// up and landing on the Desk, the top navigation and every screen's
+// up and landing on Home, the sidebar's navigation and every screen's
 // route, creating, renaming, and deleting a shelf with its confirmation
 // (each checked again through the SDK), logging out, and an app page visited
 // while logged out sending you to log in and back. The page must reach the
@@ -13,7 +13,7 @@ import type { Shelf } from "@asked-before/sdk";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { chromium, type Page } from "playwright";
+import { chromium, type Locator, type Page } from "playwright";
 import { startApp } from "./lib/app";
 
 const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-shell");
@@ -67,8 +67,14 @@ const path = (p: Page) => {
   const url = new URL(p.url());
   return url.pathname + url.search;
 };
-const heading = async (p: Page) => ((await p.locator(".block h1").first().textContent()) ?? "").trim();
-const row = (name: string) => page.locator("table.rows tbody tr", { has: page.getByRole("link", { name, exact: true }) });
+const say = async (locator: Locator) => ((await locator.first().textContent()) ?? "").replace(/\s+/g, " ").trim();
+const main = page.getByRole("main");
+const nav = page.getByRole("navigation", { name: "Asked Before" });
+const heading = (p: Page) => say(p.getByRole("main").getByRole("heading", { level: 1 }));
+/** A shelf's row in the shelves table, by its name's link. */
+const row = (name: string) => main.getByRole("table").locator("tbody tr", { has: page.getByRole("link", { name, exact: true }) });
+/** A form's message, which every form shows as role="alert" inside the main. */
+const alert = main.getByRole("alert");
 
 try {
   await step("1. The public pages answer, and a missing page is a 404 page", async () => {
@@ -77,7 +83,7 @@ try {
       ["the docs", "/docs", 200],
       ["log in", "/login", 200],
       ["sign up", "/signup", 200],
-      ["the Desk", "/app/desk", 200],
+      ["Home", "/app/desk", 200],
       ["an app screen", "/app/shelves/p1", 200],
       ["the app's root", "/app", 200],
       ["a missing page", "/no-such-page", 404],
@@ -87,61 +93,65 @@ try {
       check(response.status === status && type.startsWith("text/html"), `${what} (${at}): ${response.status}, ${type}`);
     }
     await page.goto(`${app.url}/no-such-page`);
+    await main.getByRole("heading", { level: 1 }).waitFor();
     check((await heading(page)) === "This page doesn't exist", `the missing page says "${await heading(page)}"`);
-    for (const name of ["Log in", "Sign up"]) {
-      check(await page.locator("nav").getByRole("link", { name, exact: true }).isVisible(), `its navigation has ${name}`);
-    }
+    const back = main.getByRole("link", { name: "Go to the start of Asked Before", exact: true });
+    check((await back.getAttribute("href")) === "/" && (await nav.getByRole("link", { name: "Asked Before", exact: true }).getAttribute("href")) === "/", "it leads back to the start of Asked Before");
   });
 
-  await step("2. Sign up: a weak password is refused, then the Desk", async () => {
+  await step("2. Sign up: a weak password is refused, then Home", async () => {
     await page.goto(app.url);
-    await page.locator("nav").getByRole("link", { name: "Sign up", exact: true }).click();
+    // The landing page's own Sign up, in its closing question.
+    await main.getByRole("link", { name: "Sign up", exact: true }).click();
     await page.waitForURL(/\/signup$/);
-    await page.getByLabel("Name").fill(ADA.name);
-    await page.getByLabel("Email").fill(ADA.email);
-    await page.getByLabel("Password").fill("too short");
-    await page.getByRole("button", { name: "Sign up" }).click();
-    const refusal = page.locator(".block .error");
-    await refusal.waitFor();
-    check(/10 characters/.test((await refusal.textContent()) ?? ""), `a 9-character password says "${await refusal.textContent()}"`);
+    await page.getByLabel("Name", { exact: true }).fill(ADA.name);
+    await page.getByLabel("Email", { exact: true }).fill(ADA.email);
+    await page.getByLabel("Password", { exact: true }).fill("too short");
+    await main.getByRole("button", { name: "Sign up", exact: true }).click();
+    await alert.waitFor();
+    check(/10 characters/.test(await say(alert)), `a 9-character password says "${await say(alert)}"`);
     check(path(page) === "/signup", `and stays on ${path(page)}`);
-    const password = page.getByLabel("Password");
+    const password = page.getByLabel("Password", { exact: true });
     const marked = await password.evaluate((input) => ({
       invalid: input.getAttribute("aria-invalid"),
       described: (input.getAttribute("aria-describedby") ?? "").split(" ").map((id) => document.getElementById(id)?.textContent),
       focused: input === document.activeElement,
     }));
     check(marked.invalid === "true" && marked.focused && marked.described.includes("A password needs at least 10 characters."), `the password field is marked, described by the notice, and focused: ${JSON.stringify(marked)}`);
-    await page.getByLabel("Password").fill(ADA.password);
-    await page.getByRole("button", { name: "Sign up" }).click();
+    await password.fill(ADA.password);
+    await main.getByRole("button", { name: "Sign up", exact: true }).click();
     await page.waitForURL(/\/app\/desk$/);
-    await page.locator(".block h1").waitFor();
-    check((await heading(page)) === "Still borrowed", `signing up lands on the Desk: "${await heading(page)}" at ${path(page)}`);
-    const nav = page.locator("body > nav");
-    check((await nav.locator('[aria-current="page"]').textContent()) === "Desk", "the navigation marks Desk as the current page");
+    // A new account's Home: its h1 is built from the data, and has no cards to count yet.
+    await main.getByRole("heading", { level: 1, name: "No cards yet.", exact: true }).waitFor();
+    check((await heading(page)) === "No cards yet.", `signing up lands on Home: "${await heading(page)}" at ${path(page)}`);
+    const current = nav.locator('[aria-current="page"]');
+    check((await current.count()) === 1 && (await say(current)) === "Home", `the navigation marks Home as the current page: "${await say(current)}"`);
     check((await nav.textContent())?.includes(ADA.name) ?? false, "the navigation names the account");
-    check((await page.title()).startsWith("Desk"), `the page's title is "${await page.title()}"`);
+    check((await page.title()).startsWith("Home"), `the page's title is "${await page.title()}"`);
   });
 
   await step("3. Shelves: the empty state, then create two", async () => {
-    await page.locator("body > nav").getByRole("link", { name: "Shelves", exact: true }).click();
+    await nav.getByRole("link", { name: "All shelves", exact: true }).click();
     await page.waitForURL(/\/app\/shelves$/);
-    await page.locator(".block .empty").waitFor();
-    check((await page.locator(".block .empty h2").textContent()) === "No shelves yet", `the empty state says "${await page.locator(".block .empty h2").textContent()}"`);
+    const empty = main.locator('[data-slot="empty-title"]');
+    await empty.waitFor();
+    check((await say(empty)) === "No shelves yet", `the empty state says "${await say(empty)}"`);
+    const field = main.getByLabel("New shelf", { exact: true });
     for (const name of ["Work", "Bootcamp"]) {
-      await page.getByLabel("New shelf").fill(name);
-      await page.getByRole("button", { name: "Add shelf" }).click();
+      await field.fill(name);
+      await main.getByRole("button", { name: "Add shelf", exact: true }).click();
       await row(name).waitFor();
     }
-    check((await page.locator("table.rows tbody tr").count()) === 2, "both shelves are rows in the list");
-    check((await page.getByLabel("New shelf").inputValue()) === "", "the field is cleared for the next one");
+    check((await main.getByRole("table").locator("tbody tr").count()) === 2, "both shelves are rows in the list");
+    check((await field.inputValue()) === "", "the field is cleared for the next one");
+    // Name, Cards, Need a rep, Proven, Last upload; the name's cell also holds the phone's second line.
     const cells = (await row("Work").locator("td").allTextContents()).map((text) => text.trim());
-    check(cells[1] === "0" && cells[2] === "0" && cells[3] === "0" && cells[4] === "None yet", `Work's row reads ${JSON.stringify(cells.slice(0, 5))}`);
-    await page.getByLabel("New shelf").fill("   ");
-    await page.getByRole("button", { name: "Add shelf" }).click();
-    const refusal = page.locator(".block .error");
-    await refusal.waitFor();
-    check((await refusal.textContent()) === "A shelf needs a name.", `a blank name says "${await refusal.textContent()}"`);
+    check(cells[1] === "0" && cells[2] === "0" && cells[3] === "0" && cells[4] === "None yet", `Work's row reads ${JSON.stringify(cells.slice(1, 5))}`);
+    check(await nav.getByRole("link", { name: "Bootcamp", exact: true }).isVisible(), "and the sidebar lists the new shelves");
+    await field.fill("   ");
+    await main.getByRole("button", { name: "Add shelf", exact: true }).click();
+    await alert.waitFor();
+    check((await say(alert)) === "A shelf needs a name.", `a blank name says "${await say(alert)}"`);
 
     await api.auth.logIn({ email: ADA.email, password: ADA.password });
     const names = (await api.shelves.list()).map((shelf) => shelf.name);
@@ -149,14 +159,14 @@ try {
   });
 
   await step("4. Rename a shelf in its row", async () => {
-    await row("Work").getByRole("button", { name: "Rename Work" }).click();
-    const input = page.getByLabel("Name of Work");
+    await row("Work").getByRole("button", { name: "Rename Work", exact: true }).click();
+    const input = main.getByLabel("Name of Work", { exact: true });
     check((await input.inputValue()) === "Work" && (await input.evaluate((el) => el === document.activeElement)), "the row's name becomes a field holding it, with focus");
     await input.press("Escape");
-    check((await row("Work").getByRole("button", { name: "Rename Work" }).isVisible()), "Escape leaves the name as it was");
-    await row("Work").getByRole("button", { name: "Rename Work" }).click();
-    await page.getByLabel("Name of Work").fill("Day job");
-    await page.getByLabel("Name of Work").press("Enter");
+    check(await row("Work").getByRole("button", { name: "Rename Work", exact: true }).isVisible(), "Escape leaves the name as it was");
+    await row("Work").getByRole("button", { name: "Rename Work", exact: true }).click();
+    await main.getByLabel("Name of Work", { exact: true }).fill("Day job");
+    await main.getByLabel("Name of Work", { exact: true }).press("Enter");
     await row("Day job").waitFor();
     check((await row("Work").count()) === 0, "the row now reads Day job");
     const names = (await api.shelves.list()).map((shelf) => shelf.name);
@@ -164,20 +174,20 @@ try {
   });
 
   await step("5. Delete a shelf, after its confirmation", async () => {
-    await row("Bootcamp").getByRole("button", { name: "Delete Bootcamp" }).click();
-    const notice = page.locator("table.rows .confirm");
-    await notice.waitFor();
-    const said = ((await notice.textContent()) ?? "").replace(/\s+/g, " ");
-    check(/uploads, phrasings, cards, and reps/.test(said) && /can't be undone/.test(said), `the confirmation names what goes: "${said}"`);
+    await row("Bootcamp").getByRole("button", { name: "Delete Bootcamp…", exact: true }).click();
+    const confirm = main.getByRole("table").getByRole("group", { name: "Delete Bootcamp?", exact: true });
+    await confirm.waitFor();
+    const said = await say(confirm);
+    check(/uploads, messages, cards, and cold reps/.test(said) && /can't be undone/.test(said), `the confirmation names what goes: "${said}"`);
     const focused = await page.evaluate(() => document.activeElement?.textContent);
     check(focused === "Keep it", `focus starts on the safe choice: "${focused}"`);
     await page.screenshot({ path: join(OUT, `${shot}b-confirm.png`) });
-    await page.getByRole("button", { name: "Keep it" }).click();
-    check((await notice.count()) === 0 && (await row("Bootcamp").count()) === 1, "Keep it closes the confirmation and keeps the shelf");
+    await confirm.getByRole("button", { name: "Keep it", exact: true }).click();
+    check((await confirm.count()) === 0 && (await row("Bootcamp").count()) === 1, "Keep it closes the confirmation and keeps the shelf");
     check((await api.shelves.list()).length === 2, "the API still lists both");
 
-    await row("Bootcamp").getByRole("button", { name: "Delete Bootcamp" }).click();
-    await page.getByRole("button", { name: "Delete Bootcamp" }).last().click();
+    await row("Bootcamp").getByRole("button", { name: "Delete Bootcamp…", exact: true }).click();
+    await confirm.getByRole("button", { name: "Delete Bootcamp", exact: true }).click();
     await row("Bootcamp").waitFor({ state: "detached" });
     const left = (await api.shelves.list()).map((shelf) => shelf.name);
     check(left.join(", ") === "Day job", `the API lists only ${left.join(", ")}`);
@@ -185,11 +195,12 @@ try {
 
   await step("6. Every screen has its route, and back and forward work", async () => {
     const [dayJob] = (await api.shelves.list()) as [Shelf];
-    await page.getByRole("link", { name: "Day job", exact: true }).click();
+    await main.getByRole("link", { name: "Day job", exact: true }).click();
     await page.waitForURL(new RegExp(`/app/shelves/${dayJob.id}$`));
-    await page.locator(".block h1", { hasText: "Day job" }).waitFor();
+    await main.getByRole("heading", { level: 1, name: "Day job", exact: true }).waitFor();
     check((await heading(page)) === "Day job", `the shelf's screen is headed "${await heading(page)}"`);
-    check((await page.locator("body > nav [aria-current=page]").textContent()) === "Shelves", "the navigation keeps Shelves current inside a shelf");
+    const current = nav.locator("[aria-current=page]");
+    check((await current.count()) === 1 && (await say(current)) === "Day job", `the navigation marks the shelf itself as current inside it: "${await say(current)}"`);
     await page.goBack();
     await row("Day job").waitFor();
     check(path(page) === "/app/shelves", `back returns to ${path(page)}`);
@@ -198,23 +209,26 @@ try {
     check(true, "forward returns to the shelf");
 
     for (const [at, title] of [
-      ["/app", "Still borrowed"],
+      // Home's h1 for an account with a shelf and no cards.
+      ["/app", "No cards yet."],
       [`/app/shelves/${dayJob.id}/upload`, "Upload a chat export"],
-      ["/app/cards/c1", "Card"],
+      // A card that isn't there is the app's not-found screen.
+      ["/app/cards/c1", "This page doesn't exist"],
       ["/app/settings", "Settings"],
       ["/app/no-such-screen", "This page doesn't exist"],
     ] as const) {
       await page.goto(`${app.url}${at}`);
-      await page.locator(".block h1").waitFor();
+      await main.getByRole("heading", { level: 1, name: title, exact: true }).waitFor();
       check((await heading(page)) === title, `${at} shows "${await heading(page)}"`);
     }
-    await page.locator("body > nav").getByRole("link", { name: "Settings", exact: true }).click();
+    await nav.getByRole("link", { name: "Settings", exact: true }).click();
     await page.waitForURL(/\/app\/settings$/);
-    check((await page.locator(".block").textContent())?.includes(ADA.email) ?? false, "settings shows the account's email");
+    await main.getByRole("heading", { level: 1, name: "Settings", exact: true }).waitFor();
+    check((await main.textContent())?.includes(ADA.email) ?? false, "settings shows the account's email");
   });
 
   await step("7. Log out", async () => {
-    await page.locator("body > nav").getByRole("button", { name: "Log out" }).click();
+    await nav.getByRole("button", { name: "Log out", exact: true }).click();
     await page.waitForURL(/\/login$/);
     check(path(page) === "/login", `logging out goes to ${path(page)}`);
     const me = await page.evaluate(() => fetch("/api/v1/auth/me").then((r) => r.status));
@@ -226,15 +240,14 @@ try {
     await page.waitForURL(/\/login\?/);
     const next = new URL(page.url()).searchParams.get("next");
     check(next === "/app/shelves?from=bookmark", `sent to log in with next=${next}`);
-    await page.getByLabel("Email").fill(ADA.email);
-    await page.getByLabel("Password").fill("the wrong password");
-    await page.getByRole("button", { name: "Log in" }).click();
-    const refusal = page.locator(".block .error");
-    await refusal.waitFor();
-    check((await refusal.textContent()) === "Wrong email or password.", `a wrong password says "${await refusal.textContent()}"`);
+    await page.getByLabel("Email", { exact: true }).fill(ADA.email);
+    await page.getByLabel("Password", { exact: true }).fill("the wrong password");
+    await main.getByRole("button", { name: "Log in", exact: true }).click();
+    await alert.waitFor();
+    check((await say(alert)) === "Wrong email or password.", `a wrong password says "${await say(alert)}"`);
     check((await page.locator("[aria-invalid]").count()) === 0, "and marks neither field, so it doesn't say which was wrong");
-    await page.getByLabel("Password").fill(ADA.password);
-    await page.getByRole("button", { name: "Log in" }).click();
+    await page.getByLabel("Password", { exact: true }).fill(ADA.password);
+    await main.getByRole("button", { name: "Log in", exact: true }).click();
     await page.waitForURL(/\/app\/shelves\?from=bookmark$/);
     await row("Day job").waitFor();
     check(path(page) === "/app/shelves?from=bookmark", `and back to ${path(page)}, with Day job listed`);

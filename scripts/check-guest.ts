@@ -1,8 +1,8 @@
 // Checks signing in as a guest to the shared guest workspace
 // (m1kuorg/basics#73) on a fresh copy of the app, in real browsers at
-// 1920×1080 and through the SDK. "Sign in as a guest" on the landing page,
+// 1920×1080 and through the SDK. "Try it as a guest" on the landing page,
 // the day's first, restores the guest workspace's demo shelf from
-// demo/sorted.json with no model request, and lands on the Desk with it,
+// demo/sorted.json with no model request, and lands on Home with it,
 // sorted as the answer key sorts the demo export;
 // a second browser, signing in from the log-in page, and a third, from the
 // sign-up page, share the same shelves and see the first guest's cold rep;
@@ -26,7 +26,7 @@ import { Database } from "bun:sqlite";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { chromium, type Page } from "playwright";
+import { chromium, type Locator, type Page } from "playwright";
 import { compareWithKey, key, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
 import { refuse, startModelStub } from "./lib/model-stub";
@@ -37,6 +37,11 @@ const DEMO = join(import.meta.dir, "..", "demo", "export.json");
 const FRAME = { width: 1920, height: 1080 };
 const DAY_MS = 24 * 60 * 60 * 1000;
 const NOT_FOR_GUESTS = "A guest can't do this. Sign up for an account of your own to do it.";
+/** The guest's line in the sidebar, and the upload page's warning, word for word (inventory.md, "Copy with product, legal, or privacy weight"). */
+const GUEST_LINE = "Every guest shares this workspace, and it's wiped daily at midnight UTC.";
+const UPLOAD_WARNING =
+  "You're signed in as the shared guest, so every guest will see what you upload here, with its cards and cold reps. The guest workspace is wiped daily at midnight UTC, though Cloudflare's backups keep it for up to 30 days. Sign up to keep an export to yourself.";
+const A = key.skills[0]!.name;
 
 const failures: string[] = [];
 let current = "";
@@ -98,15 +103,27 @@ async function clientOf(page: Page): Promise<Client> {
   return createClient({ baseUrl: app.url, fetch: (url, init) => fetch(url, { ...init, headers: { ...Object.fromEntries(new Headers(init?.headers)), cookie, origin: app.url } }) });
 }
 
-const text = async (page: Page, selector: string) => ((await page.locator(selector).first().textContent()) ?? "").replace(/\s+/g, " ").trim();
+const words = async (locator: Locator) => ((await locator.first().textContent()) ?? "").replace(/\s+/g, " ").trim();
+const main = (page: Page) => page.getByRole("main");
+const nav = (page: Page) => page.getByRole("navigation", { name: "Asked Before" });
+const h1 = (page: Page) => main(page).getByRole("heading", { level: 1 });
+/** Home's "Prove next": the cards that need a cold rep, most asked first. */
+const proveNext = (page: Page) => main(page).getByRole("region", { name: "Prove next", exact: true });
 
-/** Clicks "Sign in as a guest" on a public page and waits for the Desk. */
+/** Waits for `success`, or fails at once with what an alert in the page's main says. */
+async function settle(page: Page, success: Locator, timeout?: number) {
+  const alert = main(page).getByRole("alert");
+  await success.or(alert).first().waitFor({ timeout });
+  if (!(await success.count())) throw new Error(`the page says "${await words(alert)}"`);
+}
+
+/** Presses "Try it as a guest" on a public page and waits for Home: in the landing page's head, or under the log-in or sign-up form. */
 async function signInAsGuest(page: Page, path: string): Promise<void> {
   await page.goto(`${app.url}${path}`);
-  // The landing page offers it in its head and its close; the head's comes first.
-  await page.getByRole("button", { name: "Sign in as a guest" }).first().click();
+  const where = path === "/" ? page.getByRole("banner") : main(page).getByRole("region", { name: "Just looking?", exact: true });
+  await where.getByRole("button", { name: "Try it as a guest", exact: true }).click();
   await page.waitForURL(/\/app\/desk$/);
-  await page.locator(".block h1").waitFor();
+  await h1(page).waitFor();
 }
 
 // Another account, whose shelves the guest workspace's reset must leave alone.
@@ -123,13 +140,16 @@ let mine: Shelf;
 let cardA = "";
 
 try {
-  await step("1. Sign in as a guest from the landing page: the Desk, with the demo shelf already sorted", async () => {
+  await step("1. Sign in as a guest from the landing page: Home, with the demo shelf already sorted", async () => {
     const before = model.requests.length;
     await signInAsGuest(first, "/");
-    check((await text(first, ".block h1")) === "Still borrowed", `it lands on the Desk: "${await text(first, ".block h1")}"`);
-    const rows = first.locator(".block table").first();
-    check((await rows.textContent())?.includes(key.skills[0]!.name) ?? false, `the Desk's rows hold "${key.skills[0]!.name}"`);
-    check(await rows.locator(".demo-label").first().isVisible(), "on a shelf labeled demo data");
+    // Home's h1 says how many cards need a cold rep: every card of the sorted demo shelf, none proven.
+    const greeting = `${key.skills.length} cards need a cold rep, none is proven yet.`;
+    await settle(first, main(first).getByRole("heading", { level: 1, name: greeting, exact: true }));
+    check((await words(h1(first))) === greeting, `it lands on Home: "${await words(h1(first))}"`);
+    const rows = proveNext(first);
+    check(await rows.getByRole("link", { name: A, exact: true }).isVisible(), `Home's Prove next holds "${A}"`);
+    check(await rows.getByText("Demo data", { exact: true }).first().isVisible(), "on a shelf labeled demo data");
     const guest = await clientOf(first);
     const shelves = await guest.shelves.list();
     check(shelves.length === 1 && shelves[0]!.name === "Demo" && shelves[0]!.demo, `the guest workspace holds one shelf: ${shelves.map((s) => `${s.name}${s.demo ? " (demo)" : ""}`).join(", ")}`);
@@ -145,11 +165,12 @@ try {
   });
 
   await step("2. The navigation names the shared guest, with Sign up and no Settings", async () => {
-    const nav = first.locator("body > nav");
-    check((await nav.textContent())?.includes("Shared guest") ?? false, `the navigation says "Shared guest": "${(await nav.textContent())?.replace(/\s+/g, " ")}"`);
-    check((await nav.getByRole("link", { name: "Settings", exact: true }).count()) === 0, "it has no Settings");
-    check((await nav.getByRole("link", { name: "Sign up", exact: true }).getAttribute("href")) === "/signup", "it has Sign up, to the sign-up page");
-    check(await nav.getByRole("button", { name: "Log out" }).isVisible(), "and Log out");
+    const sidebar = nav(first);
+    check((await sidebar.textContent())?.includes("Shared guest") ?? false, `the navigation says "Shared guest": "${await words(sidebar)}"`);
+    check(await sidebar.getByText(GUEST_LINE, { exact: true }).isVisible(), "and that every guest shares the workspace, wiped daily at midnight UTC");
+    check((await sidebar.getByRole("link", { name: "Settings", exact: true }).count()) === 0, "it has no Settings");
+    check((await sidebar.getByRole("link", { name: "Sign up", exact: true }).getAttribute("href")) === "/signup", "it has Sign up, to the sign-up page");
+    check(await sidebar.getByRole("button", { name: "Log out", exact: true }).isVisible(), "and Log out");
     const me = await (await clientOf(first)).auth.me();
     check(me.guest && me.name === "Guest", `auth.me says it's the guest: ${JSON.stringify({ name: me.name, guest: me.guest })}`);
   });
@@ -157,13 +178,17 @@ try {
   await step("3. A guest's cold rep, passed, is the next guest's too, from the log-in page and the sign-up page", async () => {
     model.queue(repReply("A guest's problem.", "A guest's lesson."), verdictReply("pass", "You did it."));
     await first.goto(`${app.url}/app/cards/${cardA}`);
-    await first.locator(".block").getByRole("button", { name: "Take a cold rep" }).click();
-    await first.locator(".answer-box textarea").fill("My own answer.");
-    await first.getByRole("button", { name: "Check my answer" }).click();
-    await first.getByRole("button", { name: "Back to the stack" }).waitFor();
+    const rep = main(first).getByRole("region", { name: "Prove it without AI", exact: true });
+    await rep.getByRole("button", { name: `Start a cold rep on ${A}`, exact: true }).click();
+    const answer = rep.getByLabel("Your answer, in your own words, without AI", { exact: true });
+    await settle(first, answer);
+    await answer.fill("My own answer.");
+    await rep.getByRole("button", { name: "Check my answer", exact: true }).click();
+    await settle(first, rep.getByRole("link", { name: "Back to Home", exact: true }));
     await signInAsGuest(second, "/login");
-    const returns = second.locator(".block .latest-returns");
-    check((await returns.textContent())?.includes(key.skills[0]!.name) ?? false, `the second guest's Desk lists "${key.skills[0]!.name}" among its latest returns`);
+    const proven = main(second).getByRole("list", { name: "Latest proven, latest first", exact: true });
+    await settle(second, proven);
+    check(await proven.getByRole("link", { name: A, exact: true }).isVisible(), `the second guest's Home lists "${A}" among the latest proven`);
     const seen = await (await clientOf(second)).cards.get(cardA);
     check(seen.status === "returned" && seen.reps.length === 1 && seen.reps[0]!.answer === "My own answer.", `the card is returned, with the first guest's rep and answer: ${seen.status}, ${seen.reps.length} rep`);
     await signInAsGuest(third, "/signup");
@@ -174,9 +199,11 @@ try {
 
   await step("4. Settings holds nothing of the account's for a guest, and its API answers a guest 403", async () => {
     await first.goto(`${app.url}/app/settings`);
-    await first.locator(".block .empty").waitFor();
-    check((await first.locator(".block form, .block input, .block .code-block").count()) === 0, "the settings page has no form, field, or setup snippet");
-    check(await first.locator(".block .empty").getByRole("link", { name: "Sign up" }).isVisible(), `it leads to Sign up: "${await text(first, ".block .empty")}"`);
+    const empty = main(first).getByRole("heading", { level: 2, name: "Settings are for your own account", exact: true });
+    await settle(first, empty);
+    check((await main(first).locator("form, input, textarea, pre, code").count()) === 0, "the settings page has no form, field, or setup snippet");
+    const signUp = main(first).getByRole("link", { name: "Sign up", exact: true });
+    check((await signUp.isVisible()) && (await signUp.getAttribute("href")) === "/signup", `it leads to Sign up: "${await words(main(first).locator('[data-slot="empty"]'))}"`);
     const guest = await clientOf(first);
     const refused = {
       "renaming the account": await failure(guest.account.update({ name: "Mallory" })),
@@ -206,20 +233,18 @@ try {
     const guest = await clientOf(first);
     mine = await guest.shelves.create({ name: "Mine" });
     await first.goto(`${app.url}/app/shelves/${mine.id}/upload`);
-    const warning = first.locator(".block .guest-warning");
-    await warning.waitFor();
-    const said = await text(first, ".block .guest-warning");
-    check(/every guest/i.test(said) && /midnight UTC/.test(said), `the warning says "${said}"`);
-    const order = await first.locator(".block").evaluate((block) => {
-      const warned = block.querySelector(".guest-warning");
-      const zone = block.querySelector(".drop-zone");
-      return !!warned && !!zone && (warned.compareDocumentPosition(zone) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
-    });
-    check(order, "above the drop zone");
-    await first.locator(".drop-zone input[type=file]").setInputFiles(DEMO);
-    await first.locator(".block").getByRole("button", { name: "Upload 27 messages" }).waitFor();
+    const warning = main(first).getByRole("note");
+    const input = main(first).locator('input[type="file"]');
+    await settle(first, input);
+    const said = await words(warning);
+    check(said === UPLOAD_WARNING && /every guest/i.test(said) && /midnight UTC/.test(said), `the warning says "${said}"`);
+    const order = await warning.evaluate((warned, zone) => zone !== null && (warned.compareDocumentPosition(zone) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0, await input.elementHandle());
+    check(order, "above the drop target, before a file is chosen");
+    await input.setInputFiles(DEMO);
+    const send = main(first).getByRole("button", { name: `Upload ${phrasings.length} messages`, exact: true });
+    await settle(first, send);
     check(await warning.isVisible(), "and still there beside the preview, before anything is sent");
-    await first.locator(".block").getByRole("button", { name: "Upload 27 messages" }).click();
+    await send.click();
     await first.waitForURL(/[?&]upload=/);
     const sorted = await sortEnds(guest, new URL(first.url()).searchParams.get("upload")!);
     check(sorted.status === "sorted", `the guest's upload is sorted: ${sorted.status}`);
@@ -249,8 +274,9 @@ try {
       check(me === null, `the ${who} guest is still signed in: ${say(me)}`);
     }
     await first.goto(`${app.url}/app/desk`);
-    await first.locator(".block table").first().waitFor();
-    check(new URL(first.url()).pathname === "/app/desk" && ((await first.locator(".block table").first().textContent())?.includes(key.skills[0]!.name) ?? false), "the first guest's Desk shows the restored shelf's cards");
+    const restored = proveNext(first).getByRole("link", { name: A, exact: true });
+    await settle(first, restored);
+    check(new URL(first.url()).pathname === "/app/desk" && (await restored.isVisible()), "the first guest's Home shows the restored shelf's cards");
     const again = await cron(tomorrow + 1000);
     const still = await guest.shelves.list();
     check(again.ok && still.length === 1 && still[0]!.id === shelves[0]!.id, "the cron's next run that day changes nothing");
@@ -261,16 +287,18 @@ try {
 
   await step("8. Signing up from the guest's navigation leads to an account of one's own", async () => {
     const wasGuest = await clientOf(first);
-    await first.locator("body > nav").getByRole("link", { name: "Sign up", exact: true }).click();
+    await nav(first).getByRole("link", { name: "Sign up", exact: true }).click();
     await first.waitForURL(/\/signup$/);
-    await first.getByLabel("Name").fill("Bea Example");
-    await first.getByLabel("Email").fill("bea@example.com");
-    await first.getByLabel("Password").fill("a long enough password");
-    await first.getByRole("button", { name: "Sign up", exact: true }).click();
+    await first.getByLabel("Name", { exact: true }).fill("Bea Example");
+    await first.getByLabel("Email", { exact: true }).fill("bea@example.com");
+    await first.getByLabel("Password", { exact: true }).fill("a long enough password");
+    await main(first).getByRole("button", { name: "Sign up", exact: true }).click();
     await first.waitForURL(/\/app\/desk$/);
-    await first.locator(".block .empty").waitFor();
-    const nav = (await first.locator("body > nav").textContent()) ?? "";
-    check(nav.includes("Bea Example") && !nav.includes("Shared guest") && (await first.locator("body > nav").getByRole("link", { name: "Settings", exact: true }).isVisible()), "the navigation names Bea, with Settings");
+    // An account of one's own starts empty: Home has no cards, and offers the demo shelf.
+    await settle(first, main(first).getByRole("heading", { level: 1, name: "No cards yet.", exact: true }));
+    check(await proveNext(first).getByRole("button", { name: "Try the demo shelf", exact: true }).isVisible(), "Home is empty, offering the demo shelf");
+    const said = (await nav(first).textContent()) ?? "";
+    check(said.includes("Bea Example") && !said.includes("Shared guest") && (await nav(first).getByRole("link", { name: "Settings", exact: true }).isVisible()), "the navigation names Bea, with Settings");
     const bea = await (await clientOf(first)).auth.me();
     check(!bea.guest && (await (await clientOf(first)).shelves.list()).length === 0, `Bea's own account, with no shelves: guest ${bea.guest}`);
     const ended = await failure(wasGuest.auth.me());
