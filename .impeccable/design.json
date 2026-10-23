@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-23T17:44:37.782Z",
+  "generatedAt": "2026-10-23T20:41:48.000Z",
   "title": "Design System: Asked Before",
   "extensions": {
     "colorMeta": {
@@ -263,7 +263,7 @@
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Public pages only: the hero, chapter statements, the CTA question, the footer wordmark, the log-in and sign-up h1, the showcase input. Sized 9.5 to 21vw where used."
+        "purpose": "Public pages only: the hero (21vw, 15.6vw from 1024px), chapter statements, the CTA question, the log-in and sign-up h1, the showcase input (9.5vw), and the footer wordmark sized to its container (calc(100cqw / 6.15))."
       },
       "headline": {
         "displayName": "Head",
@@ -279,7 +279,7 @@
       },
       "small-public": {
         "displayName": "Small (public)",
-        "purpose": "Dates, header links, table heads, the legal line."
+        "purpose": "Dates, header links, table heads, picture captions, the film's Play / Pause, the legal line."
       },
       "app-title": {
         "displayName": "App title",
@@ -326,6 +326,21 @@
         "purpose": "Public pages: display lines rising out of their masks and chapter entrances (900ms, 70ms stagger)."
       },
       {
+        "name": "photo-fade",
+        "value": "data-reveal=\"fade\": opacity in once as it enters",
+        "purpose": "Every found picture and the film. Reading text (the FAQ answers) has no entrance."
+      },
+      {
+        "name": "photo-drift",
+        "value": "animation-timeline: view(); image at 106% of its frame",
+        "purpose": "The two large photographs settle inside their frames with the scroll, only with no-preference and where view timelines are supported."
+      },
+      {
+        "name": "footage-loop",
+        "value": "muted loop, plays only while 20% in view, Play / Pause beside the caption",
+        "purpose": "The landing's one loop (WCAG 2.2.2); with reduced motion it waits on its poster until Play."
+      },
+      {
         "name": "press-public",
         "value": "transform: scale(0.97) over 140ms",
         "purpose": "Public buttons on press."
@@ -360,12 +375,12 @@
       {
         "name": "lg",
         "value": "1024px",
-        "purpose": "The app sidebar folds into a 48px top bar below it; account pages split in two above it; small controls grow to 44px below it."
+        "purpose": "The app sidebar folds into a 48px top bar below it; account pages split in two above it; small controls grow to 44px below it. On the landing, How it works' sentences hold the left margin with their picture, and the film moves beside the FAQ answers."
       },
       {
         "name": "canvas",
         "value": "1100px",
-        "purpose": "The app canvas width (Settings 1152px); Home's 9 + 3 and 6 + 6 stack below it."
+        "purpose": "The app canvas width (Settings 1152px); Home's 8 + 4 stacks below it."
       }
     ]
   },
@@ -438,9 +453,17 @@
       "name": "Prove Next Panel",
       "kind": "card",
       "refersTo": "panel",
-      "description": "A tonal panel holding white row cards, each with its skill, shelf, the ask span on a shared axis, and its action.",
+      "description": "A tonal panel holding white row cards (the only white cards in a panel), each with its skill, shelf, its ask strip on a shared axis (span first, then one dot per ask once the card arrives), and its action.",
       "html": "<section class=\"ds-panel\"><div class=\"ds-panel-head\"><h2>Prove next</h2><span class=\"ds-pill-to-prove-sm\">4</span></div><p class=\"ds-sub\">Most asked first.</p><div class=\"ds-row\"><div><a href=\"#\" class=\"ds-name\">Undo a git commit</a><p class=\"ds-sub\">Work · asked 9 times</p></div><span class=\"ds-span\"><svg width=\"100%\" height=\"14\" aria-label=\"Asked 9 times, March 2025 to September 2026\" role=\"img\"><line x1=\"0\" x2=\"100%\" y1=\"50%\" y2=\"50%\" stroke=\"#e3dae0\" stroke-width=\"2\"/><line x1=\"12%\" x2=\"86%\" y1=\"50%\" y2=\"50%\" stroke=\"#ff488b\" stroke-width=\"4\" stroke-linecap=\"round\"/></svg><span class=\"ds-n\">9</span></span><button class=\"ds-row-btn\">Start a cold rep</button></div></section>",
       "css": ".ds-panel{display:flex;flex-direction:column;gap:16px;max-width:640px;padding:20px;border-radius:16px;background:var(--panel,#f7f2f5);font:400 14px 'Schibsted Grotesk',ui-sans-serif,sans-serif;color:var(--foreground,#101421);}.ds-panel-head{display:flex;align-items:center;gap:8px;}.ds-panel-head h2{margin:0;font-size:14px;font-weight:600;}.ds-pill-to-prove-sm{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:9999px;background:#efe7ec;color:#3b3240;font-size:12px;font-weight:500;}.ds-sub{margin:4px 0 0;color:var(--muted-foreground,#5d5562);}.ds-row{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(7rem,1fr) auto;align-items:center;gap:16px;min-height:63px;padding:10px 16px;border:1px solid var(--border,#ece4e9);border-radius:12px;background:#fff;}.ds-name{font-weight:500;color:inherit;text-decoration:none;text-underline-offset:4px;}.ds-name:hover{text-decoration:underline;}.ds-span{display:flex;align-items:center;gap:8px;}.ds-n{font-size:12px;color:var(--muted-foreground,#5d5562);font-variant-numeric:tabular-nums;}.ds-row-btn{height:32px;padding:0 12px;border:0;border-radius:10px;background:#0d060b;color:#fff;font:500 14px inherit;font-family:inherit;cursor:pointer;}.ds-row-btn:hover{background:color-mix(in oklab,#0d060b 85%,transparent);}.ds-row-btn:focus-visible{outline:2px solid var(--ring,#0d060b);outline-offset:2px;}"
+    },
+    {
+      "name": "Rule Row List",
+      "kind": "card",
+      "refersTo": "rule-row",
+      "description": "A list inside a panel (Your shelves, Latest proven, Latest asks): rows separated by 1px rules, no card of their own.",
+      "html": "<section class=\"ds-rpanel\"><h2>Your shelves</h2><p class=\"ds-rhead\"><span>Shelf</span><span>Need a cold rep</span></p><ul class=\"ds-rlist\"><li class=\"ds-rrow\"><a href=\"#\">Work</a><span>4</span></li><li class=\"ds-rrow\"><a href=\"#\">Demo</a><span>5</span></li></ul></section>",
+      "css": ".ds-rpanel{display:flex;flex-direction:column;gap:16px;max-width:360px;padding:20px;border-radius:16px;background:var(--panel,#f7f2f5);font:400 14px 'Schibsted Grotesk',ui-sans-serif,sans-serif;color:var(--foreground,#101421);}.ds-rpanel h2{margin:0;font-size:14px;font-weight:600;}.ds-rhead{display:flex;justify-content:space-between;margin:0 0 0;padding-bottom:8px;border-bottom:1px solid var(--border,#ece4e9);font-size:12px;color:var(--muted-foreground,#5d5562);}.ds-rlist{list-style:none;margin:-16px 0 0;padding:0;}.ds-rrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--border,#ece4e9);}.ds-rrow:last-child{border-bottom:0;}.ds-rrow a{font-weight:500;color:inherit;text-decoration:none;text-underline-offset:4px;}.ds-rrow a:hover{text-decoration:underline;}.ds-rrow a:focus-visible{outline:2px solid var(--ring,#0d060b);outline-offset:2px;}.ds-rrow span{font-variant-numeric:tabular-nums;color:var(--muted-foreground,#5d5562);}"
     },
     {
       "name": "Ask Strip",
@@ -449,6 +472,14 @@
       "description": "The signature element: one pink dot per ask on a 2px grey track, and a plum-black proven tick. On white only.",
       "html": "<svg class=\"ds-strip\" role=\"img\" aria-label=\"Asked 9 times, March 2025 to September 2026, proven October 23, 2026\"><line x1=\"0\" x2=\"100%\" y1=\"50%\" y2=\"50%\" stroke=\"#e3dae0\" stroke-width=\"2\"/><circle cx=\"6%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"18%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"31%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"40%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"52%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"61%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"70%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"79%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><circle cx=\"86%\" cy=\"50%\" r=\"4.5\" fill=\"#ff488b\" stroke=\"#fff\" stroke-width=\"1.5\"/><line x1=\"94%\" x2=\"94%\" y1=\"0\" y2=\"100%\" stroke=\"#0d060b\" stroke-width=\"2\"/></svg>",
       "css": ".ds-strip{display:block;width:100%;max-width:560px;height:20px;overflow:visible;background:#fff;}"
+    },
+    {
+      "name": "Found Picture",
+      "kind": "custom",
+      "refersTo": "photo",
+      "description": "The landing's archival pictures in one treatment: square, untouched black and white, plum surface while loading, caption and date under it.",
+      "html": "<figure class=\"ds-photo\"><div class=\"ds-photo-frame\"><svg viewBox=\"0 0 400 260\" width=\"100%\" aria-hidden=\"true\"><rect width=\"400\" height=\"260\" fill=\"#1b0e17\"/><rect x=\"40\" y=\"60\" width=\"140\" height=\"170\" fill=\"#3a3a3a\"/><rect x=\"210\" y=\"40\" width=\"150\" height=\"190\" fill=\"#6a6a6a\"/></svg></div><figcaption class=\"ds-photo-cap\"><span>A card catalog</span><span>1932</span></figcaption></figure>",
+      "css": ".ds-photo{margin:0;max-width:480px;font-family:'Schibsted Grotesk',ui-sans-serif,sans-serif;}.ds-photo-frame{background:var(--plum-surface,#1b0e17);overflow:clip;border-radius:0;}.ds-photo-frame svg{display:block;}.ds-photo-cap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 24px;margin-top:12px;font-size:15px;line-height:1.4;letter-spacing:-.01em;color:var(--muted-foreground,#5d5562);}"
     },
     {
       "name": "Proven Stamp",
@@ -461,11 +492,12 @@
   ],
   "narrative": {
     "northStar": "The Repeated Question, Typeset",
-    "overview": "Asked Before has two rooms built from one palette and one typeface. The public pages (landing, log in, sign up, 404) are type and nothing else: full-bleed fields of plum and white, one enormous statement per chapter in Schibsted Grotesk at 800, everything else small, square corners, and colour that changes by chapter instead of pictures. The visitor's own material, the same question asked nine different ways, is the picture. The app (`/app/*`) and the docs page are the opposite temperature: a light, soft, editorial workspace on a white ground, a 240px open-plane sidebar behind one hairline, tonal panels one step off white toward the plum, regular-weight numbers, and nothing louder than 24px.\n\nWhat ties the rooms together is the ask strip: pink dots on a 2px grey track, one per time you asked, with a plum-black tick on the day you proved you could do it without AI. It is the product's mark, the main data element of every list, and the one place pink appears inside the app. Pink is rare on purpose: in the app it is data, not decoration.\n\nDensity in the app is calm and readable (14px body, 32px nav rows, 8px gaps between row cards). The public pages run at the opposite extreme of scale: 9 to 21vw display lines against 15 to 19px text, with nothing in between.",
+    "overview": "Asked Before has two rooms built from one palette and one typeface. The public pages (landing, log in, sign up, 404) lead with type: full-bleed fields of plum and white, one enormous statement per chapter in Schibsted Grotesk at 800, everything else small, square corners, and colour that changes by chapter. The visitor's own material, the same question asked nine different ways, is the main picture. Beside it, the landing carries found documents of the same habit from before AI: four archival black-and-white photographs (a card catalog, a pupil at the blackboard, an examination hall) and one muted newsreel loop of a written examination, all square, untouched, and captioned with what and when. The landing's direction contract still says \"type and nothing else\"; the build added the pictures, and this record follows the build. The app (`/app/*`) and the docs page are the opposite temperature: a light, soft, editorial workspace on a white ground, a 240px open-plane sidebar behind one hairline, tonal panels one step off white toward the plum, regular-weight numbers, and nothing louder than 24px.\n\nWhat ties the rooms together is the ask strip: pink dots on a 2px grey track, one per time you asked, with a plum-black tick on the day you proved you could do it without AI. It is the product's mark, the main data element of every list, and the one place pink appears inside the app. Pink is rare on purpose: in the app it is data, not decoration.\n\nDensity in the app is calm and readable (14px body, 32px nav rows, 8px gaps between row cards). The public pages run at the opposite extreme of scale: 9 to 21vw display lines against 15 to 19px text, with nothing in between.",
     "keyCharacteristics": [
       "One typeface (Schibsted Grotesk, 400 to 900); JetBrains Mono only in code, API keys, and IDs.",
       "Public pages: square (0 radius), plum-black / plum-field / plum-surface / white chapters, pink primary buttons with plum-black words.",
-      "App: white ground, `#f7f2f5` tonal panels at 16px radius, white row cards at 12px, 10px controls, fully round pills.",
+      "Found pictures in one treatment: untouched black and white, square, the plum surface behind them while they load, a small grey caption and date under each, credited in the footer.",
+      "App: white ground, `#f7f2f5` tonal panels at 16px radius, rule-separated rows inside them, white row cards at 12px only where a row holds the ask strip, 10px controls, fully round pills.",
       "The ask strip is the signature: pink on white only, a plum-black proven tick.",
       "Flat at rest; shadows only on menus, sheets, and toasts.",
       "Pale status pairs with dark ink of the same hue: To prove, Proven, Asked since proven, Not yet."
@@ -483,7 +515,7 @@
       },
       {
         "name": "The Colour By Chapter Rule",
-        "body": "On the landing, each chapter is one full-bleed field with one ink: hero `plum-field`/white, Nine ways white/navy, Showcase `plum-black`/white, How it works white/navy, Proof `plum-surface`/white, Features `panel`/navy beside `plum-black` rows, FAQ white/navy, CTA `plum-field`/white, footer `plum-black` with pink links. The fixed header's two corners take the ink and ground of the chapter beneath them.",
+        "body": "On the landing, each chapter is one full-bleed field with one ink: hero `plum-field`/white, Nine ways white/navy, Showcase `plum-black`/white, How it works white/navy, Proof `plum-surface`/white, Features `panel`/navy beside `plum-black` rows, FAQ white/navy, CTA `plum-field`/white, footer `plum-black` with pink links. The found pictures sit only on white chapters (Nine ways, How it works, FAQ) and belong to them. The fixed header's two corners take the ink and the ground of the chapter beneath them, so the header stays a solid patch of that chapter over a picture and never shows it through its words.",
         "section": "colors"
       },
       {
@@ -513,19 +545,21 @@
       },
       {
         "name": "The One Layer Rule",
-        "body": "A panel holds its title and content directly; a white row card sits inside a panel only for list rows. Never a panel inside a panel, or a tray around every block.",
+        "body": "A panel holds its title and content directly; a list in a panel is rows separated by 1px rules, with no card of their own. A white row card sits inside a panel only when the row holds the ask strip (Prove next), which needs white. Never a panel inside a panel, or a tray around every block.",
         "section": "elevation"
       }
     ],
     "dos": [
       "Do keep pink in the app to the ask strip and the sidebar mark, on white surfaces only.",
-      "Do use the four status words and their pairs exactly: To prove, Proven, Asked since proven, and Not yet for a failed check; \"Not on a card\" for messages no card asks yet; \"Start a cold rep\" as the one rep verb.",
+      "Do use the four status words and their pairs exactly: To prove, Proven, Asked since proven, and Not yet for a failed check; \"Not on a card\" for messages no card asks yet; \"Start a cold rep\" as the one rep verb. Where the API's names show (the docs), map each to its on-screen word.",
       "Do set numbers at regular weight with the `Figure` component's tabular digits.",
       "Do use one filled primary button per app screen, and one pink action per landing chapter.",
       "Do keep confirmations in place under their row, with focus on the safe choice and Escape to keep.",
       "Do show loading as flat bars in the panel-edge grey (8px corners) at the final size, with no shimmer and no layout shift.",
       "Do set `--radius: 10px` on any app fragment shown on a square public page.",
-      "Do keep every hidden starting state of an entrance inside `prefers-reduced-motion: no-preference`."
+      "Do keep every hidden starting state of an entrance inside `prefers-reduced-motion: no-preference`.",
+      "Do separate rows in a panel with 1px rules; keep white row cards for rows that carry the ask strip.",
+      "Do set a found picture untouched in black and white, square, on a white chapter, with its caption and date under it and its credit in the footer."
     ],
     "donts": [
       "Don't put shadows on anything at rest; only menus, sheets, popovers, and toasts lift.",
@@ -535,7 +569,9 @@
       "Don't use the monospace outside code, API keys, and IDs.",
       "Don't go above 24px for an app heading, or add a sixth type step on public pages.",
       "Don't put the ask strip, or any pink, on the panel tint.",
-      "Don't animate forever: no infinite loops, no `animate-pulse`, no spinner outside an in-flight request.",
+      "Don't animate forever: no infinite loops, no `animate-pulse`, no spinner outside an in-flight request. The landing's newsreel is the one loop: muted, in view only, with Pause beside it, still under reduced motion.",
+      "Don't give reading text an entrance; only headings and set pieces rise.",
+      "Don't tint, duotone, round, or overlay text on a found picture.",
       "Don't open a modal to confirm a delete."
     ]
   }
