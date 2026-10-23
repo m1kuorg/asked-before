@@ -36,8 +36,11 @@ export function Panel({ title, chip, link, description, footer, className, child
   );
 }
 
-/** A row card: white on the panel, a border one step darker, 63px tall at least. */
+/** A row card: white on the panel, a border one step darker, 63px tall at least. Prove next's rows only: they hold the ask strip, which needs white. */
 export const rowCard = "min-h-15.75 rounded-xl border border-border bg-card px-3 py-2.5 sm:px-4";
+
+/** A row in any other panel's list: no card of its own, a 1px rule under it (the panel's edge colour, about 5% under the panel), none under the last. */
+export const ruleRow = "border-b border-border py-2.5 last:border-b-0";
 
 /** A link on a row's name: ink, no underline until hovered. */
 export const nameLink = "font-medium text-foreground underline-offset-4 hover:underline";

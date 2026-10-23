@@ -1,6 +1,7 @@
 // An upload before its sort (inventory.md, "Upload"; flows 8 and 9):
-// choose a file, read it here with the SDK's readExport (nothing is sent),
-// preview it, then send it: uploads.create, uploads.append in chunks of
+// choose a file (under the drop target, what will leave this computer),
+// read it here with the SDK's readExport (nothing is sent), preview it, then
+// send it: uploads.create, uploads.append in chunks of
 // MAX_CHUNK with the bar at the true ratio, and uploads.finish, then replace
 // the address with ?upload=<id> so Back skips the sending. A failure while
 // sending shows its error (the daily cap's 429 included) and "Try again",
@@ -19,7 +20,7 @@ import { ErrorNotice } from "@/components/error-notice";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { WaitLine } from "@/components/wait-line";
 import { DropZone } from "@/screens/upload/drop-zone";
-import { Headline, Preview, Privacy, ReadAs } from "@/screens/upload/preview";
+import { Headline, Leaves, Preview, Privacy, ReadAs } from "@/screens/upload/preview";
 import { ProgressLine } from "@/screens/upload/progress-line";
 import { finished, watchPath } from "@/screens/upload/data";
 
@@ -111,20 +112,25 @@ export function Flow({ client, shelf, demo, navigate, signal }: FlowProps) {
     case "choose":
     case "reading":
       return (
-        <div data-step="choose" className="flex flex-1 flex-col gap-4">
+        // On a wide screen these join the page's grid (upload.tsx): the drop target across it, then what will leave
+        // (the preview's table, without its counts) beside the side panel.
+        <div data-step="choose" className="flex flex-col gap-4 @min-[56rem]:contents">
           {step.at === "choose" && step.problem && (
-            <Alert variant="negative" id={problemId}>
+            <Alert variant="negative" id={problemId} className="@min-[56rem]:col-span-12">
               <CircleAlertIcon aria-hidden="true" />
               <AlertDescription>{step.problem}</AlertDescription>
             </Alert>
           )}
           <DropZone
-            className="flex-1"
+            className="@min-[56rem]:col-span-12"
             input={input}
             reading={step.at === "reading" ? step.fileName : undefined}
             problemId={step.at === "choose" && step.problem ? problemId : undefined}
             onFile={readFile}
           />
+          <div className="min-w-0 @min-[56rem]:col-span-8">
+            <Leaves level={2} />
+          </div>
         </div>
       );
     case "preview":

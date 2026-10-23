@@ -3,8 +3,9 @@
  * brief sections 5 and 7). Plain CSS beside the Tailwind stylesheet: the five
  * type steps, the hero's load sequence, the entrances that run once as each
  * chapter arrives, the header's ink following the chapter beneath it, and
- * the photograph's slow settle with the scroll. Transform and opacity only,
- * nothing loops, and every hidden starting state sits inside
+ * the photograph's slow settle with the scroll. Transform and opacity only;
+ * no CSS animation loops (the newsreel is a <video> with its own Pause), and
+ * every hidden starting state sits inside
  * prefers-reduced-motion: no-preference, so the reduced page is the
  * finished page.
  */

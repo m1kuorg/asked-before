@@ -17,7 +17,8 @@
 // under Latest proven, with tiles that match the shelves' counts, Prove next
 // and Latest asks as the API lists them, dates in the learner's own time
 // zone, and no request but the desk and the shelves, once for Home and
-// once for the sidebar, and no model request.
+// once for the sidebar, and each Prove next card once, for its asks on its
+// strip, and no model request.
 // It prints ids, counts, and skill names, never phrasing text, and exits 1
 // if any check fails, naming the step.
 // Run: bun run check:desk [screenshot dir]
@@ -401,9 +402,11 @@ try {
 
       const home = apiCalls.filter((call) => call !== "GET /api/v1/auth/me").sort();
       const me = apiCalls.length - home.length;
+      // Each Prove next row fetches its own card once, after the list draws, to trade its span for one dot per ask.
+      const budget = ["GET /api/v1/desk", "GET /api/v1/desk", "GET /api/v1/shelves", "GET /api/v1/shelves", ...desk.mostBorrowed.map((card) => `GET /api/v1/cards/${card.id}`)].sort();
       check(
-        me === 1 && home.join(", ") === "GET /api/v1/desk, GET /api/v1/desk, GET /api/v1/shelves, GET /api/v1/shelves",
-        `the page asks who's logged in once, then the desk and the shelves once for Home and once for the sidebar, nothing else (${apiCalls.join(", ")})`,
+        me === 1 && home.join(", ") === budget.join(", "),
+        `the page asks who's logged in once, then the desk and the shelves once for Home and once for the sidebar, and each of Prove next's ${desk.mostBorrowed.length} cards once for its asks, nothing else (${apiCalls.join(", ")})`,
       );
       check(model.requests.length === before, `and makes no model request (${model.requests.length - before})`);
       check(errors.length === 0, `no console errors or policy violations${errors.length ? `: ${errors.slice(0, 3).join(" | ")}` : ""}`);

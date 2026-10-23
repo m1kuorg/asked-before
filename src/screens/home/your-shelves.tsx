@@ -1,7 +1,8 @@
-// "Your shelves" (brief section 7), Home's right three columns: each shelf
-// (to its page, with Demo data) and how many of its cards need a cold rep,
-// then "Upload an export". With one shelf that's a link to its upload page;
-// with more, a menu asks which shelf. The action sits under the shelves.
+// "Your shelves" (brief section 7), under Prove next: each shelf (to its
+// page, with Demo data) and how many of its cards need a cold rep, as
+// rule-separated rows on the panel, then "Upload an export". With one shelf
+// that's a link to its upload page; with more, a menu asks which shelf. The
+// action sits under the shelves, as wide as its words once the panel is.
 import type { Shelf } from "@asked-before/sdk";
 import { useLayoutEffect, useRef, useState } from "react";
 import { ChevronDownIcon } from "lucide-react";
@@ -16,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { NEED_REP_COLUMN } from "@/lib/copy";
 import { count, plural } from "@/lib/format";
-import { Panel, nameLink, rowCard } from "./panel";
+import { Panel, nameLink, ruleRow } from "./panel";
 
 const shelfPath = (shelf: Shelf) => `/app/shelves/${encodeURIComponent(shelf.id)}`;
 
@@ -35,12 +36,12 @@ export function YourShelves({ shelves, className }: { shelves: Resource<Shelf[]>
     >
       {list ? (
         list.length ? (
-          <div className="flex flex-col gap-2">
-            <p aria-hidden="true" className="flex justify-between px-3.25 text-xs text-muted-foreground sm:px-4.25">
+          <div className="flex flex-col">
+            <p aria-hidden="true" className="flex justify-between border-b border-border pb-2 text-xs text-muted-foreground">
               <span>Shelf</span>
               <span>{NEED_REP_COLUMN}</span>
             </p>
-            <ul aria-label="Your shelves" className="flex flex-col gap-2">
+            <ul aria-label="Your shelves" className="flex flex-col">
               {list.map((shelf) => (
                 <ShelfRow key={shelf.id} shelf={shelf} />
               ))}
@@ -52,9 +53,9 @@ export function YourShelves({ shelves, className }: { shelves: Resource<Shelf[]>
       ) : shelves.error !== null ? (
         <ErrorNotice error={shelves.error} title="Your shelves didn't load." onRetry={shelves.retry} focus={false} />
       ) : (
-        <div aria-hidden="true" className="flex flex-col gap-2">
+        <div aria-hidden="true" className="flex flex-col">
           {[0, 1].map((i) => (
-            <div key={i} className={cn(rowCard, "flex items-center justify-between gap-3")}>
+            <div key={i} className={cn(ruleRow, "flex items-center justify-between gap-3")}>
               <div className="flex flex-col gap-2">
                 <Skeleton className="h-3.5 w-20" />
                 <Skeleton className="h-3 w-24" />
@@ -72,7 +73,7 @@ function ShelfRow({ shelf }: { shelf: Shelf }) {
   const need = shelf.counts.borrowed + shelf.counts.borrowedAgain;
   const { cards, returned } = shelf.counts;
   return (
-    <li className={cn(rowCard, "flex items-center gap-3")}>
+    <li className={cn(ruleRow, "flex items-center gap-3")}>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex min-w-0 items-center gap-2">
           <ShelfName shelf={shelf} />
@@ -114,14 +115,14 @@ function ShelfName({ shelf }: { shelf: Shelf }) {
 function UploadAction({ shelves }: { shelves: Shelf[] }) {
   if (shelves.length === 1) {
     return (
-      <a href={`${shelfPath(shelves[0]!)}/upload`} className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "w-full")}>
+      <a href={`${shelfPath(shelves[0]!)}/upload`} className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "w-full @min-[40rem]/home:w-auto")}>
         Upload an export
       </a>
     );
   }
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="secondary" size="sm" className="w-full" />}>
+      <DropdownMenuTrigger render={<Button variant="secondary" size="sm" className="w-full @min-[40rem]/home:w-auto" />}>
         Upload an export
         <ChevronDownIcon data-icon="inline-end" aria-hidden="true" />
       </DropdownMenuTrigger>

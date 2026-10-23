@@ -119,11 +119,12 @@ export function Shelf({ client, params, query, navigate, setTitle, signal }: Scr
               uploads={data.uploads.uploads}
               filter={filterOf(query.get("status"))}
               setFilter={(filter) => navigate(filter === "all" ? shelfPath(shelfId) : `${shelfPath(shelfId)}?status=${filter}`, { replace: true })}
+              signal={signal}
             />
           ) : view === "once" ? (
             <OnceView key={data.loaded} client={client} shelf={data.shelf} first={data.once} uploads={data.uploads.uploads} signal={signal} />
           ) : (
-            <UploadsView key={data.loaded} client={client} shelf={data.shelf} first={data.uploads} signal={signal} onDeleted={afterDelete} />
+            <UploadsView key={data.loaded} client={client} shelf={data.shelf} cards={data.cards} once={data.once} first={data.uploads} signal={signal} onDeleted={afterDelete} />
           )
         ) : head.error !== null ? (
           <ErrorNotice error={head.error} title="This shelf didn't load." onRetry={head.retry} />

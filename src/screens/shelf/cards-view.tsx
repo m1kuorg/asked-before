@@ -1,12 +1,17 @@
 // The shelf's cards, most asked first (cards.list's order): a segmented
 // filter by status, kept in the address as ?status= (replaced, so Back
 // leaves the shelf, and a reload or a shared link keeps it), then one row per card with its skill, status pill, times
-// asked, months, and its ask span on an axis every row shares. The whole row
+// asked, months, and its ask strip on an axis every row shares: the span
+// first, then one dot per ask once that card's detail arrives, for the first
+// 25 rows of the filter (useAskTimes; the rest keep the span). The whole row
 // opens the card; the link itself is the skill, so a screen reader hears the
 // card's name, then the rest as the row's text. A list, not a table, so the
 // row can be one link; the column labels above it are for the eye, and each
 // cell says what it is to assistive technology. Below 640px a row is two lines
 // and the strip.
+//
+// Under the list, what its status words mean and the privacy line (inventory.md,
+// "Copy with product, legal, or privacy weight": the shelf shows it).
 //
 // With no cards, the empty state says why, from the first page of uploads:
 // nothing uploaded, a sort under way (with a link to watch it), or nothing
@@ -21,8 +26,9 @@ import { Time } from "@/components/time";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { STATUS_WORDS } from "@/lib/copy";
+import { PRIVACY_LINE, STATUS_NOTE, STATUS_WORDS } from "@/lib/copy";
 import { count, shortMonths } from "@/lib/format";
+import { useAskTimes } from "@/lib/use-ask-times";
 import { cardPath, sorting, uploadPath, viewPath, watchPath } from "@/screens/shelf/data";
 import { SortingLine } from "@/screens/shelf/sorting-line";
 
@@ -40,15 +46,20 @@ export const filterOf = (status: string | null): Filter => FILTERS.find(({ value
 // Skill, status, times asked, months, the strip. 640px and up: one line.
 const ROW = "sm:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_4.5rem_9.5rem_minmax(7rem,2fr)] sm:gap-x-6";
 
-type CardsViewProps = { shelf: Shelf; cards: Card[]; uploads: Upload[]; filter: Filter; setFilter: (filter: Filter) => void };
+/** How many of the filter's rows fetch their card for its dots. */
+const WITH_DOTS = 25;
 
-export function CardsView({ shelf, cards, uploads, filter, setFilter }: CardsViewProps) {
+type CardsViewProps = { shelf: Shelf; cards: Card[]; uploads: Upload[]; filter: Filter; setFilter: (filter: Filter) => void; signal: AbortSignal };
+
+export function CardsView({ shelf, cards, uploads, filter, setFilter, signal }: CardsViewProps) {
+  const shown = filter === "all" ? cards : cards.filter((card) => card.status === filter);
+  const dotted = shown.slice(0, WITH_DOTS);
+  const timesOf = useAskTimes(dotted, signal);
   if (!cards.length) return <NoCards shelf={shelf} uploads={uploads} />;
 
   // One axis for every row, filtered or not, so a filter never moves the strips.
   const axis = askAxis(cards.map((card) => card.firstBorrowAt));
   const axisStart = new Date(axis.from).toISOString();
-  const shown = filter === "all" ? cards : cards.filter((card) => card.status === filter);
   const under = sorting(uploads);
 
   return (
@@ -78,19 +89,23 @@ export function CardsView({ shelf, cards, uploads, filter, setFilter }: CardsVie
         </div>
         {shown.length ? (
           <ul aria-label={`Cards on ${shelf.name}, most asked first`}>
-            {shown.map((card) => (
-              <CardRow key={card.id} card={card} axis={axis} />
+            {shown.map((card, i) => (
+              <CardRow key={card.id} card={card} axis={axis} times={i < WITH_DOTS ? timesOf(card) : undefined} />
             ))}
           </ul>
         ) : (
           <p className="border-b border-rule py-4 text-sm text-muted-foreground">{filterEmpty(filter, shelf.name, cards)}</p>
         )}
       </div>
+      <div className="flex max-w-[70ch] flex-col gap-2 pt-4">
+        <p className="text-sm text-muted-foreground">{STATUS_NOTE}</p>
+        <p className="text-sm text-muted-foreground">{PRIVACY_LINE}</p>
+      </div>
     </div>
   );
 }
 
-function CardRow({ card, axis }: { card: Card; axis: ReturnType<typeof askAxis> }) {
+function CardRow({ card, axis, times }: { card: Card; axis: ReturnType<typeof askAxis>; times: string[] | undefined }) {
   return (
     <li
       className={`group relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-b border-rule py-3 last:border-0 has-[a:focus-visible]:rounded-lg has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-ring sm:min-h-12 sm:py-2 ${ROW}`}
@@ -117,7 +132,11 @@ function CardRow({ card, axis }: { card: Card; axis: ReturnType<typeof askAxis> 
       <span className="col-start-2 row-start-2 text-right text-xs text-muted-foreground sm:col-auto sm:row-auto sm:text-left sm:text-sm">
         {shortMonths(card.firstBorrowAt, card.lastBorrowAt)}
       </span>
-      <AskStrip axis={axis} first={card.firstBorrowAt} last={card.lastBorrowAt} count={card.count} provenAt={card.returnedAt} showCount={false} className="col-span-2 sm:col-auto" />
+      {times ? (
+        <AskStrip axis={axis} asks={times} provenAt={card.returnedAt} inRow className="col-span-2 sm:col-auto" />
+      ) : (
+        <AskStrip axis={axis} first={card.firstBorrowAt} last={card.lastBorrowAt} count={card.count} provenAt={card.returnedAt} showCount={false} className="col-span-2 sm:col-auto" />
+      )}
     </li>
   );
 }

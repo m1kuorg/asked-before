@@ -1,7 +1,11 @@
 // Shelves (/app/shelves; shelves.list()). A list screen: the h1, what a
 // shelf is for, "New shelf" at the top right, then a table of every shelf
 // with its counts and Rename and Delete in place (brief section 4; inventory.md,
-// Shelves list and Flows 5 to 8). One row is open at a time: opening Rename
+// Shelves list and Flows 5 to 8). Under each shelf that has cards to prove,
+// its most asked ones with their ask spans (cards.list per shelf,
+// top-cards.tsx); under the table, how shelves work. So the first screen
+// holds the learner's own queue and the list's rules, not a blank half.
+// One row is open at a time: opening Rename
 // closes a Delete and the reverse. Every change calls refreshShell() so the
 // sidebar's shelves and counts follow, and is said in a status line for
 // screen readers. Focus: after a rename or its cancel, that row's Rename;
@@ -17,17 +21,27 @@ import { WaitLine } from "@/components/wait-line";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { NEED_REP_COLUMN, needRep } from "@/lib/copy";
+import { NEED_REP_COLUMN, STATUS_WORDS, needRep } from "@/lib/copy";
 import { plural } from "@/lib/format";
 import { DemoShelfButton } from "./shelves/demo-shelf-button";
 import { NewShelf } from "./shelves/new-shelf";
 import { ShelfRow, wideOnly, type FocusTarget, type Mode } from "./shelves/shelf-row";
+import { TopCardsList, needOf, useTopCards } from "./shelves/top-cards";
 
 type Open = { id: string; mode: Mode } | null;
 
-export function Shelves({ client, navigate }: ScreenProps) {
+/** How shelves work, under the table: what the list's words and actions mean. */
+const NOTES: [string, string][] = [
+  ["Cards", "A card is a how-to you asked more than once, even in different words. The sort catches most repeats, not every one."],
+  [NEED_REP_COLUMN, `A shelf's cards that are ${STATUS_WORDS.borrowed} or ${STATUS_WORDS.borrowed_again}. Each needs a fresh cold rep: a new problem of the same skill, answered without AI.`],
+  ["Uploads", "Upload a newer export to a shelf whenever you like. A message it already holds isn't counted twice."],
+  ["Deleting", "Deleting a shelf deletes its uploads, messages, cards, and cold reps. It can't be undone."],
+];
+
+export function Shelves({ client, navigate, signal }: ScreenProps) {
   const { refreshShell } = useShell();
   const shelves = useResource(() => client.shelves.list(), []);
+  const tops = useTopCards(shelves.data, signal);
   const [open, setOpen] = useState<Open>(null);
   const [focus, setFocus] = useState<FocusTarget | "new" | null>(null);
   const [said, setSaid] = useState("");
@@ -119,6 +133,7 @@ export function Shelves({ client, navigate }: ScreenProps) {
                     onFocused={focused}
                     onRenamed={renamed}
                     onDeleted={deleted}
+                    below={needOf(shelf) > 0 && <TopCardsList shelf={shelf} top={tops.of(shelf)} axis={tops.axis} onRetry={() => tops.retry(shelf)} />}
                   />
                 ))}
               </TableBody>
@@ -165,6 +180,22 @@ export function Shelves({ client, navigate }: ScreenProps) {
             </TableBody>
           </Table>
         </div>
+      )}
+
+      {list && list.length > 0 && (
+        <section aria-labelledby="shelves-notes" className="flex flex-col gap-3">
+          <h2 id="shelves-notes" className="text-sm font-semibold">
+            How shelves work
+          </h2>
+          <dl className="grid gap-x-8 gap-y-4 @min-[40rem]/shelves:grid-cols-2">
+            {NOTES.map(([term, text]) => (
+              <div key={term} className="flex max-w-[60ch] flex-col gap-1">
+                <dt className="text-sm font-medium">{term}</dt>
+                <dd className="text-sm text-muted-foreground">{text}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
       )}
     </div>
   );

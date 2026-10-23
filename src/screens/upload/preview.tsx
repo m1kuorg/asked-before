@@ -2,7 +2,9 @@
 // messages, the file and its chatbot, any left out for length, and "What
 // leaves this computer" row by row (brief section 7), then the privacy line
 // and "Upload 27 messages". Below 640px each row of the table is what it is
-// over one grey line saying where it goes.
+// over one grey line saying where it goes. The same table, without counts,
+// is the promise under the drop target before a file is chosen, and the
+// record under a shelf's uploads.
 
 import { MAX_PHRASING_LENGTH, type ReadExport } from "@asked-before/sdk";
 import type { Ref } from "react";
@@ -48,7 +50,7 @@ export function Preview({ read, fileName, heading, onUpload, onAnother }: Previe
         <Headline n={n} words="of your own messages" heading={heading} />
         <ReadAs read={read} fileName={fileName} />
       </div>
-      {n ? <Leaves messages={n} skipped={read.skipped} /> : <p className="text-sm">None of your own messages are in it, so there's nothing to upload.</p>}
+      {n ? <Leaves messages={n} skipped={read.skipped} level={3} /> : <p className="text-sm">None of your own messages are in it, so there's nothing to upload.</p>}
       <Privacy />
       <div className="flex flex-wrap gap-2">
         {n > 0 && <Button onClick={onUpload}>{`Upload ${plural(n, "message")}`}</Button>}
@@ -60,10 +62,28 @@ export function Preview({ read, fileName, heading, onUpload, onAnother }: Previe
   );
 }
 
-/** Each part of the export: whether it leaves this computer, and whether the model sees it. */
-function Leaves({ messages, skipped }: { messages: number; skipped: number }) {
+type LeavesProps = {
+  /** The preview's counts. Without them the rows say what any export sends: the promise before a file is chosen, and the record under a shelf's uploads. */
+  messages?: number;
+  skipped?: number;
+  /** Under a shelf's uploads nothing is "here": it's headed for every upload, and what isn't sent stays on your computer. */
+  onShelf?: boolean;
+  /** h3 under the preview's count; h2 where it heads its own block. */
+  level: 2 | 3;
+};
+
+/** Each part of an export: whether it leaves this computer, and whether the model sees it. */
+export function Leaves({ messages, skipped, onShelf = false, level }: LeavesProps) {
+  const stay = (one: boolean) => `${one ? "Stays" : "Stay"} ${onShelf ? "on your computer" : "here"}`;
+  const title = onShelf ? "What an upload sends" : "What leaves this computer";
+  const Heading = level === 2 ? "h2" : "h3";
   const rows = [
-    { what: `The words of your ${plural(messages, "message")}`, leaves: "Sent", model: "Yes, your words only", phone: "Sent, and the model sees them" },
+    {
+      what: messages === undefined ? "The words of your messages" : `The words of your ${plural(messages, "message")}`,
+      leaves: "Sent",
+      model: "Yes, your words only",
+      phone: "Sent, and the model sees them",
+    },
     { what: "When you sent each one", leaves: "Sent", model: "Never", phone: "Sent; the model never sees it" },
     {
       what: "Each message's id in the export",
@@ -71,25 +91,25 @@ function Leaves({ messages, skipped }: { messages: number; skipped: number }) {
       model: "Never",
       phone: "Sent, so a re-upload isn't counted twice; the model never sees it",
     },
-    { what: "The chatbot's answers", leaves: "Stay here", model: "Never", phone: "Stay here" },
-    { what: "Conversation titles", leaves: "Stay here", model: "Never", phone: "Stay here" },
-    { what: "System and tool messages", leaves: "Stay here", model: "Never", phone: "Stay here" },
+    { what: "The chatbot's answers", leaves: stay(false), model: "Never", phone: stay(false) },
+    { what: "Conversation titles", leaves: stay(false), model: "Never", phone: stay(false) },
+    { what: "System and tool messages", leaves: stay(false), model: "Never", phone: stay(false) },
     {
-      what: `${plural(skipped, "message")} over ${count(MAX_PHRASING_LENGTH)} characters`,
-      leaves: skipped === 1 ? "Stays here" : "Stay here",
+      what: skipped === undefined ? `Messages over ${count(MAX_PHRASING_LENGTH)} characters` : `${plural(skipped, "message")} over ${count(MAX_PHRASING_LENGTH)} characters`,
+      leaves: stay(skipped === 1),
       model: "Never",
-      phone: skipped === 1 ? "Stays here" : "Stay here",
+      phone: stay(skipped === 1),
     },
   ];
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-semibold">What leaves this computer</h3>
+      <Heading className="text-sm font-semibold">{title}</Heading>
       <Table className="max-sm:block">
-        <TableCaption className="sr-only">What leaves this computer, and what the model sees</TableCaption>
+        <TableCaption className="sr-only">{`${title}, and what the model sees`}</TableCaption>
         <TableHeader className="max-sm:hidden">
           <TableRow>
-            <TableHead>In this export</TableHead>
-            <TableHead>Leaves this computer</TableHead>
+            <TableHead>{onShelf ? "In an export" : messages === undefined ? "In your export" : "In this export"}</TableHead>
+            <TableHead>{onShelf ? "Leaves your computer" : "Leaves this computer"}</TableHead>
             <TableHead>The model sees it</TableHead>
           </TableRow>
         </TableHeader>

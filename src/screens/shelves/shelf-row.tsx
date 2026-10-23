@@ -4,10 +4,12 @@
 // place, with Save and Cancel; Escape cancels. Delete opens the confirmation
 // in a row under it, never a modal; its toggle is "Delete Work…", and the
 // confirmation's action "Delete Work". Below a 40rem canvas the figures move to
-// a grey second line under the name. The list owns which row is open and
+// a grey second line under the name. Under the row (and under its open
+// confirmation), `below` gets a row of its own across every column: the
+// shelf's top cards that need a cold rep. The list owns which row is open and
 // where focus goes next; the row focuses its own controls when asked.
 import type { Client, Shelf } from "@asked-before/sdk";
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { ConfirmInline } from "@/components/confirm-inline";
 import { DemoChip } from "@/components/demo-chip";
 import { Figure } from "@/components/figure";
@@ -38,9 +40,10 @@ type ShelfRowProps = {
   onFocused: () => void;
   onRenamed: (shelf: Shelf) => void;
   onDeleted: (shelf: Shelf) => Promise<void>;
+  below?: ReactNode;
 };
 
-export function ShelfRow({ shelf, client, mode, setMode, focus, onFocused, onRenamed, onDeleted }: ShelfRowProps) {
+export function ShelfRow({ shelf, client, mode, setMode, focus, onFocused, onRenamed, onDeleted, below }: ShelfRowProps) {
   const name = useRef<HTMLAnchorElement>(null);
   const rename = useRef<HTMLButtonElement>(null);
   const remove = useRef<HTMLButtonElement>(null);
@@ -61,7 +64,7 @@ export function ShelfRow({ shelf, client, mode, setMode, focus, onFocused, onRen
 
   return (
     <>
-      <TableRow>
+      <TableRow className={below ? "border-b-0" : undefined}>
         <TableCell className="w-full max-w-0 @min-[40rem]/shelves:w-2/5">
           {mode === "rename" ? (
             <RenameForm shelf={shelf} client={client} onRenamed={onRenamed} onCancel={() => setMode(null)} />
@@ -117,6 +120,13 @@ export function ShelfRow({ shelf, client, mode, setMode, focus, onFocused, onRen
               onCancel={() => setMode(null)}
               returnFocus={remove}
             />
+          </TableCell>
+        </TableRow>
+      )}
+      {below && (
+        <TableRow>
+          <TableCell colSpan={6} className="max-w-0 pt-0 pb-3 whitespace-normal">
+            {below}
           </TableCell>
         </TableRow>
       )}
