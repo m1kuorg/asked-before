@@ -1,0 +1,581 @@
+{
+ "version": 1,
+ "at": "2026-10-23T14:28:58.530Z",
+ "seed": 894356784,
+ "redraws": 1,
+ "input": {
+  "brief": "Finds the how-to questions your own chatbot history shows you keep re-asking, makes each a card, and only marks it learned after you solve a fresh problem without AI",
+  "sector": "education",
+  "tone": null,
+  "have": [
+   "product-ui"
+  ],
+  "keep": [],
+  "avoid": [],
+  "sections": [
+   "showcase",
+   "how-it-works",
+   "proof",
+   "features",
+   "faq",
+   "cta",
+   "footer"
+  ],
+  "direction": "type-only-statement"
+ },
+ "imagery": "atmosphere",
+ "allow": [],
+ "direction": {
+  "id": "type-only-statement",
+  "name": "Type and nothing else",
+  "sectors": [
+   "saas",
+   "dev-tool",
+   "ai-product",
+   "finance",
+   "agency",
+   "nonprofit",
+   "education",
+   "personal-portfolio",
+   "event",
+   "other"
+  ],
+  "tones": [
+   "bold",
+   "quiet",
+   "editorial",
+   "technical"
+  ],
+  "needs": [],
+  "idea": "The first screen is made only of words, colour and space, good enough that nobody misses a picture there. Pictures arrive later, large and few, as relief from the type. This is the honest answer when a subject has nothing worth photographing: instead of inventing illustrations, set what you have to say as well as it can be set. The typography carries a point of view through scale (one enormous statement, everything else small), through measure (a narrow, bookish column or a full-width line), and through one committed colour.",
+  "composition": "First screen: the statement, two lines at most, set at 9\u201314vw and occupying the full width with tight leading, positioned in the upper two-thirds. One supporting sentence at 20\u201324px sits bottom-left on the same margin and the single action sits bottom-right on the same baseline. No navigation bar; two or three links in a top corner. Sections that follow are typographic set pieces, each different: a list of five to eight capabilities set at 4\u20136vw one per line; a paragraph at 28\u201336px in a 28ch column pushed to the right half; a pair of large numerals with a sentence each; a single quotation filling a colour field. Each section uses a different horizontal position (left, right, full) so the page has movement without imagery.",
+  "typography": "This direction lives or dies on the face and its settings. Display at tight tracking and leading; text sizes few and far apart (for example 15, 22, 34 and the display size). Use real typographic detail: proper quotes, balanced line breaks, hung punctuation where it helps.",
+  "typeClasses": [
+   "grotesk-tight",
+   "serif-display",
+   "heavy-black",
+   "condensed-heavy",
+   "serif-light-large"
+  ],
+  "colour": "Either one saturated ground for the whole page with a single ink, or paper and ink with one section inverted and one in the accent as a full field. Colour does the job images would have done.",
+  "paletteTags": [
+   "single-field",
+   "two-tone",
+   "flat-loud",
+   "light-neutral",
+   "dark-neutral"
+  ],
+  "imagery": "The first screen has no picture. Further down, real pictures of the subject's world (found with scripts/assets.mjs) arrive large and few: a full-bleed photograph between two type sections, a looping clip in one band, an archival image beside a list. Do not add icons, shapes, patterns or abstract graphics to compensate for anything.",
+  "sectionTags": [
+   "type-led",
+   "poster",
+   "colour-field"
+  ],
+  "motion": "masked-headline",
+  "richness": "Scale contrast and colour mass. A capability list set at 5vw is an image in its own right.",
+  "pitfalls": "Without pictures, weak copy has nowhere to hide: write real sentences. Vary the set pieces; four sections of big-heading-plus-paragraph is a text document, not a design. Keep all headings within two lines.",
+  "seenIn": [
+   "aww-bleibtgleich26",
+   "opl-spatial",
+   "aww-coffeetech-r",
+   "opl-statements",
+   "aww-nothin"
+  ],
+  "allow": []
+ },
+ "hero": {
+  "id": "colour-field-two-ink-statement",
+  "name": "Colour field, two-ink statement",
+  "archetype": "colour-field",
+  "directions": [
+   "type-only-statement",
+   "loud-flat-poster",
+   "colour-chapters"
+  ],
+  "needs": [],
+  "blueprint": "One saturated flat colour covers the whole viewport; there is no navigation bar and no image. Two short pieces of 15px text sit in the top corners on 3% margins: the wordmark at the left, the single action as a text link in the dark ink at the right. The statement starts 15% down, left-aligned from the 3% margin, in a soft heavy serif or a heavy grotesk at clamp(110px, 14vw, 220px), tracking -0.03em, leaded so tightly (0.82) that the two lines nearly touch. Line one is set in a pale ink and line two in a dark ink, the only two inks on the field; the pair fills the top 55% of the screen and the longer line reaches about 90% of the width. A long name may be broken across the two lines with a hyphen if the second half reads as a word of its own. In the bottom-right corner, right-aligned in a column 24% of the viewport wide, one supporting sentence at 17px in the pale ink. The bottom-left quarter stays empty colour.",
+  "mobile": "The same field. The corner texts stay at the top at 14px. The statement sets at 21vw on two lines from a 16px margin, starting at 16% of the height, pale line over dark line. The supporting sentence moves to the bottom-left at 16px across 80% of the width, ending 24px above the bottom edge. The middle fifth of the screen stays empty colour.",
+  "headline": "The name or a two-word statement over two lines, at most 8 characters per line at 21vw on a phone.",
+  "motion": "colour-on-scroll",
+  "seenIn": [
+   "opl-marina-rachello"
+  ]
+ },
+ "type": {
+  "id": "schibsted-heavy",
+  "name": "Schibsted Grotesk",
+  "class": "grotesk-tight",
+  "display": {
+   "family": "Schibsted Grotesk",
+   "source": "google",
+   "weights": [
+    800
+   ],
+   "italic": false,
+   "settings": "weight 800 \u00b7 tracking -0.05em \u00b7 leading 0.88 \u00b7 sentence case or all lowercase",
+   "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800&display=swap\" rel=\"stylesheet\">"
+  },
+  "text": {
+   "family": "Schibsted Grotesk",
+   "source": "google",
+   "weights": [
+    400,
+    600
+   ],
+   "italic": false,
+   "settings": "400 for paragraphs, 600 for navigation and other functional text \u00b7 leading 1.4 \u00b7 tracking -0.01em",
+   "css": "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800&display=swap\" rel=\"stylesheet\">"
+  },
+  "standsInFor": [
+   "ABC Diatype",
+   "Khteka"
+  ],
+  "note": "A compact, warm grotesk set heavy with letters almost touching; small text stays in the same family at semibold. Suits music, events and culture pages where the type is the image.",
+  "seenIn": [
+   "aww-paul-kalkbrenner",
+   "opl-rendez-vous-franceclat",
+   "aww-monolog"
+  ],
+  "links": [
+   "https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800&display=swap"
+  ],
+  "scale": {
+   "step-small": "clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem)",
+   "step-body": "clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem)",
+   "step-lead": "clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem)",
+   "step-head": "clamp(2rem, 1.3rem + 3.2vw, 4rem)"
+  }
+ },
+ "palette": {
+  "id": "plum-black-pink",
+  "name": "Plum-black and pink",
+  "tags": [
+   "mono-accent",
+   "dark-neutral"
+  ],
+  "bg": "#0d060b",
+  "surface": "#1b0e17",
+  "ink": "#ffffff",
+  "muted": "#9a8f97",
+  "accent": "#ff488b",
+  "accentInk": "#0d060b",
+  "fields": [
+   {
+    "bg": "#470c35",
+    "ink": "#ffffff"
+   },
+   {
+    "bg": "#ffffff",
+    "ink": "#101421"
+   }
+  ],
+  "note": "Near-black and plum at the top and bottom bracket a white middle with navy-black text. Hot pink is reserved for primary buttons, bars in charts and map markers; it never fills a section.",
+  "seenIn": [
+   "aww-cerebrium"
+  ]
+ },
+ "photos": {
+  "set": "people",
+  "title": "People",
+  "note": "figures, silhouettes and portraits, mostly unposed",
+  "treatment": null,
+  "others": [
+   "hands-and-making",
+   "mountain",
+   "forest",
+   "field-and-farm"
+  ],
+  "photos": [
+   {
+    "id": 177,
+    "alt": "Hiker with a backpack looking over a hazy mountain valley",
+    "tone": "mid",
+    "colours": [
+     "warm tan",
+     "hazy gold",
+     "olive"
+    ],
+    "mono": false,
+    "calm": "left",
+    "quality": 5,
+    "ratio": 1.37,
+    "by": "Danka & Peter",
+    "page": "https://unsplash.com/photos/tvicgTdh7Fg"
+   },
+   {
+    "id": 685,
+    "alt": "Man sitting on a rock looking over a sea of clouds",
+    "tone": "mid",
+    "colours": [
+     "pale gold",
+     "grey",
+     "dark brown"
+    ],
+    "mono": false,
+    "calm": "right",
+    "quality": 5,
+    "ratio": 1.5,
+    "by": "Joshua Earle",
+    "page": "https://unsplash.com/photos/Dwheufds6kQ"
+   },
+   {
+    "id": 338,
+    "alt": "Person in a hooded coat seen from behind facing a misty sea",
+    "tone": "mid",
+    "colours": [
+     "slate blue",
+     "grey",
+     "charcoal"
+    ],
+    "mono": false,
+    "calm": "left",
+    "quality": 5,
+    "ratio": 1.5,
+    "by": "Patryk Sobczak",
+    "page": "https://unsplash.com/photos/9VPtNW84vGI"
+   },
+   {
+    "id": 669,
+    "alt": "Person in a mustard jacket and grey beanie seen from behind in fog",
+    "tone": "light",
+    "colours": [
+     "mustard",
+     "pale grey",
+     "white"
+    ],
+    "mono": false,
+    "calm": "left",
+    "quality": 5,
+    "ratio": 1.41,
+    "by": "Luke Pamer",
+    "page": "https://unsplash.com/photos/oUhr-qMTJoc"
+   },
+   {
+    "id": 660,
+    "alt": "Woman in a knitted cardigan holding a lit sparkler in front of her",
+    "tone": "dark",
+    "colours": [
+     "dark teal",
+     "grey",
+     "warm white"
+    ],
+    "mono": false,
+    "calm": "left",
+    "quality": 4,
+    "ratio": 1.5,
+    "by": "Morgan Sessions",
+    "page": "https://unsplash.com/photos/YIN4xUBaqnk"
+   },
+   {
+    "id": 768,
+    "alt": "Person sitting alone on a bench facing sandy dunes",
+    "tone": "light",
+    "colours": [
+     "sand beige",
+     "pale blue",
+     "soft white"
+    ],
+    "mono": false,
+    "calm": "top",
+    "quality": 4,
+    "ratio": 1.5,
+    "by": "Mikael Kristenson",
+    "page": "https://unsplash.com/photos/3f4sQIums6k"
+   },
+   {
+    "id": 1009,
+    "alt": "Back of a person's head beneath a wide pale blue sky",
+    "tone": "light",
+    "colours": [
+     "pale blue",
+     "soft white",
+     "dark brown"
+    ],
+    "mono": false,
+    "calm": "top",
+    "quality": 4,
+    "ratio": 0.67,
+    "by": "Christopher Campbell",
+    "page": "https://unsplash.com/photos/CMWRIzyMKZk"
+   },
+   {
+    "id": 446,
+    "alt": "Swimmer diving underwater in deep blue water with rising bubbles",
+    "tone": "dark",
+    "colours": [
+     "deep blue",
+     "navy"
+    ],
+    "mono": false,
+    "calm": "top",
+    "quality": 4,
+    "ratio": 1.78,
+    "by": "Jacob Walti",
+    "page": "https://unsplash.com/photos/yxvKH7N8aso"
+   }
+  ]
+ },
+ "motion": {
+  "id": "colour-on-scroll",
+  "name": "Colour by chapter",
+  "description": "Each chapter is its own full-bleed field of one palette colour, so the ground changes exactly at section edges as you scroll, never as a global recolouring of the screen. The only movement: the fixed header (or the one pinned element) takes the ink of the chapter beneath it, switching with a 300ms colour transition as each edge passes under it. Do not drive the page background from an observer: in blind tests a page recoloured mid-section, with a paragraph sitting on two colours, read as broken twice."
+ },
+ "sections": [
+  {
+   "id": "showcase-headline-you-can-type",
+   "role": "showcase",
+   "name": "Headline you can type",
+   "shape": "statement",
+   "tags": [
+    "ui-led",
+    "type-led",
+    "poster"
+   ],
+   "directions": [
+    "sentence-as-layout",
+    "type-only-statement",
+    "product-performs",
+    "loud-flat-poster",
+    "dark-room",
+    "colour-chapters"
+   ],
+   "needs": [],
+   "blueprint": "The section's headline is an input. One line at clamp(48px, 8vw, 132px), tight tracking, flush left across columns 1\u201312, is a real `<input>` (root marked data-ui) with no border and no fill, prefilled with a believable two-to-five-word example of what a user gives the product: a search, a question, a date in words, a colour name. A solid caret block 0.08em wide blinks after the last character. 48px beneath, on the same left edge, the product's answer appears at true interface size, at most 560px wide: three result rows, one parsed value, or a swatch, updating as the visitor types. Bottom-left, three more examples at 17px act as plain text buttons that refill the line. The rest of the 88svh field is empty. If the text outgrows the line it scrolls inside the input; it never wraps.",
+   "mobile": "The input is set at 11vw on one line and scrolls sideways inside itself when the text runs long. The answer follows 28px below at full width and true size. The three examples become a wrapping row of filled blocks 44px tall beneath the answer; tapping one refills the line.",
+   "seenIn": [
+    "opl-shelf",
+    "opl-tiny-computer-co"
+   ]
+  },
+  {
+   "id": "how-it-works-call-and-response-column",
+   "role": "how-it-works",
+   "name": "Call and response column",
+   "shape": "list",
+   "tags": [
+    "ui-led",
+    "quiet"
+   ],
+   "directions": [
+    "quiet-instrument",
+    "product-performs",
+    "type-only-statement",
+    "editorial-report",
+    "dark-room"
+   ],
+   "needs": [],
+   "blueprint": "The sequence is shown as what you give and what comes back, in one narrow column 560px wide starting at column 4, or on the page's text axis. Three exchanges, 88px apart. Each opens with a sentence at 20px medium that begins with its order word ('First, install it.' 'Then ask for a chart.'). 16px under it, the call: the literal thing the user enters, in a filled panel one tone off the ground, radius 8px, padding 20px. For a developer tool that is real code in `<pre><code>` at 14px with a working copy button; otherwise it is the product's own input holding real typed text. Under the call, indented 56px, the response: a true-size fragment marked data-ui showing what the product returns. The third response is the finished result and breaks out of the column, 760px wide, running to column 12. The heading, two to four words at 28px, sits 56px above the first sentence.",
+   "mobile": "The column fills the width with 20px margins. Calls and responses stack without the indent; a 24px gap and a lighter panel tone set the response apart. Code panels scroll sideways inside themselves. The final result runs edge to edge at true size, cropped on the right if wider.",
+   "seenIn": [
+    "opl-dialkit",
+    "opl-ohhmydesign"
+   ]
+  },
+  {
+   "id": "proof-recognition-table",
+   "role": "proof",
+   "name": "Recognition as a table",
+   "shape": "table",
+   "tags": [
+    "type-led",
+    "dense"
+   ],
+   "directions": [
+    "editorial-report",
+    "type-only-statement",
+    "contact-sheet",
+    "borrowed-category",
+    "name-as-monument",
+    "quiet-instrument"
+   ],
+   "needs": [],
+   "blueprint": "Awards, press mentions or credits set as a four-column table with no lines. The heading is two or three words at about 5vw, stepped over two lines with the second line indented by two columns, and occupies columns 1\u20137. The table begins 72px below and spans columns 1\u201312 on a fixed grid: year in columns 1\u20132, project or title in 3\u20136, awarding body or publication in 7\u201310, the award itself in 11\u201312, right-aligned. Rows are set at 16\u201317px with 14px of padding above and below; every second row carries a background tone one step from the ground, running the full table width, which replaces rules. Year groups are separated by one blank row, and the year is printed only on the first row of its group. Use a real `<table>` with `border-collapse: collapse` and no borders.",
+   "mobile": "The heading drops to 11vw. Each table row becomes a two-line block: title on the first line in the full ink, then body and award on the second in the softer ink. The year stands once as a 22px figure above its group. Alternate blocks keep the background tone.",
+   "seenIn": [
+    "aww-bleibtgleich26"
+   ]
+  },
+  {
+   "id": "features-statement-cell-dark-rows",
+   "role": "features",
+   "name": "Statement cell, dark rows",
+   "shape": "split",
+   "tags": [
+    "type-led",
+    "dense"
+   ],
+   "directions": [
+    "dense-tiles",
+    "editorial-report",
+    "type-only-statement",
+    "borrowed-category"
+   ],
+   "needs": [],
+   "blueprint": "Two halves butted together, each 50vw wide and at least 90svh tall, with no gap. Left half, in a pale tone: the heading in three short lines at clamp(36px, 4.2vw, 68px), its middle line pushed flush right while the first and third stay flush left (text-align set per line), so the block zigzags inside the cell. A two-sentence paragraph of 30ch sits at the bottom-left and the single action at the bottom-right on the same baseline. Right half, in the darkest tone: four or five rows of equal height filling it, told apart by alternating two near-black tones, not by lines. Each row is a three-part grid: a title at 28px (5 parts), a short paragraph at 16px (4 parts) and a plain list of three terms at 15px (3 parts), all top-aligned with 28px padding. No images anywhere in the section.",
+   "mobile": "The halves stack. The light cell comes first at 70svh with the zigzag heading at 10vw and the paragraph at its foot. The dark rows follow at full width; each row stacks its title and paragraph, and its three terms run inline as one sentence separated by commas. Rows keep the alternating tones.",
+   "seenIn": [
+    "aww-aspen-search"
+   ]
+  },
+  {
+   "id": "faq-open-two-column-reading",
+   "role": "faq",
+   "name": "Answers as reading text",
+   "shape": "grid",
+   "tags": [
+    "quiet",
+    "type-led"
+   ],
+   "directions": [
+    "quiet-instrument",
+    "editorial-report",
+    "type-only-statement",
+    "page-is-the-object",
+    "contact-sheet",
+    "split-stage"
+   ],
+   "needs": [],
+   "blueprint": "The questions and answers are set as continuous reading text, like the notes at the back of a programme. A heading of two or three words at 28\u201332px sits in columns 1\u20133, top-aligned. Columns 5\u201312 hold the text in two columns (`columns: 2; column-gap: 56px`), each about 36ch wide, at 16\u201317px with leading 1.55. Each item is one paragraph: the question is the opening run-in, set in the medium weight in the full ink and ending with its question mark, and the answer continues on the same line in the regular weight. Paragraphs are separated by 20px and carry `break-inside: avoid` so none splits across columns. No toggles, no icons, no boxes. Eight to fourteen items fit on one screen, which is the point: everything is answered at a glance. Where the page's reading column is narrow, use one column.",
+   "mobile": "One column at 16px with 20px margins. The heading leads at 24px. Each paragraph keeps its run-in question in the medium weight, with 18px between paragraphs. The section may run to two screens; do not collapse it into an accordion.",
+   "seenIn": []
+  },
+  {
+   "id": "cta-question-at-both-edges",
+   "role": "cta",
+   "name": "Question at both edges",
+   "shape": "statement",
+   "tags": [
+    "type-led",
+    "poster"
+   ],
+   "directions": [
+    "type-only-statement",
+    "sentence-as-layout",
+    "dark-room",
+    "loud-flat-poster"
+   ],
+   "needs": [],
+   "blueprint": "For a closing choice between two answers: book or ask, this date or that, the tasting or the tour. A flat field exactly 100svh tall in the darkest tone. The question is a two-line heading at clamp(110px, 11vw, 168px), leading 1.0, centred, about 54% of the width: line one with its cap line 32px under the field's top edge, line two with its baseline 24px above the bottom edge. The band of about 560px between them is empty except for one row at its optical centre: two solid rectangular buttons, each about 200\u00d756px with its label at 18px in medium weight, their inner edges 120px either side of the centre axis, and between them, exactly on the axis, the word 'or' at 18px in the soft ink. 16px under the row, centred, one line at 16px in the soft ink says what happens after either choice. The type above and below closes the empty band, so it reads as held breath rather than a gap.",
+   "mobile": "The question drops to 18vw, still two centred lines, line one 32px from the top and line two 24px above the bottom. The buttons stack at the centre at 72% of the width, 12px apart, with 'or' between them and the line of explanation under the second.",
+   "seenIn": []
+  },
+  {
+   "id": "footer-wordmark-first-places-below",
+   "role": "footer",
+   "name": "Name first, places under it",
+   "shape": "list",
+   "tags": [
+    "type-led"
+   ],
+   "directions": [
+    "name-as-monument",
+    "editorial-report",
+    "type-only-statement",
+    "colour-chapters",
+    "pinned-poster",
+    "uneven-photographs"
+   ],
+   "needs": [],
+   "blueprint": "The wordmark opens the footer instead of closing it. On a full-bleed field in the page's inverse or final chapter colour, the name spans the full content width as the first thing, its cap line pushed 8% above the footer's top edge so the tops of the letters are sliced off by the section (`overflow: hidden` and a negative top margin in `em`). 72px beneath, a two-part row: columns 1\u20135 list the places or ways to reach the studio (cities, or email and telephone), one per line at 32\u201336px in the accent ink, each a link; columns 7\u201312 hold three columns of small links at 15px, top-aligned with the first place. A final row 96px lower carries the legal line at the left and a back-to-top text link at the right, both 13px. The field is about 90svh tall, and nothing sits between the wordmark and the row but space.",
+   "mobile": "The sliced wordmark stays at the top, fitted to the width. Places follow as a list at 26px, then the link columns two across at 15px. Legal line and back-to-top link share the last row at 12px, at opposite margins.",
+   "seenIn": [
+    "aww-alethia",
+    "aww-hilden-kaira",
+    "aww-px-push",
+    "aww-pensatori-irrazionali"
+   ]
+  }
+ ],
+ "references": [
+  {
+   "id": "aww-bleibtgleich26",
+   "name": "bleibtgleich\u201926",
+   "url": "https://bleibtgleich.dev",
+   "source": "Awwwards Site of the Day",
+   "kind": "personal-portfolio",
+   "score": 7.5,
+   "idea": "One thin vertical rule runs down the page and a tight bold grotesk sentence wraps around it, words stepping from one side of the line to the other.",
+   "mood": [
+    "stark",
+    "typographic",
+    "Swiss",
+    "witty"
+   ],
+   "archetype": "type-poster",
+   "hero": "White page, black type. Content sits in a narrow band between 26% and 68% of the width. A 1px vertical rule drops from the top edge at 37% for two-thirds of the height. Left of it: a black blob avatar at the top, a tiny role caption at its foot. Right of it: a tiny location note at the top, the name in two lines of 90px medium grotesk at the bottom. The tagline continues below at the same size, flush to the band's left edge, running past the fold. The upper half is otherwise blank. The handle is split into two pale-grey words fixed in the bottom corners; a black menu pill sits top-right.",
+   "type": "Akzidenz Grotesk Pro medium only, -0.05em tracking, line-height about 0.9. Two sizes: 90px (6.3vw) for every statement and 11-13px for captions and table rows, a 7:1 jump. Long words are hyphenated and stepped across lines on purpose.",
+   "colour": "#ffffff #000000 #e4e4e4 #f2f2f2 \u2014 Black on white with no accent. Pale grey is used for the ghosted corner wordmark and a few small square tiles; tiny coloured rings inside those tiles are the only hue.",
+   "imagery": "Almost none: a black blob avatar, a few 85px grey tiles each with a coloured ring, and a canvas dome of small tilted project thumbnails floating between two words.",
+   "layout": "Everything hangs off one vertical axis at 37%: lines start either at the axis or one indent to its left, giving a stepped rag. Very wide white margins. Sections are separated by a full screen of white rather than rules or colour.",
+   "sections": [
+    {
+     "role": "intro",
+     "description": "A 90px sentence is typeset word by word around the vertical rule: one word ends just left of the rule, the next starts just right of it, and the following line is centred beneath both. Above the sentence a row of five 85px pale-grey squares, each with a small coloured ring at its centre, is spaced unevenly along one baseline, with a three-line 13px description under the second."
+    },
+    {
+     "role": "work",
+     "description": "The heading first appears as one centred line near the bottom of an empty screen, then its two halves separate to the far left and far right edges at mid-height. In the gap a WebGL dome of fifteen or so small project thumbnails, mostly black and white, tilts in perspective like tiles on a sphere. Nothing else is on the screen."
+    },
+    {
+     "role": "proof",
+     "description": "The heading is broken into an ampersand alone in the left margin and two words stepped over three lines with a hyphen break and a growing indent. Below it a four-column table at 11px: year, site name, awarding body, award. Hairline rules sit under every row, columns align to the hero's band, and year groups are separated by a blank row."
+    },
+    {
+     "role": "contact",
+     "description": "The closing sentence is stepped over four lines with shifting indents, right of centre. To its left two tiny grey captions and an email address at 11px. Under it three 36px outlined circles with social initials, centred, then the handle at about 44px centred on the bottom edge with tiny legal text in the two corners."
+    }
+   ],
+   "steal": [
+    "Draw one 1px vertical rule and typeset a large sentence around it, alternating words to either side so the line becomes the text's spine.",
+    "Split the logotype into two words, ghost them at about 10% grey, and fix one in each bottom corner of the viewport.",
+    "Leave the top half of the hero blank and start the name at 50% height so the headline runs off the fold and pulls the scroll."
+   ],
+   "media": "No picture on the first screen, which is all type plus a small black mark. Pictures arrive later as a WebGL sphere of project thumbnails flanked by two words that slide apart on scroll, square tiles placed on separate grid cells with empty cells between them, hover thumbnails behind a text index, and one small image used as a glyph in a row of numerals; no video.",
+   "motion": "A 2.5s progress counter runs although the page loaded in 1.5s, while a vertical line draws down with the role label at its tip. Lenis and 15 ScrollTriggers with nothing pinned: display lines rise by yPercent over 0.47s in-out at a 0.075s stagger, the globe's rotation is scrubbed across its 1178px block, the flanking words are pulled apart on a scrub, and underlines wipe in by background-size over 0.6s cubic-bezier(0.76,0,0.24,1)."
+  },
+  {
+   "id": "opl-spatial",
+   "name": "Spatial",
+   "url": "https://spatial-festival.com/",
+   "source": "One Page Love",
+   "kind": "event",
+   "score": 7.7,
+   "idea": "Typography behaves like sound in a room: plain black statements swell, stretch and bend through an empty white viewport as you scroll.",
+   "mood": [
+    "stark",
+    "experimental",
+    "precise",
+    "kinetic"
+   ],
+   "archetype": "type-poster",
+   "hero": "A white viewport holding only the festival dates: two centred lines in Neue Haas Grotesk Roman at roughly 6.7vw, black, tight leading, sitting at the exact vertical middle and spanning about half the width. Large empty fields above and below; no image, no button, no supporting copy. The header is the only other element: a light uppercase wordmark with tight tracking flush to the top-left corner at a 20px inset, and nine small bold uppercase links in a row across the top right. Mobile is the same poster at 40px with a two-line hamburger.",
+   "type": "One face, Neue Haas Grotesk Display 55 Roman, for everything: statements from 56px up to about 10vw, 13px body, bold 13px uppercase navigation, a timetable at about 16px with tight leading. Statement lines are distorted per glyph, each letter scaled to a different width and height.",
+   "colour": "#ffffff #000000 #e8a25c \u2014 Pure black on pure white; the programme section inverts to white on black. The only colour is the amber haze of a single photograph.",
+   "imagery": "Almost none. The images are canvas-rendered text statements warped and magnified until letter fragments become abstract black shapes cropped by the viewport. One warm, hazy venue photograph sits inset at half width beside body copy, square-cornered.",
+   "layout": "Full width with 10 to 20px margins. Opens with one centred statement per screen, then drops into left-aligned two-column copy and, further down, edge-to-edge four-column timetables. The swing between empty poster screens and tightly packed listings is the page's rhythm.",
+   "sections": [
+    {
+     "role": "intro",
+     "description": "A run of full-viewport white screens, each carrying one centred two-line sentence. The text is drawn on canvas and deformed: letters within a word have different widths and heights and baselines wobble. Between screens the type is magnified so far that only the strokes and counters of a few letters cross the frame, cropped on every side, while a small readable version of the next sentence appears inside the wreckage of the previous one."
+    },
+    {
+     "role": "other",
+     "description": "A calm reset: a three-line centred statement at about 5vw in undistorted type fills the top half. At the bottom, a column of 16px body copy about 650px wide sits flush to the left margin, and an amber-toned photograph starts at the horizontal centre and runs to the right margin with square corners, cropped by the fold."
+    },
+    {
+     "role": "list",
+     "description": "Black full-bleed section. Day headings are single small lines above a hairline; under each, a four-column table spans the full width: artist flush left, format at one third, room at two thirds, time range right-aligned at the far edge. Rows are about 35px high with a hairline between each, all in the same 30px grotesk with no bold; changeovers are marked by rows in capitals."
+    }
+   ],
+   "steal": [
+    "Open with a single factual line (the dates) centred on an otherwise empty white screen instead of a branded hero.",
+    "Scale each letter of a statement independently in width and height so plain grotesk type looks as if it is resonating.",
+    "Set a programme as a full-width four-column hairline table in one size and weight, times right-aligned, on an inverted background."
+   ]
+  }
+ ],
+ "scenes": [],
+ "notes": [
+  "type: general-sans-bold -> schibsted-heavy by hand. Reason: the ITF Free Font License forbids distributing the font files through a repository or publicly accessible server, and the asked-before repo goes public. Schibsted Grotesk (OFL) is the same grotesk-tight class."
+ ]
+}
