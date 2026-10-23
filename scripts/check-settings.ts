@@ -17,7 +17,7 @@ import { ApiError, createClient } from "@asked-before/sdk";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { chromium, type BrowserContext, type Page } from "playwright";
+import { chromium, type BrowserContext, type Locator, type Page } from "playwright";
 import { startApp } from "./lib/app";
 
 const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-settings");
@@ -240,27 +240,50 @@ page.on("console", (message) => {
 });
 page.on("pageerror", (error) => consoleErrors.push(error.message));
 
-const section = (name: string) => page.locator("section", { has: page.getByRole("heading", { name, exact: true }) });
-const keyRow = (name: string) => page.locator("table.rows tbody tr", { has: page.getByText(name, { exact: true }) });
+const main = page.getByRole("main");
+const nav = page.getByRole("navigation", { name: "Asked Before" });
+/** A settings section: the region its heading names. */
+const section = (name: string) => main.getByRole("region", { name, exact: true });
+const keys = section("API keys");
+const keysTable = keys.getByRole("table", { name: "Your API keys" });
+const keyRow = (name: string) => keysTable.getByRole("row").filter({ has: page.getByText(name, { exact: true }) });
+/** A key's row read by its column headers, so the columns may move: { Name, Prefix, Made, "Last used" }. */
+async function keyCells(name: string): Promise<Record<string, string>> {
+  const headers = (await keysTable.getByRole("columnheader").allTextContents()).map((text) => text.trim());
+  const cells = (await keyRow(name).getByRole("cell").allTextContents()).map((text) => text.trim());
+  return Object.fromEntries(headers.map((header, i) => [header, cells[i] ?? ""]).filter(([header]) => header));
+}
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+/** A section's status line once it says something: it's always in the page, empty until then. */
+const said = (scope: Locator) => scope.getByRole("status").filter({ hasText: /\S/ });
+/** Waits for a section's status line or its refusal, so a refusal fails at once instead of timing out; true when it was saved. */
+async function savedOrRefused(scope: Locator): Promise<boolean> {
+  await said(scope).or(scope.getByRole("alert")).first().waitFor();
+  return (await scope.getByRole("alert").count()) === 0;
+}
 
 try {
   await step("7. In the settings page, a key is made and shown once, and the SDK lists shelves with it", async () => {
     await page.goto(`${app.url}/app/settings`);
     await keyRow("Spare").waitFor();
-    check((await page.locator(".block h1").textContent()) === "Settings", "the page is headed Settings");
-    check((await page.locator("body > nav [aria-current=page]").textContent()) === "Settings", "the navigation marks Settings");
-    const cells = (await keyRow("Spare").locator("td").allTextContents()).map((text) => text.trim());
-    check(/^ab_[0-9a-f]{16}$/.test(cells[1] ?? "") && /^\d{4}-\d{2}-\d{2}$/.test(cells[2] ?? "") && /^\d{4}-\d{2}-\d{2}$/.test(cells[3] ?? ""), `the Spare key's row reads its prefix, made, and last used: ${JSON.stringify(cells.slice(0, 4))}`);
+    check((await main.getByRole("heading", { level: 1 }).textContent()) === "Settings", "the page is headed Settings");
+    check((await nav.locator("[aria-current=page]").textContent()) === "Settings", "the navigation marks Settings");
+    const spare = await keyCells("Spare");
+    check(/^ab_[0-9a-f]{16}$/.test(spare.Prefix ?? "") && DATE.test(spare.Made ?? "") && DATE.test(spare["Last used"] ?? ""), `the Spare key's row reads its prefix, made, and last used: ${JSON.stringify(spare)}`);
 
-    await page.getByLabel("Key name").fill("Claude Code");
-    await page.getByRole("button", { name: "Create key" }).click();
-    const shown = keyRow("Claude Code").locator("xpath=following-sibling::tr[1]").locator(".code-block code");
-    await shown.waitFor();
-    const key = ((await shown.textContent()) ?? "").trim();
+    await keys.getByLabel("Key name", { exact: true }).fill("Claude Code");
+    await keys.getByRole("button", { name: "Create key", exact: true }).click();
+    await keyRow("Claude Code").or(keys.getByRole("alert")).first().waitFor();
+    const shown = keys.getByRole("figure");
+    await shown.first().waitFor();
+    check((await shown.count()) === 1, `only the new key is shown, once: ${await shown.count()} shown`);
+    const caption = await shown.evaluate((figure) => figure.querySelector("figcaption")?.firstElementChild?.textContent ?? "");
+    check(caption === "Claude Code's key", `it's shown as Claude Code's key: "${caption}"`);
+    const key = ((await shown.locator("code").textContent()) ?? "").trim();
     check(/^ab_[0-9a-f]{16}_[0-9a-f]{32}$/.test(key), "the new key is shown in the ab_<id>_<secret> form");
-    check((await page.getByLabel("Key name").inputValue()) === "", "the field is cleared for the next one");
-    const neverUsed = (await keyRow("Claude Code").locator("td").allTextContents()).map((text) => text.trim());
-    check(neverUsed[3] === "Never", `it's never been used: ${JSON.stringify(neverUsed.slice(0, 4))}`);
+    check((await keys.getByLabel("Key name", { exact: true }).inputValue()) === "", "the field is cleared for the next one");
+    const neverUsed = await keyCells("Claude Code");
+    check(neverUsed["Last used"] === "Never", `it's never been used: ${JSON.stringify(neverUsed)}`);
     await screenshot(page, "key-shown");
 
     const shelves = await withKey(key).shelves.list();
@@ -269,15 +292,17 @@ try {
     await page.reload();
     await keyRow("Claude Code").waitFor();
     check(!((await page.locator("body").textContent()) ?? "").includes(key.split("_")[2]!), "after a reload, the key's secret is nowhere on the page");
-    const used = (await keyRow("Claude Code").locator("td").allTextContents()).map((text) => text.trim());
-    check(/^\d{4}-\d{2}-\d{2}$/.test(used[3] ?? ""), `its row now has a last use: ${used[3]}`);
+    check((await keys.getByRole("figure").count()) === 0, "and no key is shown");
+    const used = await keyCells("Claude Code");
+    check(DATE.test(used["Last used"] ?? ""), `its row now has a last use: ${used["Last used"]}`);
 
-    await page.getByRole("button", { name: "Revoke Claude Code" }).click();
-    const confirm = page.locator(".confirm");
+    await keyRow("Claude Code").getByRole("button", { name: "Revoke Claude Code…", exact: true }).click();
+    const confirm = keys.getByRole("group", { name: "Revoke Claude Code?", exact: true });
     await confirm.waitFor();
-    check(((await confirm.locator("h2").textContent()) ?? "") === "Revoke Claude Code?", `the revoke asks first: "${await confirm.locator("h2").textContent()}"`);
+    check(true, "the revoke asks first: \"Revoke Claude Code?\"");
+    check(await confirm.getByRole("button", { name: "Keep it", exact: true }).evaluate((button) => button === document.activeElement), "with the focus on Keep it");
     await screenshot(page, "key-revoke");
-    await confirm.getByRole("button", { name: "Revoke Claude Code" }).click();
+    await confirm.getByRole("button", { name: "Revoke Claude Code", exact: true }).click();
     await keyRow("Claude Code").waitFor({ state: "detached" });
     const revoked = await failure(withKey(key).shelves.list());
     check(revoked?.status === 401, `revoked in the page, the key gets: ${say(revoked)}`);
@@ -287,22 +312,26 @@ try {
   await step("8. Change the name in the page, and the navigation shows it; a new email needs the password", async () => {
     const profile = section("Profile");
     await profile.getByLabel("Name", { exact: true }).fill("Ada King");
-    await profile.getByRole("button", { name: "Save profile" }).click();
-    await page.locator("body > nav .nav-account", { hasText: "Ada King" }).waitFor();
-    check((await profile.locator("[role=status]").textContent())?.includes("saved") ?? false, `the profile says "${await profile.locator("[role=status]").textContent()}"`);
+    await profile.getByRole("button", { name: "Save profile", exact: true }).click();
+    check(await savedOrRefused(profile), `the profile says "${await said(profile).or(profile.getByRole("alert")).first().textContent()}"`);
+    await nav.getByText("Ada King", { exact: true }).waitFor();
+    check(((await said(profile).textContent()) ?? "").includes("saved"), `the navigation shows the new name, and the profile says "${await said(profile).textContent()}"`);
     check((await ada.client.auth.me()).name === "Ada King", "the SDK sees the new name");
 
     /** Saves the profile and waits for its refusal. */
     const refusal = async () => {
-      await profile.getByRole("button", { name: "Save profile" }).click();
-      const shown = profile.locator(".error");
+      await profile.getByRole("button", { name: "Save profile", exact: true }).click();
+      const shown = profile.getByRole("alert");
       await shown.waitFor();
       return (await shown.textContent()) ?? "";
     };
     const marked = (label: string) => profile.getByLabel(label, { exact: true }).getAttribute("aria-invalid");
     await profile.getByLabel("Email", { exact: true }).fill("bea@example.com");
     const unsaid = await refusal();
-    check(unsaid === "Changing the email needs your password.", `a new email without the password says "${unsaid}"`);
+    check(
+      unsaid === "Changing the email needs your password." && (await marked("Your password")) === "true" && (await marked("Email")) !== "true",
+      `a new email without the password says "${unsaid}", and marks the password field, not the email`,
+    );
     await profile.getByLabel("Your password", { exact: true }).fill("the wrong password");
     const wrong = await refusal();
     check(wrong === "That isn't your password." && (await marked("Your password")) === "true", `a wrong password says "${wrong}", and the password field is marked`);
@@ -313,8 +342,8 @@ try {
 
     await profile.getByLabel("Email", { exact: true }).fill("ada@engine.example");
     await profile.getByLabel("Your password", { exact: true }).fill(ADA.password);
-    await profile.getByRole("button", { name: "Save profile" }).click();
-    await profile.locator("[role=status]").waitFor();
+    await profile.getByRole("button", { name: "Save profile", exact: true }).click();
+    check(await savedOrRefused(profile), "the new email is saved");
     check((await ada.client.auth.me()).email === "ada@engine.example", "the SDK sees the new email");
     check((await profile.getByLabel("Your password", { exact: true }).inputValue()) === "", "the password field is cleared");
     const relogged = await app.browser().client.auth.logIn({ email: "ada@engine.example", password: ADA.password });
@@ -326,36 +355,37 @@ try {
     const other = app.browser();
     await other.client.auth.logIn({ email: ADA.email, password: ADA.password });
     const elsewhere = await (await contextWith(other.cookie())).newPage();
+    const theirShelves = elsewhere.getByRole("main").getByRole("table", { name: "Your shelves" });
     await elsewhere.goto(`${app.url}/app/shelves`);
-    await elsewhere.locator("table.rows").waitFor();
+    await theirShelves.waitFor();
     check(true, "another browser is logged in and lists shelves");
 
     await page.goto(`${app.url}/app/settings`);
     const password = section("Password");
-    await password.getByLabel("Current password").fill("the wrong password");
-    await password.getByLabel("New password").fill("a new and longer password");
-    await password.getByRole("button", { name: "Change password" }).click();
-    const refusal = password.locator(".error");
+    await password.getByLabel("Current password", { exact: true }).fill("the wrong password");
+    await password.getByLabel("New password", { exact: true }).fill("a new and longer password");
+    await password.getByRole("button", { name: "Change password", exact: true }).click();
+    const refusal = password.getByRole("alert");
     await refusal.waitFor();
-    const current = await password.getByLabel("Current password").evaluate((input) => ({ invalid: input.getAttribute("aria-invalid"), focused: input === document.activeElement }));
+    const current = await password.getByLabel("Current password", { exact: true }).evaluate((input) => ({ invalid: input.getAttribute("aria-invalid"), focused: input === document.activeElement }));
     check((await refusal.textContent()) === "That isn't your current password." && current.invalid === "true" && current.focused, `a wrong current password says "${await refusal.textContent()}", marking that field: ${JSON.stringify(current)}`);
     await screenshot(page, "password-refused");
     await elsewhere.reload();
-    await elsewhere.locator("table.rows").waitFor();
+    await theirShelves.waitFor();
     check(true, "the other browser is still logged in");
 
-    await password.getByLabel("Current password").fill(ADA.password);
-    await password.getByRole("button", { name: "Change password" }).click();
-    await password.locator("[role=status]").waitFor();
-    check((await password.getByLabel("Current password").inputValue()) === "" && (await password.getByLabel("New password").inputValue()) === "", "both fields are cleared");
-    check((await password.locator(".error").count()) === 0, "the refusal is gone");
+    await password.getByLabel("Current password", { exact: true }).fill(ADA.password);
+    await password.getByRole("button", { name: "Change password", exact: true }).click();
+    check(await savedOrRefused(password), `the password is changed: "${await said(password).textContent()}"`);
+    check((await password.getByLabel("Current password", { exact: true }).inputValue()) === "" && (await password.getByLabel("New password", { exact: true }).inputValue()) === "", "both fields are cleared");
+    check((await password.getByRole("alert").count()) === 0, "the refusal is gone");
     await screenshot(page, "password-changed");
 
     await elsewhere.goto(`${app.url}/app/shelves`);
     await elsewhere.waitForURL(/\/login\?next=/);
     check(true, `the other browser is sent to log in: ${new URL(elsewhere.url()).pathname}`);
-    await page.locator("body > nav").getByRole("link", { name: "Shelves", exact: true }).click();
-    await page.locator("table.rows").waitFor();
+    await nav.getByRole("link", { name: "All shelves", exact: true }).click();
+    await main.getByRole("table", { name: "Your shelves" }).waitFor();
     check(true, "this browser stays logged in");
     await ada.client.account.changePassword({ currentPassword: "a new and longer password", newPassword: ADA.password });
   });
@@ -364,8 +394,9 @@ try {
     await page.goto(`${app.url}/app/settings`);
     const agents = section("Connect an agent");
     await agents.waitFor();
-    const blocks = agents.locator(".code-block");
-    const captions = (await blocks.locator("figcaption > span").allTextContents()).map((text) => text.trim());
+    // Every agent's tab stays mounted, so the snippets behind the closed tabs are in the page, hidden.
+    const blocks = agents.getByRole("figure", { includeHidden: true });
+    const captions = await blocks.evaluateAll((figures) => figures.map((figure) => figure.querySelector("figcaption")?.firstElementChild?.textContent?.trim() ?? ""));
     check(JSON.stringify(captions) === JSON.stringify(["Claude Code plugin", "Claude Code without the plugin", "Claude Desktop", "Cursor"]), `a snippet for each agent, the plugin first: ${captions.join(", ")}`);
     const [plugin, claudeCode, desktop, cursor] = (await blocks.locator("code").allTextContents()).map((text) => text.trim());
     check((plugin ?? "").startsWith("claude plugin marketplace add") && (plugin ?? "").includes(`server_url=${app.url}`), "the plugin's install names this server");

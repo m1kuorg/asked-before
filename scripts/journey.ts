@@ -1,17 +1,17 @@
 // The app's whole journey (m1kuorg/basics#53), on a fresh copy of the app,
 // with the real model and nothing stubbed. In a real browser at 1920×1080, a
 // learner signs up from the landing page, makes a shelf, uploads the demo
-// export through the upload page's file input, and sees it sorted; card A
-// on the stack matches the answer key, word for word; a cold rep on it fails
-// with the known wrong answer and the next passes with the known right one,
-// stamping it returned today; the Desk lists that return; and Settings
-// makes an API key. Then, as a script would, the SDK lists the shelf's
-// cards with that key, and, as an agent would, the MCP server records a
-// rephrasing of card A's question, so its count goes up by one and it's
-// borrowed again, which the stack shows. Each step saves a screenshot and
-// says how long it took; any mismatch stops the run with a message naming
-// the step. It prints step names, counts, months, and dates, never message
-// text, problems, answers, or reasons.
+// export through the upload page's file input, and sees it sorted; card A,
+// opened from its shelf, matches the answer key, word for word; a cold rep
+// on it fails with the known wrong answer and the next passes with the
+// known right one, marking it Proven today; Home lists it among the latest
+// proven; and Settings makes an API key. Then, as a script would, the SDK
+// lists the shelf's cards with that key, and, as an agent would, the MCP
+// server records a rephrasing of card A's question, so its count goes up by
+// one and it's Asked since proven, which the shelf shows. Each step saves a
+// screenshot and says how long it took; any mismatch stops the run with a
+// message naming the step. It prints step names, counts, months, and dates,
+// never message text, problems, answers, or reasons.
 // It needs ANTHROPIC_API_KEY and Playwright's Chromium, and makes 7 model
 // calls (a sort's batch and its last pass, two cold reps and their checks,
 // and a capture), in under a minute.
@@ -21,7 +21,7 @@
 //                  its screenshots show the window, not the whole page
 //   --pause <ms>   waits this long on the landing page, after each step, and before
 //                  each submit, for a watchable pace
-//   --demo-shelf   takes the Desk's "Try the demo shelf" instead of making Work and
+//   --demo-shelf   takes Home's "Try the demo shelf" instead of making Work and
 //                  choosing the demo export, so the demo-data label shows
 // JOURNEY_URL walks a deployed app instead; the run prints its learner's email.
 
@@ -32,7 +32,7 @@ import { mkdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { chromium, type Browser, type Page } from "playwright";
+import { chromium, type Browser, type Locator } from "playwright";
 import { ENTRY_IN_CLONE, MCP_ENV } from "../packages/mcp/src/connect";
 import { key, phrasings } from "./lib/answer-key";
 import { startApp } from "./lib/app";
@@ -68,9 +68,15 @@ function expect(ok: boolean, what: string) {
 }
 
 const A = key.skills[0]!;
-/** Card A's borrows in the demo export, oldest first. */
+/** Card A's messages in the demo export, oldest first. */
 const borrowsOfA = A.messageIds.map((id) => phrasings[Number(id.slice(1)) - 1]!).sort((a, b) => Date.parse(a.time) - Date.parse(b.time));
-const today = new Date().toISOString().slice(0, 10);
+// Dates as the page writes them, in UTC as the browser here reads them.
+const shortDate = (iso: string) => new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
+const askDay = (iso: string) => new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(iso));
+const today = shortDate(new Date().toISOString());
+/** The cold rep's answer box, as it's labelled. */
+const ANSWER_LABEL = "Your answer, in your own words, without AI";
+const STATUS_WORDS = ["To prove", "Proven", "Asked since proven"];
 // JOURNEY_URL walks a deployed app instead of starting one; its learner gets a
 // fresh email, since the deployed app keeps every account.
 const LIVE_URL = process.env.JOURNEY_URL?.replace(/\/$/, "");
@@ -105,21 +111,37 @@ page.on("console", (message) => {
 });
 page.on("pageerror", (error) => consoleErrors.push(error.message));
 
-const text = async (selector: string, on: Page = page) => ((await on.locator(selector).first().textContent()) ?? "").replace(/\s+/g, " ").trim();
-const nav = (name: string) => page.locator("body > nav").getByRole("link", { name, exact: true });
-/** Waits for the first of a success and the page's error, and fails the step with the error's words if it shows. */
-async function settles(success: string, timeout = MODEL_WAIT) {
-  await page.locator(`${success}, .block .error`).first().waitFor({ timeout });
-  if (await page.locator(".block .error").count()) throw new Mismatch(`the page shows an error: "${await text(".block .error")}"`);
+const say = async (locator: Locator) => ((await locator.first().textContent()) ?? "").replace(/\s+/g, " ").trim();
+const main = page.getByRole("main");
+const nav = (name: string | RegExp) => page.getByRole("navigation", { name: "Asked Before" }).getByRole("link", { name, exact: typeof name === "string" ? true : undefined });
+/** Every error a screen shows is an alert inside its main. */
+const alert = main.getByRole("alert");
+/** Waits for the first of a success and an error in the page's main, and fails the step with the error's words if one shows. */
+async function settles(success: Locator, timeout = 15_000) {
+  await success.or(alert).first().waitFor({ timeout });
+  if (await alert.count()) throw new Mismatch(`the page shows an error: "${await say(alert)}"`);
 }
+const h1 = (name: string) => main.getByRole("heading", { level: 1, name, exact: true });
+/** The card page's cold rep panel, and a heading in it: "The lesson", "The problem", "Not yet". */
+const panel = main.getByRole("region", { name: "Prove it without AI", exact: true });
+const heading = (name: string) => panel.getByRole("heading", { name, exact: true });
+/** The model's words under one of the panel's headings. */
+const words = (name: string) => heading(name).evaluate((title) => title.nextElementSibling?.textContent ?? "");
+/** The shelf's cards, most asked first. */
+const cards = () => main.getByRole("list", { name: `Cards on ${SHELF}, most asked first`, exact: true });
 
-/** Answers the open cold rep, and waits for its check to end, in a verdict or the page's error. */
-async function answer(words: string) {
-  await page.locator(".answer-box textarea").fill(words);
+/** Answers the open cold rep, and waits for its check to end: the verdict the check answered, or the page's error. */
+async function answer(text: string): Promise<string> {
+  await panel.getByLabel(ANSWER_LABEL, { exact: true }).fill(text);
   await pause();
-  await page.getByRole("button", { name: "Check my answer" }).click();
-  await page.locator(".block .is-waiting", { hasText: "Checking your answer…" }).waitFor({ state: "detached", timeout: MODEL_WAIT });
-  if (await page.locator(".block .error").count()) throw new Mismatch(`the page shows an error: "${await text(".block .error")}"`);
+  const checked = page.waitForResponse((response) => response.request().method() === "POST" && /^\/api\/v1\/reps\/[^/]+\/check$/.test(new URL(response.url()).pathname), { timeout: MODEL_WAIT });
+  await panel.getByRole("button", { name: "Check my answer", exact: true }).click();
+  const response = await checked;
+  if (!response.ok()) {
+    await alert.waitFor();
+    throw new Mismatch(`the page shows an error: "${await say(alert)}"`);
+  }
+  return ((await response.json()) as { rep: { verdict: string } }).rep.verdict;
 }
 
 let pausedMs = 0;
@@ -129,8 +151,8 @@ async function pause() {
   pausedMs += PAUSE_MS;
 }
 
-/** How long after the page opened the fail, the returned stamp, and the stack's borrowed again showed, as a recording shows them. */
-const at = { fail: "", stamp: "", borrowedAgain: "" };
+/** How long after the page opened the fail, the Proven stamp, and the shelf's Asked since proven showed, as a recording shows them. */
+const at = { fail: "", stamp: "", askedAgain: "" };
 let shot = 0;
 let currentStep = "";
 const started = performance.now();
@@ -139,7 +161,17 @@ async function step(name: string, run: () => Promise<string>) {
   const began = performance.now();
   const from = sinceOpened();
   const summary = await run();
-  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)).then(() => undefined)).catch(() => undefined);
+  // Only finite, clock-driven animations: a spinner turns for as long as its request runs.
+  await page
+    .evaluate(() =>
+      Promise.allSettled(
+        document
+          .getAnimations()
+          .filter((a) => a.timeline === document.timeline && a.effect?.getTiming().iterations !== Infinity)
+          .map((a) => a.finished),
+      ).then(() => undefined),
+    )
+    .catch(() => undefined);
   // A full-page screenshot resizes the page for a moment, which the video would show, so a recorded run shoots the window.
   await page.screenshot({ path: join(OUT, `${++shot}-${name.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "").slice(0, 60)}.png`), fullPage: !values.video });
   console.log(`ok   ${shot}. ${name}: ${summary} (${((performance.now() - began) / 1000).toFixed(1)}s${values.video ? `, from ${from} to ${sinceOpened()} in the video` : ""})`);
@@ -157,117 +189,143 @@ try {
   await step("Sign up from the landing page", async () => {
     await page.goto(app.url);
     await pause();
-    await page.locator("nav").getByRole("link", { name: "Sign up", exact: true }).click();
+    // The landing page's Sign up, in its closing question.
+    await main.getByRole("link", { name: "Sign up", exact: true }).click();
     await page.waitForURL(/\/signup$/);
-    await page.getByLabel("Name").fill(ADA.name);
-    await page.getByLabel("Email").fill(ADA.email);
-    await page.getByLabel("Password").fill(ADA.password);
+    await page.getByLabel("Name", { exact: true }).fill(ADA.name);
+    await page.getByLabel("Email", { exact: true }).fill(ADA.email);
+    await page.getByLabel("Password", { exact: true }).fill(ADA.password);
     await pause();
-    await page.getByRole("button", { name: "Sign up" }).click();
+    await main.getByRole("button", { name: "Sign up", exact: true }).click();
     await page.waitForURL(/\/app\/desk$/);
-    await page.locator(".block h1").waitFor();
-    expect((await text(".block h1")) === "Still borrowed", `signing up lands on "${await text(".block h1")}", not the Desk`);
-    return "on the Desk, with no cards yet";
+    // Home's h1 is a sentence built from the data, once it's here: a new account has no cards to count.
+    await settles(main.getByRole("heading", { level: 1, name: /\.$/ }));
+    expect((await say(main.getByRole("heading", { level: 1 }))) === "No cards yet.", `signing up lands on "${await say(main.getByRole("heading", { level: 1 }))}", not Home with no cards`);
+    return "on Home, with no cards yet";
   });
 
   if (DEMO_SHELF) {
     await step("Try the demo shelf, and see the demo export sorted onto it", async () => {
-      await page.locator(".block").getByRole("button", { name: "Try the demo shelf" }).click();
-      await settles(`.block .upload-done p:text-is("They're sorted into ${SHELF}'s cards.")`);
+      await main.getByRole("region", { name: "Prove next", exact: true }).getByRole("button", { name: "Try the demo shelf", exact: true }).click();
+      await settles(main.getByRole("status").filter({ hasText: `They're sorted into the cards on ${SHELF}.` }), MODEL_WAIT);
       shelfId = new URL(page.url()).pathname.split("/").at(-2)!;
-      const count = await text(".block .plate b");
-      expect(count === String(phrasings.length), `the upload holds ${count} new phrasings, not ${phrasings.length}`);
-      expect(await page.locator(".block .demo-label").isVisible(), "the demo shelf's upload shows no demo-data label");
-      return `${count} of your own messages, sorted into ${SHELF}'s cards, labeled demo data`;
+      const count = await say(main.getByRole("heading", { level: 2, name: /new messages?$/ }));
+      expect(count === `${phrasings.length} new messages`, `the upload holds "${count}", not ${phrasings.length} new messages`);
+      expect(await main.locator("header").getByText("Demo data", { exact: true }).isVisible(), "the demo shelf's upload shows no demo-data label");
+      return `${count}, sorted into the cards on ${SHELF}, labeled demo data`;
     });
   } else {
     await step("Make a shelf", async () => {
-      await nav("Shelves").click();
-      await page.getByLabel("New shelf").fill(SHELF);
+      await nav("All shelves").click();
+      await main.getByLabel("New shelf", { exact: true }).fill(SHELF);
       await pause();
-      await page.getByRole("button", { name: "Add shelf" }).click();
-      await page.getByRole("link", { name: SHELF, exact: true }).click();
-      await page.locator(".block h1", { hasText: SHELF }).waitFor();
+      await main.getByRole("button", { name: "Add shelf", exact: true }).click();
+      await main.getByRole("link", { name: SHELF, exact: true }).click();
+      await settles(h1(SHELF));
       shelfId = new URL(page.url()).pathname.split("/").at(-1)!;
-      expect((await text(".block .empty h2")) === "No cards yet", `the new shelf's page says "${await text(".block .empty h2")}"`);
+      const empty = main.locator('[data-slot="empty-title"]');
+      await empty.waitFor();
+      expect((await say(empty)) === "No cards yet", `the new shelf's page says "${await say(empty)}"`);
       return `${SHELF}, with no cards yet`;
     });
 
     await step("Upload the demo export through the file input, and see it sorted", async () => {
-      await page.locator(".block").getByRole("link", { name: "Upload a chat export" }).first().click();
-      await page.locator(".drop-zone input[type=file]").setInputFiles(join(ROOT, "demo", "export.json"));
-      const upload = page.locator(".block").getByRole("button", { name: /^Upload \d+ messages$/ });
-      await upload.waitFor();
-      const count = await text(".block .plate b");
-      expect(count === String(phrasings.length), `the preview counts ${count} of your own messages, not ${phrasings.length}`);
+      await main.getByRole("link", { name: "Upload a chat export", exact: true }).click();
+      await main.locator('input[type="file"]').setInputFiles(join(ROOT, "demo", "export.json"));
+      const upload = main.getByRole("button", { name: /^Upload \d+ messages$/ });
+      await settles(upload);
+      const count = await say(main.getByRole("heading", { level: 2, name: /of your own messages$/ }));
+      expect(count === `${phrasings.length} of your own messages`, `the preview counts "${count}", not ${phrasings.length} of your own messages`);
       await pause();
       await upload.click();
-      await settles(`.block .upload-done p:text-is("They're sorted into ${SHELF}'s cards.")`);
-      return `${count} of your own messages, sorted into ${SHELF}'s cards`;
+      await settles(main.getByRole("status").filter({ hasText: `They're sorted into the cards on ${SHELF}.` }), MODEL_WAIT);
+      return `${count}, sorted into the cards on ${SHELF}`;
     });
   }
 
-  await step("Card A on the stack matches the answer key", async () => {
-    await page.getByRole("link", { name: `Go to ${SHELF}` }).click();
-    await page.locator(".block h1.skill").waitFor();
-    const skill = await text(".block h1.skill");
-    expect(skill === A.name, `card A is "${skill}", the key's is "${A.name}"`);
-    const line = await text(".block h1.skill + p");
-    expect(line === `Key A: borrowed ${A.count} times, ${A.firstMonth} to ${A.lastMonth}`, `card A's line reads "${line}"`);
-    const rows = await page.locator(".block .rail > li").evaluateAll((items) => items.map((li) => ({ text: li.querySelector(".phrasing")?.textContent ?? "", date: li.querySelector(".stamp time")?.textContent ?? "" })));
-    expect(rows.length === A.count, `card A holds ${rows.length} phrasings, the key's has ${A.count}`);
-    expect(rows.every((row, i) => row.text === borrowsOfA[i]!.text), "card A's phrasings aren't the key's, word for word, oldest first");
-    expect(rows.every((row, i) => row.date === borrowsOfA[i]!.time.slice(0, 10)), `card A's stamps (${rows.map((r) => r.date).join(", ")}) aren't the dates they were sent`);
-    return `"${skill}", borrowed ${A.count} times, ${A.firstMonth} to ${A.lastMonth}, each phrasing the export's with its date`;
+  await step("Card A, opened from its shelf, matches the answer key", async () => {
+    await main.getByRole("link", { name: `Go to ${SHELF}`, exact: true }).click();
+    await settles(cards());
+    const top = cards().getByRole("listitem").first();
+    const listed = { skill: await say(top.getByRole("link")), said: await say(top) };
+    expect(listed.skill === A.name && listed.said.includes(`${A.count} times asked`), `the shelf lists "${listed.skill}" first, not card A with ${A.count} asks: "${listed.said}"`);
+    await top.getByRole("link", { name: A.name, exact: true }).click();
+    await settles(h1(A.name));
+    const line = await say(main.locator("header p"));
+    expect(line === `Asked ${A.count} times, ${A.firstMonth} to ${A.lastMonth}, in ${SHELF}${DEMO_SHELF ? " Demo data" : ""}`, `card A's line reads "${line}"`);
+    const rows = await main
+      .getByRole("region", { name: "Every time you asked", exact: true })
+      .getByRole("listitem")
+      .evaluateAll((items) =>
+        items.map((li) => ({ text: li.querySelector("p")?.textContent ?? "", at: li.querySelector("time")?.getAttribute("datetime") ?? "", shown: li.querySelector("time")?.textContent ?? "", year: li.closest("ol")?.getAttribute("aria-label") ?? "" })),
+      );
+    const newest = [...borrowsOfA].reverse();
+    expect(rows.length === A.count, `card A holds ${rows.length} messages, the key's has ${A.count}`);
+    expect(rows.every((row, i) => row.text === newest[i]!.text), "card A's messages aren't the key's, word for word, newest first");
+    expect(
+      rows.every((row, i) => Date.parse(row.at) === Date.parse(newest[i]!.time) && row.shown === askDay(newest[i]!.time) && row.year === `Asked in ${newest[i]!.time.slice(0, 4)}`),
+      `card A's dates (${rows.map((r) => `${r.year.slice(-4)} ${r.shown}`).join(", ")}) aren't the days they were sent`,
+    );
+    return `"${A.name}", asked ${A.count} times, ${A.firstMonth} to ${A.lastMonth}, each message the export's, word for word, with its date`;
   });
 
   let firstProblem = "";
   await step("A cold rep on card A fails with the known wrong answer", async () => {
-    await page.locator(".block").getByRole("link", { name: "Open key A" }).click();
-    const take = page.locator(".block").getByRole("button", { name: "Take a cold rep" });
-    await take.waitFor();
+    const start = panel.getByRole("button", { name: `Start a cold rep on ${A.name}`, exact: true });
+    await settles(start);
+    // Opening the card started nothing: no waiting line and no problem until the click.
+    expect((await panel.getByRole("status").count()) + (await heading("The problem").count()) === 0, "opening card A started a cold rep");
     await pause();
-    await take.click();
-    await settles(".block .problem");
-    expect((await text(".block .lesson h2")) === "The lesson", "the first cold rep doesn't bring the lesson");
-    firstProblem = await text(".block .problem");
-    await answer(known.wrong);
-    expect((await page.locator(".block .verdict.is-failed").count()) === 1, `the known wrong answer gets "${await text(".block .verdict h2")}"`);
+    await start.click();
+    await settles(heading("The problem"), MODEL_WAIT);
+    expect((await heading("The lesson").count()) === 1, "the first cold rep doesn't bring the lesson");
+    firstProblem = await words("The problem");
+    const verdict = await answer(known.wrong);
+    expect(verdict === "fail", `the known wrong answer gets "${verdict}"`);
+    // "Not yet" shows as the problem goes; the next one is written at once, under the reason and the lesson again.
+    await settles(heading("Not yet"));
     at.fail = sinceOpened();
-    await settles(".block .problem");
-    expect((await text(".block .problem")) !== firstProblem, "the next problem is the same as the first");
-    expect((await text(".block .lesson h2")) === "The lesson, again", "the lesson doesn't come again after the fail");
-    return `"${await text(".block .verdict h2")}", with the lesson again and a different problem`;
+    await settles(heading("The problem"), MODEL_WAIT);
+    expect((await words("The problem")) !== firstProblem, "the next problem is the same as the first");
+    expect((await heading("The lesson, again").count()) === 1 && (await heading("The lesson").count()) === 0, "the lesson doesn't come again after the fail");
+    return `"Not yet", with the lesson again and a different problem`;
   });
 
-  await step("The next passes with the known right answer, stamped returned today", async () => {
-    await answer(known.right);
-    expect((await page.locator(".block .verdict:not(.is-failed)").count()) === 1, `the known right answer gets "${await text(".block .verdict h2")}"`);
-    const stamp = await text(".verdict .stamp");
-    expect(stamp === `Stamped returned ${today}`, `the pass says "${stamp}"`);
+  await step("The next passes with the known right answer, marked Proven today", async () => {
+    const verdict = await answer(known.right);
+    expect(verdict === "pass", `the known right answer gets "${verdict}"`);
+    const stamp = panel.getByRole("heading", { name: `Proven ${today}`, exact: true });
+    await settles(stamp);
     at.stamp = sinceOpened();
-    expect((await text(".block .plate span")) === "times borrowed, returned", `card A's plate says "${await text(".block .plate span")}"`);
-    return `"${await text(".verdict h2")}", ${stamp.toLowerCase()}`;
+    const beside = await main.getByRole("heading", { level: 1 }).evaluate((title) => [...(title.parentElement?.querySelectorAll("span") ?? [])].map((span) => (span.textContent ?? "").trim()));
+    const status = beside.find((word) => STATUS_WORDS.includes(word));
+    expect(status === "Proven", `card A says "${status}"`);
+    return `"Proven ${today}", and card A says ${status}`;
   });
 
-  await step("The Desk lists the return", async () => {
-    await nav("Desk").click();
-    await page.locator(".block .latest-returns tbody tr").first().waitFor();
-    const [returned] = await page.locator(".block .latest-returns tbody tr").evaluateAll((all) => all.map((row) => [...row.querySelectorAll("td")].map((td) => (td.querySelector("a")?.textContent ?? td.textContent ?? "").trim())));
-    expect(returned?.[0] === A.name && returned[1] === SHELF && returned[2] === today, `the latest returns read ${JSON.stringify(returned)}`);
-    const ledger = await page.locator(".margin .ledger > div").evaluateAll((all) => all.map((line) => `${line.querySelector("dt")?.textContent} ${line.querySelector("dd")?.textContent}`));
-    expect(ledger.includes("Returned 1"), `the totals read ${ledger.join(", ")}`);
-    return `${A.name} returned ${today}; ${ledger.join(", ")}`;
+  await step("Home lists the proven card", async () => {
+    await nav(/^Home\b/).click();
+    const proven = main.getByRole("list", { name: "Latest proven, latest first", exact: true });
+    await settles(proven);
+    const first = proven.getByRole("listitem").first();
+    const listed = { skill: await say(first.getByRole("link")), line: await say(first.locator("p")) };
+    expect(listed.skill === A.name && listed.line.startsWith(SHELF) && listed.line.endsWith(`proven ${today}`), `the latest proven read "${listed.skill}", "${listed.line}"`);
+    const tiles = await main.locator("dl > div").evaluateAll((all) => all.map((tile) => `${tile.querySelector("dt")?.textContent} ${tile.querySelector("dd")?.textContent}`));
+    expect(tiles.includes("Proven 1"), `the tiles read ${tiles.join(", ")}`);
+    return `${A.name} proven ${today}; ${tiles.join(", ")}`;
   });
 
   await step("Settings makes an API key, shown once", async () => {
     await nav("Settings").click();
-    await page.getByLabel("Key name").fill("Journey");
+    const keys = main.getByRole("region", { name: "API keys", exact: true });
+    await keys.getByLabel("Key name", { exact: true }).fill("Journey");
     await pause();
-    await page.getByRole("button", { name: "Create key" }).click();
-    const shown = page.locator("table.rows tbody tr", { has: page.getByText("Journey", { exact: true }) }).locator("xpath=following-sibling::tr[1]").locator(".code-block code");
-    await shown.waitFor();
-    apiKey = ((await shown.textContent()) ?? "").trim();
+    await keys.getByRole("button", { name: "Create key", exact: true }).click();
+    const shown = keys.getByRole("figure");
+    await settles(shown);
+    const caption = await shown.evaluate((figure) => figure.querySelector("figcaption")?.firstElementChild?.textContent ?? "");
+    expect(caption === "Journey's key", `the key is shown as "${caption}"`);
+    apiKey = ((await shown.locator("code").textContent()) ?? "").trim();
     expect(/^ab_[0-9a-f]{16}_[0-9a-f]{32}$/.test(apiKey), "the new key isn't in the ab_<id>_<secret> form");
     return `the key ${apiKey.split("_").slice(0, 2).join("_")}_…`;
   });
@@ -279,7 +337,7 @@ try {
     return `${cards.length} cards: ${cards.map((c) => `${c.skill} ${c.count} ${c.status}`).join("; ")}`;
   });
 
-  await step("The MCP server records a repeat question, card A's count up by one, and the stack shows it borrowed again", async () => {
+  await step("The MCP server records a repeat question, card A's count up by one, and the shelf shows it Asked since proven", async () => {
     const transport = new StdioClientTransport({ command: process.execPath, args: [join(ROOT, ENTRY_IN_CLONE)], env: { [MCP_ENV.url]: app.url, [MCP_ENV.apiKey]: apiKey }, stderr: "pipe" });
     mcp = new Client({ name: "journey", version: "0.0.0" });
     await mcp.connect(transport);
@@ -287,13 +345,18 @@ try {
     const data = result.structuredContent as { card: { id: string; count: number; status: string } | null } | undefined;
     const said = (result.content as { text?: string }[]).map((c) => c.text ?? "").join(" ");
     expect(result.isError !== true, `record_question failed: ${said}`);
-    expect(data?.card?.id === cardA!.id && data.card.count === A.count + 1 && data.card.status === "borrowed_again", `the capture landed on ${JSON.stringify(data?.card ?? null)}, not card A with ${A.count + 1} borrows, borrowed again`);
+    expect(data?.card?.id === cardA!.id && data.card.count === A.count + 1 && data.card.status === "borrowed_again", `the capture landed on ${JSON.stringify(data?.card ?? null)}, not card A with ${A.count + 1} asks, asked since proven`);
     await page.goto(`${app.url}/app/shelves/${shelfId}`);
-    await page.locator(".block h1.skill").waitFor();
-    const plate = `${await text(".block .plate b")} ${await text(".block .plate span")}`;
-    expect(plate === `${A.count + 1} times borrowed, borrowed again`, `card A's plate says "${plate}"`);
-    at.borrowedAgain = sinceOpened();
-    return `card A borrowed ${data!.card!.count} times, ${data!.card!.status.replace("_", " ")}, as the stack shows`;
+    await settles(cards());
+    const top = cards().getByRole("listitem").first();
+    const row = { skill: await say(top.getByRole("link")), said: await say(top) };
+    const status = await top.evaluate((item, statuses) => [...item.querySelectorAll("span")].map((span) => (span.textContent ?? "").trim()).find((word) => statuses.includes(word)) ?? "", STATUS_WORDS);
+    expect(
+      row.skill === A.name && row.said.includes(`${A.count + 1} times asked`) && status === "Asked since proven" && row.said.includes(`asked again ${today}`),
+      `card A's row reads "${row.said}", ${status}`,
+    );
+    at.askedAgain = sinceOpened();
+    return `card A asked ${data!.card!.count} times, ${status}, as the shelf shows`;
   });
 
   expect(consoleErrors.length === 0, `the page logged errors: ${consoleErrors.slice(0, 3).join(" | ")}`);
@@ -301,7 +364,7 @@ try {
   expect(total <= JOURNEY_MS, `the journey took ${(total / 1000).toFixed(0)}s, past ${JOURNEY_MS / 1000}s`);
   console.log(`\nThe whole journey took ${(total / 1000).toFixed(0)}s.`);
   if (values.video || PAUSE_MS) {
-    console.log(`From opening the page${pausedMs ? `, ${(pausedMs / 1000).toFixed(1)}s of pauses included` : ""}: the fail at ${at.fail}, the returned stamp at ${at.stamp}, and the stack's borrowed again at ${at.borrowedAgain}.`);
+    console.log(`From opening the page${pausedMs ? `, ${(pausedMs / 1000).toFixed(1)}s of pauses included` : ""}: the fail at ${at.fail}, the Proven stamp at ${at.stamp}, and the shelf's Asked since proven at ${at.askedAgain}.`);
   }
 } catch (error) {
   failed = true;

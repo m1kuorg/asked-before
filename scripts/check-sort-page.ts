@@ -3,10 +3,10 @@
 // stand-in in this script, never in the app: it answers as the answer key
 // sorts the demo export, unless a step holds or refuses a request. The app
 // sorts in batches of 10, with a daily cap of 6 model requests. Uploading
-// the demo export shows the sort's progress in the library's words, and
-// again after a reload; a sort that fails shows the error and a retry; the
-// retry carries on to the sort's last pass over the unsorted
-// (m1kuorg/basics#56), which the waiting line names, and which can fail
+// the demo export shows the sort's progress in the app's words, and again
+// after a reload; a sort that fails shows the error and a retry; the retry
+// carries on to the sort's last pass over the messages not on a card
+// (m1kuorg/basics#56), which the progress line names, and which can fail
 // and be tried again too, finishing the sort with the key's cards; past
 // the daily cap, the next model request gets 429, and the page says so
 // with a retry. Each step is checked through the SDK too, saves a
@@ -17,7 +17,7 @@
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { chromium, type Page } from "playwright";
+import { chromium, type Locator } from "playwright";
 import { compareWithKey, keySorter, sortEnds } from "./lib/answer-key";
 import { startApp } from "./lib/app";
 import { hold, refuse, reply, startModelStub } from "./lib/model-stub";
@@ -65,14 +65,31 @@ async function step(name: string, run: () => Promise<void>) {
   await page.screenshot({ path: join(OUT, `${++shot}-${name.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "")}.png`) });
 }
 
-const text = async (selector: string) => ((await page.locator(selector).first().textContent()) ?? "").replace(/\s+/g, " ").trim();
+const main = () => page.getByRole("main");
+const alerts = () => main().getByRole("alert");
+/** What a locator shows, its whitespace collapsed. */
+const words = async (locator: Locator) => ((await locator.first().innerText()) ?? "").replace(/\s+/g, " ").trim();
+const tryAgain = () => main().getByRole("button", { name: "Try again", exact: true });
 const uploadId = () => new URL(page.url()).searchParams.get("upload") ?? "";
+
+/**
+ * The sort's progress line, as its live status (its words and the quarter it has reached, never the count), the
+ * count shown beside it, and the bar a screen reader hears: its name is the line's words, its value the count.
+ */
+async function progress(label: string, done: string) {
+  const bar = main().getByRole("progressbar", { name: label, exact: true });
+  await bar.or(alerts()).first().waitFor();
+  if (!(await bar.isVisible())) throw new Error(`the page says "${await words(alerts())}"`);
+  const count = main().getByText(done, { exact: true });
+  await count.waitFor();
+  return { line: `${await words(main().getByRole("status").filter({ hasText: label }))} | ${await words(count)}`, value: await bar.getAttribute("aria-valuetext") };
+}
 
 /** Chooses a file on the shelf's upload page and sends it, as a learner would. */
 async function send(shelfId: string, file: string) {
   await page.goto(`${app.url}/app/shelves/${shelfId}/upload`);
-  await page.locator(".drop-zone input[type=file]").setInputFiles(file);
-  await page.locator(".block").getByRole("button", { name: /^Upload \d+ (message|messages)$/ }).click();
+  await main().getByRole("button", { name: "Drop your chat export here Choose a file", exact: true }).setInputFiles(file);
+  await main().getByRole("button", { name: /^Upload \d+ (message|messages)$/ }).click();
   await page.waitForURL(/[?&]upload=/);
 }
 
@@ -80,27 +97,29 @@ const shelf = await learner.client.shelves.create({ name: "Bootcamp" });
 const held = hold();
 model.queue(reply(keySorter), held.answer);
 
+const SORTING = "Sorting them into the cards on Bootcamp…";
+const LAST_PASS = "Sorting them into the cards on Bootcamp, and a last pass over the messages not on a card…";
+
 try {
   await step("1. Uploading the demo export shows the sort's progress, in the library's words", async () => {
     await send(shelf.id, DEMO);
     await held.reached;
-    await page.locator(".block .is-waiting", { hasText: "10 of 27" }).waitFor();
-    const line = await text(".block .is-waiting");
-    check(/^Sorting them into Bootcamp's cards: 10 of 27 sorted…$/.test(line), `the waiting line says "${line}"`);
-    check((await text(".block .plate b")) === "27" && (await text(".block .plate span")) === "new phrasings", `the plate still counts ${await text(".block .plate b")} ${await text(".block .plate span")}`);
+    const { line, value } = await progress(SORTING, "10 of 27 sorted");
+    check(line === `${SORTING} A quarter sorted. | 10 of 27 sorted` && value === "10 of 27 sorted", `the progress line says "${line}", its bar "${value}"`);
+    check(await main().getByRole("heading", { level: 2, name: "27 new messages", exact: true }).isVisible(), `the count still says "${await words(main().getByRole("heading", { level: 2 }))}"`);
     const upload = await learner.client.uploads.get(uploadId());
     check(upload.status === "sorting" && upload.offered === 10, `the API has it ${upload.status}, ${upload.offered} of ${upload.phrasings} offered`);
     await page.reload();
-    await page.locator(".block .is-waiting", { hasText: "10 of 27" }).waitFor();
-    check(true, "reloading shows the same progress");
+    const again = await progress(SORTING, "10 of 27 sorted");
+    check(again.line === line, `reloading shows the same progress: "${again.line}"`);
   });
 
   await step("2. A sort that fails shows the error and a retry", async () => {
     held.release(refuse());
-    await page.locator(".block .error").waitFor();
-    check((await text(".block .error")) === "The model request failed (400).", `the notice says "${await text(".block .error")}"`);
-    check(/10 of 27 were sorted before it stopped/.test(await text(".block .upload-done")), "and how far the sort got");
-    check(await page.locator(".block").getByRole("button", { name: "Try again" }).isVisible(), "with a Try again button");
+    await alerts().first().waitFor();
+    check(await alerts().getByText("The model request failed (400).", { exact: true }).isVisible(), `with no reload, the notice says "${await words(alerts())}"`);
+    check(await main().getByText("10 of 27 were sorted before it stopped. Trying again carries on from there.", { exact: true }).isVisible(), "and how far the sort got");
+    check(await tryAgain().isVisible(), "with a Try again button");
     const upload = await learner.client.uploads.get(uploadId());
     check(upload.status === "failed" && upload.error === "The model request failed (400).", `the API has it ${upload.status}: "${upload.error}"`);
   });
@@ -108,25 +127,26 @@ try {
   await step("3. The retry carries on to the last pass over the unsorted, which the page names, and which can fail too", async () => {
     const last = hold();
     model.queue(reply(keySorter), reply(keySorter), last.answer);
-    await page.locator(".block").getByRole("button", { name: "Try again" }).click();
+    await tryAgain().click();
     await last.reached;
-    await page.locator(".block .is-waiting", { hasText: "27 of 27" }).waitFor();
-    const line = await text(".block .is-waiting");
-    check(line === "Sorting them into Bootcamp's cards: 27 of 27 sorted, and a last pass over the unsorted…", `the waiting line says "${line}"`);
+    const { line, value } = await progress(LAST_PASS, "27 of 27 sorted");
+    check(line === `${LAST_PASS} All sorted. | 27 of 27 sorted` && value === "27 of 27 sorted", `the progress line says "${line}", its bar "${value}"`);
     const sorting = await learner.client.uploads.get(uploadId());
     check(sorting.status === "sorting" && sorting.offered === 27, `the API has it ${sorting.status}, ${sorting.offered} of ${sorting.phrasings} offered`);
     last.release(refuse());
-    await page.locator(".block .error").waitFor();
-    const said = await text(".block .upload-done");
-    check(said.includes("27 of 27 were sorted, and it stopped on the last pass over the unsorted. Trying again runs that pass."), `the page says how far it got: "${said}"`);
+    await alerts().first().waitFor();
+    const said = "27 of 27 were sorted, and it stopped on the last pass over the messages not on a card. Trying again runs that pass.";
+    check((await main().getByText(said, { exact: true }).isVisible()) && (await alerts().getByText("The model request failed (400).", { exact: true }).isVisible()), `the notice says "${await words(alerts())}", and how far it got: "${said}"`);
     const failed = await learner.client.uploads.get(uploadId());
     check(failed.status === "failed" && failed.offered === 27 && failed.error === "The model request failed (400).", `the API has it ${failed.status}, ${failed.offered} offered: "${failed.error}"`);
   });
 
   await step("4. Trying the last pass again finishes the sort, with the answer key's cards", async () => {
-    await page.locator(".block").getByRole("button", { name: "Try again" }).click();
-    await page.locator(".block .upload-done p", { hasText: /^They're sorted into Bootcamp's cards\.$/ }).waitFor();
-    check(!(await page.locator(".block .is-waiting, .block .error").count()), `the page says "${await text(".block .upload-done p:last-child")}", with no waiting line or notice left`);
+    await tryAgain().click();
+    const done = main().getByRole("status").filter({ hasText: /^They're sorted into the cards on Bootcamp\.$/ });
+    await done.or(alerts()).first().waitFor();
+    const left = (await main().getByRole("progressbar").count()) + (await alerts().count());
+    check((await done.isVisible()) && !left, `the page says "${await words(done.or(alerts()))}", with no progress line or notice left`);
     const upload = await sortEnds(learner.client, uploadId());
     check(upload.status === "sorted" && upload.offered === 27, `the API has it ${upload.status}, ${upload.offered} offered`);
     const { lines, problems } = await compareWithKey(learner.client, shelf.id);
@@ -136,15 +156,17 @@ try {
   });
 
   await step("5. Past the daily cap, the next model request gets 429, and the page shows it with a retry", async () => {
+    const PAST_MODEL = "Asked Before has used today's model requests for everyone. More open at midnight UTC.";
     await send(shelf.id, CLAUDE);
-    await page.locator(".block .error").waitFor();
-    const said = await text(".block .error");
-    check(said === "Asked Before has used today's model requests for everyone. More open at midnight UTC.", `the notice says "${said}"`);
+    await alerts().first().waitFor();
+    check(await alerts().getByText(PAST_MODEL, { exact: true }).isVisible(), `the notice says "${await words(alerts())}"`);
     const upload = await learner.client.uploads.get(uploadId());
-    check(upload.status === "failed" && upload.error === said && model.requests.length === CAP, `the API has it ${upload.status}, and the model wasn't asked (${model.requests.length} requests)`);
-    await page.locator(".block").getByRole("button", { name: "Try again" }).click();
-    await page.locator(".block .error").waitFor();
-    check((await text(".block .error")) === said && model.requests.length === CAP, "trying again the same day says so again");
+    check(upload.status === "failed" && upload.error === PAST_MODEL && model.requests.length === CAP, `the API has it ${upload.status}, and the model wasn't asked (${model.requests.length} requests)`);
+    const retried = page.waitForResponse((response) => response.url().endsWith(`/uploads/${uploadId()}/retry`));
+    await tryAgain().click();
+    check((await retried).ok(), `the retry starts the sort again: ${(await retried).status()}`);
+    await alerts().first().waitFor();
+    check((await alerts().getByText(PAST_MODEL, { exact: true }).isVisible()) && model.requests.length === CAP, "trying again the same day says so again");
     check(errors.length === 0, `no console errors${errors.length ? `: ${errors.slice(0, 3).join(" | ")}` : ""}`);
   });
 } finally {

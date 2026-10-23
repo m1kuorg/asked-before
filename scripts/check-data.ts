@@ -383,7 +383,11 @@ page.on("console", (message) => {
 });
 page.on("pageerror", (error) => consoleErrors.push(error.message));
 
-const section = (name: string) => page.locator("section", { has: page.getByRole("heading", { name, exact: true, level: 2 }) });
+/** A settings section, by its heading: a region named for it. */
+const section = (name: string) => page.getByRole("main").getByRole("region", { name, exact: true });
+const squish = (text: string | null | undefined) => (text ?? "").replace(/\s+/g, " ").trim();
+/** The focused element, as its tag and its words. */
+const focused = () => page.evaluate(() => `${document.activeElement?.tagName.toLowerCase()} "${document.activeElement?.textContent ?? ""}"`);
 /** What the data and delete sections say of D1's Time Travel, which keeps deleted data and can't be turned off. */
 const BACKUPS = /stays in the backups of Cloudflare, Asked Before's host, for up to 30 days/;
 const stillThere = async () => (await cy.client.auth.me()).email === CY.email && (await cy.client.shelves.list()).length === 1;
@@ -400,7 +404,7 @@ try {
     check(name === `asked-before-${today}.json`, `the file is named for today, in the learner's own time zone: ${name}`);
     const file = JSON.parse(await Bun.file((await download.path())!).text()) as AccountData;
     check(same(withoutTime(file), withoutTime(await cy.client.account.export())), `it holds what the SDK downloads: ${file.shelves.map((p) => `${p.name}, ${p.phrasings.length} phrasings`).join("; ")}`);
-    const said = await data.locator("[role=status]").textContent();
+    const said = await data.getByRole("status").textContent();
     check(said?.includes(name) ?? false, `the section says so: "${said}"`);
     await screenshot("data-downloaded");
   });
@@ -409,44 +413,45 @@ try {
     const del = section("Delete your account");
     await del.scrollIntoViewIfNeeded();
     check(BACKUPS.test((await del.textContent()) ?? ""), `it says so too: "${BACKUPS.source}"`);
-    const password = del.getByLabel("Your password");
+    const password = del.getByLabel("Your password", { exact: true });
+    const deleteButton = del.getByRole("button", { name: "Delete your account", exact: true });
     await password.fill("the wrong password");
-    await del.getByRole("button", { name: "Delete your account" }).click();
-    const confirm = del.locator(".confirm");
+    await deleteButton.click();
+    // The confirmation stays in the section, named by the question it asks.
+    const confirm = del.getByRole("group", { name: "Delete your account and everything in it?", exact: true });
     await confirm.waitFor();
-    const asks = await confirm.locator("h2").textContent();
-    const focused = await page.evaluate(() => document.activeElement?.textContent);
-    check(asks === "Delete your account and everything in it?" && focused === "Keep it", `it asks first, "${asks}", with Keep it focused: ${focused}`);
-    check((await del.getByRole("button", { name: "Delete your account" }).isDisabled()) === true, "the form's button is locked while it asks");
+    const asks = squish(await confirm.textContent());
+    check(asks.startsWith("Delete your account and everything in it?") && (await focused()) === 'button "Keep it"', `it asks first, "${asks}", with ${await focused()} focused`);
+    check((await deleteButton.isDisabled()) === true, "the form's button is locked while it asks");
     await screenshot("delete-confirm");
-    await confirm.getByRole("button", { name: "Delete everything" }).click();
-    const refusal = del.locator(".error");
+    await confirm.getByRole("button", { name: "Delete everything", exact: true }).click();
+    const refusal = del.getByRole("alert");
     await refusal.waitFor();
     const field = await password.evaluate((input) => ({ invalid: input.getAttribute("aria-invalid"), focused: input === document.activeElement }));
-    check((await refusal.textContent()) === "That isn't your password." && field.invalid === "true" && field.focused, `a wrong password says "${await refusal.textContent()}", marking that field: ${JSON.stringify(field)}`);
+    check(squish(await refusal.textContent()) === "That isn't your password." && field.invalid === "true" && field.focused, `a wrong password says "${squish(await refusal.textContent())}", marking that field: ${JSON.stringify(field)}`);
     check((await confirm.count()) === 0, "the confirmation is gone");
     await screenshot("delete-refused");
     check(await stillThere(), "Cy's account and shelf are still there");
 
     await password.fill(CY.password);
-    await del.getByRole("button", { name: "Delete your account" }).click();
+    await deleteButton.click();
     await confirm.waitFor();
     await page.keyboard.press("Escape");
     await confirm.waitFor({ state: "detached" });
     check(await password.evaluate((input) => input === document.activeElement), "Escape keeps it, and goes back to the password");
-    await del.getByRole("button", { name: "Delete your account" }).click();
-    await confirm.getByRole("button", { name: "Keep it" }).click();
+    await deleteButton.click();
+    await confirm.getByRole("button", { name: "Keep it", exact: true }).click();
     await confirm.waitFor({ state: "detached" });
-    check((await del.getByRole("button", { name: "Delete your account" }).isEnabled()) && (await stillThere()), "Keep it keeps it too, and the form takes another try");
+    check((await deleteButton.isEnabled()) && (await password.evaluate((input) => input === document.activeElement)) && (await stillThere()), "Keep it keeps it too, back on the password, and the form takes another try");
   });
 
   await step("9. Deleted in the page, Cy is logged out to the landing page, and logging in fails", async () => {
     const del = section("Delete your account");
-    await del.getByRole("button", { name: "Delete your account" }).click();
-    await del.locator(".confirm").getByRole("button", { name: "Delete everything" }).click();
+    await del.getByRole("button", { name: "Delete your account", exact: true }).click();
+    await del.getByRole("group", { name: "Delete your account and everything in it?", exact: true }).getByRole("button", { name: "Delete everything", exact: true }).click();
     await page.waitForURL(`${app.url}/`);
     check(true, `the page goes to the landing page: ${new URL(page.url()).pathname}`);
-    await page.locator("body > nav").getByRole("link", { name: "Log in" }).waitFor();
+    await page.getByRole("navigation", { name: "Asked Before" }).getByRole("link", { name: "Log in", exact: true }).waitFor();
     check(true, "its navigation offers Log in");
     await screenshot("deleted");
     const gone = await failure(cy.client.auth.me());
@@ -455,12 +460,12 @@ try {
     await page.goto(`${app.url}/app/settings`);
     await page.waitForURL(/\/login\?next=/);
     check(true, `settings now sends the browser to log in: ${new URL(page.url()).pathname}`);
-    await page.getByLabel("Email").fill(CY.email);
-    await page.getByLabel("Password").fill(CY.password);
-    await page.getByRole("button", { name: "Log in" }).click();
-    const refused = page.locator(".error");
+    await page.getByLabel("Email", { exact: true }).fill(CY.email);
+    await page.getByLabel("Password", { exact: true }).fill(CY.password);
+    await page.getByRole("main").getByRole("button", { name: "Log in", exact: true }).click();
+    const refused = page.getByRole("main").getByRole("alert");
     await refused.waitFor();
-    check((await refused.textContent()) === "Wrong email or password.", `logging in with the right password says "${await refused.textContent()}"`);
+    check(squish(await refused.textContent()) === "Wrong email or password.", `logging in with the right password says "${squish(await refused.textContent())}"`);
     const beaAfter = await bea.client.account.export();
     check(beaBefore !== null && same(withoutTime(beaAfter), withoutTime(beaBefore)), "Bea's data is still untouched");
   });

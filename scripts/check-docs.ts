@@ -74,10 +74,15 @@ try {
   page.on("console", (message) => message.type() === "error" && consoleErrors.push(message.text()));
   page.on("pageerror", (error) => consoleErrors.push(error.message));
   await page.goto(`${app.url}/docs`);
-  await page.locator(".docs-endpoint").first().waitFor({ timeout: 5000 }).catch(() => undefined);
+  const main = page.getByRole("main");
+  // One table per area of the API, each captioned "<area> endpoints"; each route's method and path is its .docs-endpoint.
+  const endpointTables = main.getByRole("table", { name: / endpoints$/ });
+  await main.locator(".docs-endpoint").first().waitFor({ timeout: 5000 }).catch(() => undefined);
+  /** Every code block's code, as the page shows it to copy. */
+  const codeBlocks = async () => (await main.getByRole("figure").locator("code").allTextContents()).map((text) => text.trim());
 
   await step("1. The docs page lists every route in the server's route table, and only those", async () => {
-    const documented = (await page.locator(".docs-endpoint").allTextContents()).map((text) => text.replace(/\s+/g, " ").trim()).sort();
+    const documented = (await main.locator(".docs-endpoint").allTextContents()).map((text) => text.replace(/\s+/g, " ").trim()).sort();
     const missing = routes.filter((route) => !documented.includes(route));
     const extra = documented.filter((route) => !routes.includes(route));
     check(missing.length === 0, `each of the server's ${routes.length} routes is documented${missing.length ? `; not ${missing.join(", ")}` : ""}`);
@@ -85,9 +90,12 @@ try {
   });
 
   await step("2. Each documented route says who may call it, its SDK method, and what it does", async () => {
-    const rows = await page.locator("tr:has(.docs-endpoint)").evaluateAll((trs) =>
-      trs.map((tr) => [...tr.querySelectorAll("td")].map((td) => td.textContent?.trim() ?? "")),
-    );
+    const rows: string[][] = [];
+    for (const row of await endpointTables.getByRole("row").filter({ has: page.getByRole("cell") }).all()) {
+      rows.push((await row.getByRole("cell").allTextContents()).map((text) => text.trim()));
+    }
+    const endpoints = await main.locator(".docs-endpoint").count();
+    check(rows.length > 0 && rows.length === endpoints, `each of the ${endpoints} routes is a row of an endpoints table (${rows.length} rows)`);
     const who = new Set(rows.map((cells) => cells[1]));
     check(rows.length > 0 && [...who].every((w) => ["Key or session", "Session only", "None"].includes(w!)), `who may call each: ${[...who].join(", ")}`);
     check(rows.every((cells) => /\w+\.\w+\(\)/.test(cells[0]!)), "each names its SDK method");
@@ -96,17 +104,19 @@ try {
 
   await step("3. The page names every error status the server answers", async () => {
     const server = await statuses();
-    const documented = (await page.locator(".docs-statuses tbody tr td:first-child").allTextContents()).map((text) => text.trim());
+    const table = main.getByRole("table", { name: "Error statuses", exact: true });
+    const documented: string[] = [];
+    for (const row of await table.getByRole("row").filter({ has: page.getByRole("cell") }).all()) documented.push(((await row.getByRole("cell").first().textContent()) ?? "").trim());
     const missing = server.filter((status) => !documented.includes(status));
     check(missing.length === 0, `the server's ${server.join(", ")} are documented${missing.length ? `; not ${missing.join(", ")}` : ""}`);
   });
 
   await step("4. The sort window's known limit and the daily caps are stated, with the server's numbers", async () => {
-    const text = (await page.locator("#sort-window").textContent({ timeout: 2000 })) ?? "";
+    const text = (await main.getByRole("region", { name: "The sort window", exact: true }).textContent({ timeout: 2000 })) ?? "";
     check(text.includes(`SORT_BATCH_SIZE (${config.sortBatchSize})`), `it names SORT_BATCH_SIZE and its default, ${config.sortBatchSize}`);
     check(/compared again only while it's inside that window/.test(text), "it says an older unsorted phrasing is compared again only inside the window");
     check(text.includes(`${CAPTURE_WINDOW} most recent unsorted`), `it gives a capture's window, ${CAPTURE_WINDOW}`);
-    const api = (await page.locator("#api").textContent()) ?? "";
+    const api = (await main.getByRole("region", { name: "The API", exact: true }).textContent()) ?? "";
     for (const [name, cap] of [
       ["SITE_DAILY_MODEL_REQUESTS", config.dailyModelRequests],
       ["SITE_DAILY_PHRASINGS", config.dailyPhrasings],
@@ -121,7 +131,7 @@ try {
 
   await step("5. The setup snippets carry this server's address, and the page keeps its security policy", async () => {
     const snippets = connectSnippets(app.url);
-    const shown = (await page.locator(".code-block code").allTextContents()).map((text) => text.trim());
+    const shown = await codeBlocks();
     for (const [what, snippet] of Object.entries(snippets)) check(shown.includes(snippet.trim()), `${what} is shown as connect.ts builds it for ${app.url}`);
     await page.screenshot({ path: join(OUT, "docs.png") });
     await page.screenshot({ path: join(OUT, "docs-full.png"), fullPage: true });
@@ -130,7 +140,7 @@ try {
 
   await step("6. The SDK's quickstart is the example file on the page and in the README, and it runs", async () => {
     const quickstart = (await Bun.file(QUICKSTART).text()).trim();
-    const shown = (await page.locator(".code-block code").allTextContents()).map((text) => text.trim());
+    const shown = await codeBlocks();
     check(shown.includes(quickstart), "the docs page shows packages/sdk/examples/quickstart.ts");
     const readme = await Bun.file(join(ROOT, "packages", "sdk", "README.md")).text().catch(() => "");
     check(readme.includes(`\`\`\`ts\n${quickstart}\n\`\`\``), "the SDK's README shows it too");

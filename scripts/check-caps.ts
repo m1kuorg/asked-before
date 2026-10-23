@@ -22,7 +22,7 @@ import { Database } from "bun:sqlite";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { chromium, type Page } from "playwright";
+import { chromium, type Locator, type Page } from "playwright";
 import { phrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp, type Browser } from "./lib/app";
 import { refuse, startModelStub } from "./lib/model-stub";
@@ -100,14 +100,19 @@ async function pageOf(one: Browser): Promise<Page> {
   return page;
 }
 
-/** Sends the demo export from the shelf's upload page, as a learner would, and returns the notice the page shows. */
-async function sendDemo(page: Page, shelfId: string): Promise<string> {
+/** The page's notices: its alerts, inside main. */
+const alerts = (page: Page) => page.getByRole("main").getByRole("alert");
+/** What a locator shows, its whitespace collapsed. */
+const words = async (locator: Locator) => ((await locator.first().innerText()) ?? "").replace(/\s+/g, " ").trim();
+/** Whether the page's one notice holds `message` word for word, as a line of its own. */
+const says = async (page: Page, message: string) => (await alerts(page).count()) === 1 && (await alerts(page).getByText(message, { exact: true }).isVisible());
+
+/** Chooses the demo export on the shelf's upload page and sends its 27 messages, as a learner would. */
+async function sendDemo(page: Page, shelfId: string) {
+  const main = page.getByRole("main");
   await page.goto(`${app.url}/app/shelves/${shelfId}/upload`);
-  await page.locator(".drop-zone input[type=file]").setInputFiles(DEMO);
-  await page.locator(".block").getByRole("button", { name: "Upload 27 messages" }).click();
-  const notice = page.locator(".block .error");
-  await notice.waitFor();
-  return ((await notice.textContent()) ?? "").trim();
+  await main.getByRole("button", { name: "Drop your chat export here Choose a file", exact: true }).setInputFiles(DEMO);
+  await main.getByRole("button", { name: "Upload 27 messages", exact: true }).click();
 }
 
 /** Phrasings no export holds, for a chunk. */
@@ -173,16 +178,13 @@ try {
   await step("4. The upload page shows a sort past the app's model requests", async () => {
     const eve = learners.get("Eve")!;
     const page = await pageOf(eve);
-    await page.goto(`${app.url}/app/shelves/${eve.shelfId}/upload`);
-    await page.locator(".drop-zone input[type=file]").setInputFiles(DEMO);
-    await page.locator(".block").getByRole("button", { name: "Upload 27 messages" }).click();
+    await sendDemo(page, eve.shelfId);
     await page.waitForURL(/[?&]upload=/);
-    await page.locator(".block .error").waitFor();
-    const said = ((await page.locator(".block .error").textContent()) ?? "").trim();
-    check(said === PAST_MODEL, `Eve's upload is stored, and the page says "${said}"`);
+    await alerts(page).first().waitFor();
+    check(await says(page, PAST_MODEL), `Eve's upload is stored, and the page says "${await words(alerts(page))}"`);
     const failed = await eve.client.uploads.get(new URL(page.url()).searchParams.get("upload")!);
     check(failed.status === "failed" && failed.error === PAST_MODEL && failed.phrasings === 27, `the API has it ${failed.status}: "${failed.error}"`);
-    check(await page.locator(".block").getByRole("button", { name: "Try again" }).isVisible(), "with a Try again button");
+    check(await page.getByRole("main").getByRole("button", { name: "Try again", exact: true }).isVisible(), "with a Try again button");
   });
 
   await step("5. Past the app's phrasings, any account's chunk is a 429, and the page shows it; one that just fits is stored", async () => {
@@ -195,9 +197,11 @@ try {
     check(fits.phrasings === 3, `a chunk of 3 is stored: ${fits.phrasings} phrasings`);
     const fay = learners.get("Fay")!;
     const page = await pageOf(fay);
-    const said = await sendDemo(page, fay.shelfId);
-    check(said === PAST_PHRASINGS, `Fay's upload, her first, says "${said}"`);
-    check(await page.locator(".block").getByRole("button", { name: "Try again" }).isVisible(), "with a Try again button");
+    await sendDemo(page, fay.shelfId);
+    await alerts(page).first().waitFor();
+    check(await says(page, PAST_PHRASINGS), `Fay's upload, her first, says "${await words(alerts(page))}"`);
+    check(!new URL(page.url()).searchParams.has("upload"), `and stays on sending, with no upload to watch: ${new URL(page.url()).search || "no query"}`);
+    check(await alerts(page).getByRole("button", { name: "Try again", exact: true }).isVisible(), "with a Try again button");
   });
 
   await step("6. The app's counters hold what was taken, and nothing refused", async () => {

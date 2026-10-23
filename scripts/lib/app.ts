@@ -39,6 +39,8 @@ export type App = {
    * Given an address, it calls from there, as Cloudflare names the caller in CF-Connecting-IP; else from this computer.
    */
   browser: (address?: string) => Browser;
+  /** The folder the pages were built into, which Wrangler serves and reloads: rebuild into it with `bun scripts/build-pages.ts <pages>`. */
+  pages: string;
   /** Stops the app and deletes its state, unless `state` was given. */
   stop: () => Promise<void>;
   /** Kills Wrangler and its workerd at once, by their process group, as a crash would, with no chance to finish anything; then as stop(). */
@@ -148,7 +150,7 @@ export async function startApp(env: Record<string, string> = {}, { state, port, 
     return { requests: lines.filter(request), others: lines.filter((line) => !request(line)) };
   };
 
-  return { url, databasePath: databasePath!, log: () => log, workerLog, browser: (address) => browser(url, address), stop: () => stop(), kill: () => stop("SIGKILL") };
+  return { url, pages, databasePath: databasePath!, log: () => log, workerLog, browser: (address) => browser(url, address), stop: () => stop(), kill: () => stop("SIGKILL") };
 }
 
 /** The local D1 database's SQLite file in a state folder, or null when no migrations have been applied there. */
