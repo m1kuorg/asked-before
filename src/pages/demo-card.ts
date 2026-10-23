@@ -1,48 +1,33 @@
-// Card A of the demo export, for the landing page. It runs as a Bun macro
-// when the pages are bundled (`with { type: "macro" }` in landing.ts), so the
-// bundle carries only this one card's skill and borrows, never the answer key
-// or the rest of the export. It reads the export the way the proof of
-// concept's reader numbered it (each non-empty message of the user's, m1, m2,
-// and so on, in file order), and also accepts the export's own message ids,
-// so the answer key can name either.
+// The demo's cards, for the landing page. This runs as a Bun macro when the
+// pages are bundled (`with { type: "macro" }`), so the bundle carries only
+// what it returns: the five cards of the guest's sorted demo shelf,
+// demo/sorted.json, with their phrasings and times, named as a guest then
+// sees them. Never the answer key, the known answers, or the rest of the
+// export.
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 export type DemoCard = { skill: string; borrows: { text: string; at: string }[] };
 
-type Node = { id?: string; message?: { id?: string; author?: { role?: string }; create_time?: number | null; content?: { parts?: unknown[] } } | null };
-type Conversation = { create_time: number; mapping: Record<string, Node> };
-
 const DEMO = join(import.meta.dir, "..", "..", "demo");
 
-export function demoCard(): DemoCard {
-  const conversations: Conversation[] = JSON.parse(readFileSync(join(DEMO, "export.json"), "utf8"));
-  const key: { skills: { name: string; messageIds: string[] }[] } = JSON.parse(readFileSync(join(DEMO, "answer-key.json"), "utf8"));
-
-  const byId = new Map<string, { text: string; time: number }>();
-  let n = 0;
-  for (const conversation of conversations) {
-    for (const [nodeId, node] of Object.entries(conversation.mapping)) {
-      const message = node.message;
-      if (message?.author?.role !== "user") continue;
-      const text = (message.content?.parts ?? []).filter((part): part is string => typeof part === "string").join("\n").trim();
-      if (!text) continue;
-      const phrasing = { text, time: message.create_time ?? conversation.create_time };
-      byId.set(`m${++n}`, phrasing);
-      byId.set(message.id ?? nodeId, phrasing);
-    }
-  }
-
-  const [a] = key.skills;
-  if (!a) throw new Error("The demo answer key has no card A.");
-  const borrows = a.messageIds.map((id) => {
-    const phrasing = byId.get(id);
-    if (!phrasing) throw new Error(`The demo answer key names a message the demo export doesn't have: ${id}.`);
-    return phrasing;
-  });
-  return {
-    skill: a.name,
-    borrows: borrows.sort((x, y) => x.time - y.time).map(({ text, time }) => ({ text, at: new Date(time * 1000).toISOString() })),
-  };
+/** The guest's sorted demo shelf's cards, most asked first, for the landing's showcase: the skill names a guest sees. */
+export function demoCards(): DemoCard[] {
+  const sorted: { cards: { skill: string; phrasings: string[] }[]; phrasings: { sourceId: string; text: string; time: string }[] } = JSON.parse(
+    readFileSync(join(DEMO, "sorted.json"), "utf8"),
+  );
+  const bySource = new Map(sorted.phrasings.map((phrasing) => [phrasing.sourceId, phrasing]));
+  return sorted.cards
+    .map((card) => ({
+      skill: card.skill,
+      borrows: card.phrasings
+        .map((id) => {
+          const phrasing = bySource.get(id);
+          if (!phrasing) throw new Error(`demo/sorted.json's card "${card.skill}" names a phrasing it doesn't hold: ${id}.`);
+          return { text: phrasing.text, at: new Date(phrasing.time).toISOString() };
+        })
+        .sort((x, y) => x.at.localeCompare(y.at)),
+    }))
+    .sort((x, y) => y.borrows.length - x.borrows.length || y.borrows.at(-1)!.at.localeCompare(x.borrows.at(-1)!.at));
 }

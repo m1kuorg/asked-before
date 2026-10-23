@@ -1,18 +1,25 @@
 // Builds the pages into dist/, the Worker's static assets (wrangler.jsonc),
 // once before `wrangler dev` or a deploy: `bun run build:pages`. Bun's
-// bundler bundles each HTML file under public/ with the scripts, styles, and
-// fonts it links, running the pages' macros (the landing card, the SDK's
-// quickstart) as it goes. The HTML lands at dist/<page>.html, which the
-// static assets serve at /<page>, and the hashed assets it links under
-// dist/assets/. The not-found page is dist/404.html, which the static assets
-// answer for any path they don't hold. Beside them, only the demo export is
-// copied; the answer key and the known answers never are. Then two files the
-// static assets read: _redirects, which answers every path under /app with
-// the app's page, and _headers, the security headers from server/security.ts.
+// bundler bundles each HTML file under public/ with the React entry and the
+// stylesheet it links, compiling Tailwind (scripts/tailwind-plugin.ts) and
+// running the pages' macros (the landing's demo cards, the SDK's quickstart)
+// as it goes. The pages share one chunk of React and the components
+// (splitting), and React is its production build. The HTML lands at
+// dist/<page>.html, which the static assets serve at /<page>, and the hashed
+// assets it links under dist/assets/. The not-found page is dist/404.html,
+// which the static assets answer for any path they don't hold. The fonts stay
+// files at /fonts/, copied as they are: Bun would inline them as data: URIs,
+// which the CSP's font-src 'self' blocks. Beside them, only the demo export
+// is copied; the answer key and the known answers never are. Then two files
+// the static assets read: _redirects, which answers every path under /app
+// with the app's page, and _headers, the security headers from
+// server/security.ts.
 
 import { cp, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { SECURITY_HEADERS } from "../server/security";
+import type { BunPlugin } from "bun";
+import { tailwind } from "./tailwind-plugin";
 
 const ROOT = join(import.meta.dir, "..");
 const PUBLIC = join(ROOT, "public");
@@ -23,10 +30,25 @@ const DIST = process.argv[2] ?? join(ROOT, "dist");
 const PAGES = ["index.html", "docs.html", "login.html", "signup.html", "app.html"];
 const NOT_FOUND_PAGE = "not-found.html";
 
+/** The pages' <link rel="preload"> of a font names /fonts/ too: leave it as written, or Bun can't resolve it (`external` covers only the stylesheet's url()). */
+const fontsAsTheyAre: BunPlugin = {
+  name: "fonts-as-they-are",
+  setup(build) {
+    build.onResolve({ filter: /\/fonts\/[^/]+\.woff2$/ }, ({ path }) => ({ path, external: true }));
+  },
+};
+
 const build = await Bun.build({
   entrypoints: [...PAGES, NOT_FOUND_PAGE].map((file) => join(PUBLIC, file)),
   root: PUBLIC,
   publicPath: "/assets/",
+  plugins: [tailwind(ROOT), fontsAsTheyAre],
+  // The stylesheet's url("/fonts/...") stays a link to the copied files.
+  external: ["/fonts/*"],
+  splitting: true,
+  minify: true,
+  // Without it Bun bundles React's development build.
+  define: { "process.env.NODE_ENV": JSON.stringify("production") },
 });
 if (!build.success) throw new AggregateError(build.logs, "The pages didn't build.");
 
@@ -37,6 +59,9 @@ for (const output of build.outputs) {
   const target = path === NOT_FOUND_PAGE ? "404.html" : path.endsWith(".html") ? path : join("assets", path);
   await Bun.write(join(DIST, target), output);
 }
+await cp(join(PUBLIC, "fonts"), join(DIST, "fonts"), { recursive: true });
+// The landing's photograph, served at /images/ the way the fonts are, with its credit record.
+await cp(join(PUBLIC, "images"), join(DIST, "images"), { recursive: true });
 await mkdir(join(DIST, "demo"));
 await cp(join(ROOT, "demo", "export.json"), join(DIST, "demo", "export.json"));
 

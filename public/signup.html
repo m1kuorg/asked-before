@@ -4,23 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sign up · Asked Before</title>
-    <link rel="stylesheet" href="./styles/base.css" />
-    <link rel="stylesheet" href="./styles/shell.css" />
-    <link rel="stylesheet" href="./styles/parts.css" />
-    <link rel="stylesheet" href="./styles/account.css" />
+    <meta name="description" content="Sign up for Asked Before: upload a chat export, see the how-to questions you keep asking, and prove each one without AI." />
+    <link rel="preload" href="/fonts/SchibstedGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="../src/styles/globals.css" />
   </head>
   <body>
-    <nav aria-label="Asked Before">
-      <a class="nav-name" href="/">Asked Before</a>
-      <ul>
-        <li><a class="nav-item" href="/docs">Docs</a></li>
-      </ul>
-      <div class="nav-end">
-        <a class="nav-item" href="/login">Log in</a>
-        <a class="nav-item" href="/signup" aria-current="page">Sign up</a>
-      </div>
-    </nav>
-    <div id="app" data-screen="sign-up"></div>
-    <script type="module" src="../src/pages/sign-up.ts"></script>
+    <div id="app"></div>
+    <script type="module" src="../src/pages/sign-up.tsx"></script>
   </body>
 </html>

@@ -8,3 +8,11 @@ packages/sdk/dist/
 dist/
 .wrangler/
 .dev.vars*
+
+# design-taste-frontend working files: keep only the dealt sheets
+/.taste-skill/*
+!/.taste-skill/direction.json
+!/.taste-skill/app/
+/.taste-skill/app/*
+!/.taste-skill/app/direction.json
+/.impeccable/questions/
