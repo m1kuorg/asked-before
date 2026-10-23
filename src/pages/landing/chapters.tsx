@@ -11,6 +11,7 @@ import { Phrasing } from "@/components/phrasing";
 import { Time } from "@/components/time";
 import { GUEST_NOTE, PRIVACY_LINE } from "@/lib/copy";
 import { months, plural } from "@/lib/format";
+import { AsciiField } from "./ascii-field";
 import { AXIS, CARD_A } from "./demo";
 import { GuestAction, PINK } from "./guest";
 import { Footage, Photo } from "./photo";
@@ -18,7 +19,8 @@ import CREDITS from "../../../public/images/credits.json";
 
 export function HeroChapter() {
   return (
-    <section aria-labelledby="hero-title" data-chapter-ink="light" className="relative flex min-h-[80svh] flex-col justify-between bg-plum-field px-(--margin) pt-[16svh] pb-6 md:min-h-svh md:pt-[15svh] md:pb-12">
+    <section aria-labelledby="hero-title" data-chapter-ink="light" className="relative isolate flex min-h-svh flex-col justify-between bg-plum-field px-(--margin) pt-[16svh] pb-6 md:pt-[15svh] md:pb-12">
+      <AsciiField src="/images/exam-hall-1958.jpg" focus={[0.15, 0.77]} zoom={1.4} edge={0.3} className="-z-10" />
       <h1 id="hero-title" className="t-display text-[21vw] lg:text-[15.6vw]">
         <span className="line">
           <span className="load-line" data-n="1">
@@ -44,7 +46,7 @@ export function NineWaysChapter() {
   const first = asks[0]!.at;
   const last = asks.at(-1)!.at;
   return (
-    <section aria-labelledby="nine-title" data-chapter-ink="dark" className="bg-white px-(--margin) py-28 text-navy-ink md:py-40">
+    <section aria-labelledby="nine-title" data-chapter-ink="dark" className="min-h-svh bg-white px-(--margin) py-28 text-navy-ink md:py-40">
       <div className="grid grid-cols-12 gap-x-6 gap-y-6">
         <h2 id="nine-title" data-reveal="" className="t-head col-span-12 max-w-[14ch] text-balance md:col-span-7">
           Nine ways to ask one thing
@@ -101,7 +103,8 @@ const PROOF_ROWS: [what: string, leaves: string, model: string][] = [
 /** What leaves your computer, as a table with no lines: rows told apart by tone. */
 export function ProofChapter() {
   return (
-    <section aria-labelledby="proof-title" data-chapter-ink="light" className="bg-plum-surface px-(--margin) py-28 md:py-40">
+    <section aria-labelledby="proof-title" data-chapter-ink="light" className="relative isolate min-h-svh bg-plum-surface px-(--margin) py-28 md:py-40">
+      <AsciiField src="/images/pupil-blackboard-1956.jpg" dots focus={[0.4, 0.3]} className="-z-10" />
       <h2 id="proof-title" className="t-display text-[11vw] md:text-[clamp(3rem,5.6vw,5.5rem)]">
         <span className="line" data-reveal="line">
           <span>Your words,</span>
@@ -166,7 +169,7 @@ const AGENT_ROWS: [title: string, body: string, terms: [string, string, string]]
 export function FeaturesChapter() {
   return (
     <section aria-labelledby="agents-title" className="grid md:grid-cols-2">
-      <div data-chapter-ink="dark" className="flex min-h-[70svh] flex-col justify-between gap-16 bg-panel px-(--margin) py-24 text-navy-ink md:min-h-[90svh] md:py-28">
+      <div data-chapter-ink="dark" className="flex min-h-svh flex-col justify-between gap-16 bg-panel px-(--margin) py-24 text-navy-ink md:py-28">
         <h2 id="agents-title" className="t-display text-[11vw] md:text-[clamp(3rem,5.6vw,5.5rem)]">
           <span className="line text-left" data-reveal="line">
             <span>Agents file it</span>
@@ -175,7 +178,8 @@ export function FeaturesChapter() {
             <span>as you ask.</span>
           </span>
         </h2>
-        <div className="flex flex-col items-start gap-8 lg:flex-row lg:items-end lg:justify-between">
+        {/* Below 1024px the sentence and the link are spread apart too, so a full screen of panel never leaves half of it empty. */}
+        <div className="flex flex-col items-start gap-8 max-lg:contents lg:flex-row lg:items-end lg:justify-between">
           <p data-reveal="" className="t-body max-w-[34ch]">
             The MCP server and the Claude Code plugin record the how-to questions you ask your coding agent, in your words only, and tell you when one is on a card you've asked before.
           </p>
@@ -184,20 +188,24 @@ export function FeaturesChapter() {
           </a>
         </div>
       </div>
-      <ul data-chapter-ink="light" className="grid bg-plum-black md:grid-rows-4">
-        {AGENT_ROWS.map(([title, body, terms], i) => (
-          <li key={title} data-reveal="" data-delay={String(i)} className="flex flex-col gap-3 px-(--margin) py-8 odd:bg-plum-black even:bg-plum-surface lg:grid lg:grid-cols-12 lg:gap-x-5 lg:py-7 lg:pr-8">
-            <h3 className="t-lead font-semibold lg:col-span-5">{title}</h3>
-            <p className="t-body lg:col-span-4">{body}</p>
-            <p className="t-small text-muted-on-dark lg:hidden">{terms.join(", ")}</p>
-            <ul className="t-small hidden text-muted-on-dark lg:col-span-3 lg:block" aria-label={`${title} in three words`}>
-              {terms.map((term) => (
-                <li key={term}>{term}</li>
-              ))}
-            </ul>
-          </li>
-        ))}
-      </ul>
+      {/* The field lies over the rows' two tones and under their words: the canvas comes first, and the words are positioned after it. */}
+      <div data-chapter-ink="light" className="relative isolate grid min-h-svh bg-plum-black">
+        <AsciiField src="/images/exam-dictation-1946.jpg" focus={[0.62, 0.4]} peak={0.25} />
+        <ul className="grid grid-rows-4">
+          {AGENT_ROWS.map(([title, body, terms], i) => (
+            <li key={title} data-reveal="" data-delay={String(i)} className="flex flex-col gap-3 px-(--margin) py-8 odd:bg-plum-black even:bg-plum-surface lg:grid lg:grid-cols-12 lg:gap-x-5 lg:py-7 lg:pr-8">
+              <h3 className="t-lead relative font-semibold lg:col-span-5">{title}</h3>
+              <p className="t-body relative lg:col-span-4">{body}</p>
+              <p className="t-small relative text-muted-on-dark lg:hidden">{terms.join(", ")}</p>
+              <ul className="t-small relative hidden text-muted-on-dark lg:col-span-3 lg:block" aria-label={`${title} in three words`}>
+                {terms.map((term) => (
+                  <li key={term}>{term}</li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
@@ -218,7 +226,7 @@ const FAQ: [question: string, answer: string][] = [
 /** Answers as reading text: each question a run-in, two columns on a wide screen, with a film of a written examination under the heading (under the answers on a tablet). */
 export function FaqChapter() {
   return (
-    <section aria-labelledby="faq-title" data-chapter-ink="dark" className="grid grid-cols-12 gap-x-6 gap-y-10 bg-white px-(--margin) py-28 text-navy-ink md:py-40 lg:grid-rows-[auto_1fr]">
+    <section aria-labelledby="faq-title" data-chapter-ink="dark" className="grid min-h-svh grid-cols-12 gap-x-6 gap-y-10 bg-white px-(--margin) py-28 text-navy-ink md:py-40 lg:grid-rows-[auto_1fr]">
       <h2 id="faq-title" data-reveal="" className="t-head col-span-12 md:col-span-3 lg:col-span-4">
         Fair questions
       </h2>
@@ -248,9 +256,10 @@ export function CtaChapter() {
     <section
       aria-labelledby="cta-title"
       data-chapter-ink="light"
-      className="relative flex min-h-svh items-center justify-center bg-plum-field px-(--margin) py-[calc(var(--cta)*0.9+4.5rem)] [--cta:18vw] [--ring:var(--ring-on-dark)] md:[--cta:clamp(110px,11vw,168px)]"
+      className="relative isolate flex min-h-svh items-center justify-center bg-plum-field px-(--margin) pt-[calc(var(--cta)*0.9+8.5rem)] pb-[calc(var(--cta)*0.9+4.5rem)] [--cta:18vw] [--ring:var(--ring-on-dark)] md:[--cta:clamp(110px,11vw,168px)]"
     >
-      <h2 id="cta-title" className="t-display absolute inset-x-(--margin) top-8 bottom-6 flex flex-col items-center justify-between text-center text-(length:--cta)">
+      <AsciiField src="/images/pupil-blackboard-1956.jpg" focus={[0.5, 0.36]} edge={0.6} className="-z-10" />
+      <h2 id="cta-title" className="t-display absolute inset-x-(--margin) top-24 bottom-6 flex flex-col items-center justify-between text-center text-(length:--cta)">
         <span className="line" data-reveal="line">
           <span>Asked it</span>
         </span>{" "}
@@ -274,10 +283,11 @@ export function CtaChapter() {
   );
 }
 
-/** The links, the credits, the legal line, then the name at full width, cut by the bottom edge. */
+/** The links, the credits, the legal line, then the name at full width, cut by the bottom edge; on a tall screen the room goes between the credits and the legal line. */
 export function Footer() {
   return (
-    <footer data-chapter-ink="light" className="@container overflow-clip bg-plum-black px-(--margin) pt-28 text-white [--ring:var(--ring-on-dark)] md:pt-32">
+    <footer data-chapter-ink="light" className="@container relative isolate flex min-h-svh flex-col overflow-clip bg-plum-black px-(--margin) pt-28 text-white [--ring:var(--ring-on-dark)] md:pt-32">
+      <AsciiField src="/images/exam-hall-1958.jpg" focus={[0.5, 0.5]} className="-z-10" />
       <div className="grid grid-cols-12 gap-x-6 gap-y-14">
         {/* Each link is at least 44px tall, for a finger. */}
         <ul className="col-span-12 flex flex-col gap-1 text-[clamp(1.25rem,1.1rem+0.7vw,1.625rem)] leading-[1.1] font-semibold tracking-[-0.035em] md:col-span-5 lg:text-[min(4vw,4rem)]">
@@ -302,7 +312,7 @@ export function Footer() {
         </ul>
         <div className="t-body col-span-12 flex flex-col gap-4 md:col-span-6 md:col-start-7">
           <p>
-            Pictures and footage:{" "}
+            Pictures and footage, also rendered as type:{" "}
             {CREDITS.map((credit, i) => (
               <Fragment key={credit.file}>
                 {i > 0 && "; "}
@@ -321,7 +331,7 @@ export function Footer() {
           <p className="text-muted-on-dark">Set in Schibsted Grotesk, under the SIL Open Font License.</p>
         </div>
       </div>
-      <div className="t-small mt-20 flex items-baseline justify-between gap-6 md:mt-24">
+      <div className="t-small mt-auto flex items-baseline justify-between gap-6 pt-20 md:pt-24">
         <p>The demo data is made up.</p>
         <a href="#top" className="ink-link" data-rest="underlined">
           Back to top

@@ -12,6 +12,7 @@ import { Time } from "@/components/time";
 import { DEMO_DATA } from "@/lib/copy";
 import { months, plural } from "@/lib/format";
 import type { DemoCard } from "../demo-card";
+import { AsciiField } from "./ascii-field";
 import { AXIS, CARDS } from "./demo";
 import { closest, matcher } from "./match";
 
@@ -39,7 +40,8 @@ export function ShowcaseChapter() {
   }, [said]);
 
   return (
-    <section aria-labelledby={titleId} data-chapter-ink="light" className="flex min-h-[88svh] flex-col bg-plum-black px-(--margin) py-28 [--ring:var(--pink)] md:py-36">
+    <section aria-labelledby={titleId} data-chapter-ink="light" className="relative isolate flex min-h-svh flex-col bg-plum-black px-(--margin) py-28 [--ring:var(--pink)] md:py-36">
+      <AsciiField src="/images/card-catalog-1932.jpg" focus={[0.5, 0.62]} className="-z-10" />
       <h2 id={titleId} data-reveal="" className="t-lead font-semibold">
         Type something you've asked a chatbot
       </h2>

@@ -281,7 +281,7 @@ A near-black plum and a hot pink, bracketing a white working surface whose greys
 
 **The White Behind Pink Rule.** The ask strip sits on white (a row card, the card page, a `data-ui` fragment), never directly on the panel tint, where pink drops under 3:1.
 
-**The Colour By Chapter Rule.** On the landing, each chapter is one full-bleed field with one ink: hero `plum-field`/white, Nine ways white/navy, Showcase `plum-black`/white, How it works white/navy, Proof `plum-surface`/white, Features `panel`/navy beside `plum-black` rows, FAQ white/navy, CTA `plum-field`/white, footer `plum-black` with pink links. The found pictures sit only on white chapters (Nine ways, How it works, FAQ) and belong to them. The fixed header's two corners take the ink and the ground of the chapter beneath them, so the header stays a solid patch of that chapter over a picture and never shows it through its words.
+**The Colour By Chapter Rule.** On the landing, each chapter is one full-bleed field with one ink: hero `plum-field`/white, Nine ways white/navy, Showcase `plum-black`/white, How it works white/navy, Proof `plum-surface`/white, Features `panel`/navy beside `plum-black` rows, FAQ white/navy, CTA `plum-field`/white, footer `plum-black` with pink links. The found pictures sit untouched only on white chapters (Nine ways, How it works, FAQ) and belong to them. The dark chapters (hero, Showcase, Proof, Features' dark half, CTA, footer) carry the same pictures as an ASCII field instead: the photograph rebuilt in the demo's own phrasings. Every chapter is at least one viewport tall (`min-h-svh`). The fixed header's two corners take the ink and the ground of the chapter beneath them, so the header stays a solid patch of that chapter over a picture and never shows it through its words.
 
 **The Red Is For Failure Rule.** Red (destructive, negative) marks a failing fact or an irreversible action, never emphasis.
 
@@ -398,6 +398,14 @@ The card's asks on a time axis shared by every strip in a list (from the first d
 - **Film:** the same frame and caption, a muted H.264 loop with its first frame as the poster, playing only while in view; a 44px-tall Play / Pause link in 15px/600 sits on the caption's first line at the right.
 - **Credits:** every picture and the film are credited in the footer from `public/images/credits.json`, title linked to the source and licence linked.
 
+### ASCII Field (landing, dark chapters)
+`src/pages/landing/ascii-field.tsx`: a `<canvas aria-hidden>` behind a dark chapter that rebuilds one of the found photographs in type, in the spirit of ascii-magic.com.
+- **Characters:** the demo's re-asked phrasings, run in reading order through the grid, in JetBrains Mono on 13px rows (10px on phones), at most 4,000 cells.
+- **Ink:** cells darker than 0.55 luminance stay empty. Brighter cells get pink letters on a faint pink tile, and the brightest get white letters. Each field caps its alpha (`peak`), up to 0.5. Proof uses ordered 4×4 Bayer dots instead of letters.
+- **Text stays clear:** the field is cleared around every word, button, link, table and app fragment, measured from their boxes, so nothing lies under text.
+- **Motion:** the words drift one cell every 200ms, and cells within 120px of the pointer brighten. It runs on `requestAnimationFrame` only while the chapter is near the viewport and the tab is visible. Under reduced motion it draws one still frame.
+- **Where:** hero and footer use the 1958 exam hall in different crops. The Showcase uses the card catalogue, Proof the blackboard pupil as dots, Features the 1946 dictation, and the CTA the pupil in type.
+
 ### What Leaves This Computer
 The privacy table, one component in three places: the upload preview (with this export's counts), under the drop target before a file is chosen (no counts, "In your export"), and under a shelf's uploads ("What an upload sends", "Stays on your computer"). Three columns (what, whether it leaves, whether the model sees it) on a 1px-ruled table; under 640px each row becomes what it is over one grey line saying where it goes.
 
@@ -428,5 +436,5 @@ The card page's one authored moment: "Proven" at 24/600 over its date, in the po
 - **Don't** put the ask strip, or any pink, on the panel tint.
 - **Don't** animate forever: no infinite loops, no `animate-pulse`, no spinner outside an in-flight request. The landing's newsreel is the one loop: muted, in view only, with Pause beside it, still under reduced motion.
 - **Don't** give reading text an entrance; only headings and set pieces rise.
-- **Don't** tint, duotone, round, or overlay text on a found picture.
+- **Don't** tint, duotone, round, or overlay text on a found picture shown as itself. Its ASCII field on a dark chapter is a separate, credited treatment and is cleared under text.
 - **Don't** open a modal to confirm a delete.

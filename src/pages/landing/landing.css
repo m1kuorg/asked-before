@@ -199,6 +199,16 @@ html {
   }
 }
 
+/* A dark chapter's ASCII field (ascii-field.tsx) is blank until its photograph is read, then fades in once; its own drift is drawn on the canvas, never a CSS loop. */
+.ascii-field:not([data-on]) {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ascii-field {
+    transition: opacity 900ms var(--ease-out);
+  }
+}
+
 /* The photograph drifts inside its frame as it passes, locked to the scroll (it's 106% of the frame's height). */
 .photo-frame {
   overflow: clip;
