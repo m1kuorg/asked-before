@@ -1,6 +1,6 @@
 ---
 name: Asked Before
-description: Your own repeated questions, set as type on plum and pink outside, and as pink dots on a grey track inside a light, soft app.
+description: Your own repeated questions, set as type on plum and white beside found black-and-white pictures outside, and as pink dots on a grey track inside a light, soft app.
 colors:
   plum-black: "#0d060b"
   plum-surface: "#1b0e17"
@@ -198,6 +198,13 @@ components:
     rounded: "{rounded.xl}"
     padding: "10px 16px"
     height: "63px"
+  rule-row:
+    textColor: "{colors.foreground}"
+    typography: "{typography.app-body}"
+    padding: "10px 0"
+  photo:
+    backgroundColor: "{colors.plum-surface}"
+    rounded: "{rounded.none}"
   count-tile:
     backgroundColor: "{colors.panel}"
     rounded: "{rounded.2xl}"
@@ -223,7 +230,7 @@ components:
 
 **Creative North Star: "The Repeated Question, Typeset"**
 
-Asked Before has two rooms built from one palette and one typeface. The public pages (landing, log in, sign up, 404) are type and nothing else: full-bleed fields of plum and white, one enormous statement per chapter in Schibsted Grotesk at 800, everything else small, square corners, and colour that changes by chapter instead of pictures. The visitor's own material, the same question asked nine different ways, is the picture. The app (`/app/*`) and the docs page are the opposite temperature: a light, soft, editorial workspace on a white ground, a 240px open-plane sidebar behind one hairline, tonal panels one step off white toward the plum, regular-weight numbers, and nothing louder than 24px.
+Asked Before has two rooms built from one palette and one typeface. The public pages (landing, log in, sign up, 404) lead with type: full-bleed fields of plum and white, one enormous statement per chapter in Schibsted Grotesk at 800, everything else small, square corners, and colour that changes by chapter. The visitor's own material, the same question asked nine different ways, is the main picture. Beside it, the landing carries found documents of the same habit from before AI: four archival black-and-white photographs (a card catalog, a pupil at the blackboard, an examination hall) and one muted newsreel loop of a written examination, all square, untouched, and captioned with what and when. The landing's direction contract still says "type and nothing else"; the build added the pictures, and this record follows the build. The app (`/app/*`) and the docs page are the opposite temperature: a light, soft, editorial workspace on a white ground, a 240px open-plane sidebar behind one hairline, tonal panels one step off white toward the plum, regular-weight numbers, and nothing louder than 24px.
 
 What ties the rooms together is the ask strip: pink dots on a 2px grey track, one per time you asked, with a plum-black tick on the day you proved you could do it without AI. It is the product's mark, the main data element of every list, and the one place pink appears inside the app. Pink is rare on purpose: in the app it is data, not decoration.
 
@@ -232,7 +239,8 @@ Density in the app is calm and readable (14px body, 32px nav rows, 8px gaps betw
 **Key Characteristics:**
 - One typeface (Schibsted Grotesk, 400 to 900); JetBrains Mono only in code, API keys, and IDs.
 - Public pages: square (0 radius), plum-black / plum-field / plum-surface / white chapters, pink primary buttons with plum-black words.
-- App: white ground, `#f7f2f5` tonal panels at 16px radius, white row cards at 12px, 10px controls, fully round pills.
+- Found pictures in one treatment: untouched black and white, square, the plum surface behind them while they load, a small grey caption and date under each, credited in the footer.
+- App: white ground, `#f7f2f5` tonal panels at 16px radius, rule-separated rows inside them, white row cards at 12px only where a row holds the ask strip, 10px controls, fully round pills.
 - The ask strip is the signature: pink on white only, a plum-black proven tick.
 - Flat at rest; shadows only on menus, sheets, and toasts.
 - Pale status pairs with dark ink of the same hue: To prove, Proven, Asked since proven, Not yet.
@@ -244,7 +252,7 @@ A near-black plum and a hot pink, bracketing a white working surface whose greys
 ### Primary
 - **Plum Black** (`plum-black`): the landing's ground and the footer, ink on pink buttons, the app's one filled primary button per screen, the focus ring on light grounds, and the proven tick on the ask strip. In the app it is also `--primary`.
 - **Exam-Hall Plum** (`plum-field`): the hero and CTA chapters of the landing, the left half of log in and sign up, and the 404 field. The deepest saturated colour; it carries white ink only.
-- **Plum Surface** (`plum-surface`): the landing's Proof chapter and the alternating dark rows (tables, agent rows) on plum-black.
+- **Plum Surface** (`plum-surface`): the landing's Proof chapter, the alternating dark rows (tables, agent rows) on plum-black, and the ground behind every found picture and the film while they load.
 
 ### Secondary
 - **Hot Pink** (`pink`, the app's `--ask`): on the public pages, primary buttons and footer links on plum; in the app, only the ask strip's dots and span, and the sidebar mark. It sits under 3:1 on the tinted panel, so it goes on white or plum only. `pink-hover` is the pink button under the pointer.
@@ -255,8 +263,8 @@ A near-black plum and a hot pink, bracketing a white working surface whose greys
 - **White** (`background`): the app's ground, row cards, inputs, and the landing's white chapters.
 - **Navy-Black Ink** (`foreground`): all text on white and on the panel.
 - **Plum Panel** (`panel`): the tonal panel of Home, settings panels, the Features statement cell on the landing. One step off white toward the plum; the face of the app.
-- **Panel Edge** (`border`): row-card and panel edges, table and tab rules.
-- **Row Rule** (`rule`): the quietest line, between rows inside lists.
+- **Panel Edge** (`border`): row-card and panel edges, table and tab rules, and the 1px rule between rows of a list on the panel tint.
+- **Row Rule** (`rule`): the quietest line, between rows of a list on white (the shelf's cards).
 - **Quiet Edge** (`edge`): what isn't an input but needs an edge: the secondary button, the outline Demo data chip, dashed empty frames.
 - **Control Edge** (`input`): every control's border (inputs, textarea, segmented control, drop target). 4.0:1 on white, for WCAG 1.4.11.
 - **Muted Grey** (`muted-foreground`): sublines, captions, nav labels at rest. 7.1:1 on white, 6.5:1 on the panel.
@@ -273,7 +281,7 @@ A near-black plum and a hot pink, bracketing a white working surface whose greys
 
 **The White Behind Pink Rule.** The ask strip sits on white (a row card, the card page, a `data-ui` fragment), never directly on the panel tint, where pink drops under 3:1.
 
-**The Colour By Chapter Rule.** On the landing, each chapter is one full-bleed field with one ink: hero `plum-field`/white, Nine ways white/navy, Showcase `plum-black`/white, How it works white/navy, Proof `plum-surface`/white, Features `panel`/navy beside `plum-black` rows, FAQ white/navy, CTA `plum-field`/white, footer `plum-black` with pink links. The fixed header's two corners take the ink and ground of the chapter beneath them.
+**The Colour By Chapter Rule.** On the landing, each chapter is one full-bleed field with one ink: hero `plum-field`/white, Nine ways white/navy, Showcase `plum-black`/white, How it works white/navy, Proof `plum-surface`/white, Features `panel`/navy beside `plum-black` rows, FAQ white/navy, CTA `plum-field`/white, footer `plum-black` with pink links. The found pictures sit only on white chapters (Nine ways, How it works, FAQ) and belong to them. The fixed header's two corners take the ink and the ground of the chapter beneath them, so the header stays a solid patch of that chapter over a picture and never shows it through its words.
 
 **The Red Is For Failure Rule.** Red (destructive, negative) marks a failing fact or an irreversible action, never emphasis.
 
@@ -287,11 +295,11 @@ A near-black plum and a hot pink, bracketing a white working surface whose greys
 
 ### Hierarchy
 Public pages use five steps (small, body, lead, head, display) and nothing between them.
-- **Display** (800, 9.5 to 21vw, line-height 0.88, -0.05em): the hero "Asked before?", chapter statements ("Your words, / not your data", "Agents file it / as you ask."), the CTA's question at both edges, the cropped footer wordmark, the log-in and sign-up h1, the showcase input. Each line sits in its own clipped mask with 0.14em of room for descenders.
+- **Display** (800, 9.5 to 21vw, line-height 0.88, -0.05em): the hero "Asked before?" (21vw, 15.6vw from 1024px), chapter statements ("Your words, / not your data", "Agents file it / as you ask.", 11vw, then clamp 48 to 88px from 768px), the CTA's question at both edges, the log-in and sign-up h1, the showcase input (9.5vw). The footer wordmark is sized to its container, not the viewport (`calc(100cqw / 6.15)`), so "Asked Before" fits between the margins at every width and is cut by the bottom edge only. Each line sits in its own clipped mask with 0.14em of room for descenders.
 - **Headline** (800, clamp 32 to 64px, 0.95, -0.05em): chapter h2s such as "Nine ways to ask one thing", "How it works", "Fair questions".
 - **Lead** (400 or 600, clamp 20 to 26px, 1.3): the hero's supporting sentence, the privacy line, row titles in dark rows, "Read the docs".
 - **Body** (400, clamp 17 to 19px, 1.5): paragraphs, the Proof table, FAQ answers with the question as a 600 run-in, button labels.
-- **Small** (400 or 600, 15px, 1.4): dates, the header links, table heads, footer legal line.
+- **Small** (400 or 600, 15px, 1.4): dates, the header links, table heads, picture captions and their dates, the film's Play / Pause, footer legal line.
 
 The app uses four sizes only: 12, 14, 16, 24, tracking 0, weights 400/500/600.
 - **App Title** (600, 24px): each screen's h1, clamped to two lines.
@@ -311,15 +319,19 @@ The app uses four sizes only: 12, 14, 16, 24, tracking 0, weights 400/500/600.
 
 **App: open plane.** A 240px sidebar on the white ground, separated from the canvas by one 1px `border` hairline: the mark and name at the top, Home with its queue count, a 12px grey "Shelves" group label with 20px of air above, each shelf (truncated, with a tooltip when cut), All shelves, then Docs, Settings, and the user row pushed to the bottom. Nav rows are 32px on a 34px pitch, with 16px outline icons at 1.5px stroke. The canvas is fluid to `max-width: 1100px` (Settings 1152px) with 32px gutters, 36px from the top. Under 1024px the sidebar folds into a sticky 48px top bar with the screen's name and a menu button opening a full-screen sheet; content takes 16px margins.
 
-**Home grid.** A 12-column grid with 16px gutters whose spans change by row but share column lines: four count tiles at 3/3/3/3 (128px, 2 x 2 on a phone), then Prove next at 9 beside Your shelves at 3, then Latest asks and Latest proven at 6 + 6. Spans stack below a 1100px container. Prove next's rows share their columns through a subgrid so every ask strip starts and ends on the same x.
+**Home grid.** A 12-column grid with 16px gutters (77px columns in the 1100px canvas): four count tiles at 3/3/3/3 (128px, 2 x 2 on a phone), then 8 + 4. The left eight stack Prove next, Your shelves, and Latest proven 16px apart; the right four is Latest asks, a rail of your newest messages. The row stretches so both columns end level, Latest proven taking the left column's remaining height. Everything stacks below a 1100px container. Prove next's rows share their columns through a subgrid so every ask strip starts and ends on the same x.
+
+**Shelves.** The table of shelves, and under each shelf that has cards to prove, a full-width row of its three most asked cards that need a cold rep (skill, ask span, times asked, then "2 more on Demo"), every span on one axis across the page. Under the table, "How shelves work": four term and description pairs, two columns from 40rem.
+
+**Upload and Uploads.** 8 + 4 of 12 from a 56rem canvas, the how-to at 4. Before a file is chosen, the drop target spans all 12, then "What leaves this computer" (the table without counts) takes the 8 beside the how-to. A shelf's Uploads view puts the list at 8 beside "Where your messages went" at 4 (a panel: on cards, not on a card, in all), with "What an upload sends" under the list.
 
 **Settings.** Each section is one row: a label column (16/500 title, 14px grey description) beside a panel, in a 5fr + 32px + 8fr grid, stacking under 64rem.
 
-**Public pages.** One pair of page margins (20px, 32px from 768px) and a 12-column grid with 24px gutters. Chapters are full bleed with 112px vertical padding (160px from 768px). Each chapter moves to a different horizontal position (statement left, sentence right, table full, FAQ pushed to columns 5 to 12), so the page moves without imagery. Log in and sign up split in half from 1024px: plum field left, white form column (max 384px) right.
+**Public pages.** One pair of page margins (20px, 32px from 768px) and a 12-column grid with 24px gutters. Chapters are full bleed with 112px vertical padding (160px from 768px). Each chapter moves to a different horizontal position (statement left, sentence right, table full, FAQ pushed to columns 5 to 12). The pictures follow the same grid: the card catalog on the phrasings' column under Nine ways, the pupil under "Finally, prove it without AI." in How it works' left margin (first, at three-fifths width, without that margin), the examination hall full width after the exchanges, and the film under "Fair questions" in the left four columns from 1024px, beside the answers. Log in and sign up split in half from 1024px: plum field left, white form column (max 384px) right.
 
 **Rhythm.** A 4px base: 8px between row cards and in-row groups, 16px between panels and fields, 20px panel padding, 32px section gutters. Tables become two-line rows below 640px.
 
-**Motion.** The app has feedback only: hover colour, a 1px press, focus, a sheet or menu opening, and the Proven stamp settling in once. The landing has entrances: the hero's lines rise out of their masks in 1.2s, each chapter's parts rise 24px once as they arrive (70ms stagger, `cubic-bezier(0.16, 1, 0.3, 1)` over 900ms), the header's ink follows the chapter in 300ms, buttons scale to 0.97 on press, and the exam-hall photograph drifts inside its frame with the scroll. Nothing loops, and every hidden starting state is inside `prefers-reduced-motion: no-preference`, so the reduced page is the finished page.
+**Motion.** The app has feedback only: hover colour, a 1px press, focus, a sheet or menu opening, and the Proven stamp settling in once. The landing has entrances: the hero's lines rise out of their masks in 1.2s, each chapter's headings and parts rise 24px once as they arrive (70ms stagger, `cubic-bezier(0.16, 1, 0.3, 1)` over 900ms), pictures fade in, the header's ink follows the chapter in 300ms, buttons scale to 0.97 on press, and the two large photographs (card catalog, examination hall) drift inside their frames with the scroll (106% of the frame's height). Reading text has no entrance: the FAQ answers are there when the eye arrives. The one loop is the newsreel: muted, playing only while in view, with Play / Pause beside its caption, and under reduced motion it waits on its poster until pressed. Every hidden starting state is inside `prefers-reduced-motion: no-preference`, so the reduced page is the finished page.
 
 ## Elevation & Depth
 
@@ -332,11 +344,11 @@ Flat. Depth in the app is tonal: white ground, a panel one step toward the plum,
 ### Named Rules
 **The Flat At Rest Rule.** No shadow on panels, tiles, row cards, buttons, or inputs. Only menus, sheets, popovers, and toasts lift.
 
-**The One Layer Rule.** A panel holds its title and content directly; a white row card sits inside a panel only for list rows. Never a panel inside a panel, or a tray around every block.
+**The One Layer Rule.** A panel holds its title and content directly; a list in a panel is rows separated by 1px rules, with no card of their own. A white row card sits inside a panel only when the row holds the ask strip (Prove next), which needs white. Never a panel inside a panel, or a tray around every block.
 
 ## Shapes
 
-Two corner languages, switched by one variable. The app is soft: controls at 10px (`--radius`), row cards and in-place confirmations at 12px, panels and tiles at 16px, nav items at 8px, pills and chips fully round. The public pages set `--radius: 0` on their root, so buttons, notices, and the guest panel are square; any `data-ui` fragment (a real app piece shown on the landing) sets `--radius: 10px` back and keeps the app's soft corners. Borders are 1px throughout; the only 2px lines are the ask strip's track, the active tab's underline, and the showcase input's bottom rule. The Proven stamp is the one tilted shape (-2deg, 2px border).
+Two corner languages, switched by one variable. The app is soft: controls at 10px (`--radius`), row cards and in-place confirmations at 12px, panels and tiles at 16px, nav items at 8px, pills and chips fully round. The public pages set `--radius: 0` on their root, so buttons, notices, and the guest panel are square; any `data-ui` fragment (a real app piece shown on the landing) sets `--radius: 10px` back and keeps the app's soft corners. Borders are 1px throughout; the only 2px lines are the ask strip's track, the active tab's underline, and the showcase input's bottom rule. Pictures and the film are square-cornered rectangles with no border, at their own proportions or cropped to a set frame. The Proven stamp is the one tilted shape (-2deg, 2px border).
 
 ## Components
 
@@ -357,7 +369,8 @@ Two corner languages, switched by one variable. The app is soft: controls at 10p
 
 ### Cards / Containers
 - **Panel:** panel tint, 16px corners, 20px padding (16px on a phone), a 14/600 title with an optional count pill and link on its right, a 14px grey line under it. No border, no shadow.
-- **Row card:** white, 12px corners, 1px panel-edge border, at least 63px tall, 10px by 16px padding, 8px apart.
+- **Row card:** white, 12px corners, 1px panel-edge border, at least 63px tall, 10px by 16px padding, 8px apart. Prove next's rows only: they hold the ask strip.
+- **Rule row:** a list row in any other panel (Your shelves, Latest proven, Latest asks, Where your messages went): no ground of its own, 10px top and bottom, a 1px panel-edge rule under it and none under the last. Latest asks' rows take 11px for the two lines they hold. A column-label line above a rule-row list takes the same rule.
 - **Count tile:** panel tint, 16px corners, 128px tall, 16px padding: a 14/500 label, the value at 24/400 in tabular figures, a 12px grey caption pinned to the bottom. The four tiles sum visibly.
 - **In-place confirmation:** a white 12px box with a 1px border under the row it confirms (`role="group"`), a 14/600 heading naming what goes, the destructive action and "Keep it", focus on the safe choice. Never a modal.
 
@@ -376,8 +389,17 @@ Two corner languages, switched by one variable. The app is soft: controls at 10p
 The card's asks on a time axis shared by every strip in a list (from the first day of the earliest ask's month to today), drawn as a small SVG that takes the width it's given, with an `aria-label` such as "Asked 9 times, March 2025 to September 2026, proven October 23, 2026".
 - **Every ask** (card page, landing): a 2px track-grey line, a 4.5px-radius pink dot per ask with a 1.5px white stroke; asks on the same day sit side by side, a dot and a gap apart.
 - **Span** (list rows): a 4px round-capped pink bar from first to last ask, never narrower than 6px, with the count beside it at 12px grey.
+- **Span, then dots** (Prove next, and the first 25 rows of a shelf's filter): the row draws its span first, then trades it for one dot per ask in the same 14px-tall box once that card's asks arrive (four requests at a time, cancelled when the learner leaves), so nothing moves. A row whose request fails keeps its span. The Shelves page's top cards and rows past the 25th keep the span.
 - **Proven tick:** a 2px plum-black vertical line at the strip's full height, taller than the bar.
 - **The mark:** the same grammar at 24px (three pink dots on the track, the plum-black tick) beside "Asked Before" in the sidebar. Never a letter in a square.
+
+### Found Picture and Film (landing)
+- **Picture:** a square-cornered frame on the plum surface while it loads, the photograph untouched in black and white, lazy-loaded, with a 15px grey caption under it: what it shows on the left, its date on the right. A large picture may drift inside its frame with the scroll.
+- **Film:** the same frame and caption, a muted H.264 loop with its first frame as the poster, playing only while in view; a 44px-tall Play / Pause link in 15px/600 sits on the caption's first line at the right.
+- **Credits:** every picture and the film are credited in the footer from `public/images/credits.json`, title linked to the source and licence linked.
+
+### What Leaves This Computer
+The privacy table, one component in three places: the upload preview (with this export's counts), under the drop target before a file is chosen (no counts, "In your export"), and under a shelf's uploads ("What an upload sends", "Stays on your computer"). Three columns (what, whether it leaves, whether the model sees it) on a 1px-ruled table; under 640px each row becomes what it is over one grey line saying where it goes.
 
 ### Proven Stamp
 The card page's one authored moment: "Proven" at 24/600 over its date, in the positive pair with a 2px border at 70%, 12px corners, tilted -2deg. After a pass it fades in from 105% and settles in 300ms, once.
@@ -386,13 +408,15 @@ The card page's one authored moment: "Proven" at 24/600 over its date, in the po
 
 ### Do:
 - **Do** keep pink in the app to the ask strip and the sidebar mark, on white surfaces only.
-- **Do** use the four status words and their pairs exactly: To prove, Proven, Asked since proven, and Not yet for a failed check; "Not on a card" for messages no card asks yet; "Start a cold rep" as the one rep verb.
+- **Do** use the four status words and their pairs exactly: To prove, Proven, Asked since proven, and Not yet for a failed check; "Not on a card" for messages no card asks yet; "Start a cold rep" as the one rep verb. Where the API's names show (the docs), map each to its on-screen word.
 - **Do** set numbers at regular weight with the `Figure` component's tabular digits.
 - **Do** use one filled primary button per app screen, and one pink action per landing chapter.
 - **Do** keep confirmations in place under their row, with focus on the safe choice and Escape to keep.
 - **Do** show loading as flat bars in the panel-edge grey (8px corners) at the final size, with no shimmer and no layout shift.
 - **Do** set `--radius: 10px` on any app fragment shown on a square public page.
 - **Do** keep every hidden starting state of an entrance inside `prefers-reduced-motion: no-preference`.
+- **Do** separate rows in a panel with 1px rules; keep white row cards for rows that carry the ask strip.
+- **Do** set a found picture untouched in black and white, square, on a white chapter, with its caption and date under it and its credit in the footer.
 
 ### Don't:
 - **Don't** put shadows on anything at rest; only menus, sheets, popovers, and toasts lift.
@@ -402,5 +426,7 @@ The card page's one authored moment: "Proven" at 24/600 over its date, in the po
 - **Don't** use the monospace outside code, API keys, and IDs.
 - **Don't** go above 24px for an app heading, or add a sixth type step on public pages.
 - **Don't** put the ask strip, or any pink, on the panel tint.
-- **Don't** animate forever: no infinite loops, no `animate-pulse`, no spinner outside an in-flight request.
+- **Don't** animate forever: no infinite loops, no `animate-pulse`, no spinner outside an in-flight request. The landing's newsreel is the one loop: muted, in view only, with Pause beside it, still under reduced motion.
+- **Don't** give reading text an entrance; only headings and set pieces rise.
+- **Don't** tint, duotone, round, or overlay text on a found picture.
 - **Don't** open a modal to confirm a delete.
