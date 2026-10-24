@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <style>
+    .track { fill: #e3dae0; }
+    .ask { fill: #ff488b; }
+    .tick { fill: #0d060b; }
+    @media (prefers-color-scheme: dark) {
+      .track { fill: #9a8f97; }
+      .tick { fill: #ffffff; }
+    }
+  </style>
+  <rect class="track" x="0" y="7" width="16" height="2" rx="1" />
+  <circle class="ask" cx="2" cy="8" r="2" />
+  <circle class="ask" cx="6" cy="8" r="2" />
+  <circle class="ask" cx="10" cy="8" r="2" />
+  <rect class="tick" x="13" y="1.5" width="2" height="13" rx="1" />
+</svg>
