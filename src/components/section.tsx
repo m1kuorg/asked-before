@@ -4,12 +4,10 @@
 // shadow) holding the section's one form, its status line, and its errors.
 // The grid is 5fr + 32px + 8fr: 431 + 32 + 689 = 1152 on the full canvas,
 // and 425 + 32 + 679 = 1136 at 1440 wide. On a canvas under 64rem the label
-// stacks above its panel. The h2 takes focus from an in-page link. Code, a
-// placeholder inside a sentence, is Connect your AI's and the playground's
-// too.
+// stacks above its panel. Code, a placeholder inside a sentence, is Connect
+// your AI's and the playground's too.
 
 import { useId, type ReactNode } from "react";
-import { TextLink } from "./text-link";
 
 type SectionProps = { id: string; title: string; description?: ReactNode; children: ReactNode };
 
@@ -45,25 +43,4 @@ export function FormFooter({ status, children }: { status?: string; children: Re
 /** A placeholder or file name inside a sentence, in the monospace. */
 export function Code({ children }: { children: ReactNode }) {
   return <code className="rounded-sm border border-border bg-background px-1 py-px text-xs text-foreground">{children}</code>;
-}
-
-/**
- * A link to another section of this page. The router follows every /app
- * link itself and would drop the jump, so this scrolls to the section and
- * focuses its heading.
- */
-export function SectionLink({ to, children }: { to: string; children: ReactNode }) {
-  return (
-    <TextLink
-      href={`#${to}`}
-      onClick={(event) => {
-        event.preventDefault();
-        const section = document.getElementById(to);
-        section?.scrollIntoView({ block: "start" });
-        section?.querySelector<HTMLElement>("h2")?.focus({ preventScroll: true });
-      }}
-    >
-      {children}
-    </TextLink>
-  );
 }
