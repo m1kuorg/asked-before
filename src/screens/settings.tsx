@@ -1,14 +1,16 @@
-// Settings: one view per area (app-screens.md 8.2), Account at
-// /app/settings, API keys at /app/settings/keys, and Your data at
-// /app/settings/data, each of sections in two columns (taste-sheet-app.md),
-// with its own form, status line, and errors (brief section 4, item 6;
-// inventory.md, Settings). Scaffold: the areas are built on their own branch
-// (app-notes/more-pages/plan.md).
+// Settings: one view per area (app-screens.md 8.2), each with the area's
+// name as its h1 and its sections in two columns (taste-sheet-app.md):
+// Account at /app/settings (Profile, then Password), API keys at
+// /app/settings/keys (Your keys, then What a key can do), and Your data at
+// /app/settings/data (Download your data, then Delete your account, last).
+// Each section has its own form, status line, and errors (brief section 4,
+// item 6; inventory.md, Settings), and its label column carries the current
+// values the API gives, rather than a void beside a taller panel.
 // The shared guest has none of them, only the way to an account of one's
-// own; the server refuses the guest every account and key endpoint anyway.
+// own, at every settings path; the server refuses the guest every account
+// and key endpoint anyway.
 
-import type { CreatedApiKey } from "@asked-before/sdk";
-import { useState } from "react";
+import type { ReactNode } from "react";
 import type { ScreenProps } from "@/app/router";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
@@ -16,17 +18,65 @@ import { Separator } from "@/components/ui/separator";
 import { GUEST_SETTINGS_BODY, GUEST_SETTINGS_TITLE } from "@/lib/copy";
 import { ApiKeys } from "./settings/api-keys";
 import { DeleteAccount } from "./settings/delete-account";
+import { KeyPowers } from "./settings/key-powers";
 import { Password } from "./settings/password";
 import { Profile } from "./settings/profile";
+import { TextLink } from "./settings/text-link";
 import { YourData } from "./settings/your-data";
 
 export function SettingsAccount({ client, account, setAccount }: ScreenProps) {
   if (account.guest) return <GuestSettings />;
-  return <AccountSettings client={client} account={account} setAccount={setAccount} />;
+  return (
+    <View title="Account" line={`Logged in as ${account.name}, ${account.email}.`}>
+      <Profile client={client} account={account} setAccount={setAccount} />
+      <Separator />
+      <Password client={client} />
+    </View>
+  );
 }
 
-export const SettingsKeys = SettingsAccount;
-export const SettingsData = SettingsAccount;
+export function SettingsKeys({ client, account }: ScreenProps) {
+  if (account.guest) return <GuestSettings />;
+  return (
+    <View title="API keys" line="An API key lets a script or an agent reach your shelves without your password. Make one for each, so you can revoke one alone.">
+      <ApiKeys client={client} />
+      <Separator />
+      <KeyPowers />
+    </View>
+  );
+}
+
+export function SettingsData({ client, account }: ScreenProps) {
+  if (account.guest) return <GuestSettings />;
+  return (
+    <View
+      title="Your data"
+      line={
+        <>
+          Your data is yours: download all of it, or delete your account and everything in it. The <TextLink href="/privacy">privacy page</TextLink> says what Asked Before keeps, and where.
+        </>
+      }
+    >
+      <YourData client={client} />
+      <Separator />
+      <DeleteAccount client={client} />
+    </View>
+  );
+}
+
+/** A settings area: its name as the h1 with one grey line under it, then its sections, split by full-width rules. */
+function View({ title, line, children }: { title: string; line: ReactNode; children: ReactNode }) {
+  return (
+    <div className="@container">
+      <header className="flex flex-col gap-1 pb-8">
+        <h1 className="text-2xl font-semibold">{title}</h1>
+        <p className="text-pretty text-muted-foreground">{line}</p>
+      </header>
+      <Separator />
+      {children}
+    </div>
+  );
+}
 
 function GuestSettings() {
   return (
@@ -49,31 +99,6 @@ function GuestSettings() {
           </a>
         </EmptyContent>
       </Empty>
-    </div>
-  );
-}
-
-function AccountSettings({ client, account, setAccount }: Pick<ScreenProps, "client" | "account" | "setAccount">) {
-  /** The key made on this visit, shown once under its row and filled into the agent snippets; gone when the learner leaves. */
-  const [made, setMade] = useState<CreatedApiKey | null>(null);
-  return (
-    <div className="@container">
-      <header className="flex flex-col gap-1 pb-8">
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-muted-foreground">
-          Logged in as {account.name}, {account.email}.
-        </p>
-      </header>
-      <Separator />
-      <Profile client={client} account={account} setAccount={setAccount} />
-      <Separator />
-      <Password client={client} />
-      <Separator />
-      <ApiKeys client={client} made={made} setMade={setMade} />
-      <Separator />
-      <YourData client={client} />
-      <Separator />
-      <DeleteAccount client={client} />
     </div>
   );
 }

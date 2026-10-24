@@ -2,18 +2,21 @@
 // the email (the SDK derives the keys it sends from the password and both
 // emails, ADR 0006). Only a changed email sends the password. A save resets
 // the fields to what was saved, says so, and tells the shell, so the
-// sidebar shows the new name.
+// sidebar shows the new name. The label column says when the account was
+// made.
 
 import type { Account } from "@asked-before/sdk";
 import { useEffect, useId, useRef, useState, type ChangeEvent } from "react";
 import type { ScreenProps } from "@/app/router";
 import { useShell } from "@/app/shell";
+import { Time } from "@/components/time";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useSafeSubmit } from "@/lib/use-safe-submit";
 import { FormFooter, Section } from "@/components/section";
+import { Facts } from "./facts";
 
 /** The SDK's refusal of a new email without the password. It names both fields, so the hook marks neither; this form marks the password. */
 const EMAIL_NEEDS_PASSWORD = "Changing the email needs your password.";
@@ -54,6 +57,7 @@ export function Profile({ client, account, setAccount }: Pick<ScreenProps, "clie
         <>
           <p>Your name shows in the navigation, and your email is how you log in.</p>
           <p>A new email logs out every other browser, as a new password does.</p>
+          <Facts facts={[{ term: "Account made", value: <Time iso={account.createdAt} /> }]} />
         </>
       }>
       <form {...submit.form} className="flex flex-col gap-4">
