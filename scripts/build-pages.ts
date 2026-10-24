@@ -36,7 +36,7 @@ const PUBLIC = join(ROOT, "public");
 const DIST = process.argv[2] ?? join(ROOT, "dist");
 
 /** The pages, by their file under public/; each is served at its name without .html, and index.html at /. */
-const PAGES = ["index.html", "docs.html", "login.html", "signup.html", "app.html"];
+const PAGES = ["index.html", "docs.html", "privacy.html", "login.html", "signup.html", "app.html"];
 const NOT_FOUND_PAGE = "not-found.html";
 /** The app's page, which needs a session: robots.txt keeps crawlers out of it, and the sitemap leaves it out. */
 const APP_PAGE = "app.html";

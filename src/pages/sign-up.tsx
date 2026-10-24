@@ -5,7 +5,8 @@
 // page loads. A message that names one field ("A name is needed.", "That
 // email already has an account. Log in instead.") shows on that field. A
 // sign up sets the signed-in hint and goes to `next`, or Home. The
-// cross-link and the guest sign-in carry `next` along.
+// cross-link and the guest sign-in carry `next` along. The fine print under
+// the button links to the privacy page.
 import { useId } from "react";
 import { createRoot } from "react-dom/client";
 import { Button } from "@/components/ui/button";
@@ -65,7 +66,13 @@ function SignUp() {
             {submit.busy && <Spinner data-icon="inline-start" />}
             Sign up
           </Button>
-          <p className="text-muted-foreground">{SESSION_SIGN_UP}</p>
+          <p className="text-muted-foreground">
+            {SESSION_SIGN_UP}{" "}
+            <a className="underline decoration-input underline-offset-4 hover:decoration-foreground" href="/privacy">
+              Privacy
+            </a>{" "}
+            says what happens to your words.
+          </p>
         </div>
       </form>
       <p>
