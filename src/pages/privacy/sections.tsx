@@ -18,8 +18,8 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { API_KEY_POWERS, GUEST_NOTE } from "@/lib/copy";
 import { count } from "@/lib/format";
 import { MAX_PHRASING_LENGTH } from "@asked-before/sdk";
-
-export type Section = { id: string; title: string; body: ReactNode };
+import type { Section } from "../read-mode/page";
+import { C, H3, P, Panel } from "../read-mode/prose";
 
 /** The model the server asks, as server/model.ts names it; check:chrome holds the two together. */
 export const MODEL_ID = "claude-haiku-5-5";
@@ -27,16 +27,6 @@ export const MODEL_ID = "claude-haiku-5-5";
 /** Every line the server logs, as server/http.ts's answer() writes it; check:chrome holds the two together. */
 export const LOG_LINE = "<method> <path> <status> <duration>ms";
 
-/** A word or line of code inside prose. */
-const C = ({ children }: { children: ReactNode }) => (
-  <code translate="no" className="rounded-sm bg-muted px-1 py-0.5 text-[0.875em] break-words">
-    {children}
-  </code>
-);
-
-/** Reading text at the page's measure. */
-const P = ({ children }: { children: ReactNode }) => <p className="max-w-[70ch]">{children}</p>;
-const H3 = ({ children }: { children: ReactNode }) => <h3 className="mt-6 text-xl font-semibold tracking-tight">{children}</h3>;
 
 /**
  * What leaves your computer, and what the model sees of it: the landing's proof table, row for row
@@ -55,7 +45,7 @@ const LEAVES: [what: string, leaves: string, model: string][] = [
 /** The table on the panel tone, as the docs set theirs. Under 768px each row stacks: what it is, then its two answers, each naming its column. */
 function LeavesTable() {
   return (
-    <div className="rounded-2xl bg-muted px-5 py-1 [--border:var(--edge)] [--rule:var(--background)]">
+    <Panel>
       <Table className="privacy-leaves table-fixed max-md:block">
         <TableCaption className="sr-only">What leaves your computer when you upload a chat export, and what the model sees</TableCaption>
         <TableHeader className="max-md:sr-only">
@@ -75,14 +65,14 @@ function LeavesTable() {
           ))}
         </TableBody>
       </Table>
-    </div>
+    </Panel>
   );
 }
 
 /** Reference material on the panel tone, as the docs' tables are: a name, then what it is. `code` sets the names in the monospace. */
 function Pairs({ caption, name, what, rows, code = false }: { caption: string; name: string; what: string; rows: [string, ReactNode][]; code?: boolean }) {
   return (
-    <div className="rounded-2xl bg-muted px-5 py-1 [--border:var(--edge)] [--rule:var(--background)]">
+    <Panel>
       <Table className="table-fixed">
         <TableCaption className="sr-only">{caption}</TableCaption>
         <TableHeader>
@@ -108,7 +98,7 @@ function Pairs({ caption, name, what, rows, code = false }: { caption: string; n
           ))}
         </TableBody>
       </Table>
-    </div>
+    </Panel>
   );
 }
 

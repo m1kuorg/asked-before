@@ -7,7 +7,6 @@
 // The hooks check:docs reads are kept: .docs-endpoint (one per route, the
 // method and path), .docs-statuses, and .code-block code.
 
-import type { ReactNode } from "react";
 import { connectSnippets, PLACEHOLDERS, PLUGIN, SERVER_NAME } from "../../../packages/mcp/src/connect";
 import { CopyBlock } from "@/components/copy-block";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,28 +15,18 @@ import { STATUS_WORDS } from "@/lib/copy";
 import { count } from "@/lib/format";
 import { MAX_PHRASING_LENGTH } from "@asked-before/sdk";
 import { AREAS, mcpSettings, STATUSES, TOOLS, type Endpoint } from "./reference";
+import type { Section } from "../read-mode/page";
+import { C, H3, P, Panel } from "../read-mode/prose";
 import { sdkQuickstart } from "../sdk-quickstart" with { type: "macro" };
 
 const SERVER = location.origin;
 const snippets = connectSnippets(SERVER);
 const quickstart = sdkQuickstart();
 
-export type Section = { id: string; title: string; body: ReactNode };
-
-/** A word or line of code inside prose. */
-export const C = ({ children }: { children: ReactNode }) => <code className="rounded-sm bg-muted px-1 py-0.5 text-[0.875em] break-words">{children}</code>;
-
-/** Reading text at the page's measure. */
-const P = ({ children }: { children: ReactNode }) => <p className="max-w-[70ch]">{children}</p>;
-const H3 = ({ children }: { children: ReactNode }) => <h3 className="mt-6 text-xl font-semibold tracking-tight">{children}</h3>;
-
 /** A code block to copy, carrying the class check:docs reads; like the tables, it sits on the panel tone, with no outline. */
 const Code = ({ caption, code }: { caption: string; code: string }) => (
   <CopyBlock className="code-block max-w-full [&_button]:text-sm [&_pre]:rounded-2xl [&_pre]:border-0 [&_pre]:p-5 [&_pre]:text-sm [&_pre]:leading-6" caption={caption} code={code} />
 );
-
-/** Reference material (every table and code block) sits on the panel tone; the table's rules turn white on it. */
-const Panel = ({ children }: { children: ReactNode }) => <div className="rounded-2xl bg-muted px-5 py-1 [--border:var(--edge)] [--rule:var(--background)]">{children}</div>;
 
 /** A two-column reference table: a name in code, then what it is. */
 function Pairs({ caption, name, what, rows, className, code = true }: { caption: string; name: string; what: string; rows: [string, string][]; className?: string; code?: boolean }) {

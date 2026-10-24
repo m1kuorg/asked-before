@@ -1,4 +1,4 @@
-// Which of the docs page's sections is being read, for the index's
+// Which of a reading page's sections is being read, for the index's
 // aria-current. An IntersectionObserver watches each section cross a line a
 // quarter of the way down the screen, and a sentinel at the page's foot, so a
 // short last section is marked once the page can't scroll any further. It
