@@ -6,9 +6,11 @@
 // sorted as the answer key sorts the demo export;
 // a second browser, signing in from the log-in page, and a third, from the
 // sign-up page, share the same shelves and see the first guest's cold rep;
-// a guest's navigation names the shared guest and has no Settings, whose
-// three paths (Account, API keys, Your data) each hold nothing of the
-// account's, and whose API answers a guest 403;
+// a guest's navigation names the shared guest and has Settings, with no
+// areas under it, leading to the guest's one view, which says why the guest
+// has no settings and what an account's hold; its three paths (Account, API
+// keys, Your data) each hold no form or snippet, and the API answers a
+// guest 403 on every account and key endpoint;
 // the Guest account can't be logged into with a password, signed up for,
 // or given a key; a guest's upload page warns that every guest sees what's
 // uploaded before a file is chosen; the cron, run at Wrangler's local route
@@ -38,6 +40,9 @@ const DEMO = join(import.meta.dir, "..", "demo", "export.json");
 const FRAME = { width: 1920, height: 1080 };
 const DAY_MS = 24 * 60 * 60 * 1000;
 const NOT_FOR_GUESTS = "A guest can't do this. Sign up for an account of your own to do it.";
+/** The guest's settings view, at every settings path: its h2, and the h2 of what an account's settings hold. */
+const GUEST_SETTINGS = "Settings are for your own account";
+const ACCOUNTS_SETTINGS = "What an account's settings hold";
 /** The guest's line in the sidebar, and the upload page's warning, word for word (inventory.md, "Copy with product, legal, or privacy weight"). */
 const GUEST_LINE = "Every guest shares this workspace, and it's wiped daily at midnight UTC.";
 const UPLOAD_WARNING =
@@ -165,15 +170,25 @@ try {
     return first;
   });
 
-  await step("2. The navigation names the shared guest, with Sign up and no Settings", async () => {
+  await step("2. The navigation names the shared guest, with Sign up, and Settings leading to the guest's view", async () => {
     const sidebar = nav(first);
     check((await sidebar.textContent())?.includes("Shared guest") ?? false, `the navigation says "Shared guest": "${await words(sidebar)}"`);
     check(await sidebar.getByText(GUEST_LINE, { exact: true }).isVisible(), "and that every guest shares the workspace, wiped daily at midnight UTC");
-    check((await sidebar.getByRole("link", { name: "Settings", exact: true }).count()) === 0, "it has no Settings");
     check((await sidebar.getByRole("link", { name: "Sign up", exact: true }).getAttribute("href")) === "/signup", "it has Sign up, to the sign-up page");
     check(await sidebar.getByRole("button", { name: "Log out", exact: true }).isVisible(), "and Log out");
     const me = await (await clientOf(first)).auth.me();
     check(me.guest && me.name === "Guest", `auth.me says it's the guest: ${JSON.stringify({ name: me.name, guest: me.guest })}`);
+    const settings = sidebar.getByRole("link", { name: "Settings", exact: true });
+    check((await settings.getAttribute("href")) === "/app/settings", `it has Settings, to ${await settings.getAttribute("href")}`);
+    await settings.click();
+    await first.waitForURL(/\/app\/settings$/);
+    await settle(first, main(first).getByRole("heading", { level: 2, name: GUEST_SETTINGS, exact: true }));
+    // The view names its tab once it draws.
+    await first.waitForFunction(() => document.title === "Settings · Asked Before", undefined, { timeout: 5_000 }).catch(() => {});
+    check((await words(h1(first))) === "Settings" && (await first.title()) === "Settings · Asked Before", `it leads to the guest's view, headed Settings, and so is its tab: "${await first.title()}"`);
+    check((await settings.getAttribute("aria-current")) === "page", "Settings is marked current");
+    check((await sidebar.getByRole("list", { name: "Settings" }).count()) === 0, "with no areas under it");
+    return first;
   });
 
   await step("3. A guest's cold rep, passed, is the next guest's too, from the log-in page and the sign-up page", async () => {
@@ -198,15 +213,17 @@ try {
     return second;
   });
 
-  await step("4. Settings holds nothing of the account's for a guest, at any of its three paths, and its API answers a guest 403", async () => {
+  await step("4. Settings holds no account or key form for a guest, at any of its three paths, and its API answers a guest 403", async () => {
     // Account last, so the screenshot is Settings' own path.
     for (const path of ["/app/settings/keys", "/app/settings/data", "/app/settings"]) {
       await first.goto(`${app.url}${path}`);
-      const empty = main(first).getByRole("heading", { level: 2, name: "Settings are for your own account", exact: true });
-      await settle(first, empty);
+      const why = main(first).getByRole("region", { name: GUEST_SETTINGS, exact: true });
+      await settle(first, why);
       check((await main(first).locator("form, input, textarea, pre, code").count()) === 0, `${path} has no form, field, or setup snippet`);
-      const signUp = main(first).getByRole("link", { name: "Sign up", exact: true });
-      check((await signUp.isVisible()) && (await signUp.getAttribute("href")) === "/signup", `it leads to Sign up: "${await words(main(first).locator('[data-slot="empty"]'))}"`);
+      const signUp = why.getByRole("link", { name: "Sign up", exact: true });
+      check((await signUp.isVisible()) && (await signUp.getAttribute("href")) === "/signup", `it leads to Sign up: "${await words(why)}"`);
+      const areas = await main(first).getByRole("region", { name: ACCOUNTS_SETTINGS, exact: true }).locator("dt").allTextContents();
+      check(areas.join(", ") === "Account, API keys, Your data", `and says what an account's three areas hold: ${areas.join(", ")}`);
     }
     const guest = await clientOf(first);
     const refused = {

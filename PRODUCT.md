@@ -30,13 +30,13 @@ AI recaps cluster what you talked about, and study modes tutor inside one conver
 
 ## Operating Context
 
-- Sign up, log in, or sign in as a guest. Every guest shares one workspace that already holds a sorted demo shelf. It resets at midnight UTC, and guests have no settings.
+- Sign up, log in, or sign in as a guest. Every guest shares one workspace that already holds a sorted demo shelf. It resets at midnight UTC, and guests have no settings: a guest's Settings says why, and what an account's hold.
 - Make a named group for each part of your life (today called shelves, such as Work or Bootcamp). Groups never share cards.
 - Upload an export onto a group. The browser reads the zip or `conversations.json` and previews what will be sent. Only your own messages and their times are sent, and the model sees your words only, never your dates. A labeled made-up demo export can be loaded in one action. Sorting runs in the background with visible progress, a last pass over the unsorted, failure, and retry.
 - Browse a group's cards and their statuses (still being asked, learned, asked again since), the unsorted messages, and the upload history.
 - Open a card for its phrasings and dates, its lesson, and a cold rep with a verdict.
 - An overview across all groups shows what still needs a rep, plus the latest asks and passes (today called the Desk).
-- Settings (not for guests), one view per area: Account, to change the name, email, or password; API keys, shown once, with what a key can and can't do; and Your data, to see what Asked Before keeps, download your data, then delete your account.
+- Settings (not for guests), one view per area: Account, to change the name, email, or password; API keys, shown once, with what a key can and can't do; and Your data, to see what Asked Before keeps, download your data, then delete your account. A guest sees why it has none, and what each area holds and needs.
 - Connect your AI, guests included: pick your agent, give it a key made for it and shown once, add the setup snippet with the server address filled in, and see when the key is first used. A guest gets the snippets, and the reason keys need an account.
 - The Playground sends one real API request, as this session or with a pasted key, and shows the whole answer beside the same request as code. It doesn't run the endpoints that would end or replace this session, or change or delete the account, and it asks before a delete or anything that spends model requests. It's the one screen that reaches the server without the SDK, since the raw HTTP exchange is what it shows.
 - Public docs list every API endpoint, plus the SDK quickstart.
