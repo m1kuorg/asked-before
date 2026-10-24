@@ -52,11 +52,11 @@ export function EndpointList({ open, choose }: ListProps) {
                     choose(entry);
                   }}
                   className={cn(
-                    "flex min-h-8 items-start gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-background aria-[current=true]:bg-active max-lg:min-h-11 max-lg:items-center pointer-coarse:min-h-11",
+                    "flex min-h-8 items-start gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-background aria-[current=true]:bg-active max-lg:min-h-11 max-lg:items-center pointer-coarse:min-h-11",
                     entry.off ? "text-muted-foreground" : "text-foreground",
                   )}
                 >
-                  <code translate="no" className="w-12 shrink-0 font-medium text-muted-foreground">{entry.method}</code>{" "}
+                  <code translate="no" className="w-14 shrink-0 font-medium text-muted-foreground">{entry.method}</code>{" "}
                   <code translate="no" className="min-w-0 [overflow-wrap:anywhere]">{breakable(entry.path)}</code>
                   {entry.off && <span className="sr-only">, not sent from here</span>}
                 </a>
