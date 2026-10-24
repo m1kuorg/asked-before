@@ -16,6 +16,7 @@ import { Time } from "@/components/time";
 import { WaitLine } from "@/components/wait-line";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { MCP_MODEL_REQUESTS, onlyYourWords } from "@/lib/copy";
 import { plural } from "@/lib/format";
 import { TOOLS } from "@/pages/docs/reference";
 import { RailBlock } from "./blocks";
@@ -96,10 +97,8 @@ export function WhatItCanDo() {
           </div>
         ))}
       </dl>
-      {/* The docs' MCP section says this of the daily cap, word for word (src/pages/docs/sections.tsx). */}
-      <p className="text-sm text-muted-foreground">
-        Recording a question the model has to place, starting a cold rep, and checking an answer each count toward the app's daily cap of model requests, which is for the whole app, guests included.
-      </p>
+      {/* The docs' MCP section says this of the daily cap too. */}
+      <p className="text-sm text-muted-foreground">{MCP_MODEL_REQUESTS}</p>
     </RailBlock>
   );
 }
@@ -114,8 +113,8 @@ const SILENT = TOOLS.map(([tool]) => tool).filter((tool) => !(tool in SENDS));
 export function WhatItSends() {
   return (
     <RailBlock title="What it sends">
-      {/* The docs' MCP section, word for word (src/pages/docs/sections.tsx). */}
-      <p className="text-sm">Its tools tell the agent to send only your own words: never its answer, your code, or secrets.</p>
+      {/* The docs' MCP section says this too. */}
+      <p className="text-sm">{onlyYourWords("Its")}</p>
       <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
         {Object.entries(SENDS).map(([tool, what]) => (
           <li key={tool}>

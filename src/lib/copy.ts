@@ -42,6 +42,12 @@ export const API_KEY_SHOWN_ONCE = "Copy this key now: it's shown only this once.
 export const API_KEY_POWERS =
   "A key can read your shelves and add to them, but it can't rename or delete anything, download your data, manage keys, or change your account.";
 
+/** What the MCP server's tools ask the agent to send, in the docs, Connect your AI, and the privacy page: "Its" of the server, "Their" of it and the plugin. */
+export const onlyYourWords = (whose: "Its" | "Their") => `${whose} tools tell the agent to send only your own words: never its answer, your code, or secrets.`;
+/** Which MCP tools spend the app's model requests, in the docs' MCP section and Connect your AI's rail. */
+export const MCP_MODEL_REQUESTS =
+  "Recording a question the model has to place, starting a cold rep, and checking an answer each count toward the app's daily cap of model requests, which is for the whole app, guests included.";
+
 export const SESSION_LOG_IN = "Once you log in, this browser stays logged in for 30 days, or until you log out.";
 export const SESSION_SIGN_UP = "Once you sign up, this browser stays logged in for 30 days, or until you log out.";
 

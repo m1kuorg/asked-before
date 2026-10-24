@@ -15,7 +15,7 @@ import { cn } from "cn";
 import { CONTENT_SECURITY_POLICY, SECURITY_HEADERS } from "../../../server/security";
 import { TextLink } from "@/components/text-link";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { API_KEY_POWERS, GUEST_NOTE } from "@/lib/copy";
+import { API_KEY_POWERS, GUEST_NOTE, onlyYourWords } from "@/lib/copy";
 import { count } from "@/lib/format";
 import { MAX_PHRASING_LENGTH } from "@asked-before/sdk";
 import type { Section } from "../read-mode/page";
@@ -117,7 +117,7 @@ const leaves: Section = {
       <LeavesTable />
       <P>A message over {count(MAX_PHRASING_LENGTH)} characters, often a pasted log or file, stays on your computer too.</P>
       <H3>From your agent</H3>
-      <P>The MCP server and the Claude Code plugin send a question as you ask it, as a capture: your words, which the server dates as they arrive. When you answer a cold rep through them, they send your answer as you wrote it. Their tools tell the agent to send only your own words: never its answer, your code, or secrets.</P>
+      <P>The MCP server and the Claude Code plugin send a question as you ask it, as a capture: your words, which the server dates as they arrive. When you answer a cold rep through them, they send your answer as you wrote it. {onlyYourWords("Their")}</P>
       <H3>Your password</H3>
       <P>Your password never leaves your computer. The page derives a key from it with scrypt and sends that in its place, and the server keeps only a salted SHA-256 of the key.</P>
     </>
