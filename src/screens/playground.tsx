@@ -34,7 +34,8 @@ import { SpendConfirm } from "./playground/spend-confirm";
 /** What Send is asking before it sends: a delete naming its object, or a model request's cost. */
 type Asking = { kind: "delete"; title: string; action: string } | { kind: "spend" } | null;
 
-const MAC = /Mac|iPhone|iPad/.test(navigator.platform);
+/** Apple's platforms, by the user agent (navigator.platform is deprecated); an iPad's says Macintosh. */
+const MAC = /Mac|iPhone|iPad/.test(navigator.userAgent);
 const SHORTCUT = MAC ? "⌘" : "Ctrl";
 
 const WHO: Record<Entry["who"], string> = {
