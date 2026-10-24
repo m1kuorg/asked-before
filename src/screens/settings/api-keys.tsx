@@ -27,7 +27,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { API_KEY_POWERS, API_KEY_SHOWN_ONCE } from "@/lib/copy";
 import { useSafeSubmit } from "@/lib/use-safe-submit";
-import { Code, Section, SectionLink } from "./section";
+import { Code, Section, SectionLink } from "@/components/section";
 
 type ApiKeysProps = Pick<ScreenProps, "client"> & {
   /** The key made on this visit, whole; null before one is made, or once it's revoked. */

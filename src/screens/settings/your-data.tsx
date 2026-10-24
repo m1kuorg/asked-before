@@ -12,7 +12,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { BACKUPS_YOUR_DATA } from "@/lib/copy";
 import { isoDate } from "@/lib/format";
 import { useSafeSubmit } from "@/lib/use-safe-submit";
-import { Code, FormFooter, Section } from "./section";
+import { Code, FormFooter, Section } from "@/components/section";
 
 const fileName = (iso: string) => `asked-before-${isoDate(iso)}.json`;
 

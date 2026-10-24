@@ -3,8 +3,8 @@
 // <nav aria-label="Asked Before">: the mark and name, Home with the count of
 // cards that need a cold rep, the shelves (long names truncated, with a
 // tooltip), All shelves, then Connect your AI, Playground, Docs, Settings
-// (with its three areas under it while one is open, except for the guest,
-// who has one), and the user row. Under 1024px it folds into a 48px top bar with the screen's name
+// (not for the guest; its three areas listed under it while one is open),
+// and the user row. Under 1024px it folds into a 48px top bar with the screen's name
 // and a menu button opening the nav in a full-screen sheet. The shell loads
 // desk.get() and shelves.list() once; a screen calls useShell().refreshShell()
 // after anything that changes the counts or the shelves. "Skip to content"
@@ -135,9 +135,11 @@ function Nav({ account, current, routeName, desk, shelves }: NavProps) {
           Docs
         </NavItem>
         {/* With its areas open, the area is the current page and Settings is only their heading. */}
-        <NavItem href="/app/settings" icon={SettingsIcon} current={current === "settings" && !areas} className={cn(areas && "text-foreground")}>
-          Settings
-        </NavItem>
+        {!account.guest && (
+          <NavItem href="/app/settings" icon={SettingsIcon} current={current === "settings" && !areas} className={cn(areas && "text-foreground")}>
+            Settings
+          </NavItem>
+        )}
         {areas && (
           <ul aria-label="Settings" className="flex flex-col gap-0.5">
             {SETTINGS_AREAS.map((area) => (

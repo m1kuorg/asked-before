@@ -1,4 +1,4 @@
-// One row of the settings page (taste-sheet-app.md, "Settings in two
+// One row of a settings view or of Connect your AI (taste-sheet-app.md, "Settings in two
 // columns"): a label column, its h2 at 16/500 and a 14px grey description,
 // beside a panel in the panel tint (16px radius, 16px padding, no border, no
 // shadow) holding the section's one form, its status line, and its errors.
