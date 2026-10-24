@@ -2,17 +2,17 @@
 // name as its h1 and its sections in two columns (taste-sheet-app.md):
 // Account at /app/settings (Profile, then Password), API keys at
 // /app/settings/keys (Your keys, then What a key can do), and Your data at
-// /app/settings/data (Download your data, then Delete your account, last).
-// Each section has its own form, status line, and errors (brief section 4,
-// item 6; inventory.md, Settings), and its label column carries the current
-// values the API gives, rather than a void beside a taller panel.
+// /app/settings/data (What Asked Before keeps, Download your data, then
+// Delete your account, last). Each section has its own form, status line,
+// and errors (brief section 4, item 6; inventory.md, Settings), and its
+// label column carries the current values the API gives, rather than a
+// void beside a taller panel.
 // The shared guest has none of them, only the way to an account of one's
 // own, at every settings path; the server refuses the guest every account
 // and key endpoint anyway.
 
 import type { ReactNode } from "react";
 import type { ScreenProps } from "@/app/router";
-import { TextLink } from "@/components/text-link";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
@@ -22,6 +22,7 @@ import { DeleteAccount } from "./settings/delete-account";
 import { KeyPowers } from "./settings/key-powers";
 import { Password } from "./settings/password";
 import { Profile } from "./settings/profile";
+import { WhatIsKept } from "./settings/what-is-kept";
 import { YourData } from "./settings/your-data";
 
 export function SettingsAccount({ client, account, setAccount }: ScreenProps) {
@@ -49,14 +50,9 @@ export function SettingsKeys({ client, account }: ScreenProps) {
 export function SettingsData({ client, account }: ScreenProps) {
   if (account.guest) return <GuestSettings />;
   return (
-    <View
-      title="Your data"
-      line={
-        <>
-          Your data is yours: download all of it, or delete your account and everything in it. The <TextLink href="/privacy">privacy page</TextLink> says what Asked Before keeps, and where.
-        </>
-      }
-    >
+    <View title="Your data" line="Your data is yours: see what Asked Before keeps, download all of it, or delete your account and everything in it.">
+      <WhatIsKept />
+      <Separator />
       <YourData client={client} />
       <Separator />
       <DeleteAccount client={client} />

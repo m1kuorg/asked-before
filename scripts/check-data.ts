@@ -12,9 +12,10 @@
 // failing, with another account's data untouched. The download is read in
 // one D1 batch, as Wrangler's local traces show, and a big account, 8,000
 // phrasings of the longest length, downloads whole and deletes whole. Then,
-// in a real browser at 1920×1080, Settings' Your data view: its h1, its
-// link to the privacy page, and what the file holds now beside the
-// download; both sections saying
+// in a real browser at 1920×1080, Settings' Your data view: its h1; what
+// Asked Before keeps first, the privacy page's rows, with its link to the
+// privacy page; what the file holds now beside the download; both
+// sections saying
 // that the host keeps deleted data in its backups for up to 30 days; the
 // download saved as one JSON file, the same as the SDK's; deleting, last, which
 // asks for the password and a confirmation, refuses a wrong password, keeps
@@ -30,6 +31,7 @@ import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
+import { DATABASE_HOLDS } from "../src/lib/copy";
 import { phrasings as demoPhrasings, sortEnds, upload } from "./lib/answer-key";
 import { startApp } from "./lib/app";
 import { refuse, startModelStub } from "./lib/model-stub";
@@ -395,16 +397,19 @@ const BACKUPS = /stays in the backups of Cloudflare, Asked Before's host, for up
 const stillThere = async () => (await cy.client.auth.me()).email === CY.email && (await cy.client.shelves.list()).length === 1;
 
 try {
-  await step("7. In Your data, Download your data saves one JSON file, the same as the SDK's, and says what it holds first", async () => {
+  await step("7. In Your data, what Asked Before keeps comes first; Download your data saves one JSON file, the same as the SDK's, and says what it holds first", async () => {
     await page.goto(`${app.url}/app/settings/data`);
     const data = section("Download your data");
     await data.waitFor();
     const main = page.getByRole("main");
     check((await main.getByRole("heading", { level: 1 }).textContent()) === "Your data" && (await page.title()) === "Your data · Asked Before", `the view is headed Your data, and so is its tab: "${await page.title()}"`);
-    const privacy = main.getByRole("link", { name: "privacy page", exact: true });
-    check((await privacy.getAttribute("href")) === "/privacy", `it links to the privacy page: ${await privacy.getAttribute("href")}`);
+    const kept = section("What Asked Before keeps");
+    const privacy = kept.getByRole("link", { name: "privacy page", exact: true });
+    check((await main.getByRole("link", { name: "privacy page", exact: true }).count()) === 1 && (await privacy.getAttribute("href")) === "/privacy", `what Asked Before keeps links to the privacy page: ${await privacy.getAttribute("href")}`);
+    const rows = await kept.locator("dl > div").evaluateAll((all) => all.map((row) => [row.querySelector("dt")?.textContent ?? "", row.querySelector("dd")?.textContent ?? ""]));
+    check(JSON.stringify(rows) === JSON.stringify(DATABASE_HOLDS), `it lists what the database holds, the privacy page's ${DATABASE_HOLDS.length} rows: ${rows.map(([what]) => what).join(", ")}`);
     const sections = await main.getByRole("region").evaluateAll((all) => all.map((region) => region.querySelector("h2")?.textContent ?? ""));
-    check(JSON.stringify(sections) === JSON.stringify(["Download your data", "Delete your account"]), `Download your data, then Delete your account, last: ${sections.join(", ")}`);
+    check(JSON.stringify(sections) === JSON.stringify(["What Asked Before keeps", "Download your data", "Delete your account"]), `What Asked Before keeps, Download your data, then Delete your account, last: ${sections.join(", ")}`);
     await data.locator("dl").getByText("Cards", { exact: true }).waitFor();
     await page.waitForFunction(() => !document.querySelector('main dl [data-slot="skeleton"]'));
     const holds = await data.locator("dl > div").evaluateAll((rows) => Object.fromEntries(rows.map((row) => [row.querySelector("dt")?.textContent?.trim(), row.querySelector("dd")?.textContent?.trim()])));

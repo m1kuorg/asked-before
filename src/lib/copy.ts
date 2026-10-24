@@ -18,6 +18,20 @@ export const BACKUPS_DELETING =
   "Deleting your account deletes everything Asked Before keeps for you, though it stays in the backups of Cloudflare, Asked Before's host, for up to 30 days. It can't be undone, so download your data first if you want to keep it.";
 export const BACKUPS_DOCS = "What it deletes stays in the backups of Cloudflare, Asked Before's host, for up to 30 days.";
 
+/** What the database holds, row by row: the privacy page's "What the database holds" and Your data's "What Asked Before keeps". */
+export const DATABASE_HOLDS: [what: string, kept: string][] = [
+  ["Your account", "Your name, your email, and a salted SHA-256 of your password's key."],
+  ["Shelves and uploads", "Each shelf's name, and each upload's file name, which chatbot's export it was, and how its sort went."],
+  ["Messages", "Each one's words, when you sent it, and the export's id for it."],
+  ["Cards and cold reps", "Each card's skill and lesson, and each cold rep's problem, your answer, its verdict, and the reason."],
+  ["API keys", "Each key's name, when it was made and last used, and a SHA-256 of its secret, never the secret."],
+  ["Sessions", "A SHA-256 of each cookie's token, never the token, and when the session ends."],
+  [
+    "Tries",
+    "For signing up, logging in, and signing in as a guest, the network a try came from (an IPv4 address, or an IPv6 address's /64) and its count; for a password check in Settings, a count for your account. Each is kept for a window of 15 minutes, and the next try after it ends deletes it.",
+  ],
+];
+
 /** Beside a demo shelf's name, and on every piece of demo content, wherever it shows. */
 export const DEMO_DATA = "Demo data";
 

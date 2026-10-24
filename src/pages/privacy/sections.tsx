@@ -15,7 +15,7 @@ import { cn } from "cn";
 import { CONTENT_SECURITY_POLICY, SECURITY_HEADERS } from "../../../server/security";
 import { TextLink } from "@/components/text-link";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { API_KEY_POWERS, GUEST_NOTE, onlyYourWords } from "@/lib/copy";
+import { API_KEY_POWERS, DATABASE_HOLDS, GUEST_NOTE, onlyYourWords } from "@/lib/copy";
 import { count } from "@/lib/format";
 import { MAX_PHRASING_LENGTH } from "@asked-before/sdk";
 import type { Section } from "../read-mode/page";
@@ -167,18 +167,7 @@ const stored: Section = {
         caption="What the database holds"
         name="What"
         what="What's kept"
-        rows={[
-          ["Your account", "Your name, your email, and a salted SHA-256 of your password's key."],
-          ["Shelves and uploads", "Each shelf's name, and each upload's file name, which chatbot's export it was, and how its sort went."],
-          ["Messages", "Each one's words, when you sent it, and the export's id for it."],
-          ["Cards and cold reps", "Each card's skill and lesson, and each cold rep's problem, your answer, its verdict, and the reason."],
-          ["API keys", "Each key's name, when it was made and last used, and a SHA-256 of its secret, never the secret."],
-          ["Sessions", "A SHA-256 of each cookie's token, never the token, and when the session ends."],
-          [
-            "Tries",
-            "For signing up, logging in, and signing in as a guest, the network a try came from (an IPv4 address, or an IPv6 address's /64) and its count; for a password check in Settings, a count for your account. Each is kept for a window of 15 minutes, and the next try after it ends deletes it.",
-          ],
-        ]}
+        rows={DATABASE_HOLDS}
       />
     </>
   ),
