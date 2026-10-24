@@ -223,15 +223,17 @@ function SendAsField({ draft, setDraft, guest, idOf, problem, marked, error }: R
       ) : (
         <div className="flex flex-col gap-2">
           <FieldLabel htmlFor={idOf("key")}>API key</FieldLabel>
+          {/* A text field, not a password one, which browsers offer to save; the password managers' own flags keep them off it too. */}
           <Input
             id={idOf("key")}
             name="api-key"
-            type="password"
             value={draft.key}
             onChange={({ target: { value } }) => setDraft((before) => ({ ...before, key: value }))}
             placeholder="ab_…"
             autoComplete="off"
             spellCheck={false}
+            data-1p-ignore
+            data-lpignore="true"
             /* taste-skill-ignore: a key is code */ className="font-mono"
             {...marked}
           />
