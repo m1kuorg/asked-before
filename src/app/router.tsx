@@ -12,8 +12,9 @@
 // `local` query params (the shelf's ?status=) are the screen's own: changing
 // one redraws the screen with the new query, but doesn't remount it, scroll,
 // or move focus. A screen whose main resource answers 404 calls notFound()
-// while rendering, and shows the not-found screen. Card, Settings, and Upload
-// come in chunks of their own (later()), fetched as the app starts.
+// while rendering, and shows the not-found screen. Card, Settings, Upload,
+// Connect your AI, and Playground come in chunks of their own (later()),
+// fetched as the app starts.
 
 import type { Account, Client } from "@asked-before/sdk";
 import { Component, use, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ComponentType, type ReactNode } from "react";
@@ -44,7 +45,7 @@ export type ScreenProps<P extends string = never> = {
 };
 
 /** The part of the sidebar a route belongs to. */
-export type Section = "home" | "shelves" | "settings";
+export type Section = "home" | "shelves" | "connect" | "playground" | "settings";
 
 /** `local`: query params the screen changes in place, which don't make it a new screen. */
 export type Route = { name: string; path: string; section: Section | null; title: string; screen: ComponentType<ScreenProps<string>>; local: string[] };
@@ -108,7 +109,11 @@ function later<P extends string>(title: string, load: () => Promise<ComponentTyp
 }
 
 const Card = later("Card", () => import("@/screens/card").then((module) => module.Card));
-const Settings = later("Settings", () => import("@/screens/settings").then((module) => module.Settings));
+const SettingsAccount = later("Account", () => import("@/screens/settings").then((module) => module.SettingsAccount));
+const SettingsKeys = later("API keys", () => import("@/screens/settings").then((module) => module.SettingsKeys));
+const SettingsData = later("Your data", () => import("@/screens/settings").then((module) => module.SettingsData));
+const Connect = later("Connect your AI", () => import("@/screens/connect").then((module) => module.Connect));
+const Playground = later("Playground", () => import("@/screens/playground").then((module) => module.Playground));
 const Upload = later("Upload a chat export", () => import("@/screens/upload").then((module) => module.Upload));
 
 const ROUTES = [
@@ -118,7 +123,11 @@ const ROUTES = [
   route("shelf", "/app/shelves/:shelfId", "shelves", "Shelf", Shelf, ["status"]),
   route("upload", "/app/shelves/:shelfId/upload", "shelves", "Upload a chat export", Upload),
   route("card", "/app/cards/:cardId", "shelves", "Card", Card),
-  route("settings", "/app/settings", "settings", "Settings", Settings),
+  route("connect", "/app/connect", "connect", "Connect your AI", Connect),
+  route("playground", "/app/playground", "playground", "Playground", Playground, ["endpoint"]),
+  route("settings", "/app/settings", "settings", "Account", SettingsAccount),
+  route("settings-keys", "/app/settings/keys", "settings", "API keys", SettingsKeys),
+  route("settings-data", "/app/settings/data", "settings", "Your data", SettingsData),
 ];
 const NOT_FOUND = route("not-found", "/app/*", null, "Page not found", NotFound);
 
