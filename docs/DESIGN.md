@@ -230,7 +230,7 @@ components:
 
 **Creative North Star: "The Repeated Question, Typeset"**
 
-Asked Before has two rooms built from one palette and one typeface. The public pages (landing, log in, sign up, 404) lead with type: full-bleed fields of plum and white, one enormous statement per chapter in Schibsted Grotesk at 800, everything else small, square corners, and colour that changes by chapter. The visitor's own material, the same question asked nine different ways, is the main picture. Beside it, the landing carries found documents of the same habit from before AI: four archival black-and-white photographs (a card catalog, a pupil at the blackboard, an examination hall) and one muted newsreel loop of a written examination, all square, untouched, and captioned with what and when. The landing's direction contract still says "type and nothing else"; the build added the pictures, and this record follows the build. The app (`/app/*`) and the docs page are the opposite temperature: a light, soft, editorial workspace on a white ground, a 240px open-plane sidebar behind one hairline, tonal panels one step off white toward the plum, regular-weight numbers, and nothing louder than 24px.
+Asked Before has two rooms built from one palette and one typeface. The public pages (landing, log in, sign up, 404) lead with type: full-bleed fields of plum and white, one enormous statement per chapter in Schibsted Grotesk at 800, everything else small, square corners, and colour that changes by chapter. The visitor's own material, the same question asked nine different ways, is the main picture. Beside it, the landing carries found documents of the same habit from before AI: four archival black-and-white photographs (a card catalog, a pupil at the blackboard, an examination hall) and one muted newsreel loop of a written examination, all square, untouched, and captioned with what and when. The landing's direction contract still says "type and nothing else"; the build added the pictures, and this record follows the build. The app (`/app/*`) and the two reading pages, docs and privacy, are the opposite temperature: a light, soft, editorial workspace on a white ground, a 240px open-plane sidebar behind one hairline, tonal panels one step off white toward the plum, regular-weight numbers, and nothing louder than 24px.
 
 What ties the rooms together is the ask strip: pink dots on a 2px grey track, one per time you asked, with a plum-black tick on the day you proved you could do it without AI. It is the product's mark, the main data element of every list, and the one place pink appears inside the app. Pink is rare on purpose: in the app it is data, not decoration.
 
@@ -277,7 +277,7 @@ A near-black plum and a hot pink, bracketing a white working surface whose greys
 - **Proven** (`positive` / `positive-foreground`), **Asked since proven** (`notice` / `notice-foreground`, with `notice-border`), **Not yet and errors** (`negative` / `negative-foreground`): pale grounds with dark ink of the same hue. **Destructive Red** (`destructive`) is the outlined delete button and invalid-field border only.
 
 ### Named Rules
-**The Pink Is Data Rule.** In the app, pink appears only in the ask strip and the sidebar mark, under 2% of pixels. Buttons, links, headings, and highlights are never pink inside `/app`.
+**The Pink Is Data Rule.** In the app, pink appears only in the ask strip and the sidebar mark, under 2% of pixels, and as Pink Ink on the literal values of the Playground's JSON. Buttons, links, headings, and highlights are never pink inside `/app`.
 
 **The White Behind Pink Rule.** The ask strip sits on white (a row card, the card page, a `data-ui` fragment), never directly on the panel tint, where pink drops under 3:1.
 
@@ -317,7 +317,7 @@ The app uses four sizes only: 12, 14, 16, 24, tracking 0, weights 400/500/600.
 
 ## Layout
 
-**App: open plane.** A 240px sidebar on the white ground, separated from the canvas by one 1px `border` hairline: the mark and name at the top, Home with its queue count, a 12px grey "Shelves" group label with 20px of air above, each shelf (truncated, with a tooltip when cut), All shelves, then Docs, Settings, and the user row pushed to the bottom. Nav rows are 32px on a 34px pitch, with 16px outline icons at 1.5px stroke. The canvas is fluid to `max-width: 1100px` (Settings 1152px) with 32px gutters, 36px from the top. Under 1024px the sidebar folds into a sticky 48px top bar with the screen's name and a menu button opening a full-screen sheet; content takes 16px margins.
+**App: open plane.** A 240px sidebar on the white ground, separated from the canvas by one 1px `border` hairline: the mark and name at the top, Home with its queue count, a 12px grey "Shelves" group label with 20px of air above, each shelf (truncated, with a tooltip when cut), All shelves, then Connect your AI, Playground, Docs, Settings, and the user row pushed to the bottom. While a settings view is open, its three areas (Account, API keys, Your data) sit under Settings as indented rows without icons. Nav rows are 32px on a 34px pitch, with 16px outline icons at 1.5px stroke. The canvas is fluid to `max-width: 1100px` (Settings 1152px, the Playground 1440px) with 32px gutters, 36px from the top. Under 1024px the sidebar folds into a sticky 48px top bar with the screen's name and a menu button opening a full-screen sheet; content takes 16px margins.
 
 **Home grid.** A 12-column grid with 16px gutters (77px columns in the 1100px canvas): four count tiles at 3/3/3/3 (128px, 2 x 2 on a phone), then 8 + 4. The left eight stack Prove next, Your shelves, and Latest proven 16px apart; the right four is Latest asks, a rail of your newest messages. The row stretches so both columns end level, Latest proven taking the left column's remaining height. Everything stacks below a 1100px container. Prove next's rows share their columns through a subgrid so every ask strip starts and ends on the same x.
 
@@ -325,9 +325,15 @@ The app uses four sizes only: 12, 14, 16, 24, tracking 0, weights 400/500/600.
 
 **Upload and Uploads.** 8 + 4 of 12 from a 56rem canvas, the how-to at 4. Before a file is chosen, the drop target spans all 12, then "What leaves this computer" (the table without counts) takes the 8 beside the how-to. A shelf's Uploads view puts the list at 8 beside "Where your messages went" at 4 (a panel: on cards, not on a card, in all), with "What an upload sends" under the list.
 
-**Settings.** Each section is one row: a label column (16/500 title, 14px grey description) beside a panel, in a 5fr + 32px + 8fr grid, stacking under 64rem.
+**Settings.** One view per area, Account, API keys, and Your data, each with its name as the 24px h1 over one grey line, then its sections split by full-width rules. Each section is one row: a label column (16/500 title, 14px grey description, and, where it has them, the current values as term and value pairs on row rules) beside a panel, in a 5fr + 32px + 8fr grid, stacking under 64rem.
+
+**Connect your AI.** From a 60rem canvas, the flow takes 8 of 12 columns and the rail 4 (729 + 16 + 355 in the 1100px canvas, Home's split); under it everything stacks, the keys first. The flow is an `<ol>` of four tonal step panels 16px apart, ordered by position alone, with no step numbers. The rail's blocks sit on the white ground with no frame, 40px apart, so the two columns end where their content does.
+
+**Playground.** The endpoint list, a panel 15rem wide (17rem from a 72rem canvas), is sticky under the top with its own scroll, beside the work column; under a 42rem canvas it becomes a select at the top of the work. The work column stacks the address bar, the endpoint's lines, and any confirmation, then from a 48rem column the request with its code under it at 5 beside the response at 6; narrower, the request, the response, then the code.
 
 **Public pages.** One pair of page margins (20px, 32px from 768px) and a 12-column grid with 24px gutters. Chapters are full bleed with 112px vertical padding (160px from 768px). Each chapter moves to a different horizontal position (statement left, sentence right, table full, FAQ pushed to columns 5 to 12). The pictures follow the same grid: the card catalog on the phrasings' column under Nine ways, the pupil under "Finally, prove it without AI." in How it works' left margin (first, at three-fifths width, without that margin), the examination hall full width after the exchanges, and the film under "Fair questions" in the left four columns from 1024px, beside the answers. Log in and sign up split in half from 1024px: plum field left, white form column (max 384px) right.
+
+**Reading pages.** The docs and privacy pages share one layout on the app's light tokens: a top bar with the wordmark and "Open the app", the h1 at 64 to 128px (800, the display tracking and leading) over a lead line, then from 1024px a sticky 11.5rem index on the left, marking the section being read, beside a centred column up to 58rem with prose at a 70ch measure and 30px/700 section heads 96px apart. Under 1024px the index is a two- or three-column grid above the sections. Each page links to the other under its index.
 
 **Rhythm.** A 4px base: 8px between row cards and in-row groups, 16px between panels and fields, 20px panel padding, 32px section gutters. Tables become two-line rows below 640px.
 
@@ -373,15 +379,22 @@ Two corner languages, switched by one variable. The app is soft: controls at 10p
 - **Rule row:** a list row in any other panel (Your shelves, Latest proven, Latest asks, Where your messages went): no ground of its own, 10px top and bottom, a 1px panel-edge rule under it and none under the last. Latest asks' rows take 11px for the two lines they hold. A column-label line above a rule-row list takes the same rule.
 - **Count tile:** panel tint, 16px corners, 128px tall, 16px padding: a 14/500 label, the value at 24/400 in tabular figures, a 12px grey caption pinned to the bottom. The four tiles sum visibly.
 - **In-place confirmation:** a white 12px box with a 1px border under the row it confirms (`role="group"`), a 14/600 heading naming what goes, the destructive action and "Keep it", focus on the safe choice. Never a modal.
+- **Spend confirmation:** the Playground's second click before a request that spends model requests, in place under the address: the same box in the notice pair with its amber border, a 14/600 question, the cost in words, an outlined action and a ghost "Don't send", which has focus, so Send stays the one filled button.
+- **Step panel:** a step of Connect your AI: panel tint, 16px corners, 16px padding (20px from 640px), a 16/500 heading that says what to do ("Give it a key").
+- **Rail block:** reference beside a flow, on the ground with no frame of its own: a 14/600 heading with an optional link on its right, a 14px grey line, then its table or list.
 
 ### Inputs / Fields
 - **Style:** 40px, white even on a panel, 1px control-grey border, 10px corners, 12px sides, faint placeholder, pink-ink caret. Textareas grow with content from 96px.
 - **Focus:** the one focus mark everywhere: a 2px outline 2px out in the ring colour (plum-black on light, white on plum, pink in the showcase).
 - **Error / Disabled:** invalid turns the border red with a 3px red ring at 15%; disabled and read-only fill with the panel tint.
-- **Segmented control:** panel tint inside a 1px control border, 10px corners, 2px inset; the pressed segment turns white with a panel-edge border.
+- **Segmented control:** panel tint inside a 1px control border, 10px corners, 2px inset; the pressed segment turns white with a panel-edge border. The Playground's Send as (This session, An API key) is one.
+- **Radio cards:** Pick your agent: each choice a white 12px card with a 1px panel-edge border on the step panel, the radio, the name at 14/500, a Recommended badge on the first, and a 14px grey line; the picked card takes an ink edge, and the focus ring draws around the card. Two across from a 32rem step.
+- **Select:** the Playground's shelf picker and its phone endpoint list: a white 40px trigger (44px for the endpoints), its list a menu.
 
 ### Navigation
 - **App sidebar:** 14/400 muted rows, 32px tall, 8px corners, 16px outline icons. Hover tints the row with the panel and inks the text; the current page is the neutral active pill with ink text. Counts sit right-aligned at 12px grey in tabular figures.
+- **Settings' areas:** three indented rows without icons under Settings while a settings view is open; the open area is the active pill, and Settings stays in ink as their heading.
+- **Endpoint list:** the Playground's left panel (panel tint, 8px padding): a 16/500 "Endpoints" heading, each area's name in 12px grey, then rows of the method in grey and the path in 14px code, the open row the active pill, the ones that don't run here in grey.
 - **Tabs:** underline tabs on a 1px rule, 14/500 grey labels, 24px apart; the active tab is ink with a 2px ink line under it.
 - **Public header:** fixed, no bar: the wordmark top left and Docs, Log in, and the pink action top right, each corner taking its chapter's ink. Links use an underline that arrives on hover (0.08em thick, 0.2em offset).
 
@@ -411,6 +424,20 @@ The privacy table, one component in three places: the upload preview (with this 
 
 ### Proven Stamp
 The card page's one authored moment: "Proven" at 24/600 over its date, in the positive pair with a 2px border at 70%, 12px corners, tilted -2deg. After a pass it fades in from 105% and settles in 300ms, once.
+
+### Address Bar and Response (Playground)
+- **Address bar:** one white line with a 1px quiet edge and 12px corners: the method as a 12/500 code chip on the panel tint, then the path in 14px code, its fixed parts grey, a filled id in ink and one still to fill faint, then Send, the screen's one filled primary, with its shortcut (⌘↵, or Ctrl↵) beside the word. Under a 28rem column, Send takes the full width.
+- **Response:** a panel: the status and its phrase in a pale pair, positive under 400 and negative from there, with the time and the size in grey; the request it answers; what the status means; then the body.
+- **JSON view:** 12/20 JetBrains Mono, a line per value indented by its depth and wrapping under its own indent: keys grey, strings ink, numbers, booleans, and null in the notice ink (`notice-foreground`, 6.4:1 on the panel), never pink, punctuation faint. An id that fills a field of the request is a button with a dotted underline. A long answer scrolls in its own box, at most 70% of the screen tall.
+- **Code tabs:** the request as curl, the TypeScript SDK, and fetch, in underline tabs, each a copy block, always with `YOUR_API_KEY` and never a real key.
+
+### Icons and Link Banners
+- **Favicon** (`public/favicon.svg`): the mark redrawn on a 16px grid, transparent: three touching 4px pink asks on a 2px track-grey track, and a 2px plum-black tick. On a dark tab bar (`prefers-color-scheme: dark`) the track turns Muted on Dark and the tick white. `favicon.ico` is the light drawing at 16, 32, and 48.
+- **App icons:** the mark on the plum field, with a white tick and a Muted on Dark track: `apple-touch-icon.png` (180, square, for iOS to round), `icon-192.png` and `icon-512.png` (a plum rounded square), and `icon-maskable-512.png` (the plum to every edge, the mark inside the 80% safe zone). The manifest's theme and background colours are white, the app's ground.
+- **Theme colour:** the plum field on the landing, log in, sign up, and the 404; white on the docs, privacy, and the app.
+- **Link banners** (`public/og/`, 1200×630): the landing's language at link size. The plum field and white ink: "Asked Before" at 30/600 at the top left; at the foot the page's title at 150px/800, -0.05em, leading 0.88; card A's nine asks as an ask strip, pink dots ringed in plum on a 3px Muted on Dark track across 80% of the width; then one 28px line. Everything sits inside the middle 80%, since X, iMessage, and Slack crop the edges. There are four: "Asked before?" (the landing and the 404), "Docs", "Privacy", and "Prove it without AI" (the app, log in, and sign up), each with alt text that says what it shows.
+- **Provenance:** every raster icon and banner is recorded in `public/provenance.json`, with what it shows, what it was drawn from, and the script that drew it, as `credits.json` records the found pictures.
+- **Without JavaScript:** one plain line in the page margins: "Asked Before needs JavaScript to show this page."
 
 ## Do's and Don'ts
 

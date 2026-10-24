@@ -2,7 +2,7 @@
 
 It finds the questions you keep asking a chatbot, puts each one on a card that counts every time you asked it, and won't mark a card Proven until you pass a cold rep: a fresh problem of the same kind, solved without AI.
 
-You sign up, make a shelf for each part of your life, and upload a ChatGPT or Claude export onto it. Your browser reads the export and sends only your own messages, with when you sent them; the chatbot's answers and your titles never leave your computer, and the model sees your words only, never your dates. Asked Before sorts them into cards, most asked first, and Home shows the cards across your shelves that still need a cold rep. A TypeScript SDK, an MCP server, and a Claude Code plugin let your scripts and coding agents reach the same cards, so a question you ask an agent lands on its card as you ask it.
+You sign up, make a shelf for each part of your life, and upload a ChatGPT or Claude export onto it. Your browser reads the export and sends only your own messages, with when you sent them; the chatbot's answers and your titles never leave your computer, and the model sees your words only, never your dates. The privacy page, at `/privacy`, says what happens to your words: what the model sees, what's kept, and how to delete it. Asked Before sorts them into cards, most asked first, and Home shows the cards across your shelves that still need a cold rep. A TypeScript SDK, an MCP server, and a Claude Code plugin let your scripts and coding agents reach the same cards, so a question you ask an agent lands on its card as you ask it.
 
 The app runs on Cloudflare Workers, with its data in D1 ([ADR 0005](docs/adr/0005-cloudflare-workers-d1-and-a-durable-object-per-shelf.md)), and its pages are React, Tailwind CSS, and shadcn/ui, bundled by Bun. Until it merged into `main` on October 18, 2026, `main` held the proof of concept submitted to the hackathon, a single page on a made-up demo export; that's `main`'s history up to commit `6bfe2dc`.
 
@@ -37,7 +37,7 @@ The key is the only setting you need. The others are vars in `wrangler.jsonc`, e
 | Setting | Default | What it does |
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | none | The model key, from `.env` or your shell, and a Worker secret once deployed. The app starts without it, but every sort and cold rep fails. |
-| `PUBLIC_URL` | empty | The address people reach the deployed app at. Empty, a request's own origin counts as the app's; an `https` address makes the session cookie `Secure`. `bun run dev` always runs with it empty. |
+| `PUBLIC_URL` | empty | The address people reach the deployed app at. Empty, a request's own origin counts as the app's; an `https` address makes the session cookie `Secure`. `bun run dev` always runs with it empty. `bun run build:pages` reads it from `wrangler.jsonc` too, and stops without it: it's the address in every page's canonical link and link-embed banner, in `robots.txt`, and in `sitemap.xml`. |
 | `SITE_DAILY_MODEL_REQUESTS` | `20` | Model requests the whole app may make per UTC day, counted once for everyone, guests included. |
 | `SITE_DAILY_PHRASINGS` | `8000` | Phrasings the whole app may take per UTC day, uploads and captures together, counted once for everyone, guests included. |
 | `SORT_BATCH_SIZE` | `300` | Phrasings a sort sends the model at once. |
@@ -58,7 +58,7 @@ Then walk the whole product:
 bun run journey
 ```
 
-It needs the key, and makes 7 model calls, with nothing stubbed. In Chromium at 1920×1080, it signs up from the landing page, makes a shelf, uploads the demo export through the upload page's file input, and checks card A against the demo export's answer key, word for word. It fails a cold rep on card A with a known wrong answer and passes the next with a known right one, sees card A under Latest proven on Home, and makes an API key in Settings. Then it lists the cards through the SDK with that key, and records a rephrasing of card A's question through the MCP server, so card A's count goes up by one and it's Asked since proven. It saves a screenshot of each step in your temp folder, or in `<dir>` with `bun run journey <dir>`. With `--video`, it also records the run to `journey.webm` there; `--pause <ms>` holds each step that long, for a watchable pace; and `--demo-shelf` takes Home's "Try the demo shelf" instead of making a shelf and choosing the export, so the Demo data label shows. `JOURNEY_URL=<address>` walks a deployed app instead of starting one, as a new learner whose email it prints, and leaves that account there.
+It needs the key, and makes 7 model calls, with nothing stubbed. In Chromium at 1920×1080, it signs up from the landing page, makes a shelf, uploads the demo export through the upload page's file input, and checks card A against the demo export's answer key, word for word. It fails a cold rep on card A with a known wrong answer and passes the next with a known right one, sees card A under Latest proven on Home, and makes an API key in Settings › API keys. Then it lists the cards through the SDK with that key, and records a rephrasing of card A's question through the MCP server, so card A's count goes up by one and it's Asked since proven. It saves a screenshot of each step in your temp folder, or in `<dir>` with `bun run journey <dir>`. With `--video`, it also records the run to `journey.webm` there; `--pause <ms>` holds each step that long, for a watchable pace; and `--demo-shelf` takes Home's "Try the demo shelf" instead of making a shelf and choosing the export, so the Demo data label shows. `JOURNEY_URL=<address>` walks a deployed app instead of starting one, as a new learner whose email it prints, and leaves that account there.
 
 The other checks:
 
@@ -84,13 +84,16 @@ The other checks:
 | `bun run check:rep-rules` | The cold reps' rules through the SDK, with the model stubbed | |
 | `bun run check:card-page` | A card's page and its cold rep: card A failed, then Proven, with the real model; then waits and failures stubbed | Key, Chromium |
 | `bun run check:desk` | The Desk endpoint through the SDK, and Home in the page | Chromium |
-| `bun run check:settings` | API keys and the account, through the SDK and in the settings page | Chromium |
+| `bun run check:settings` | API keys and the account, through the SDK and in Settings' three views: Account, API keys, and Your data | Chromium |
+| `bun run check:connect` | Connect your AI: the four steps in order, the Claude Code plugin first, this server's address in every snippet, a key made for the agent and filled in, its first use shown without a reload, and the guest's Sign up, with no model request | Chromium |
+| `bun run check:playground` | The Playground: nothing sent on load, real requests as the session and with a pasted key, a DELETE's and a model request's second click, an id clicked into the next request, the key never printed or kept, a 401 shown in place, and the phone's select, with the model stubbed | Chromium |
 | `bun run check:data` | Downloading and deleting your data, a big account's too, each download read in one D1 batch | Chromium |
 | `bun run check:captures` | Captures' rules through the SDK, with the model stubbed | |
 | `bun run check:capture-sort` | Where captures land with the real model; `bun run check:capture-sort 3` for 3 runs | Key |
 | `bun run check:mcp` | The MCP server over stdio with the official client and a real key | Key |
 | `bun run check:plugin` | The Claude Code plugin: validated, its server's build fresh, and the build run from a copy as Claude Code runs it | `claude` |
 | `bun run check:docs` | The docs page against the server's route table, and the SDK's quickstart run on the demo export | Chromium |
+| `bun run check:chrome` | Every page's head on the production address, the icons, banners, manifest, `robots.txt`, and `sitemap.xml` at their types and sizes, each page's line without JavaScript, and the privacy page against the code, with no model request | Chromium |
 | `bun run check:sdk` | The SDK's build, used from a package outside the repo, in Bun and in Node | |
 | `bun run check:styles` | Every public page, logged out too, and every app screen, as a learner and as the guest, at 1440×900 and 390×844: no sideways scroll, one h1, the font loaded, no text under 12px, contrast of 4.5:1 (3:1 for large text), and no console errors | Chromium |
 | `bun run check:migrations` | The schema's D1 migrations: each applied once on a fresh database; a new one, added in a copy of the app, that rebuilds a table and keeps the data beneath it; and a failing one applying nothing | |
@@ -144,15 +147,15 @@ bun run build:pages
 bunx wrangler deploy
 ```
 
-Wrangler applies, in order, only the migrations the database hasn't had, recording each in its `d1_migrations` table, and stops at one that fails; locally, `check:migrations` proves that a failing one applies nothing. D1's Time Travel keeps 7 days of the database's history on Free and 30 on Paid, so it can be restored to a minute before a bad migration, and it can't be turned off: what a learner deletes stays in Cloudflare's backups for up to 30 days, which the settings page says.
+Wrangler applies, in order, only the migrations the database hasn't had, recording each in its `d1_migrations` table, and stops at one that fails; locally, `check:migrations` proves that a failing one applies nothing. D1's Time Travel keeps 7 days of the database's history on Free and 30 on Paid, so it can be restored to a minute before a bad migration, and it can't be turned off: what a learner deletes stays in Cloudflare's backups for up to 30 days, which Settings › Your data and the privacy page say.
 
 ## The SDK
 
-`@asked-before/sdk`, in `packages/sdk`, is a typed client for the HTTP API, version 1, with one method per endpoint, and the export readers the upload page uses, which read an export on your computer in Bun, Node, or a browser. The page reaches the server only through it. It isn't on npm; `bun run build:sdk` builds it to JavaScript with type declarations, for your own code to add from your copy. Its [README](packages/sdk/README.md) has the quickstart, which reads an export, uploads it, and lists the cards. The docs page, at `/docs` on any Asked Before server, lists every endpoint with the credential it needs.
+`@asked-before/sdk`, in `packages/sdk`, is a typed client for the HTTP API, version 1, with one method per endpoint, and the export readers the upload page uses, which read an export on your computer in Bun, Node, or a browser. The page reaches the server only through it, except the Playground, `/app/playground`, which sends raw requests with `fetch` to show the HTTP exchange itself. It isn't on npm; `bun run build:sdk` builds it to JavaScript with type declarations, for your own code to add from your copy. Its [README](packages/sdk/README.md) has the quickstart, which reads an export, uploads it, and lists the cards. The docs page, at `/docs` on any Asked Before server, lists every endpoint with the credential it needs. In the app, the Playground sends one a real request, as your session or with a pasted key, and shows the answer, with the request as curl, SDK, and fetch code; the endpoints that would end your session or change your account don't run there.
 
 ## Agents
 
-Coding agents reach your cards through the MCP server in `packages/mcp`, with an API key from Settings: it records your how-to questions as captures, in your own words only, tells you when one is on a card you've asked before, and runs cold reps in the chat. In Claude Code, the Asked Before plugin in `plugins/asked-before` brings the server and a skill that says when to use it, in one install from this repo's marketplace:
+Coding agents reach your cards through the MCP server in `packages/mcp`, with an API key from Settings › API keys, or one that Connect your AI makes: it records your how-to questions as captures, in your own words only, tells you when one is on a card you've asked before, and runs cold reps in the chat. In Claude Code, the Asked Before plugin in `plugins/asked-before` brings the server and a skill that says when to use it, in one install from this repo's marketplace:
 
 ```sh
 claude plugin marketplace add m1kuorg/asked-before
@@ -161,7 +164,7 @@ claude plugin install asked-before@asked-before \
   --config api_key=YOUR_API_KEY
 ```
 
-The plugin installs once the repo is public. For Claude Desktop, Cursor, or Claude Code without the plugin, Settings shows each agent's setup with your server's address filled in, and the [MCP server's README](packages/mcp/README.md) explains it.
+The plugin installs once the repo is public. Connect your AI, at `/app/connect`, shows each agent's setup, the plugin's too, with your server's address filled in, makes a key for the agent, and says when the key is first used; the [MCP server's README](packages/mcp/README.md) explains it.
 
 ## Disclosures
 

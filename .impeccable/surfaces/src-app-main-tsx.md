@@ -7,7 +7,7 @@ related_targets: ["src/app","src/screens","src/components"]
 
 # App shell and screens
 
-Scope: everything under `/app`: Home, Shelves, Shelf, Upload, Card and its cold rep, Settings, and not-found. Visitor mode: Operate. The learner's job: clear the queue of cards that need a cold rep. Open one, prove it without AI, move to the next. The frequency is a periodic check-up, plus captures from agents. Constraints: the page reaches the server only through the SDK; the password never leaves the page; CSP `default-src 'self'`; 20 model requests a day for the whole app. The style was dealt by design-taste-frontend (`.taste-skill/app/direction.json`, seed 1983195124).
+Scope: everything under `/app`: Home, Shelves, Shelf, Upload, Card and its cold rep, Connect your AI, the Playground, Settings' three views (Account, API keys, and Your data), and not-found. Visitor mode: Operate. The learner's job: clear the queue of cards that need a cold rep. Open one, prove it without AI, move to the next. The frequency is a periodic check-up, plus captures from agents. Constraints: the page reaches the server only through the SDK, except the Playground, which sends a raw same-origin `fetch` to `/api/v1` because the HTTP exchange is what it shows; the password never leaves the page; CSP `default-src 'self'`; 20 model requests a day for the whole app. The style was dealt by design-taste-frontend (`.taste-skill/app/direction.json`, seed 1983195124).
 
 ## Direction contract
 

@@ -85,3 +85,9 @@ _Avoid_: Anonymous user, demo user, visitor
 **Guest workspace**:
 The shelves, uploads, cards, and reps every guest shares, wiped at midnight UTC each day back to one sorted demo shelf.
 _Avoid_: Sandbox, playground, demo account
+
+### Developers
+
+**Playground**:
+The app's screen at `/app/playground` that sends one real request to the API and shows the answer. The word means this screen only, never the guest workspace.
+_Avoid_: Sandbox, console, API explorer
