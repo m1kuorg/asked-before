@@ -13,12 +13,10 @@ import { PLACEHOLDERS } from "../../../packages/mcp/src/connect";
 import type { ScreenProps } from "@/app/router";
 import { useResource } from "@/app/use-resource";
 import { ConfirmInline } from "@/components/confirm-inline";
-import { CopyBlock } from "@/components/copy-block";
 import { ErrorNotice } from "@/components/error-notice";
 import { Figure } from "@/components/figure";
 import { Time } from "@/components/time";
 import { WaitLine } from "@/components/wait-line";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
@@ -26,10 +24,10 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { API_KEY_SHOWN_ONCE } from "@/lib/copy";
 import { DASH } from "@/lib/format";
 import { useSafeSubmit } from "@/lib/use-safe-submit";
 import { Code, Section } from "@/components/section";
+import { ShownKey } from "@/components/shown-key";
 import { TextLink } from "@/components/text-link";
 import { Facts, type Fact } from "./facts";
 
@@ -83,7 +81,14 @@ export function ApiKeys({ client }: Pick<ScreenProps, "client">) {
         />
       );
     }
-    if (key.id === made?.id) return <Shown made={made} focus={focusMade} />;
+    // The new key, shown this once under its row, and where it goes.
+    if (key.id === made?.id) {
+      return (
+        <ShownKey made={made} autoFocus={focusMade} framed>
+          It's what goes in for <Code>{PLACEHOLDERS.apiKey}</Code> in an agent's snippet, on <TextLink href="/app/connect">Connect your AI</TextLink>.
+        </ShownKey>
+      );
+    }
     return null;
   }
 
@@ -252,19 +257,4 @@ function summary(keys: ApiKey[] | undefined, failed: boolean): Fact[] {
       ),
     },
   ];
-}
-
-/** The new key, shown this once under its row, and where it goes. */
-function Shown({ made, focus }: { made: CreatedApiKey; focus: boolean }) {
-  return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4">
-      <Alert variant="notice" role="note">
-        <AlertDescription>{API_KEY_SHOWN_ONCE}</AlertDescription>
-      </Alert>
-      <CopyBlock caption={`${made.name}'s key`} code={made.key} copyLabel={`Copy ${made.name}'s key`} autoFocus={focus} className="[&_pre]:break-all [&_pre]:whitespace-pre-wrap" />
-      <p className="text-sm text-muted-foreground">
-        It's what goes in for <Code>{PLACEHOLDERS.apiKey}</Code> in an agent's snippet, on <TextLink href="/app/connect">Connect your AI</TextLink>.
-      </p>
-    </div>
-  );
 }
