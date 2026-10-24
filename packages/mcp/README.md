@@ -28,12 +28,12 @@ The server reads its settings from its environment, and exits at once, naming th
 | Setting | What it holds |
 | --- | --- |
 | `ASKED_BEFORE_URL` | Your Asked Before server's address, such as `https://asked-before.example`. |
-| `ASKED_BEFORE_API_KEY` | An API key from your Asked Before Settings page. |
+| `ASKED_BEFORE_API_KEY` | An API key from your Asked Before server: Settings, then API keys, or the one Connect your AI makes. |
 | `ASKED_BEFORE_SHELF` | Optional: the shelf, by name or id, that the tools use when a call names none. |
 
 ## Set it up
 
-Your Asked Before server's Settings page and its docs page at `/docs` show these snippets with its own address filled in. Here they're shown for `https://asked-before.example`.
+Your Asked Before server's Connect your AI page, at `/app/connect`, and its docs page at `/docs` show these snippets with its own address filled in. Here they're shown for `https://asked-before.example`.
 
 In Claude Code, install [the plugin](#the-claude-code-plugin). Without it, and in Claude Desktop and Cursor, the server runs from a copy of Asked Before: clone it and run `bun install`. In each snippet, put your copy's folder for `/path/to/asked-before`, and a key for `YOUR_API_KEY`.
 
