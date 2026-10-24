@@ -154,6 +154,8 @@ try {
     const relogged = await app.browser().client.auth.logIn({ email: NEW_EMAIL, password: NEW_PASSWORD });
     check(relogged.account.email === NEW_EMAIL, "the password logs in with the new email");
 
+    // Deleting the account is in Settings' Your data view.
+    await page.goto(`${app.url}/app/settings/data`);
     const del = section(page, "Delete your account");
     await del.getByLabel("Your password", { exact: true }).fill(NEW_PASSWORD);
     await del.getByRole("button", { name: "Delete your account", exact: true }).click();

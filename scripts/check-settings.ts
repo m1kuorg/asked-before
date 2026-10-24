@@ -213,7 +213,7 @@ await step("6. Changing the password needs the current one and logs out every ot
   await ada.client.account.changePassword({ currentPassword: NEW, newPassword: ADA.password });
 });
 
-// The settings page, in a real browser, on Ada's session.
+// Settings' views, in a real browser, on Ada's session.
 const browser = await chromium.launch();
 /** A browser context logged in with a session's Cookie header. */
 async function contextWith(cookie: string): Promise<BrowserContext> {
@@ -244,7 +244,7 @@ const main = page.getByRole("main");
 const nav = page.getByRole("navigation", { name: "Asked Before" });
 /** A settings section: the region its heading names. */
 const section = (name: string) => main.getByRole("region", { name, exact: true });
-const keys = section("API keys");
+const keys = section("Your keys");
 const keysTable = keys.getByRole("table", { name: "Your API keys" });
 const keyRow = (name: string) => keysTable.getByRole("row").filter({ has: page.getByText(name, { exact: true }) });
 /** A key's row read by its column headers, so the columns may move: { Name, Prefix, Made, "Last used" }. */
@@ -254,6 +254,15 @@ async function keyCells(name: string): Promise<Record<string, string>> {
   return Object.fromEntries(headers.map((header, i) => [header, cells[i] ?? ""]).filter(([header]) => header));
 }
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const squish = (text: string | null | undefined) => (text ?? "").replace(/\s+/g, " ").trim();
+/** A label column's facts, term to value: { Keys: "2", "Last used": "Laptop, 2026-10-24" }. */
+async function facts(scope: Locator): Promise<Record<string, string>> {
+  return scope.locator("dl > div").evaluateAll((rows) => Object.fromEntries(rows.map((row) => [row.querySelector("dt")?.textContent?.trim() ?? "", row.querySelector("dd")?.textContent?.trim() ?? ""])));
+}
+/** What names the view: its h1, its tab's title, and the item the navigation marks as the current page. */
+async function named(p: Page) {
+  return { h1: await p.getByRole("main").getByRole("heading", { level: 1 }).textContent(), title: await p.title(), nav: await p.getByRole("navigation", { name: "Asked Before" }).locator("[aria-current=page]").textContent() };
+}
 /** A section's status line once it says something: it's always in the page, empty until then. */
 const said = (scope: Locator) => scope.getByRole("status").filter({ hasText: /\S/ });
 /** Waits for a section's status line or its refusal, so a refusal fails at once instead of timing out; true when it was saved. */
@@ -263,13 +272,29 @@ async function savedOrRefused(scope: Locator): Promise<boolean> {
 }
 
 try {
-  await step("7. In the settings page, a key is made and shown once, and the SDK lists shelves with it", async () => {
-    await page.goto(`${app.url}/app/settings`);
+  await step("7. In API keys, a key is made and shown once, summed up beside the list, and the SDK lists shelves with it", async () => {
+    await page.goto(`${app.url}/app/settings/keys`);
     await keyRow("Spare").waitFor();
-    check((await main.getByRole("heading", { level: 1 }).textContent()) === "Settings", "the page is headed Settings");
-    check((await nav.locator("[aria-current=page]").textContent()) === "Settings", "the navigation marks Settings");
+    const view = await named(page);
+    check(view.h1 === "API keys" && view.title === "API keys · Asked Before" && view.nav === "API keys", `the view is named API keys in its h1, tab, and navigation: ${JSON.stringify(view)}`);
     const spare = await keyCells("Spare");
     check(/^ab_[0-9a-f]{16}$/.test(spare.Prefix ?? "") && DATE.test(spare.Made ?? "") && DATE.test(spare["Last used"] ?? ""), `the Spare key's row reads its prefix, made, and last used: ${JSON.stringify(spare)}`);
+    const summed = await facts(keys);
+    check(summed.Keys === "1" && summed["Last used"] === `Spare, ${spare["Last used"]}`, `the label column sums the list up: ${JSON.stringify(summed)}`);
+    const connect = keys.getByRole("link", { name: "Connect your AI", exact: true }).first();
+    check((await connect.getAttribute("href")) === "/app/connect", `it points to Connect your AI: ${await connect.getAttribute("href")}`);
+    const powers = section("What a key can do");
+    /** A list of calls under its h3, area by area: "Shelves: list, create, get; Uploads: …". */
+    const calls = (title: string) =>
+      powers
+        .getByRole("heading", { name: title, exact: true })
+        .locator("xpath=following-sibling::dl[1]")
+        .evaluate((list) => [...list.querySelectorAll("dt")].map((term) => `${term.textContent}: ${term.nextElementSibling?.textContent}`).join("; "));
+    const [byKey, loggedIn] = [await calls("With a key"), await calls("Only when logged in")];
+    check(
+      byKey.includes("Shelves: list, create, get;") && loggedIn.includes("Shelves: rename, delete;") && loggedIn.includes("API keys: list, create, revoke;") && !byKey.includes("API keys"),
+      `with a key, "${byKey}"; only when logged in, "${loggedIn}"`,
+    );
 
     await keys.getByLabel("Key name", { exact: true }).fill("Claude Code");
     await keys.getByRole("button", { name: "Create key", exact: true }).click();
@@ -279,22 +304,37 @@ try {
     check((await shown.count()) === 1, `only the new key is shown, once: ${await shown.count()} shown`);
     const caption = await shown.evaluate((figure) => figure.querySelector("figcaption")?.firstElementChild?.textContent ?? "");
     check(caption === "Claude Code's key", `it's shown as Claude Code's key: "${caption}"`);
+    const focused = await shown.getByRole("button", { name: "Copy Claude Code's key", exact: true }).evaluate((button) => button === document.activeElement);
+    check(focused, "its copy button has the focus");
     const key = ((await shown.locator("code").textContent()) ?? "").trim();
     check(/^ab_[0-9a-f]{16}_[0-9a-f]{32}$/.test(key), "the new key is shown in the ab_<id>_<secret> form");
     check((await keys.getByLabel("Key name", { exact: true }).inputValue()) === "", "the field is cleared for the next one");
     const neverUsed = await keyCells("Claude Code");
     check(neverUsed["Last used"] === "Never", `it's never been used: ${JSON.stringify(neverUsed)}`);
+    check((await facts(keys)).Keys === "2", `the label column counts it: ${JSON.stringify(await facts(keys))}`);
+    const secret = key.split("_")[2]!;
+    const kept = await page.evaluate(() => location.href + JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage }) + document.cookie);
+    check(!kept.includes(secret), "the key is nowhere in the address, storage, or cookies");
+    const goesIn = squish(await shown.locator("xpath=following-sibling::p[1]").textContent());
+    check(goesIn === "It's what goes in for YOUR_API_KEY in an agent's snippet, on Connect your AI." && (await keys.getByRole("link", { name: "Connect your AI", exact: true }).last().getAttribute("href")) === "/app/connect", `under it: "${goesIn}"`);
     await screenshot(page, "key-shown");
 
     const shelves = await withKey(key).shelves.list();
     check(shelves.some((p) => p.id === work.id), `the SDK lists Ada's shelves with it: ${shelves.map((p) => p.name).join(", ")}`);
 
-    await page.reload();
+    // Connect your AI is a link away; the key stays behind, in this view's memory only, and is gone on the way back.
+    await connect.click();
+    await page.waitForURL(/\/app\/connect$/);
+    await main.getByRole("heading", { level: 1, name: "Connect your AI", exact: true }).waitFor();
+    check(!((await page.locator("body").textContent()) ?? "").includes(secret), "Connect your AI opens without a reload, and the key isn't carried there");
+    await page.goBack();
     await keyRow("Claude Code").waitFor();
-    check(!((await page.locator("body").textContent()) ?? "").includes(key.split("_")[2]!), "after a reload, the key's secret is nowhere on the page");
+    check(!((await page.locator("body").textContent()) ?? "").includes(secret), "back in API keys, the key's secret is nowhere on the page");
     check((await keys.getByRole("figure").count()) === 0, "and no key is shown");
     const used = await keyCells("Claude Code");
     check(DATE.test(used["Last used"] ?? ""), `its row now has a last use: ${used["Last used"]}`);
+    const lastUse = await facts(keys);
+    check(/^(Claude Code|Spare), \d{4}-\d{2}-\d{2}$/.test(lastUse["Last used"] ?? ""), `the label column has the latest use of either: ${lastUse["Last used"]}`);
 
     await keyRow("Claude Code").getByRole("button", { name: "Revoke Claude Code…", exact: true }).click();
     const confirm = keys.getByRole("group", { name: "Revoke Claude Code?", exact: true });
@@ -304,18 +344,30 @@ try {
     await screenshot(page, "key-revoke");
     await confirm.getByRole("button", { name: "Revoke Claude Code", exact: true }).click();
     await keyRow("Claude Code").waitFor({ state: "detached" });
-    const revoked = await failure(withKey(key).shelves.list());
-    check(revoked?.status === 401, `revoked in the page, the key gets: ${say(revoked)}`);
+    check(await keys.getByLabel("Key name", { exact: true }).evaluate((input) => input === document.activeElement), "revoked, the focus goes to the key name");
+    const revoked = failure(withKey(key).shelves.list());
+    check((await revoked)?.status === 401, `revoked in the page, the key gets: ${say(await revoked)}`);
     check((await ada.client.keys.list()).map((k) => k.name).join(", ") === "Spare", "the SDK lists only the Spare key");
+    check((await facts(keys)).Keys === "1", "and the label column counts one again");
   });
 
-  await step("8. Change the name in the page, and the navigation shows it; a new email needs the password", async () => {
+  await step("8. In Account, change the name, and the navigation and the view's line show it; a new email needs the password", async () => {
+    await nav.getByRole("link", { name: "Account", exact: true }).click();
+    await page.waitForURL(/\/app\/settings$/);
     const profile = section("Profile");
+    await profile.waitFor();
+    const view = await named(page);
+    check(view.h1 === "Account" && view.title === "Account · Asked Before" && view.nav === "Account", `the view is named Account in its h1, tab, and navigation: ${JSON.stringify(view)}`);
+    check(await main.getByRole("heading", { level: 1 }).evaluate((h1) => h1 === document.activeElement), "the sub-item moved the focus to its h1");
+    const made = await facts(profile);
+    check(made["Account made"] === new Date((await ada.client.auth.me()).createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }), `the label column says when the account was made: ${JSON.stringify(made)}`);
     await profile.getByLabel("Name", { exact: true }).fill("Ada King");
     await profile.getByRole("button", { name: "Save profile", exact: true }).click();
     check(await savedOrRefused(profile), `the profile says "${await said(profile).or(profile.getByRole("alert")).first().textContent()}"`);
     await nav.getByText("Ada King", { exact: true }).waitFor();
     check(((await said(profile).textContent()) ?? "").includes("saved"), `the navigation shows the new name, and the profile says "${await said(profile).textContent()}"`);
+    const line = squish(await main.locator("header p").textContent());
+    check(line === `Logged in as Ada King, ${ADA.email}.`, `the view's line says it too: "${line}"`);
     check((await ada.client.auth.me()).name === "Ada King", "the SDK sees the new name");
 
     /** Saves the profile and waits for its refusal. */
@@ -390,23 +442,36 @@ try {
     await ada.client.account.changePassword({ currentPassword: "a new and longer password", newPassword: ADA.password });
   });
 
-  await step("10. The setup snippets carry this server's address", async () => {
+  await step("10. Settings' sub-items move between the three views without a reload, and Your data links to the privacy page", async () => {
     await page.goto(`${app.url}/app/settings`);
-    const agents = section("Connect an agent");
-    await agents.waitFor();
-    // Every agent's tab stays mounted, so the snippets behind the closed tabs are in the page, hidden.
-    const blocks = agents.getByRole("figure", { includeHidden: true });
-    const captions = await blocks.evaluateAll((figures) => figures.map((figure) => figure.querySelector("figcaption")?.firstElementChild?.textContent?.trim() ?? ""));
-    check(JSON.stringify(captions) === JSON.stringify(["Claude Code plugin", "Claude Code without the plugin", "Claude Desktop", "Cursor"]), `a snippet for each agent, the plugin first: ${captions.join(", ")}`);
-    const [plugin, claudeCode, desktop, cursor] = (await blocks.locator("code").allTextContents()).map((text) => text.trim());
-    check((plugin ?? "").startsWith("claude plugin marketplace add") && (plugin ?? "").includes(`server_url=${app.url}`), "the plugin's install names this server");
-    check((claudeCode ?? "").startsWith("claude mcp add") && (claudeCode ?? "").includes(`ASKED_BEFORE_URL=${app.url}`), "Claude Code's command from a copy names this server");
-    for (const [what, snippet] of [["Claude Desktop", desktop], ["Cursor", cursor]] as const) {
-      const server = (JSON.parse(snippet ?? "{}") as { mcpServers?: Record<string, { env?: Record<string, string> }> }).mcpServers?.["asked-before"];
-      check(server?.env?.ASKED_BEFORE_URL === app.url, `${what}'s config is JSON naming this server: ${server?.env?.ASKED_BEFORE_URL}`);
+    await section("Profile").waitFor();
+    await page.evaluate(() => ((window as unknown as { stayed: boolean }).stayed = true));
+    for (const [item, path, h1, sections] of [
+      ["Your data", "/app/settings/data", "Your data", ["Download your data", "Delete your account"]],
+      ["API keys", "/app/settings/keys", "API keys", ["Your keys", "What a key can do"]],
+      ["Account", "/app/settings", "Account", ["Profile", "Password"]],
+    ] as const) {
+      await nav.getByRole("link", { name: item, exact: true }).click();
+      await page.waitForURL(`${app.url}${path}`);
+      await section(sections[0]).waitFor();
+      const view = await named(page);
+      const regions = await main.getByRole("region").evaluateAll((all) => all.map((region) => region.querySelector("h2")?.textContent ?? ""));
+      check(
+        view.h1 === h1 && view.title === `${h1} · Asked Before` && view.nav === item && JSON.stringify(regions) === JSON.stringify(sections),
+        `${item}: ${JSON.stringify(view)}, its sections ${regions.join(", ")}`,
+      );
+      check(await main.getByRole("heading", { level: 1 }).evaluate((title) => title === document.activeElement), `the focus is on ${h1}'s h1`);
+      if (item === "Your data") {
+        await screenshot(page, "your-data");
+        const privacy = main.getByRole("link", { name: "privacy page", exact: true });
+        check((await privacy.getAttribute("href")) === "/privacy", `it links to the privacy page: ${await privacy.getAttribute("href")}`);
+        const holds = await facts(section("Download your data"));
+        const shelves = await ada.client.shelves.list();
+        check(holds.Shelves === String(shelves.length) && holds.Cards === String(shelves.reduce((sum, shelf) => sum + shelf.counts.cards, 0)) && holds["Last upload"] === "None yet", `its label column says what the file holds now: ${JSON.stringify(holds)}`);
+      }
     }
-    await agents.scrollIntoViewIfNeeded();
-    await screenshot(page, "connect-an-agent");
+    check(await page.evaluate(() => (window as unknown as { stayed?: boolean }).stayed === true), "no view reloaded the page");
+    await screenshot(page, "account");
   });
 
   await step("11. The page reached the server only through /api/v1, within its security policy", async () => {
