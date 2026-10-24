@@ -1,10 +1,12 @@
-// One row of a settings view or of Connect your AI (taste-sheet-app.md, "Settings in two
+// One row of a settings view (taste-sheet-app.md, "Settings in two
 // columns"): a label column, its h2 at 16/500 and a 14px grey description,
 // beside a panel in the panel tint (16px radius, 16px padding, no border, no
 // shadow) holding the section's one form, its status line, and its errors.
 // The grid is 5fr + 32px + 8fr: 431 + 32 + 689 = 1152 on the full canvas,
 // and 425 + 32 + 679 = 1136 at 1440 wide. On a canvas under 64rem the label
-// stacks above its panel. The h2 takes focus from an in-page link.
+// stacks above its panel. The h2 takes focus from an in-page link. Code, a
+// placeholder inside a sentence, is Connect your AI's and the playground's
+// too.
 
 import { useId, type ReactNode } from "react";
 import { TextLink } from "./text-link";
