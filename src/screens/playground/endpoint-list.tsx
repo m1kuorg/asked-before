@@ -52,7 +52,7 @@ export function EndpointList({ open, choose }: ListProps) {
                     choose(entry);
                   }}
                   className={cn(
-                    "flex min-h-8 items-start gap-2 rounded-md px-2 py-1.5 text-[13px] transition-colors hover:bg-background aria-[current=true]:bg-active max-lg:min-h-11 max-lg:items-center pointer-coarse:min-h-11",
+                    "flex min-h-8 items-start gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-background aria-[current=true]:bg-active max-lg:min-h-11 max-lg:items-center pointer-coarse:min-h-11",
                     entry.off ? "text-muted-foreground" : "text-foreground",
                   )}
                 >
