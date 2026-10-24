@@ -26,7 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Resource } from "@/app/use-resource";
 import { useResource } from "@/app/use-resource";
-import type { Route } from "@/app/router";
+import type { Route, Section } from "@/app/router";
 import { canRetry, client } from "@/lib/client";
 import { GUEST_LINE, GUEST_NAME } from "@/lib/copy";
 import { count } from "@/lib/format";
@@ -76,7 +76,7 @@ export function Shell({ account, route, params, title, routeKey, children }: She
         </header>
         <div className="sticky top-0 hidden h-svh border-r border-border lg:block">{!menuOpen && nav}</div>
         <main id="main" tabIndex={-1} data-screen={route.name} className="min-w-0 px-4 pt-6 pb-16 lg:px-8 lg:pt-9">
-          <div className={cn("mx-auto w-full", WIDTHS[route.section ?? ""] ?? "max-w-275")}>{children}</div>
+          <div className={cn("mx-auto w-full", (route.section && WIDTHS[route.section]) ?? "max-w-275")}>{children}</div>
         </main>
       </div>
     </ShellContext.Provider>
@@ -84,7 +84,7 @@ export function Shell({ account, route, params, title, routeKey, children }: She
 }
 
 /** The canvas's width by section, where it isn't the usual 1100px. */
-const WIDTHS: Record<string, string> = { settings: "max-w-288", playground: "max-w-360" };
+const WIDTHS: Partial<Record<Section, string>> = { settings: "max-w-288", playground: "max-w-360" };
 
 type Current = Route["section"] | "all-shelves" | { shelfId: string };
 
