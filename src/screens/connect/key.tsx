@@ -10,13 +10,12 @@
 import type { CreatedApiKey } from "@asked-before/sdk";
 import { useEffect, useRef } from "react";
 import type { ScreenProps } from "@/app/router";
-import { CopyBlock } from "@/components/copy-block";
+import { ShownKey } from "@/components/shown-key";
 import { TextLink } from "@/components/text-link";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
-import { API_KEY_POWERS, API_KEY_SHOWN_ONCE } from "@/lib/copy";
+import { API_KEY_POWERS } from "@/lib/copy";
 import { useSafeSubmit } from "@/lib/use-safe-submit";
 import type { Agent } from "./agents";
 
@@ -32,23 +31,9 @@ export function Key({ client, agent, made, onMade }: KeyProps) {
 
   if (made) {
     return (
-      <div className="flex flex-col gap-3">
-        <Alert variant="notice" role="note">
-          <AlertDescription>{API_KEY_SHOWN_ONCE}</AlertDescription>
-        </Alert>
-        <CopyBlock
-          caption={`${made.name}'s key`}
-          code={made.key}
-          copyLabel={`Copy ${made.name}'s key`}
-          autoFocus
-          className="[&_pre]:break-all [&_pre]:whitespace-pre-wrap [&_pre]:bg-background"
-        />
-        <p className="text-sm text-muted-foreground">
-          Like the key, the snippet below shows it only until you leave this page. Revoke it any time in{" "}
-          <TextLink href="/app/settings/keys">API keys</TextLink>
-          .
-        </p>
-      </div>
+      <ShownKey made={made} autoFocus>
+        Like the key, the snippet below shows it only until you leave this page. Revoke it any time in <TextLink href="/app/settings/keys">API keys</TextLink>.
+      </ShownKey>
     );
   }
 
