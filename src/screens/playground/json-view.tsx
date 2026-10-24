@@ -1,15 +1,15 @@
 // An answer's JSON, pretty-printed a line at a time, with light colour from
 // the tokens and no palette of its own: keys grey, strings in ink, numbers,
-// true, false, and null in the pink kept for data, punctuation faint. Each
-// line is indented by its depth and wraps under its own indent, so a long
-// message or id stays in view at any width without scrolling sideways. An
-// id that fills one of the request's fields is a button (plan-review.md
-// note 8): a shelf's, an upload's, a card's, a cold rep's, or a key's id,
-// by the key it sits under or the object it's in, and a list's next for its
-// cursor. A click fills that field. A long answer scrolls inside its box,
-// at most 70% of the screen tall. An answer past LARGE characters, such
-// as a big export, is shown plain, since it would be tens of thousands of
-// spans.
+// true, false, and null in the notice's amber ink (pink is the ask strip's
+// alone), punctuation faint. Each line is indented by its depth and wraps
+// under its own indent, so a long message or id stays in view at any width
+// without scrolling sideways. An id that fills one of the request's fields
+// is a button (plan-review.md note 8): a shelf's, an upload's, a card's, a
+// cold rep's, or a key's id, by the key it sits under or the object it's
+// in, and a list's next for its cursor. A click fills that field. A long
+// answer scrolls inside its box, at most 70% of the screen tall. An answer
+// past LARGE characters, such as a big export, is shown plain, since it
+// would be tens of thousands of spans.
 
 import type { ReactNode } from "react";
 import { FIELD_NAMES, fillsField, kindOf, type Fillable, type Param } from "./endpoints";
@@ -64,7 +64,7 @@ function lines(value: unknown, root: Param | null, onPick: Pick): Line[] {
 
   /** `kind` is what this value is when it's an object or a list of them; `key` and `owner` say where a string sits. */
   const walk = (item: unknown, depth: number, kind: Param | null, key: string | null, owner: Param | null): void => {
-    if (item === null || typeof item === "boolean" || typeof item === "number") return void mark(String(item), "text-ask-ink");
+    if (item === null || typeof item === "boolean" || typeof item === "number") return void mark(String(item), "text-notice-foreground");
     if (typeof item === "string") {
       const field = key === null ? null : fillsField(key, owner);
       if (!field) return void mark(JSON.stringify(item), "");
