@@ -30,8 +30,8 @@ import { API_KEY_SHOWN_ONCE } from "@/lib/copy";
 import { DASH } from "@/lib/format";
 import { useSafeSubmit } from "@/lib/use-safe-submit";
 import { Code, Section } from "@/components/section";
+import { TextLink } from "@/components/text-link";
 import { Facts, type Fact } from "./facts";
-import { TextLink } from "./text-link";
 
 /** Below this panel width the table's rows become two lines: the name and Revoke, then the prefix and dates. */
 const WIDE = "hidden @xl/keys:table-cell";

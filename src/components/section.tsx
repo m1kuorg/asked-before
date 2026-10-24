@@ -7,6 +7,7 @@
 // stacks above its panel. The h2 takes focus from an in-page link.
 
 import { useId, type ReactNode } from "react";
+import { TextLink } from "./text-link";
 
 type SectionProps = { id: string; title: string; description?: ReactNode; children: ReactNode };
 
@@ -51,9 +52,8 @@ export function Code({ children }: { children: ReactNode }) {
  */
 export function SectionLink({ to, children }: { to: string; children: ReactNode }) {
   return (
-    <a
+    <TextLink
       href={`#${to}`}
-      className="text-foreground underline underline-offset-4 decoration-input hover:decoration-foreground"
       onClick={(event) => {
         event.preventDefault();
         const section = document.getElementById(to);
@@ -62,6 +62,6 @@ export function SectionLink({ to, children }: { to: string; children: ReactNode 
       }}
     >
       {children}
-    </a>
+    </TextLink>
   );
 }

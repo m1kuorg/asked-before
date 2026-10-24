@@ -11,6 +11,7 @@ import type { CreatedApiKey } from "@asked-before/sdk";
 import { useEffect, useRef } from "react";
 import type { ScreenProps } from "@/app/router";
 import { CopyBlock } from "@/components/copy-block";
+import { TextLink } from "@/components/text-link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
@@ -18,7 +19,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { API_KEY_POWERS, API_KEY_SHOWN_ONCE } from "@/lib/copy";
 import { useSafeSubmit } from "@/lib/use-safe-submit";
 import type { Agent } from "./agents";
-import { inlineLink } from "./blocks";
 
 type KeyProps = Pick<ScreenProps, "client"> & { agent: Agent; made: CreatedApiKey | null; onMade: (key: CreatedApiKey) => void };
 
@@ -45,9 +45,7 @@ export function Key({ client, agent, made, onMade }: KeyProps) {
         />
         <p className="text-sm text-muted-foreground">
           Like the key, the snippet below shows it only until you leave this page. Revoke it any time in{" "}
-          <a href="/app/settings/keys" className={inlineLink}>
-            API keys
-          </a>
+          <TextLink href="/app/settings/keys">API keys</TextLink>
           .
         </p>
       </div>

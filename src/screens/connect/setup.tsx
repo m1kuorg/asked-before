@@ -10,8 +10,8 @@ import { useMemo, type ReactNode } from "react";
 import { connectSnippets, PLACEHOLDERS } from "../../../packages/mcp/src/connect";
 import { CopyBlock } from "@/components/copy-block";
 import { Code } from "@/components/section";
+import { TextLink } from "@/components/text-link";
 import type { Agent } from "./agents";
-import { inlineLink } from "./blocks";
 
 const { apiKey: KEY, clone: CLONE, bun: BUN } = PLACEHOLDERS;
 
@@ -92,13 +92,9 @@ export function Setup({ agent, made, guest }: SetupProps) {
       {body}
       <p>
         More in the docs:{" "}
-        <a href="/docs#mcp" className={inlineLink}>
-          the MCP server
-        </a>{" "}
+        <TextLink href="/docs#mcp">the MCP server</TextLink>{" "}
         and{" "}
-        <a href="/docs#plugin" className={inlineLink}>
-          the Claude Code plugin
-        </a>
+        <TextLink href="/docs#plugin">the Claude Code plugin</TextLink>
         .
       </p>
     </div>

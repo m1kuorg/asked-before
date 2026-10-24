@@ -7,9 +7,9 @@
 
 import { Fragment } from "react";
 import { Section } from "@/components/section";
+import { TextLink } from "@/components/text-link";
 import { API_KEY_POWERS } from "@/lib/copy";
 import { AREAS, type Endpoint, type Who } from "@/pages/docs/reference";
-import { TextLink } from "./text-link";
 
 /** Each area's calls that `who` may make, as SDK names without the area's: "list" for shelves.list. Areas with none are left out. */
 const callsFor = (who: Who) =>

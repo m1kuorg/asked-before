@@ -13,6 +13,7 @@ import type { Resource } from "@/app/use-resource";
 import { Code } from "@/components/section";
 import { DemoChip } from "@/components/demo-chip";
 import { ErrorNotice } from "@/components/error-notice";
+import { TextLink } from "@/components/text-link";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -59,9 +60,7 @@ export function RequestForm(props: RequestFormProps) {
         </p>
         {entry.off.link && (
           <p>
-            <a href={entry.off.link.href} className="text-foreground underline decoration-input underline-offset-4 hover:decoration-foreground">
-              {entry.off.link.label}
-            </a>
+            <TextLink href={entry.off.link.href}>{entry.off.link.label}</TextLink>
           </p>
         )}
       </div>
@@ -188,9 +187,9 @@ function ShelfField({ shelves, ids, setId, idOf, problem, marked, error }: Reque
         <p id={idOf("shelfId")} tabIndex={-1} className="text-sm text-muted-foreground">
           You have no shelves yet.{" "}
           {POST_SHELVES && (
-            <a href={hrefOf(POST_SHELVES)} className="text-foreground underline decoration-input underline-offset-4 hover:decoration-foreground">
+            <TextLink href={hrefOf(POST_SHELVES)}>
               Make one with <code>POST /shelves</code>
-            </a>
+            </TextLink>
           )}
           .
         </p>
@@ -247,9 +246,7 @@ function SendAsField({ as, setAs, apiKey, setApiKey, guest, idOf, problem, marke
               <>
                 {" "}
                 Make one under{" "}
-                <a href="/app/settings/keys" className="text-foreground underline decoration-input underline-offset-4 hover:decoration-foreground">
-                  API keys
-                </a>
+                <TextLink href="/app/settings/keys">API keys</TextLink>
                 , in Settings.
               </>
             )}

@@ -9,6 +9,7 @@
 // the button links to the privacy page.
 import { useId } from "react";
 import { createRoot } from "react-dom/client";
+import { TextLink } from "@/components/text-link";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -68,9 +69,7 @@ function SignUp() {
           </Button>
           <p className="text-muted-foreground">
             {SESSION_SIGN_UP}{" "}
-            <a className="underline decoration-input underline-offset-4 hover:decoration-foreground" href="/privacy">
-              Privacy
-            </a>{" "}
+            <TextLink href="/privacy">Privacy</TextLink>{" "}
             says what happens to your words.
           </p>
         </div>
