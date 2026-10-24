@@ -25,24 +25,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
 import { recordProvenance } from "./lib/provenance";
+import { token } from "./lib/tokens";
 
 const ROOT = join(import.meta.dir, "..");
 const PUBLIC = join(ROOT, "public");
 const MADE_BY = "scripts/build-icons.ts";
 
-/** A colour token from globals.css's :root, so the icons can't drift from the page. */
-async function tokens(...names: string[]): Promise<Record<string, string>> {
-  const css = await Bun.file(join(ROOT, "src", "styles", "globals.css")).text();
-  return Object.fromEntries(
-    names.map((name) => {
-      const value = css.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, "i"))?.[1];
-      if (!value) throw new Error(`globals.css has no --${name} colour.`);
-      return [name, value.toLowerCase()];
-    }),
-  );
-}
-
-const T = await tokens("ask", "track", "primary", "background", "plum-field", "muted-on-dark");
+/** The colour tokens the icons use, from globals.css, so they can't drift from the page. */
+const T = Object.fromEntries(["ask", "track", "primary", "background", "plum-field", "muted-on-dark"].map((name) => [name, token(name)]));
 
 /**
  * The favicon: the mark on a 16px grid, so it holds at 16 and 32 device

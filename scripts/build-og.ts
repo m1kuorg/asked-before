@@ -19,6 +19,7 @@ import { join } from "node:path";
 import { chromium } from "playwright";
 import { demoCards } from "../src/pages/demo-card";
 import { recordProvenance } from "./lib/provenance";
+import { token } from "./lib/tokens";
 
 const ROOT = join(import.meta.dir, "..");
 const OUT = join(ROOT, "public", "og");
@@ -54,13 +55,6 @@ export const BANNERS = [
 /** What every banner shows, for its og:image:alt: the title, then the strip and the line. */
 export const bannerAlt = (title: string[], line: string) =>
   `“${title.join(" ")}” in large white type on a plum field, under the name Asked Before, over a pink ask strip of nine dots on a track, then “${line}”`;
-
-const TOKENS = await Bun.file(join(ROOT, "src", "styles", "globals.css")).text();
-const token = (name: string) => {
-  const value = TOKENS.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, "i"))?.[1];
-  if (!value) throw new Error(`globals.css has no --${name} colour.`);
-  return value;
-};
 
 /** Card A's asks as x positions across the banner's safe width, on an axis from the month of the first to the month after the last. */
 function strip(): number[] {

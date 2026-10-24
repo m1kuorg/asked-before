@@ -28,6 +28,7 @@ import config from "../wrangler.jsonc";
 import { BANNERS, bannerAlt } from "./build-og";
 import { startApp } from "./lib/app";
 import type { Provenance } from "./lib/provenance";
+import { token } from "./lib/tokens";
 
 const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-chrome");
 const ROOT = join(import.meta.dir, "..");
@@ -50,9 +51,6 @@ async function step(name: string, run: () => Promise<void>) {
     check(false, `threw ${error instanceof Error ? error.message.split("\n")[0] : String(error)}`);
   }
 }
-
-const css = await Bun.file(join(ROOT, "src", "styles", "globals.css")).text();
-const token = (name: string) => css.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, "i"))?.[1]?.toLowerCase();
 
 /** Each page, by where it's served: its canonical path (none for the not-found page, which answers any path), its banner, and its theme colour. */
 const PAGES = [
