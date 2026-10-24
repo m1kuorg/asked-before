@@ -130,7 +130,7 @@ function Empty({ entry, canSend, shortcut }: { entry: Entry; canSend: boolean; s
             <>
               Press Send
               <span className="pointer-coarse:hidden">
-                , or <Key>{shortcut}</Key> <Key>Enter</Key>,
+                , or <Kbd>{shortcut}</Kbd> <Kbd>Enter</Kbd>,
               </span>{" "}
               and what it answers shows here, with its status, time, and size. Nothing runs until you do.
             </>
@@ -156,7 +156,7 @@ function Empty({ entry, canSend, shortcut }: { entry: Entry; canSend: boolean; s
   );
 }
 
-export function Key({ children }: { children: string }) {
+export function Kbd({ children }: { children: string }) {
   return <kbd className="rounded-sm border border-edge bg-background px-1 font-sans text-xs text-foreground">{children}</kbd>;
 }
 

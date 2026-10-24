@@ -8,7 +8,7 @@
 // and where the app does it, instead.
 
 import type { Shelf } from "@asked-before/sdk";
-import type { ReactNode } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type { Resource } from "@/app/use-resource";
 import { Code } from "@/components/section";
 import { DemoChip } from "@/components/demo-chip";
@@ -21,7 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { FIELD_NAMES, hrefOf, sendsBody, ENTRIES, type Entry, type Param } from "./endpoints";
-import type { SendAs } from "./request";
+import type { Draft, SendAs } from "./request";
 
 /** A field the last Send found wrong: an id, the body, or the key. */
 export type Problem = { field: Param | "body" | "key"; message: string };
@@ -30,18 +30,13 @@ type RequestFormProps = {
   entry: Entry;
   guest: boolean;
   shelves: Resource<Shelf[]>;
-  ids: Partial<Record<Param, string>>;
-  setId: (param: Param, value: string) => void;
-  limit: string;
-  setLimit: (value: string) => void;
-  cursor: string;
-  setCursor: (value: string) => void;
+  /** What the inputs hold; each input changes its part of it. */
+  draft: Draft;
+  setDraft: Dispatch<SetStateAction<Draft>>;
+  /** The draft's ids, with the first shelf filled in until another is picked. */
+  ids: Draft["ids"];
+  /** The open endpoint's body: as typed, or its example. */
   body: string;
-  setBody: (value: string) => void;
-  as: SendAs;
-  setAs: (as: SendAs) => void;
-  apiKey: string;
-  setApiKey: (value: string) => void;
   problem: Problem | null;
   /** The id of the control for a field, so a problem can focus it. */
   idOf: (field: string) => string;
@@ -50,7 +45,7 @@ type RequestFormProps = {
 const POST_SHELVES = ENTRIES.find((entry) => entry.id === "POST /shelves");
 
 export function RequestForm(props: RequestFormProps) {
-  const { entry, problem, idOf } = props;
+  const { entry, setDraft, problem, idOf } = props;
   if (entry.off) {
     return (
       <div className="flex flex-col gap-2 rounded-xl border border-border p-4 text-sm">
@@ -91,7 +86,7 @@ export function RequestForm(props: RequestFormProps) {
               id={idOf(param)}
               name={param}
               value={props.ids[param] ?? ""}
-              onChange={(event) => props.setId(param, event.target.value)}
+              onChange={({ target: { value } }) => setDraft((before) => ({ ...before, ids: { ...before.ids, [param]: value } }))}
               placeholder="Such as 019a0c2e-…"
               autoComplete="off"
               spellCheck={false}
@@ -114,8 +109,8 @@ export function RequestForm(props: RequestFormProps) {
               inputMode="numeric"
               autoComplete="off"
               placeholder="50"
-              value={props.limit}
-              onChange={(event) => props.setLimit(event.target.value)}
+              value={props.draft.limit}
+              onChange={({ target: { value } }) => setDraft((before) => ({ ...before, limit: value }))}
               aria-describedby={`${idOf("limit")}-hint`}
               className="tabular-nums"
             />
@@ -129,8 +124,8 @@ export function RequestForm(props: RequestFormProps) {
               autoComplete="off"
               spellCheck={false}
               placeholder="The page before's next…"
-              value={props.cursor}
-              onChange={(event) => props.setCursor(event.target.value)}
+              value={props.draft.cursor}
+              onChange={({ target: { value } }) => setDraft((before) => ({ ...before, cursor: value }))}
               aria-describedby={`${idOf("cursor")}-hint`}
               /* taste-skill-ignore: a cursor is code */ className="font-mono"
             />
@@ -151,7 +146,7 @@ export function RequestForm(props: RequestFormProps) {
               id={idOf("body")}
               name="body"
               value={props.body}
-              onChange={(event) => props.setBody(event.target.value)}
+              onChange={({ target: { value } }) => setDraft((before) => ({ ...before, bodies: { ...before.bodies, [entry.id]: value } }))}
               spellCheck={false}
               autoComplete="off"
               autoCapitalize="off"
@@ -173,7 +168,7 @@ export function RequestForm(props: RequestFormProps) {
 type Marks = { marked: { "aria-invalid"?: true; "aria-describedby"?: string }; error: ReactNode };
 
 /** :shelfId, from your own shelves. */
-function ShelfField({ shelves, ids, setId, idOf, problem, marked, error }: RequestFormProps & Marks) {
+function ShelfField({ shelves, ids, setDraft, idOf, problem, marked, error }: RequestFormProps & Marks) {
   const list = shelves.data;
   const nameOf = (id: string) => list?.find((shelf) => shelf.id === id)?.name ?? id;
   return (
@@ -194,7 +189,7 @@ function ShelfField({ shelves, ids, setId, idOf, problem, marked, error }: Reque
           .
         </p>
       ) : (
-        <Select value={ids.shelfId ?? null} onValueChange={(value) => value && setId("shelfId", value)}>
+        <Select value={ids.shelfId ?? null} onValueChange={(value) => value && setDraft((before) => ({ ...before, ids: { ...before.ids, shelfId: value } }))}>
           <SelectTrigger id={idOf("shelfId")} className="w-full bg-background data-[size=default]:h-10 dark:bg-background" {...marked}>
             <SelectValue placeholder="Choose a shelf">{(value: string | null) => (value ? nameOf(value) : "Choose a shelf")}</SelectValue>
           </SelectTrigger>
@@ -213,17 +208,17 @@ function ShelfField({ shelves, ids, setId, idOf, problem, marked, error }: Reque
   );
 }
 
-function SendAsField({ as, setAs, apiKey, setApiKey, guest, idOf, problem, marked, error }: RequestFormProps & Marks) {
+function SendAsField({ draft, setDraft, guest, idOf, problem, marked, error }: RequestFormProps & Marks) {
   return (
     <Field data-invalid={problem?.field === "key" || undefined}>
-      <p id={idOf("as")} className="text-sm leading-snug font-medium">
+      <p id={idOf("send-as")} className="text-sm leading-snug font-medium">
         Send as
       </p>
-      <ToggleGroup aria-labelledby={idOf("as")} className="w-fit!" value={[as]} onValueChange={(value) => value[0] && setAs(value[0] as SendAs)}>
+      <ToggleGroup aria-labelledby={idOf("send-as")} className="w-fit!" value={[draft.sendAs]} onValueChange={([next]) => next && setDraft((before) => ({ ...before, sendAs: next as SendAs }))}>
         <ToggleGroupItem value="session">This session</ToggleGroupItem>
         <ToggleGroupItem value="key">An API key</ToggleGroupItem>
       </ToggleGroup>
-      {as === "session" ? (
+      {draft.sendAs === "session" ? (
         <FieldDescription>{guest ? "The shared guest's session cookie" : "Your session cookie"}, as the app's own requests send it, with the page's Origin.</FieldDescription>
       ) : (
         <div className="flex flex-col gap-2">
@@ -232,8 +227,8 @@ function SendAsField({ as, setAs, apiKey, setApiKey, guest, idOf, problem, marke
             id={idOf("key")}
             name="api-key"
             type="password"
-            value={apiKey}
-            onChange={(event) => setApiKey(event.target.value)}
+            value={draft.key}
+            onChange={({ target: { value } }) => setDraft((before) => ({ ...before, key: value }))}
             placeholder="ab_…"
             autoComplete="off"
             spellCheck={false}

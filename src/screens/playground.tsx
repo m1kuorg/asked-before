@@ -26,7 +26,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { CodeTabs } from "./playground/code-tabs";
 import { EndpointList, EndpointSelect, breakable } from "./playground/endpoint-list";
 import { FIELD_NAMES, FIRST, entryOf, hrefOf, type Entry, type Fillable, type Param } from "./playground/endpoints";
-import { build, exampleBody, send, type Built, type SendAs } from "./playground/request";
+import { build, exampleBody, send, type Built, type Draft } from "./playground/request";
 import { RequestForm, type Problem } from "./playground/request-form";
 import { ResponsePane, type Sent, type Shown } from "./playground/response";
 import { SpendConfirm } from "./playground/spend-confirm";
@@ -49,13 +49,7 @@ export function Playground({ client, account, query, navigate, signal }: ScreenP
   const asked = query.get("endpoint");
   const entry = entryOf(asked) ?? FIRST;
 
-  const [ids, setIds] = useState<Partial<Record<Param, string>>>({});
-  const [limit, setLimit] = useState("");
-  const [cursor, setCursor] = useState("");
-  /** The body typed for each endpoint, by its id; an endpoint not typed in yet shows its example. */
-  const [bodies, setBodies] = useState<Record<string, string>>({});
-  const [as, setAs] = useState<SendAs>("session");
-  const [apiKey, setApiKey] = useState("");
+  const [draft, setDraft] = useState<Draft>({ ids: {}, limit: "", cursor: "", bodies: {}, sendAs: "session", key: "" });
   const [shown, setShown] = useState<Shown>({ state: "empty" });
   const [busy, setBusy] = useState(false);
   const [asking, setAsking] = useState<Asking>(null);
@@ -66,14 +60,14 @@ export function Playground({ client, account, query, navigate, signal }: ScreenP
   const idOf = (field: string) => `${uid}-${field}`;
 
   // The shelf is the first of yours until another is picked.
-  const filled = useMemo(() => ({ ...ids, shelfId: ids.shelfId ?? shelves.data?.[0]?.id }), [ids, shelves.data]);
+  const filled = useMemo(() => ({ ...draft.ids, shelfId: draft.ids.shelfId ?? shelves.data?.[0]?.id }), [draft.ids, shelves.data]);
   const shelfName = shelves.data?.find((shelf) => shelf.id === filled.shelfId)?.name;
   const example = useMemo(() => exampleBody(entry, shelfName), [entry, shelfName]);
-  const body = bodies[entry.id] ?? example;
-  const built = useMemo(() => build({ entry, ids: filled, limit, cursor, body }), [entry, filled, limit, cursor, body]);
+  const body = draft.bodies[entry.id] ?? example;
+  const built = useMemo(() => build({ entry, ids: filled, limit: draft.limit, cursor: draft.cursor, body }), [entry, filled, draft.limit, draft.cursor, body]);
 
   // A change to the request closes a question Send asked about it, and clears the last Send's problem.
-  const signature = `${entry.id} ${built.url} ${built.body} ${as} ${apiKey.trim() !== ""}`;
+  const signature = `${entry.id} ${built.url} ${built.body} ${draft.sendAs} ${draft.key.trim() !== ""}`;
   useEffect(() => {
     setAsking(null);
     setProblem(null);
@@ -84,27 +78,24 @@ export function Playground({ client, account, query, navigate, signal }: ScreenP
 
   const choose = (next: Entry) => navigate(hrefOf(next), { replace: true });
 
-  async function nameOf(noun: "shelf" | "upload" | "key"): Promise<string | null> {
-    try {
-      if (noun === "shelf") return shelfName ?? null;
-      if (noun === "upload") return (await client.uploads.get(filled.uploadId!)).fileName;
-      return (await client.keys.list()).find((key) => key.id === filled.keyId)?.name ?? null;
-    } catch {
-      // Not yours, or not there: the DELETE itself will say so.
-      return null;
-    }
-  }
+  /** What a DELETE names, by its noun: the id it takes, and a look-up of the object's name. */
+  const deleting = {
+    shelf: { id: filled.shelfId, name: async () => shelfName },
+    upload: { id: filled.uploadId, name: async () => (await client.uploads.get(filled.uploadId!)).fileName },
+    key: { id: filled.keyId, name: async () => (await client.keys.list()).find((key) => key.id === filled.keyId)?.name },
+  };
 
   async function onSend() {
     if (busy || asking || entry.off) return;
     const missing = built.missing[0];
     if (missing) return setProblem({ field: missing, message: missing === "shelfId" ? "Choose a shelf first." : `Fill in the ${FIELD_NAMES[missing].toLowerCase()}: click one in a response, or paste it.` });
     if (built.bodyError) return setProblem({ field: "body", message: `The body isn't JSON: ${built.bodyError}` });
-    if (as === "key" && !apiKey.trim()) return setProblem({ field: "key", message: "Paste an API key, or send as this session." });
+    if (draft.sendAs === "key" && !draft.key.trim()) return setProblem({ field: "key", message: "Paste an API key, or send as this session." });
     if (entry.deletes) {
       const { verb, noun } = entry.deletes;
-      const name = await nameOf(noun);
-      const id = noun === "shelf" ? filled.shelfId : noun === "upload" ? filled.uploadId : filled.keyId;
+      const { id, name: lookUp } = deleting[noun];
+      // Not yours, or not there: the DELETE itself will say so.
+      const name = await lookUp().catch(() => undefined);
       return setAsking({ kind: "delete", title: name ? `${verb} ${name}?` : `${verb} the ${noun} ${id}?`, action: name ? `${verb} ${name}` : `${verb} this ${noun}` });
     }
     if (entry.spends) return setAsking({ kind: "spend" });
@@ -124,18 +115,18 @@ export function Playground({ client, account, query, navigate, signal }: ScreenP
   }, []);
 
   async function run() {
-    const sent: Sent = { request: `${built.method} ${built.url}`, via: as === "key" ? "with an API key" : "as this session" };
+    const sent: Sent = { request: `${built.method} ${built.url}`, via: draft.sendAs === "key" ? "with an API key" : "as this session" };
     setBusy(true);
     setPicked(null);
     setShown({ state: "sending", sent, spends: entry.spends !== undefined });
     try {
-      const answer = await send(built, as, apiKey, signal);
+      const answer = await send(built, draft.sendAs, draft.key, signal);
       setShown({ state: "answered", sent, answer, root: entry.returns ?? null });
       if (answer.status < 300 && built.method !== "GET") {
         // The picker, the sidebar's shelves, and its counts follow what changed.
         shelves.retry();
         refreshShell();
-        if (entry.id === "DELETE /shelves/:shelfId") setIds((before) => ({ ...before, shelfId: undefined }));
+        if (entry.id === "DELETE /shelves/:shelfId") setDraft((before) => ({ ...before, ids: { ...before.ids, shelfId: undefined } }));
       }
     } catch (error) {
       if (!signal.aborted) setShown({ state: "failed", sent, error });
@@ -152,8 +143,7 @@ export function Playground({ client, account, query, navigate, signal }: ScreenP
   }
 
   function pick(field: Fillable, value: string) {
-    if (field === "cursor") setCursor(value);
-    else setIds((before) => ({ ...before, [field]: value }));
+    setDraft((before) => (field === "cursor" ? { ...before, cursor: value } : { ...before, ids: { ...before.ids, [field]: value } }));
     const takes = field === "cursor" ? entry.paged : entry.params.includes(field);
     const said = field === "shelfId" ? (shelves.data?.find((shelf) => shelf.id === value)?.name ?? value) : value;
     setPicked(`${FIELD_NAMES[field]} filled with ${said}${takes ? "." : ", for the next endpoint that takes one."}`);
@@ -187,25 +177,7 @@ export function Playground({ client, account, query, navigate, signal }: ScreenP
           {/* Wide: the request and its code on the left, the response beside both. Narrow: the request, the response, then the code. */}
           <div className="grid items-start gap-x-6 gap-y-8 @3xl/work:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] @3xl/work:grid-rows-[auto_1fr]">
             <Pane title="Request" className="@container/request">
-              <RequestForm
-                entry={entry}
-                guest={account.guest}
-                shelves={shelves}
-                ids={filled}
-                setId={(param, value) => setIds((before) => ({ ...before, [param]: value }))}
-                limit={limit}
-                setLimit={setLimit}
-                cursor={cursor}
-                setCursor={setCursor}
-                body={body}
-                setBody={(value) => setBodies((before) => ({ ...before, [entry.id]: value }))}
-                as={as}
-                setAs={setAs}
-                apiKey={apiKey}
-                setApiKey={setApiKey}
-                problem={problem}
-                idOf={idOf}
-              />
+              <RequestForm entry={entry} guest={account.guest} shelves={shelves} draft={draft} setDraft={setDraft} ids={filled} body={body} problem={problem} idOf={idOf} />
             </Pane>
             <Pane title="Response" className="@3xl/work:col-start-2 @3xl/work:row-span-2 @3xl/work:row-start-1">
               <ResponsePane shown={shown} entry={entry} canSend={!entry.off} shortcut={SHORTCUT} picked={picked} onPick={pick} onRetry={onSend} />

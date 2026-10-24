@@ -13,15 +13,15 @@ import { sendsBody, type Entry, type Param } from "./endpoints";
 
 export type SendAs = "session" | "key";
 
+/** What the inputs hold, for every endpoint at once: picking another keeps them. */
 export type Draft = {
-  entry: Entry;
   /** The path's ids, by :param. Shared across endpoints, so an id picked for one is there for the next. */
   ids: Partial<Record<Param, string>>;
   limit: string;
   cursor: string;
-  /** The JSON body as typed. */
-  body: string;
-  as: SendAs;
+  /** The JSON body typed for each endpoint, by its id; an endpoint not typed in yet shows its example. */
+  bodies: Record<string, string>;
+  sendAs: SendAs;
   /** A pasted API key, in memory only. */
   key: string;
 };
@@ -42,7 +42,8 @@ export type Built = {
   page: { limit?: string; cursor?: string };
 };
 
-export function build({ entry, ids, limit, cursor, body }: Pick<Draft, "entry" | "ids" | "limit" | "cursor" | "body">): Built {
+/** `ids` are the draft's with the shelf filled in, and `body` is the open endpoint's, as typed or its example. */
+export function build({ entry, ids, limit, cursor, body }: Pick<Draft, "ids" | "limit" | "cursor"> & { entry: Entry; body: string }): Built {
   const missing = entry.params.filter((param) => !ids[param]?.trim());
   const path = entry.path.replace(/:(\w+)/g, (template, name: Param) => {
     const value = ids[name]?.trim();
@@ -75,13 +76,13 @@ export type Answer = { status: number; ms: number; bytes: number; text: string; 
 
 const encoder = new TextEncoder();
 
-export async function send(built: Built, as: SendAs, key: string, signal: AbortSignal): Promise<Answer> {
+export async function send(built: Built, sendAs: SendAs, key: string, signal: AbortSignal): Promise<Answer> {
   const headers: Record<string, string> = {};
-  if (as === "key") headers.authorization = `Bearer ${key.trim()}`;
+  if (sendAs === "key") headers.authorization = `Bearer ${key.trim()}`;
   if (built.body !== undefined) headers["content-type"] = "application/json";
   const started = performance.now();
   // A key's request carries no cookie, so the key alone says who's calling.
-  const response = await fetch(built.url, { method: built.method, headers, body: built.body, credentials: as === "key" ? "omit" : "same-origin", signal });
+  const response = await fetch(built.url, { method: built.method, headers, body: built.body, credentials: sendAs === "key" ? "omit" : "same-origin", signal });
   const text = await response.text();
   const ms = performance.now() - started;
   let json: unknown;
