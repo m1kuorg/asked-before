@@ -1,7 +1,9 @@
-// Settings (/app/settings): one page of sections in two columns
-// (taste-sheet-app.md), each a <section> headed Profile, Password, API keys,
-// Connect an agent, Your data, or Delete your account, with its own form,
-// status line, and errors (brief section 4, item 6; inventory.md, Settings).
+// Settings: one view per area (app-screens.md 8.2), Account at
+// /app/settings, API keys at /app/settings/keys, and Your data at
+// /app/settings/data, each of sections in two columns (taste-sheet-app.md),
+// with its own form, status line, and errors (brief section 4, item 6;
+// inventory.md, Settings). Scaffold: the areas are built on their own branch
+// (app-notes/more-pages/plan.md).
 // The shared guest has none of them, only the way to an account of one's
 // own; the server refuses the guest every account and key endpoint anyway.
 
@@ -13,16 +15,18 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "
 import { Separator } from "@/components/ui/separator";
 import { GUEST_SETTINGS_BODY, GUEST_SETTINGS_TITLE } from "@/lib/copy";
 import { ApiKeys } from "./settings/api-keys";
-import { Connect } from "./settings/connect";
 import { DeleteAccount } from "./settings/delete-account";
 import { Password } from "./settings/password";
 import { Profile } from "./settings/profile";
 import { YourData } from "./settings/your-data";
 
-export function Settings({ client, account, setAccount }: ScreenProps) {
+export function SettingsAccount({ client, account, setAccount }: ScreenProps) {
   if (account.guest) return <GuestSettings />;
   return <AccountSettings client={client} account={account} setAccount={setAccount} />;
 }
+
+export const SettingsKeys = SettingsAccount;
+export const SettingsData = SettingsAccount;
 
 function GuestSettings() {
   return (
@@ -66,8 +70,6 @@ function AccountSettings({ client, account, setAccount }: Pick<ScreenProps, "cli
       <Password client={client} />
       <Separator />
       <ApiKeys client={client} made={made} setMade={setMade} />
-      <Separator />
-      <Connect made={made} />
       <Separator />
       <YourData client={client} />
       <Separator />

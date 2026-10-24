@@ -10,7 +10,7 @@ import { useMemo, type ReactNode } from "react";
 import { connectSnippets, PLACEHOLDERS } from "../../../packages/mcp/src/connect";
 import { CopyBlock } from "@/components/copy-block";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Code, Section } from "./section";
+import { Code, Section } from "../settings/section";
 
 const { apiKey: KEY, clone: CLONE, bun: BUN } = PLACEHOLDERS;
 
@@ -28,7 +28,7 @@ const WHICH_BUN = (
   </>
 );
 
-export function Connect({ made }: { made: CreatedApiKey | null }) {
+export function Setup({ made }: { made: CreatedApiKey | null }) {
   const snippets = useMemo(() => {
     const all = connectSnippets(location.origin);
     if (!made) return all;

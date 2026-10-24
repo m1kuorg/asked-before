@@ -2,8 +2,9 @@
 // on the white ground behind one hairline, holding the one
 // <nav aria-label="Asked Before">: the mark and name, Home with the count of
 // cards that need a cold rep, the shelves (long names truncated, with a
-// tooltip), All shelves, then Docs, Settings (not for the guest), and the
-// user row. Under 1024px it folds into a 48px top bar with the screen's name
+// tooltip), All shelves, then Connect your AI, Playground, Docs, Settings
+// (with its three areas under it while one is open, except for the guest,
+// who has one), and the user row. Under 1024px it folds into a 48px top bar with the screen's name
 // and a menu button opening the nav in a full-screen sheet. The shell loads
 // desk.get() and shelves.list() once; a screen calls useShell().refreshShell()
 // after anything that changes the counts or the shelves. "Skip to content"
@@ -13,7 +14,7 @@
 
 import type { Account, Desk, Shelf } from "@asked-before/sdk";
 import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
-import { BookOpenIcon, HouseIcon, LibraryIcon, MenuIcon, SettingsIcon } from "lucide-react";
+import { BookOpenIcon, HouseIcon, LibraryIcon, MenuIcon, PlugIcon, SettingsIcon, SquareTerminalIcon } from "lucide-react";
 import { cn } from "cn";
 import { DemoChip } from "@/components/demo-chip";
 import { Figure } from "@/components/figure";
@@ -55,7 +56,7 @@ export function Shell({ account, route, params, title, routeKey, children }: She
 
   const current: Current = route.section === "shelves" && params.shelfId ? { shelfId: params.shelfId } : route.name === "shelves" ? "all-shelves" : route.section;
   // Exactly one <nav>: the sidebar's, or the sheet's while it's open.
-  const nav = <Nav account={account} current={current} desk={desk} shelves={shelves} />;
+  const nav = <Nav account={account} current={current} routeName={route.name} desk={desk} shelves={shelves} />;
 
   return (
     <ShellContext.Provider value={shell}>
@@ -75,18 +76,29 @@ export function Shell({ account, route, params, title, routeKey, children }: She
         </header>
         <div className="sticky top-0 hidden h-svh border-r border-border lg:block">{!menuOpen && nav}</div>
         <main id="main" tabIndex={-1} data-screen={route.name} className="min-w-0 px-4 pt-6 pb-16 lg:px-8 lg:pt-9">
-          <div className={cn("mx-auto w-full", route.name === "settings" ? "max-w-288" : "max-w-275")}>{children}</div>
+          <div className={cn("mx-auto w-full", WIDTHS[route.section ?? ""] ?? "max-w-275")}>{children}</div>
         </main>
       </div>
     </ShellContext.Provider>
   );
 }
 
+/** The canvas's width by section, where it isn't the usual 1100px. */
+const WIDTHS: Record<string, string> = { settings: "max-w-288", playground: "max-w-360" };
+
 type Current = Route["section"] | "all-shelves" | { shelfId: string };
 
-type NavProps = { account: Account; current: Current; desk: Resource<Desk>; shelves: Resource<Shelf[]> };
+type NavProps = { account: Account; current: Current; routeName: string; desk: Resource<Desk>; shelves: Resource<Shelf[]> };
 
-function Nav({ account, current, desk, shelves }: NavProps) {
+/** Settings' areas, each its own view (app-screens.md 8.2), listed under Settings while one is open. */
+const SETTINGS_AREAS = [
+  { name: "settings", href: "/app/settings", label: "Account" },
+  { name: "settings-keys", href: "/app/settings/keys", label: "API keys" },
+  { name: "settings-data", href: "/app/settings/data", label: "Your data" },
+];
+
+function Nav({ account, current, routeName, desk, shelves }: NavProps) {
+  const areas = current === "settings" && !account.guest;
   const queue = desk.data ? desk.data.totals.borrowed + desk.data.totals.borrowedAgain : 0;
   return (
     <nav aria-label="Asked Before" className="flex h-full flex-col gap-0.5 overflow-y-auto px-3 pt-3 pb-4">
@@ -113,13 +125,29 @@ function Nav({ account, current, desk, shelves }: NavProps) {
         All shelves
       </NavItem>
       <div className="mt-auto flex flex-col gap-0.5 pt-6">
+        <NavItem href="/app/connect" icon={PlugIcon} current={current === "connect"}>
+          Connect your AI
+        </NavItem>
+        <NavItem href="/app/playground" icon={SquareTerminalIcon} current={current === "playground"}>
+          Playground
+        </NavItem>
         <NavItem href="/docs" icon={BookOpenIcon} current={false}>
           Docs
         </NavItem>
-        {!account.guest && (
-          <NavItem href="/app/settings" icon={SettingsIcon} current={current === "settings"}>
-            Settings
-          </NavItem>
+        {/* With its areas open, the area is the current page and Settings is only their heading. */}
+        <NavItem href="/app/settings" icon={SettingsIcon} current={current === "settings" && !areas} className={cn(areas && "text-foreground")}>
+          Settings
+        </NavItem>
+        {areas && (
+          <ul aria-label="Settings" className="flex flex-col gap-0.5">
+            {SETTINGS_AREAS.map((area) => (
+              <li key={area.name}>
+                <a href={area.href} aria-current={routeName === area.name ? "page" : undefined} className={cn(itemClass, "pl-8.5")}>
+                  {area.label}
+                </a>
+              </li>
+            ))}
+          </ul>
         )}
         <UserRow account={account} />
       </div>
@@ -134,9 +162,9 @@ const itemClass = cn(
   "flex min-w-0 items-center gap-2.5 rounded-md px-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground aria-[current=page]:bg-active aria-[current=page]:text-foreground",
 );
 
-function NavItem({ href, icon: Icon, current, children }: { href: string; icon: ComponentType<{ className?: string }>; current: boolean; children: ReactNode }) {
+function NavItem({ href, icon: Icon, current, className, children }: { href: string; icon: ComponentType<{ className?: string }>; current: boolean; className?: string; children: ReactNode }) {
   return (
-    <a href={href} aria-current={current ? "page" : undefined} className={itemClass}>
+    <a href={href} aria-current={current ? "page" : undefined} className={cn(itemClass, className)}>
       <Icon aria-hidden="true" className="size-4 shrink-0 stroke-[1.5]" />
       {children}
     </a>
