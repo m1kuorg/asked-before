@@ -446,7 +446,7 @@ try {
     await section("Profile").waitFor();
     await page.evaluate(() => ((window as unknown as { stayed: boolean }).stayed = true));
     for (const [item, path, h1, sections] of [
-      ["Your data", "/app/settings/data", "Your data", ["Download your data", "Delete your account"]],
+      ["Your data", "/app/settings/data", "Your data", ["What Asked Before keeps", "Download your data", "Delete your account"]],
       ["API keys", "/app/settings/keys", "API keys", ["Your keys", "What a key can do"]],
       ["Account", "/app/settings", "Account", ["Profile", "Password"]],
     ] as const) {
