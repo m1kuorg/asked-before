@@ -11,9 +11,10 @@
 // favicon turns light on a dark tab; each page says it needs JavaScript
 // without it; /privacy draws one h1 and its ten sections, with the model,
 // the content security policy, the cookie, and the landing's table as the
-// code holds them, and the landing's footer, the docs' index, and the
-// sign-up page link to it; and no page logs a console error or a policy
-// violation. No model request is made. It exits 1 if any check fails,
+// code holds them, and its rail, "In short", right of the sections, each
+// fact linking to one; the landing's footer, the docs' index, and the
+// sign-up page link to it, and the docs have no rail; and no page logs a
+// console error or a policy violation. No model request is made. It exits 1 if any check fails,
 // naming the step.
 // Run: bun run check:chrome [screenshot dir]
 
@@ -313,6 +314,11 @@ try {
     const anchors = await index.getByRole("link").evaluateAll((links) => links.map((a) => a.getAttribute("href")));
     check(anchors.filter((href) => href?.startsWith("#")).length === PRIVACY_SECTIONS.length && anchors.includes("/docs"), `the index links each section, then the docs: ${anchors.join(" ")}`);
     check(regions["What the model sees"]!.includes(MODEL), `it names the model server/model.ts asks, ${MODEL}`);
+    const rail = main.getByRole("complementary", { name: "In short" });
+    const facts = await rail.getByRole("link").evaluateAll((links) => links.map((a) => ({ href: a.getAttribute("href") ?? "", to: document.getElementById(a.getAttribute("href")?.slice(1) ?? "")?.tagName })));
+    check(facts.length >= 5 && facts.every(({ to }) => to === "SECTION"), `"In short" links each fact to its section: ${facts.map(({ href }) => href).join(" ")}`);
+    const [railBox, sectionBox] = [await rail.boundingBox(), await main.getByRole("region", { name: PRIVACY_SECTIONS[0], exact: true }).boundingBox()];
+    check(Boolean(railBox && sectionBox && railBox.x >= sectionBox.x + sectionBox.width), "and sits right of the sections at 1440px");
     const csp = ((await main.locator(".privacy-csp code").textContent()) ?? "").replace(/;\n/g, "; ");
     check(csp === CONTENT_SECURITY_POLICY, "it shows the content security policy server/security.ts sends");
     const auth = await Bun.file(join(ROOT, "server", "auth.ts")).text();
@@ -345,6 +351,7 @@ try {
     await page.goto(`${app.url}/docs`);
     await page.getByRole("navigation", { name: "Contents" }).waitFor();
     check((await hrefs(page.getByRole("navigation", { name: "Contents" }))).includes("/privacy"), "the docs' index");
+    check((await page.getByRole("complementary").count()) === 0, "and the docs have no rail");
     await page.goto(`${app.url}/signup`);
     await page.getByRole("main").getByRole("button", { name: "Sign up", exact: true }).waitFor();
     const fine = page.getByRole("main").getByRole("link", { name: "Privacy", exact: true });
