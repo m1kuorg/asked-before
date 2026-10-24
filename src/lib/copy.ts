@@ -42,6 +42,8 @@ export const API_KEY_SHOWN_ONCE = "Copy this key now: it's shown only this once.
 export const API_KEY_POWERS =
   "A key can read your shelves and add to them, but it can't rename or delete anything, download your data, manage keys, or change your account.";
 
+/** What the MCP server does, first in the docs' MCP section and as Connect your AI's lede. */
+export const MCP_SERVER_DOES = "Asked Before's MCP server lets an agent record your how-to questions as captures, as you ask them, and run cold reps in the chat.";
 /** What the MCP server's tools ask the agent to send, in the docs, Connect your AI, and the privacy page: "Its" of the server, "Their" of it and the plugin. */
 export const onlyYourWords = (whose: "Its" | "Their") => `${whose} tools tell the agent to send only your own words: never its answer, your code, or secrets.`;
 /** Which MCP tools spend the app's model requests, in the docs' MCP section and Connect your AI's rail. */

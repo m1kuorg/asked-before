@@ -11,7 +11,7 @@ import { connectSnippets, PLACEHOLDERS, PLUGIN, SERVER_NAME } from "../../../pac
 import { CopyBlock } from "@/components/copy-block";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "cn";
-import { MCP_MODEL_REQUESTS, onlyYourWords, STATUS_WORDS } from "@/lib/copy";
+import { MCP_MODEL_REQUESTS, MCP_SERVER_DOES, onlyYourWords, STATUS_WORDS } from "@/lib/copy";
 import { count } from "@/lib/format";
 import { MAX_PHRASING_LENGTH } from "@asked-before/sdk";
 import { AREAS, mcpSettings, STATUSES, TOOLS, type Endpoint } from "./reference";
@@ -198,7 +198,7 @@ const mcp: Section = {
   title: "The MCP server",
   body: (
     <>
-      <P>Asked Before's MCP server lets an agent record your how-to questions as captures, as you ask them, and run cold reps in the chat. It runs on your computer over stdio and reaches your Asked Before server with an API key. {onlyYourWords("Its")}</P>
+      <P>{MCP_SERVER_DOES} It runs on your computer over stdio and reaches your Asked Before server with an API key. {onlyYourWords("Its")}</P>
       <H3>Tools</H3>
       <Pairs caption="The MCP server's tools" name="Tool" what="What it does" rows={TOOLS} />
       <P>A tool that works on a shelf takes it by name or id, or else uses the default shelf. {MCP_MODEL_REQUESTS} Past it, the tool answers with an error, and a question it couldn't record is lost unless the agent sends it again.</P>
