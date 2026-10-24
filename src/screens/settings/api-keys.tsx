@@ -1,9 +1,9 @@
-// API keys: what a key can do, the keys (name, prefix, made, last used),
-// and a one-line form that makes one. A new key is the only answer that
-// carries the whole key, so it's shown once, under its row, with its copy
-// button focused, and it stays until the learner leaves; the screen passes
-// it on to Connect an agent, whose snippets hold it in place of
-// YOUR_API_KEY (app-screens.md 8.2: show what the setting produces).
+// Your keys: the keys (name, prefix, made, last used), and a one-line form
+// that makes one; the label column sums them up (how many, and the last
+// use) and points to Connect your AI, whose snippets a key goes in. A new
+// key is the only answer that carries the whole key, so it's shown once,
+// under its row, with its copy button focused, and it stays in this view's
+// memory alone until the learner leaves: never in the URL or in storage.
 // Revoking asks first, in place under the row: the row's "Revoke Laptop…"
 // opens it, and its "Revoke Laptop" revokes.
 
@@ -15,6 +15,7 @@ import { useResource } from "@/app/use-resource";
 import { ConfirmInline } from "@/components/confirm-inline";
 import { CopyBlock } from "@/components/copy-block";
 import { ErrorNotice } from "@/components/error-notice";
+import { Figure } from "@/components/figure";
 import { Time } from "@/components/time";
 import { WaitLine } from "@/components/wait-line";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -25,21 +26,20 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { API_KEY_POWERS, API_KEY_SHOWN_ONCE } from "@/lib/copy";
+import { API_KEY_SHOWN_ONCE } from "@/lib/copy";
+import { DASH } from "@/lib/format";
 import { useSafeSubmit } from "@/lib/use-safe-submit";
-import { Code, Section, SectionLink } from "@/components/section";
-
-type ApiKeysProps = Pick<ScreenProps, "client"> & {
-  /** The key made on this visit, whole; null before one is made, or once it's revoked. */
-  made: CreatedApiKey | null;
-  setMade: (key: CreatedApiKey | null) => void;
-};
+import { Code, Section } from "@/components/section";
+import { Facts, type Fact } from "./facts";
+import { TextLink } from "./text-link";
 
 /** Below this panel width the table's rows become two lines: the name and Revoke, then the prefix and dates. */
 const WIDE = "hidden @xl/keys:table-cell";
 
-export function ApiKeys({ client, made, setMade }: ApiKeysProps) {
+export function ApiKeys({ client }: Pick<ScreenProps, "client">) {
   const keys = useResource(() => client.keys.list(), []);
+  /** The key made on this visit, whole; null before one is made, or once it's revoked. */
+  const [made, setMade] = useState<CreatedApiKey | null>(null);
   const [revoking, setRevoking] = useState<string | null>(null);
   /** Whether the new key's copy button takes focus when it's drawn: once, when the key arrives, not again after a revoke is kept. */
   const [focusMade, setFocusMade] = useState(false);
@@ -89,19 +89,17 @@ export function ApiKeys({ client, made, setMade }: ApiKeysProps) {
 
   return (
     <Section
-      id="api-keys"
-      title="API keys"
+      id="your-keys"
+      title="Your keys"
       description={
         <>
-          <p>An API key lets a script or an agent reach your shelves without your password. Make one for each, so you can revoke one alone.</p>
           <p>
-            A key goes in for <Code>{PLACEHOLDERS.apiKey}</Code> in an agent's snippet, under <SectionLink to="connect-an-agent">Connect an agent</SectionLink>.
+            A key goes in for <Code>{PLACEHOLDERS.apiKey}</Code> in an agent's snippet, on <TextLink href="/app/connect">Connect your AI</TextLink>, which can make one for the agent too.
           </p>
+          <Facts facts={summary(keys.data, keys.error !== null)} />
         </>
       }
     >
-      <p className="text-sm text-muted-foreground">{API_KEY_POWERS}</p>
-
       {keys.error !== null && !keys.data ? (
         <ErrorNotice error={keys.error} title="Your API keys didn't load." onRetry={keys.retry} />
       ) : keys.data?.length === 0 ? (
@@ -228,6 +226,34 @@ export function ApiKeys({ client, made, setMade }: ApiKeysProps) {
   );
 }
 
+/** The label column's sum of the keys: how many, and the latest use of any of them, with its key's name. Bars while they load; dashes if they didn't, since the panel says why. */
+function summary(keys: ApiKey[] | undefined, failed: boolean): Fact[] {
+  if (!keys) {
+    const value = failed ? DASH : undefined;
+    return [
+      { term: "Keys", value },
+      { term: "Last used", value },
+    ];
+  }
+  const used = keys.filter((key) => key.lastUsedAt !== null).sort((a, b) => Date.parse(b.lastUsedAt!) - Date.parse(a.lastUsedAt!));
+  const last = used[0];
+  return [
+    { term: "Keys", value: <Figure n={keys.length} /> },
+    {
+      term: "Last used",
+      value: last ? (
+        <>
+          {last.name}, <Time iso={last.lastUsedAt!} format="iso" />
+        </>
+      ) : keys.length ? (
+        "Never"
+      ) : (
+        DASH
+      ),
+    },
+  ];
+}
+
 /** The new key, shown this once under its row, and where it goes. */
 function Shown({ made, focus }: { made: CreatedApiKey; focus: boolean }) {
   return (
@@ -237,7 +263,7 @@ function Shown({ made, focus }: { made: CreatedApiKey; focus: boolean }) {
       </Alert>
       <CopyBlock caption={`${made.name}'s key`} code={made.key} copyLabel={`Copy ${made.name}'s key`} autoFocus={focus} className="[&_pre]:break-all [&_pre]:whitespace-pre-wrap" />
       <p className="text-sm text-muted-foreground">
-        It's what goes in for <Code>{PLACEHOLDERS.apiKey}</Code>, and the snippets under <SectionLink to="connect-an-agent">Connect an agent</SectionLink> already hold it.
+        It's what goes in for <Code>{PLACEHOLDERS.apiKey}</Code> in an agent's snippet, on <TextLink href="/app/connect">Connect your AI</TextLink>.
       </p>
     </div>
   );

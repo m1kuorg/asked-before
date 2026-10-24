@@ -1,6 +1,7 @@
 // Password: the current one, then the new one (10 to 200 characters). The
 // SDK derives a key from each and sends only the keys (ADR 0006); the
-// server ends every other session when it changes.
+// server ends every other session when it changes, and leaves the API keys
+// as they are.
 
 import { useId, useState } from "react";
 import type { ScreenProps } from "@/app/router";
@@ -26,7 +27,16 @@ export function Password({ client }: Pick<ScreenProps, "client">) {
   });
 
   return (
-    <Section id="password" title="Password" description={<p>It never leaves this computer: the page sends Asked Before a key made from it instead.</p>}>
+    <Section
+      id="password"
+      title="Password"
+      description={
+        <>
+          <p>It never leaves this computer: the page sends Asked Before a key made from it instead.</p>
+          <p>Your API keys keep working when you change it.</p>
+        </>
+      }
+    >
       <form {...submit.form} className="flex flex-col gap-4">
         <FieldGroup className="grid items-start @lg/panel:grid-cols-2">
           <Field data-invalid={submit.invalid === "currentPassword" || undefined}>
