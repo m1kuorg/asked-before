@@ -11,7 +11,7 @@ import { connectSnippets, PLACEHOLDERS, PLUGIN, SERVER_NAME } from "../../../pac
 import { CopyBlock } from "@/components/copy-block";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "cn";
-import { STATUS_WORDS } from "@/lib/copy";
+import { MCP_MODEL_REQUESTS, onlyYourWords, STATUS_WORDS } from "@/lib/copy";
 import { count } from "@/lib/format";
 import { MAX_PHRASING_LENGTH } from "@asked-before/sdk";
 import { AREAS, mcpSettings, STATUSES, TOOLS, type Endpoint } from "./reference";
@@ -198,10 +198,10 @@ const mcp: Section = {
   title: "The MCP server",
   body: (
     <>
-      <P>Asked Before's MCP server lets an agent record your how-to questions as captures, as you ask them, and run cold reps in the chat. It runs on your computer over stdio and reaches your Asked Before server with an API key. Its tools tell the agent to send only your own words: never its answer, your code, or secrets.</P>
+      <P>Asked Before's MCP server lets an agent record your how-to questions as captures, as you ask them, and run cold reps in the chat. It runs on your computer over stdio and reaches your Asked Before server with an API key. {onlyYourWords("Its")}</P>
       <H3>Tools</H3>
       <Pairs caption="The MCP server's tools" name="Tool" what="What it does" rows={TOOLS} />
-      <P>A tool that works on a shelf takes it by name or id, or else uses the default shelf. Recording a question the model has to place, starting a cold rep, and checking an answer each count toward the app's daily cap of model requests, which is for the whole app, guests included. Past it, the tool answers with an error, and a question it couldn't record is lost unless the agent sends it again.</P>
+      <P>A tool that works on a shelf takes it by name or id, or else uses the default shelf. {MCP_MODEL_REQUESTS} Past it, the tool answers with an error, and a question it couldn't record is lost unless the agent sends it again.</P>
       <H3>Settings</H3>
       <Pairs caption="The MCP server's settings" name="Setting" what="What it holds" rows={mcpSettings(SERVER)} />
       <P>Without the address or the key, the server exits at once, naming them.</P>
