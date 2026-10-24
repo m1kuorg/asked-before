@@ -56,6 +56,7 @@ await step("1. Every page answers with the security headers", async () => {
   const pages: [string, string, number, RegExp][] = [
     ["the landing page", "/", 200, /<title>Asked Before: turn a question you keep asking into one you can answer without AI<\/title>/],
     ["the docs", "/docs", 200, /<title>[^<]*Asked Before<\/title>/],
+    ["the privacy page", "/privacy", 200, /<title>[^<]*Asked Before<\/title>/],
     ["log in", "/login", 200, /<title>[^<]*Asked Before<\/title>/],
     ["sign up", "/signup", 200, /<title>[^<]*Asked Before<\/title>/],
     ["the app", "/app", 200, APP_PAGE],
