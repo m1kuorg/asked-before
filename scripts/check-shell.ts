@@ -214,7 +214,11 @@ try {
       [`/app/shelves/${dayJob.id}/upload`, "Upload a chat export"],
       // A card that isn't there is the app's not-found screen.
       ["/app/cards/c1", "This page doesn't exist"],
-      ["/app/settings", "Settings"],
+      ["/app/connect", "Connect your AI"],
+      ["/app/playground", "Playground"],
+      ["/app/settings", "Account"],
+      ["/app/settings/keys", "API keys"],
+      ["/app/settings/data", "Your data"],
       ["/app/no-such-screen", "This page doesn't exist"],
     ] as const) {
       await page.goto(`${app.url}${at}`);
@@ -223,8 +227,27 @@ try {
     }
     await nav.getByRole("link", { name: "Settings", exact: true }).click();
     await page.waitForURL(/\/app\/settings$/);
-    await main.getByRole("heading", { level: 1, name: "Settings", exact: true }).waitFor();
+    await main.getByRole("heading", { level: 1, name: "Account", exact: true }).waitFor();
     check((await main.textContent())?.includes(ADA.email) ?? false, "settings shows the account's email");
+    // Settings' areas are listed under it while one is open, the open one marked current.
+    const areas = nav.getByRole("list", { name: "Settings" });
+    const marked = nav.locator("[aria-current=page]");
+    check((await areas.getByRole("link").allTextContents()).join(", ") === "Account, API keys, Your data", "settings lists its three areas");
+    check((await marked.count()) === 1 && (await say(marked)) === "Account", `the navigation marks the area as current: "${await say(marked)}"`);
+    await areas.getByRole("link", { name: "API keys", exact: true }).click();
+    await page.waitForURL(/\/app\/settings\/keys$/);
+    await main.getByRole("heading", { level: 1, name: "API keys", exact: true }).waitFor();
+    check((await say(marked)) === "API keys", `the API keys area is current: "${await say(marked)}"`);
+    for (const [name, at, title] of [
+      ["Connect your AI", "/app/connect", "Connect your AI"],
+      ["Playground", "/app/playground", "Playground"],
+    ] as const) {
+      await nav.getByRole("link", { name, exact: true }).click();
+      await page.waitForURL((url) => url.pathname === at);
+      await main.getByRole("heading", { level: 1, name: title, exact: true }).waitFor();
+      check((await say(marked)) === name, `${name} is current on its screen: "${await say(marked)}"`);
+    }
+    check((await areas.count()) === 0, "settings' areas fold away outside settings");
   });
 
   await step("7. Log out", async () => {
