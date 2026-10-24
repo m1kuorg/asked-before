@@ -1,0 +1,140 @@
+[
+  {
+    "file": "public/apple-touch-icon.png",
+    "media": "image",
+    "width": 180,
+    "height": 180,
+    "what": "The mark on the plum field, square, for iOS to round.",
+    "from": [
+      "src/components/mark.tsx",
+      "src/styles/globals.css"
+    ],
+    "madeBy": "scripts/build-icons.ts",
+    "bytes": 2551,
+    "saved": "2026-10-24T07:18:46.936Z"
+  },
+  {
+    "file": "public/favicon.ico",
+    "media": "icon",
+    "width": 48,
+    "height": 48,
+    "sizes": [
+      16,
+      32,
+      48
+    ],
+    "what": "public/favicon.svg as it draws in a light tab, at 16, 32, 48px, for browsers that ask for /favicon.ico.",
+    "from": [
+      "public/favicon.svg"
+    ],
+    "madeBy": "scripts/build-icons.ts",
+    "bytes": 15086,
+    "saved": "2026-10-24T07:18:46.936Z"
+  },
+  {
+    "file": "public/icon-192.png",
+    "media": "image",
+    "width": 192,
+    "height": 192,
+    "what": "The mark on a plum rounded square, the manifest's 192px icon.",
+    "from": [
+      "src/components/mark.tsx",
+      "src/styles/globals.css"
+    ],
+    "madeBy": "scripts/build-icons.ts",
+    "bytes": 4489,
+    "saved": "2026-10-24T07:18:46.936Z"
+  },
+  {
+    "file": "public/icon-512.png",
+    "media": "image",
+    "width": 512,
+    "height": 512,
+    "what": "The mark on a plum rounded square, the manifest's 512px icon.",
+    "from": [
+      "src/components/mark.tsx",
+      "src/styles/globals.css"
+    ],
+    "madeBy": "scripts/build-icons.ts",
+    "bytes": 12653,
+    "saved": "2026-10-24T07:18:46.936Z"
+  },
+  {
+    "file": "public/icon-maskable-512.png",
+    "media": "image",
+    "width": 512,
+    "height": 512,
+    "what": "The plum field to every edge, the mark inside the maskable safe zone.",
+    "from": [
+      "src/components/mark.tsx",
+      "src/styles/globals.css"
+    ],
+    "madeBy": "scripts/build-icons.ts",
+    "bytes": 7382,
+    "saved": "2026-10-24T07:18:46.936Z"
+  },
+  {
+    "file": "public/og/app.png",
+    "media": "image",
+    "width": 1200,
+    "height": 630,
+    "what": "“Prove it without AI” in large white type on a plum field, under the name Asked Before, over a pink ask strip of nine dots on a track, then “Upload a chat export, see the how-to questions you keep asking, and pass a cold rep on each one.”",
+    "from": [
+      "scripts/build-og.ts",
+      "public/fonts/SchibstedGrotesk-Variable.woff2",
+      "src/styles/globals.css",
+      "demo/sorted.json"
+    ],
+    "madeBy": "scripts/build-og.ts",
+    "bytes": 53313,
+    "saved": "2026-10-24T07:20:43.349Z"
+  },
+  {
+    "file": "public/og/docs.png",
+    "media": "image",
+    "width": 1200,
+    "height": 630,
+    "what": "“Docs” in large white type on a plum field, under the name Asked Before, over a pink ask strip of nine dots on a track, then “How to reach your cards from your own scripts and agents: the API, the SDK, the MCP server, and the Claude Code plugin.”",
+    "from": [
+      "scripts/build-og.ts",
+      "public/fonts/SchibstedGrotesk-Variable.woff2",
+      "src/styles/globals.css",
+      "demo/sorted.json"
+    ],
+    "madeBy": "scripts/build-og.ts",
+    "bytes": 43357,
+    "saved": "2026-10-24T07:20:43.349Z"
+  },
+  {
+    "file": "public/og/home.png",
+    "media": "image",
+    "width": 1200,
+    "height": 630,
+    "what": "“Asked before?” in large white type on a plum field, under the name Asked Before, over a pink ask strip of nine dots on a track, then “Turn a question you keep asking into one you can answer without AI.”",
+    "from": [
+      "scripts/build-og.ts",
+      "public/fonts/SchibstedGrotesk-Variable.woff2",
+      "src/styles/globals.css",
+      "demo/sorted.json"
+    ],
+    "madeBy": "scripts/build-og.ts",
+    "bytes": 46872,
+    "saved": "2026-10-24T07:20:43.349Z"
+  },
+  {
+    "file": "public/og/privacy.png",
+    "media": "image",
+    "width": 1200,
+    "height": 630,
+    "what": "“Privacy” in large white type on a plum field, under the name Asked Before, over a pink ask strip of nine dots on a track, then “What happens to your words: what leaves your computer, what the model sees, what's kept, and how to delete it.”",
+    "from": [
+      "scripts/build-og.ts",
+      "public/fonts/SchibstedGrotesk-Variable.woff2",
+      "src/styles/globals.css",
+      "demo/sorted.json"
+    ],
+    "madeBy": "scripts/build-og.ts",
+    "bytes": 46153,
+    "saved": "2026-10-24T07:20:43.349Z"
+  }
+]
