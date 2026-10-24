@@ -5,8 +5,9 @@
 // Every sentence is what the code does or what the docs, the landing, and
 // the app already say; the comment over each section names its sources.
 // The lines with privacy weight come from copy.ts, word for word, and the
-// numbers and names from the code that holds them. Nothing here says what
-// Anthropic or Cloudflare do beyond naming them. check:chrome reads the
+// numbers and names from the code that holds them. Of Anthropic and
+// Cloudflare it says only what Asked Before's own code and README record:
+// who they are, and Cloudflare's backup window. check:chrome reads the
 // sections, and compares the table in the first with the landing's.
 
 import type { ReactNode } from "react";
@@ -117,19 +118,20 @@ function Pairs({ caption, name, what, rows, code = false }: { caption: string; n
 
 // Sources: READ_LOCALLY (src/lib/copy.ts: "It's read here, on this computer.") and the upload page's preview (src/screens/upload/preview.tsx: what it reads,
 // and the messages over MAX_PHRASING_LENGTH that stay); the landing's proof table; the docs' Conventions (a phrasing is
-// { sourceId, text, time }) and MCP server (what its tools tell the agent); the docs' Credentials and server/passwords.ts.
+// { sourceId, text, time }) and MCP server (what its tools tell the agent, and check_answer's answer); the upload's
+// { source, fileName } (packages/sdk/src/uploads.ts); the docs' Credentials and server/passwords.ts.
 const leaves: Section = {
   id: "leaves",
   title: "What leaves your computer",
   body: (
     <>
       <P>
-        When you upload a chat export, it's read on your computer, and the page shows you what it will send before anything is sent. Only your own messages go, each as its words, when you sent it, and the export's own id for it, and nothing else.
+        When you upload a chat export, it's read on your computer, and the page shows you what it will send before anything is sent. Only your own messages go, each as its words, when you sent it, and the export's own id for it. The upload itself carries the export's file name and which chatbot it came from.
       </P>
       <LeavesTable />
       <P>A message over {count(MAX_PHRASING_LENGTH)} characters, often a pasted log or file, stays on your computer too.</P>
       <H3>From your agent</H3>
-      <P>The MCP server and the Claude Code plugin send a question as you ask it, as a capture: your words, which the server dates as they arrive. Their tools tell the agent to send only your own words: never its answer, your code, or secrets.</P>
+      <P>The MCP server and the Claude Code plugin send a question as you ask it, as a capture: your words, which the server dates as they arrive. When you answer a cold rep through them, they send your answer as you wrote it. Their tools tell the agent to send only your own words: never its answer, your code, or secrets.</P>
       <H3>Your password</H3>
       <P>Your password never leaves your computer. The page derives a key from it with scrypt and sends that in its place, and the server keeps only a salted SHA-256 of the key.</P>
     </>
@@ -156,7 +158,7 @@ const model: Section = {
         rows={[
           ["Sorting an upload", "The words of its messages and of the shelf's most recent unsorted ones, each cut to its first 300 characters, and the shelf's cards, each as its skill and three of its messages."],
           ["Placing a capture", "Its words, the same way, against the shelf's cards and its 50 most recent unsorted messages. Words that match a message on a card join that card without asking the model."],
-          ["Writing a cold rep", "The card's skill, the words of up to 20 of its messages, and the problems it was given before."],
+          ["Writing a cold rep", "The card's skill, the first 300 characters of each of its 20 most recent messages, and the problems it was given before."],
           ["Checking your answer", "The card's skill, the problem, and your answer as you wrote it."],
         ]}
       />
@@ -174,7 +176,7 @@ const stored: Section = {
   title: "What's stored",
   body: (
     <>
-      <P>Everything Asked Before keeps is in one database on Cloudflare D1. Cloudflare is Asked Before's host.</P>
+      <P>Everything Asked Before keeps about you is in one database on Cloudflare D1. Cloudflare is Asked Before's host. Each shelf's sort also keeps an alarm, and nothing of yours, in a Durable Object of its own.</P>
       <Pairs
         caption="What the database holds"
         name="What"
@@ -198,7 +200,8 @@ const stored: Section = {
 
 // Sources: server/auth.ts (cookieName: __Host-session on https, session otherwise; sessionCookie: Path=/, HttpOnly,
 // SameSite=Lax, Secure on https); server/store/sessions.ts (SESSION_DAYS, the token's SHA-256); SESSION_LOG_IN
-// (src/lib/copy.ts); src/lib/signed-in.ts (the local storage hint).
+// (src/lib/copy.ts); src/lib/signed-in.ts (the local storage hint); src/screens/card/rep-panel.tsx (the answer's
+// draft in sessionStorage until it's checked).
 const cookie: Section = {
   id: "cookie",
   title: "The one cookie",
@@ -214,17 +217,21 @@ const cookie: Section = {
           [
             "__Host-session",
             <>
-              Its name. It holds a random token, and the server keeps only the token's SHA-256. A copy of Asked Before served without https names it <C>session</C>.
+              Its name. It holds a random token, and the server keeps only the token's SHA-256. A copy of Asked Before whose address isn't https names it <C>session</C>.
             </>,
           ],
+          ["Path=/", "Every page and API answer of Asked Before's address gets it."],
           ["Max-Age", "30 days, or until you log out."],
           ["HttpOnly", "No script on the page can read it."],
-          ["Secure", "It's sent only over https; a copy served without https leaves this out."],
+          ["Secure", "It's sent only over https; a copy whose address isn't https leaves this out."],
           ["SameSite=Lax", "Other sites' requests don't carry it, only a link you follow to Asked Before."],
         ]}
       />
       <P>
         The page also keeps one note in your browser's local storage, <C>asked-before:signed-in</C>, which says only that this browser signed in, so the landing page can offer to open the app. It holds no token, and logging out removes it.
+      </P>
+      <P>
+        While you write the answer to a cold rep, the card's page keeps it in this tab's session storage, so a reload doesn't lose it, and removes it once the answer is checked.
       </P>
     </>
   ),
@@ -304,7 +311,8 @@ const keys: Section = {
   ),
 };
 
-// Sources: BACKUPS_YOUR_DATA and BACKUPS_DELETING (src/lib/copy.ts), without their line on the backups, which the
+// Sources: server/store/throttle.ts (tries have no tie to the account, and go with the next try after their window);
+// BACKUPS_YOUR_DATA and BACKUPS_DELETING (src/lib/copy.ts), without their line on the backups, which the
 // Backups section says once; server/store/account-data.ts (what the download holds); the docs' DELETE /account
 // (src/pages/docs/reference.ts: the password key, and every session ended); the app's route /app/settings/data
 // (src/app/router.tsx).
@@ -318,8 +326,8 @@ const yourData: Section = {
         name="What"
         what="What it does"
         rows={[
-          ["Download your data", "One JSON file of everything Asked Before keeps for you: your account, your shelves and their uploads, every message, and your cards with their lessons and cold reps. Your API keys and password aren't in it."],
-          ["Delete your account", "Deletes everything Asked Before keeps for you, and logs out every browser signed in to it. It takes your password, and it can't be undone, so download your data first if you want to keep it."],
+          ["Download your data", "One JSON file of everything Asked Before keeps for you: your account, your shelves and their uploads, every message, and your cards with their lessons and cold reps. Your API keys, sessions, and password aren't in it."],
+          ["Delete your account", "Deletes everything Asked Before keeps for you, and logs out every browser signed in to it. Only the count of tries on it goes later, with the next try after its 15-minute window ends. It takes your password, and it can't be undone, so download your data first if you want to keep it."],
         ]}
       />
       <P>
@@ -330,13 +338,15 @@ const yourData: Section = {
 };
 
 // Sources: BACKUPS_DOCS, BACKUPS_DELETING, and GUEST_UPLOAD_WARNING (src/lib/copy.ts); docs/adr/0005 (anything a
-// learner deletes stays in Cloudflare's backups for up to 30 days).
+// learner deletes stays in Cloudflare's backups for up to 30 days); README.md, "Deploy it" (Time Travel's 7 days on
+// Free and 30 on Paid, and that it can't be turned off).
 const backups: Section = {
   id: "backups",
   title: "Backups",
   body: (
     <>
       <P>Anything deleted, by you or by the guest workspace's daily wipe, stays in the backups of Cloudflare, Asked Before's host, for up to 30 days. That holds for a shelf, an upload, or a key you delete, and for a whole account.</P>
+      <P>The backups are D1's Time Travel, which can't be turned off. It keeps 7 days of the database's history on Cloudflare's free plan, which Asked Before runs on, and 30 on a paid one.</P>
     </>
   ),
 };
