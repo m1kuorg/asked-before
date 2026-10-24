@@ -309,6 +309,11 @@ export function Footer() {
           <li>
             <GuestAction look="link" align="start" className="inline-flex min-h-11 items-center" />
           </li>
+          <li>
+            <a href="/privacy" className="ink-link inline-flex min-h-11 items-center text-pink">
+              Privacy
+            </a>
+          </li>
         </ul>
         <div className="t-body col-span-12 flex flex-col gap-4 md:col-span-6 md:col-start-7">
           <p>

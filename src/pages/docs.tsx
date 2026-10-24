@@ -1,11 +1,11 @@
 // The docs page (/docs): how to reach your cards from your own scripts and
 // agents (brief sections 5 and 7). A reading page on the app's light tokens:
 // a top bar with the wordmark and "Open the app", the h1 and its lede, then
-// a left index of the six sections, which marks the one being read, beside
-// the sections in a centred column, their prose at a 70ch measure. Every
-// section is in the page at once, so a link to one scrolls there once the
-// page has drawn. "Skip to content" comes first, past the top bar and the
-// index.
+// a left index of the six sections, which marks the one being read, and
+// under it a link to the privacy page, beside the sections in a centred
+// column, their prose at a 70ch measure. Every section is in the page at
+// once, so a link to one scrolls there once the page has drawn. "Skip to
+// content" comes first, past the top bar and the index.
 import { useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { Mark } from "@/components/mark";
@@ -64,6 +64,12 @@ function Docs() {
               </li>
             ))}
           </ol>
+          {/* Not a section of this page: the privacy page, which links back here the same way. */}
+          <p className="mt-4 lg:mt-6">
+            <a href="/privacy" className="block rounded-md px-2.5 py-1.5 text-sm leading-5 font-semibold text-muted-foreground transition-colors hover:text-foreground">
+              Privacy
+            </a>
+          </p>
         </nav>
 
         <div className="flex min-w-0 flex-col gap-24 lg:col-start-2">
