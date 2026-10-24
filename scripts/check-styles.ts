@@ -2,15 +2,16 @@
 // at 1440×900 and 390×844. It seeds a learner (signed up, with a shelf, the
 // demo export uploaded and sorted onto it, and one cold rep passed) and the
 // shared guest, then visits every public page (the landing page, log in,
-// sign up, the docs, and a 404) logged out, as the learner, and as the
-// guest, and every app screen as the learner and as the guest: Home,
-// Shelves, a shelf's three views, the upload page, a card, Settings, and
-// the in-app not-found screen. Each page is scrolled through, so every
-// entrance has run, and saved as a full-page screenshot; then it must have
-// no sideways scroll, exactly one h1, Schibsted Grotesk loaded, no text
-// under 12px, every visible text's colour at 4.5:1 or more against its
-// effective background (3:1 for large text: 24px and up, or 18.66px and up
-// when bold), and no console errors, failed requests, or CSP violations.
+// sign up, the docs, privacy, and a 404) logged out, as the learner, and as
+// the guest, and every app screen as the learner and as the guest: Home,
+// Shelves, a shelf's three views, the upload page, a card, Connect your AI,
+// the Playground, Settings' three areas, and the in-app not-found screen.
+// Each page is scrolled through, so every entrance has run, and saved as a
+// full-page screenshot; then it must have no sideways scroll, exactly one
+// h1, Schibsted Grotesk loaded, no text under 12px, every visible text's
+// colour at 4.5:1 or more against its effective background (3:1 for large
+// text: 24px and up, or 18.66px and up when bold), and no console errors,
+// failed requests, or CSP violations.
 // The app's model is a stand-in that sorts as the demo export's answer key
 // does, and answers the one cold rep and its check as queued, so no model
 // key is needed. It exits 1 naming each failure.
@@ -47,6 +48,7 @@ const PUBLIC: Visit[] = [
   { name: "log-in", path: "/login" },
   { name: "sign-up", path: "/signup" },
   { name: "docs", path: "/docs" },
+  { name: "privacy", path: "/privacy" },
   { name: "not-found", path: "/no-such-page" },
 ];
 const NOT_FOUND_PATH = "/no-such-page";
@@ -66,7 +68,11 @@ async function screensOf(client: Client): Promise<Visit[]> {
     { name: "shelf-uploads", path: `${shelfPath}?view=uploads` },
     { name: "upload", path: `${shelfPath}/upload` },
     { name: "card", path: `/app/cards/${encodeURIComponent(card.id)}` },
+    { name: "connect", path: "/app/connect" },
+    { name: "playground", path: "/app/playground" },
     { name: "settings", path: "/app/settings" },
+    { name: "settings-keys", path: "/app/settings/keys" },
+    { name: "settings-data", path: "/app/settings/data" },
     { name: "app-not-found", path: "/app/no-such-screen" },
   ];
 }
