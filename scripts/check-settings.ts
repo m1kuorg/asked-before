@@ -4,13 +4,12 @@
 // revoked key's 401; the one rule for what a key can't do (403); changing the
 // name and email, a new email needing the password and ending every other
 // session; and changing the password, which needs the current one and ends
-// every other session. Then,
-// in a real browser at 1920×1080, the settings page: a key made there and
-// used by the SDK, then revoked there; the name and the email; the
-// password, logging out another browser; and the setup
-// snippets carrying this server's address, the Claude Code plugin first. It
-// prints each step's checks, never a key, saves screenshots, and exits 1 if
-// any fails, naming the step.
+// every other session. Then, in a real browser at 1920×1080, Settings'
+// three areas, each its own view: a key made under API keys and used by the
+// SDK, then revoked there; the name and the email under Account; the
+// password, logging out another browser. The agent setup snippets are
+// check:connect's. It prints each step's checks, never a key, saves
+// screenshots, and exits 1 if any fails, naming the step.
 // Run: bun run check:settings [screenshot dir]
 
 import { ApiError, createClient } from "@asked-before/sdk";
