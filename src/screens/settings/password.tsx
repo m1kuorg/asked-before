@@ -9,7 +9,7 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/c
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useSafeSubmit } from "@/lib/use-safe-submit";
-import { FormFooter, Section } from "./section";
+import { FormFooter, Section } from "@/components/section";
 
 export function Password({ client }: Pick<ScreenProps, "client">) {
   const [currentPassword, setCurrent] = useState("");

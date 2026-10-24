@@ -10,7 +10,7 @@ import { useMemo, type ReactNode } from "react";
 import { connectSnippets, PLACEHOLDERS } from "../../../packages/mcp/src/connect";
 import { CopyBlock } from "@/components/copy-block";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Code, Section } from "../settings/section";
+import { Code, Section } from "@/components/section";
 
 const { apiKey: KEY, clone: CLONE, bun: BUN } = PLACEHOLDERS;
 

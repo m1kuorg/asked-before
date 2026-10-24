@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { BACKUPS_DELETING } from "@/lib/copy";
 import { clearSignedIn } from "@/lib/signed-in";
 import { useSafeSubmit } from "@/lib/use-safe-submit";
-import { FormFooter, Section } from "./section";
+import { FormFooter, Section } from "@/components/section";
 
 export function DeleteAccount({ client }: Pick<ScreenProps, "client">) {
   const [password, setPassword] = useState("");

@@ -13,7 +13,7 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/c
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { useSafeSubmit } from "@/lib/use-safe-submit";
-import { FormFooter, Section } from "./section";
+import { FormFooter, Section } from "@/components/section";
 
 /** The SDK's refusal of a new email without the password. It names both fields, so the hook marks neither; this form marks the password. */
 const EMAIL_NEEDS_PASSWORD = "Changing the email needs your password.";
