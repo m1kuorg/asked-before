@@ -12,6 +12,7 @@
 
 import type { ReactNode } from "react";
 import type { ScreenProps } from "@/app/router";
+import { TextLink } from "@/components/text-link";
 import { buttonVariants } from "@/components/ui/button";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
@@ -21,7 +22,6 @@ import { DeleteAccount } from "./settings/delete-account";
 import { KeyPowers } from "./settings/key-powers";
 import { Password } from "./settings/password";
 import { Profile } from "./settings/profile";
-import { TextLink } from "./settings/text-link";
 import { YourData } from "./settings/your-data";
 
 export function SettingsAccount({ client, account, setAccount }: ScreenProps) {

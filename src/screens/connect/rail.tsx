@@ -11,13 +11,14 @@
 import type { ApiKey } from "@asked-before/sdk";
 import type { Resource } from "@/app/use-resource";
 import { ErrorNotice } from "@/components/error-notice";
+import { TextLink } from "@/components/text-link";
 import { Time } from "@/components/time";
 import { WaitLine } from "@/components/wait-line";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { plural } from "@/lib/format";
 import { TOOLS } from "@/pages/docs/reference";
-import { inlineLink, RailBlock } from "./blocks";
+import { RailBlock } from "./blocks";
 
 const SHOWN = 5;
 
@@ -25,11 +26,7 @@ const SHOWN = 5;
 const latest = (key: ApiKey) => Date.parse(key.lastUsedAt ?? key.createdAt);
 
 export function YourKeys({ keys }: { keys: Resource<ApiKey[]> }) {
-  const link = (
-    <a href="/app/settings/keys" className={inlineLink}>
-      Manage in API keys
-    </a>
-  );
+  const link = <TextLink href="/app/settings/keys">Manage in API keys</TextLink>;
   if (keys.error !== null && !keys.data) {
     return (
       <RailBlock title="Your keys" link={link}>

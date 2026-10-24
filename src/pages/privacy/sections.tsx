@@ -13,6 +13,7 @@
 import type { ReactNode } from "react";
 import { cn } from "cn";
 import { CONTENT_SECURITY_POLICY, SECURITY_HEADERS } from "../../../server/security";
+import { TextLink } from "@/components/text-link";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { API_KEY_POWERS, GUEST_NOTE } from "@/lib/copy";
 import { count } from "@/lib/format";
@@ -36,11 +37,6 @@ const C = ({ children }: { children: ReactNode }) => (
 /** Reading text at the page's measure. */
 const P = ({ children }: { children: ReactNode }) => <p className="max-w-[70ch]">{children}</p>;
 const H3 = ({ children }: { children: ReactNode }) => <h3 className="mt-6 text-xl font-semibold tracking-tight">{children}</h3>;
-const Link = ({ href, children }: { href: string; children: ReactNode }) => (
-  <a href={href} className="underline decoration-input underline-offset-4 hover:decoration-foreground">
-    {children}
-  </a>
-);
 
 /**
  * What leaves your computer, and what the model sees of it: the landing's proof table, row for row
@@ -331,7 +327,7 @@ const yourData: Section = {
         ]}
       />
       <P>
-        Both are in the app, in <Link href="/app/settings/data">Settings, under Your data</Link>. What you delete stays in Cloudflare's <Link href="#backups">backups</Link> for up to 30 days.
+        Both are in the app, in <TextLink href="/app/settings/data">Settings, under Your data</TextLink>. What you delete stays in Cloudflare's <TextLink href="#backups">backups</TextLink> for up to 30 days.
       </P>
     </>
   ),

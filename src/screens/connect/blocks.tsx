@@ -42,6 +42,3 @@ export function RailBlock({ title, description, link, children }: RailBlockProps
     </section>
   );
 }
-
-/** A link inside a sentence or a block's header: ink, underlined in the control grey until hovered. */
-export const inlineLink = "text-foreground underline underline-offset-4 decoration-input hover:decoration-foreground";
