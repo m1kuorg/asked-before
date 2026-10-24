@@ -3,10 +3,11 @@
 // delete them. In read mode, as the docs are (read-mode/page.tsx): the h1
 // and its lede, the privacy line every upload shows, then the ten sections
 // beside their index, and under the index a link to the docs, as the docs'
-// index links here.
+// index links here; on the other side, "In short", six of the sections'
+// facts, each linking to its section.
 import { createRoot } from "react-dom/client";
 import { PRIVACY_LINE } from "@/lib/copy";
-import { SECTIONS } from "./privacy/sections";
+import { IN_SHORT, SECTIONS } from "./privacy/sections";
 import { ReadPage } from "./read-mode/page";
 import { P } from "./read-mode/prose";
 
@@ -17,5 +18,6 @@ createRoot(document.getElementById("app")!).render(
     intro={<P>{PRIVACY_LINE}</P>}
     sections={SECTIONS}
     other={{ href: "/docs", label: "Read the docs" }}
+    aside={{ title: "In short", links: IN_SHORT }}
   />,
 );

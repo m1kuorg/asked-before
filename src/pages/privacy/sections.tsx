@@ -1,7 +1,8 @@
 // The privacy page's ten sections, every one in the page at once, as the
 // docs page's are: what leaves your computer, what the model sees, what's
 // stored and where, the one cookie, no analytics or third parties, the logs,
-// the guest workspace, API keys, downloading and deleting, and backups.
+// the guest workspace, API keys, downloading and deleting, and backups; and
+// its rail, "In short", six of their facts, each linking to its section.
 // Every sentence is what the code does or what the docs, the landing, and
 // the app already say; the comment over each section names its sources.
 // The lines with privacy weight come from copy.ts, word for word, and the
@@ -27,6 +28,11 @@ export const MODEL_ID = "claude-haiku-5-5";
 /** Every line the server logs, as server/http.ts's answer() writes it; check:chrome holds the two together. */
 export const LOG_LINE = "<method> <path> <status> <duration>ms";
 
+/** How long the session lasts, as server/store/sessions.ts's SESSION_DAYS sets it (check:chrome holds the two together): the cookie section and the rail say it. */
+const SESSION_LASTS = "30 days, or until you log out";
+/** LANDING_PRIVACY_NOTE's second sentence: the logs section opens with it, and the rail says it. */
+const LOGS_NOTE = "The server logs requests, never your words.";
+
 
 /**
  * What leaves your computer, and what the model sees of it: the landing's proof table, row for row
@@ -51,8 +57,8 @@ function LeavesTable() {
         <TableHeader className="max-md:sr-only">
           <TableRow>
             <TableHead className="text-sm">What</TableHead>
-            <TableHead className="w-[12rem] text-sm">Leaves your computer</TableHead>
-            <TableHead className="w-[10rem] text-sm">The model sees it</TableHead>
+            <TableHead className="w-[10.5rem] text-sm">Leaves your computer</TableHead>
+            <TableHead className="w-[8rem] text-sm">The model sees it</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody className="max-md:block">
@@ -196,7 +202,7 @@ const cookie: Section = {
             </>,
           ],
           ["Path=/", "Every page and API answer of Asked Before's address gets it."],
-          ["Max-Age", "30 days, or until you log out."],
+          ["Max-Age", `${SESSION_LASTS}.`],
           ["HttpOnly", "No script on the page can read it."],
           ["Secure", "It's sent only over https; a copy whose address isn't https leaves this out."],
           ["SameSite=Lax", "Other sites' requests don't carry it, only a link you follow to Asked Before."],
@@ -242,7 +248,7 @@ const logs: Section = {
   title: "The logs",
   body: (
     <>
-      <P>The server logs requests, never your words.</P>
+      <P>{LOGS_NOTE}</P>
       <P>For each request to the API it logs one line, and nothing else: the method, the path, the status, and how long it took.</P>
       <figure className="privacy-log flex min-w-0 flex-col gap-2">
         <figcaption className="text-sm font-medium">A line of the log</figcaption>
@@ -327,3 +333,15 @@ const backups: Section = {
 };
 
 export const SECTIONS: Section[] = [leaves, model, stored, cookie, thirdParties, logs, guest, keys, yourData, backups];
+
+/** The rail, "In short": one fact each from six sections, which that section proves, linking there; the cookie's and the logs' are the sections' own words. */
+export const IN_SHORT = (
+  [
+    [leaves, "An upload shows you what it sends before it sends anything."],
+    [model, "The model sees your words only, never your name, email, or dates."],
+    [cookie, `One cookie, the session, for ${SESSION_LASTS}.`],
+    [thirdParties, "No analytics, ads, or trackers, and nothing on the pages from another site."],
+    [logs, LOGS_NOTE],
+    [backups, "Anything deleted stays in Cloudflare's backups for up to 30 days."],
+  ] as const
+).map(([section, text]) => ({ href: `#${section.id}`, text }));
