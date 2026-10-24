@@ -12,9 +12,11 @@
 // failing, with another account's data untouched. The download is read in
 // one D1 batch, as Wrangler's local traces show, and a big account, 8,000
 // phrasings of the longest length, downloads whole and deletes whole. Then,
-// in a real browser at 1920×1080, the settings page: both sections saying
+// in a real browser at 1920×1080, Settings' Your data view: its h1, its
+// link to the privacy page, and what the file holds now beside the
+// download; both sections saying
 // that the host keeps deleted data in its backups for up to 30 days; the
-// download saved as one JSON file, the same as the SDK's; deleting, which
+// download saved as one JSON file, the same as the SDK's; deleting, last, which
 // asks for the password and a confirmation, refuses a wrong password, keeps
 // everything on Escape or Keep it, and then deletes and logs out to the
 // landing page. It prints ids, counts, and the app's messages, never a
@@ -351,7 +353,7 @@ await step("6. The app logged none of the phrasings, and no password", async () 
   check(/DELETE \/api\/v1\/account 204/.test(log) && /GET \/api\/v1\/account\/export 200/.test(log), "the log has the download and the delete, by method, path, and status");
 });
 
-// The settings page, in a real browser at 1920×1080, on Cy's session: Cy has one shelf with one upload.
+// Settings' Your data view, in a real browser at 1920×1080, on Cy's session: Cy has one shelf with one upload.
 const CY = { name: "Cy Example", email: "cy@example.com", password: "a third long password" };
 const cy = app.browser();
 await cy.client.auth.signUp(CY);
@@ -393,10 +395,22 @@ const BACKUPS = /stays in the backups of Cloudflare, Asked Before's host, for up
 const stillThere = async () => (await cy.client.auth.me()).email === CY.email && (await cy.client.shelves.list()).length === 1;
 
 try {
-  await step("7. In settings, Download your data saves one JSON file, the same as the SDK's", async () => {
-    await page.goto(`${app.url}/app/settings`);
-    const data = section("Your data");
+  await step("7. In Your data, Download your data saves one JSON file, the same as the SDK's, and says what it holds first", async () => {
+    await page.goto(`${app.url}/app/settings/data`);
+    const data = section("Download your data");
     await data.waitFor();
+    const main = page.getByRole("main");
+    check((await main.getByRole("heading", { level: 1 }).textContent()) === "Your data" && (await page.title()) === "Your data · Asked Before", `the view is headed Your data, and so is its tab: "${await page.title()}"`);
+    const privacy = main.getByRole("link", { name: "privacy page", exact: true });
+    check((await privacy.getAttribute("href")) === "/privacy", `it links to the privacy page: ${await privacy.getAttribute("href")}`);
+    const sections = await main.getByRole("region").evaluateAll((all) => all.map((region) => region.querySelector("h2")?.textContent ?? ""));
+    check(JSON.stringify(sections) === JSON.stringify(["Download your data", "Delete your account"]), `Download your data, then Delete your account, last: ${sections.join(", ")}`);
+    await data.locator("dl").getByText("Cards", { exact: true }).waitFor();
+    await page.waitForFunction(() => !document.querySelector('main dl [data-slot="skeleton"]'));
+    const holds = await data.locator("dl > div").evaluateAll((rows) => Object.fromEntries(rows.map((row) => [row.querySelector("dt")?.textContent?.trim(), row.querySelector("dd")?.textContent?.trim()])));
+    const [cyShelf] = await cy.client.shelves.list();
+    const lastUpload = new Date(cyShelf!.lastUploadAt!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    check(holds.Shelves === "1" && holds.Cards === String(cyShelf!.counts.cards) && holds["Last upload"] === lastUpload, `beside it, what the file holds now: ${JSON.stringify(holds)}`);
     check(BACKUPS.test((await data.textContent()) ?? ""), `it says: "${BACKUPS.source}"`);
     const [download] = await Promise.all([page.waitForEvent("download"), data.getByRole("button", { name: "Download your data" }).click()]);
     const today = await page.evaluate(() => new Date().toLocaleDateString("en-CA"));

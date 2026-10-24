@@ -7,7 +7,8 @@
 // a second browser, signing in from the log-in page, and a third, from the
 // sign-up page, share the same shelves and see the first guest's cold rep;
 // a guest's navigation names the shared guest and has no Settings, whose
-// page holds nothing of the account's and whose API answers a guest 403;
+// three paths (Account, API keys, Your data) each hold nothing of the
+// account's, and whose API answers a guest 403;
 // the Guest account can't be logged into with a password, signed up for,
 // or given a key; a guest's upload page warns that every guest sees what's
 // uploaded before a file is chosen; the cron, run at Wrangler's local route
@@ -197,13 +198,16 @@ try {
     return second;
   });
 
-  await step("4. Settings holds nothing of the account's for a guest, and its API answers a guest 403", async () => {
-    await first.goto(`${app.url}/app/settings`);
-    const empty = main(first).getByRole("heading", { level: 2, name: "Settings are for your own account", exact: true });
-    await settle(first, empty);
-    check((await main(first).locator("form, input, textarea, pre, code").count()) === 0, "the settings page has no form, field, or setup snippet");
-    const signUp = main(first).getByRole("link", { name: "Sign up", exact: true });
-    check((await signUp.isVisible()) && (await signUp.getAttribute("href")) === "/signup", `it leads to Sign up: "${await words(main(first).locator('[data-slot="empty"]'))}"`);
+  await step("4. Settings holds nothing of the account's for a guest, at any of its three paths, and its API answers a guest 403", async () => {
+    // Account last, so the screenshot is Settings' own path.
+    for (const path of ["/app/settings/keys", "/app/settings/data", "/app/settings"]) {
+      await first.goto(`${app.url}${path}`);
+      const empty = main(first).getByRole("heading", { level: 2, name: "Settings are for your own account", exact: true });
+      await settle(first, empty);
+      check((await main(first).locator("form, input, textarea, pre, code").count()) === 0, `${path} has no form, field, or setup snippet`);
+      const signUp = main(first).getByRole("link", { name: "Sign up", exact: true });
+      check((await signUp.isVisible()) && (await signUp.getAttribute("href")) === "/signup", `it leads to Sign up: "${await words(main(first).locator('[data-slot="empty"]'))}"`);
+    }
     const guest = await clientOf(first);
     const refused = {
       "renaming the account": await failure(guest.account.update({ name: "Mallory" })),

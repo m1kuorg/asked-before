@@ -317,7 +317,8 @@ try {
 
   await step("Settings makes an API key, shown once", async () => {
     await nav("Settings").click();
-    const keys = main.getByRole("region", { name: "API keys", exact: true });
+    await nav("API keys").click();
+    const keys = main.getByRole("region", { name: "Your keys", exact: true });
     await keys.getByLabel("Key name", { exact: true }).fill("Journey");
     await pause();
     await keys.getByRole("button", { name: "Create key", exact: true }).click();
