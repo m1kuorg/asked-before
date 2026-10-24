@@ -22,6 +22,7 @@ import { useState, type ReactNode } from "react";
 import { cn } from "cn";
 import type { ScreenProps } from "@/app/router";
 import { useResource } from "@/app/use-resource";
+import { MCP_SERVER_DOES } from "@/lib/copy";
 import { AGENTS } from "./connect/agents";
 import { Step } from "./connect/blocks";
 import { Check, useFirstUse } from "./connect/check";
@@ -113,10 +114,8 @@ function Layout({ steps, keys, rail }: { steps: ReactNode; keys?: ReactNode; rai
     <div className="@container/connect flex flex-col gap-8">
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">Connect your AI</h1>
-        {/* Settings' words for it, before this screen had its own. */}
-        <p className="max-w-prose text-muted-foreground">
-          Asked Before's MCP server lets Claude Code, Claude Desktop, or Cursor record the questions you ask there and run cold reps in chat.
-        </p>
+        {/* The docs' words for it, from their MCP section. */}
+        <p className="max-w-prose text-muted-foreground">{MCP_SERVER_DOES}</p>
       </header>
       {/* Beside the flow, the rail is two rows: the keys, then the rest, with the flow's spare height under the rest. The rail's first heading is level with the first step's (the step's pad is 20px). */}
       <div className="grid items-start gap-x-4 gap-y-10 @min-[60rem]/connect:grid-cols-12 @min-[60rem]/connect:grid-rows-[auto_1fr]">
