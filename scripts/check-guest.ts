@@ -46,7 +46,7 @@ const ACCOUNTS_SETTINGS = "What an account's settings hold";
 /** The guest's line in the sidebar, and the upload page's warning, word for word (inventory.md, "Copy with product, legal, or privacy weight"). */
 const GUEST_LINE = "Every guest shares this workspace, and it's wiped daily at midnight UTC.";
 const UPLOAD_WARNING =
-  "You're signed in as the shared guest, so every guest will see what you upload here, with its cards and cold reps. The guest workspace is wiped daily at midnight UTC, though Cloudflare's backups keep it for up to 30 days. Sign up to keep an export to yourself.";
+  "You're signed in as the shared guest, so every guest will see what you upload here, with its cards and cold reps. The guest workspace is wiped daily at midnight UTC, though Cloudflare's backups keep it for up to 7 days. Sign up to keep an export to yourself.";
 const A = key.skills[0]!.name;
 
 const failures: string[] = [];

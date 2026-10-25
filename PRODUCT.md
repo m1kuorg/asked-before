@@ -32,7 +32,7 @@ AI recaps cluster what you talked about, and study modes tutor inside one conver
 
 - Sign up, log in, or sign in as a guest. Every guest shares one workspace that already holds a sorted demo shelf. It resets at midnight UTC, and guests have no settings: a guest's Settings says why, and what an account's hold.
 - Make a named group for each part of your life (today called shelves, such as Work or Bootcamp). Groups never share cards.
-- Upload an export onto a group. The browser reads the zip or `conversations.json` and previews what will be sent. Only your own messages and their times are sent, and the model sees your words only, never your dates. A labeled made-up demo export can be loaded in one action. Sorting runs in the background with visible progress, a last pass over the unsorted, failure, and retry.
+- Upload an export onto a group. The browser reads the zip or `conversations.json` and previews what will be sent. Only your own messages, with their times and ids, are sent, along with the export's file name and which chatbot it came from, and the model sees your words only, never your dates. A labeled made-up demo export can be loaded in one action. Sorting runs in the background with visible progress, a last pass over the unsorted, failure, and retry.
 - Browse a group's cards and their statuses (still being asked, learned, asked again since), the unsorted messages, and the upload history.
 - Open a card for its phrasings and dates, its lesson, and a cold rep with a verdict.
 - An overview across all groups shows what still needs a rep, plus the latest asks and passes (today called Home).
@@ -47,7 +47,7 @@ AI recaps cluster what you talked about, and study modes tutor inside one conver
 
 ## Capabilities and Constraints
 
-- Privacy is the product's spine. Only your own messages, with when you sent them, leave your computer. The chatbot's answers and your titles never do, and the model sees your words only, never your dates. The upload screen must say this before anything is sent.
+- Privacy is the product's spine. Only your own messages leave your computer, each with when you sent it and its id in the export, along with the export's file name and which chatbot it came from. The chatbot's answers and your titles never do, and the model sees your words only, never your dates. The upload screen must say this before anything is sent.
 - The password never reaches the server: the SDK derives a key from it in the page (ADR 0006).
 - Content security policy: `default-src 'self'`, with no inline styles or scripts, no eval, and no blob workers. Self-hosted fonts only.
 - Cloudflare Workers Free. The whole app gets 20 model requests and 8,000 messages a day, guests included, so the UI must handle the cap being reached (HTTP 429) honestly. An upload's sort makes one model request per 300 messages plus one, so the demo takes 2.

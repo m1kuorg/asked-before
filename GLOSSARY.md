@@ -16,7 +16,7 @@ _On screen_: Your message, or your words; a count says "messages", as in "27 of 
 _Avoid_: Prompt, query
 
 **Upload**:
-One export loaded onto a shelf. Only its phrasings leave your computer.
+One export loaded onto a shelf. Only its phrasings, with their ids in the export, its file name, and which chatbot it came from leave your computer.
 _Avoid_: Import, sync
 
 **Capture**:
