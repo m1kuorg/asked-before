@@ -201,6 +201,18 @@ export const AREAS: { area: string; endpoints: Endpoint[] }[] = [
     ],
   },
   {
+    area: "Roadmap",
+    endpoints: [
+      {
+        method: "GET",
+        path: "/roadmap",
+        sdk: "roadmap.get",
+        who: KEY,
+        does: "Your cards across your shelves on a fixed path of 13 developer areas, Terminal and the OS first and Deploy and DevOps last: { areas, elsewhere }. Each area, in path order and empty ones too, has its id, name, about, counts, and cards, most borrowed first. Each card is placed by the words in its name, by code, not the model: its skill name, lowercased, is split into words on anything but letters, digits, # and +; it goes to the area with the most of those words on its list, the earlier on a tie, with matched listing them; a card with none is elsewhere.",
+      },
+    ],
+  },
+  {
     area: "Health",
     endpoints: [{ method: "GET", path: "/health", sdk: "health.check", who: "None", does: "{ ok: true } while the server is up." }],
   },
