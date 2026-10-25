@@ -28,7 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { clientFor } from "@/lib/client";
 import { Examples, searchPath } from "./search/examples";
 import { CardsFound, MessagesFound, ResultsLoading } from "./search/results";
-import { answerOf, lookedFor } from "./search/sentences";
+import { answerOf, lookedFor, quoted } from "./search/sentences";
 
 /** How long after the last key the search is sent. */
 const SETTLE_MS = 250;
@@ -83,6 +83,8 @@ export function Search({ client, query, navigate }: ScreenProps) {
   if (!key) last.current = null;
   else if (results.data) last.current = results.data;
   const answer = key ? (results.data ?? (results.loading ? last.current : null)) : null;
+  // The last answer, kept while the next search runs (or a retry): dimmed and busy, still naming its own words.
+  const stale = answer !== null && answer !== results.data;
 
   const fieldId = useId();
   const hintId = useId();
@@ -134,26 +136,24 @@ export function Search({ client, query, navigate }: ScreenProps) {
         </form>
       </div>
 
-      {/* Always in the page, so each new answer is announced. */}
-      <div aria-live="polite" aria-atomic="true" className="empty:hidden mt-10 flex flex-col">
+      {/* Always in the page, so each new answer is announced; busy while a stale one shows, so it isn't read again. */}
+      <div aria-live="polite" aria-atomic="true" aria-busy={stale || undefined} className={cn("empty:hidden mt-10 flex flex-col", stale && "opacity-60")}>
         {answer ? (
           <>
             {/* 24px from a small tablet up; on a phone 16/500, so the answer stays within two or three short lines. */}
             <p className="text-base font-medium text-pretty sm:text-2xl sm:font-normal">{answerOf(answer)}</p>
-            {results.loading ? <WaitLine className="mt-1">Looking through your messages…</WaitLine> : <p className="mt-1 text-sm text-muted-foreground">{lookedFor(answer)}</p>}
+            <p className="mt-1 text-sm text-muted-foreground">{lookedFor(answer)}</p>
           </>
         ) : key && results.loading ? (
-          <>
-            <Skeleton className="my-0.5 h-5 w-full max-w-120 sm:my-1 sm:h-6" />
-            <WaitLine className="mt-1">Looking through your messages…</WaitLine>
-          </>
+          <Skeleton className="my-0.5 h-5 w-full max-w-120 sm:my-1 sm:h-6" />
         ) : asked.trim() && !key ? (
           <p className="text-sm text-muted-foreground">Type a word of 2 or more characters to search.</p>
         ) : null}
       </div>
+      {key && results.loading && <WaitLine className="mt-1">Looking for {quoted(words)}…</WaitLine>}
 
       <div className={cn(grid, "mt-6")}>
-        <div className={eight}>
+        <div aria-busy={stale || undefined} className={cn(eight, stale && "opacity-60")}>
           {key && results.error !== null && !answer ? (
             <ErrorNotice error={results.error} title="The search didn't run." onRetry={results.retry} focus={false} />
           ) : answer ? (
