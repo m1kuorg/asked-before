@@ -241,9 +241,10 @@ The proof of concept, one page running the whole journey on a made-up demo expor
 
 ### Disclosures
 
-**AI assistance.** The entrant works with Astra 6 via Codex, Gemini models via Antigravity, and DeepSeek, GLM, etc. models via OMP as coding assistants throughout the development of the project, and worked with the Devpost Learn Skill Pack manually.
+**AI assistance.** The entrant works with Astra 6 via Codex, Claude 5.5 via Claude Code, Gemini models via Antigravity, and DeepSeek, GLM, etc. models via OMP as coding assistants throughout the development of the project, and worked with the Devpost Learn Skill Pack manually.
 
 **Pre-existing work.** None. The project was newly created during the hackathon submission period, with no pre-existing work.
+
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
 <!-- GETTING STARTED -->
