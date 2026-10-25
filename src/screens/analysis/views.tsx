@@ -22,7 +22,7 @@ import { TextLink } from "@/components/text-link";
 import { startRepName } from "@/lib/copy";
 import { count, plural } from "@/lib/format";
 import { Columns } from "./columns";
-import { daysText, fewMonths, gapsFinding, monthName, monthSpan, monthsFinding, provenFinding, repsFinding, zoneText } from "./sentences";
+import { daysRange, daysText, fewMonths, gapsFinding, monthName, monthSpan, monthsFinding, provenFinding, repsFinding, zoneText } from "./sentences";
 import { useWidth } from "./use-width";
 import { Legend, MonthTable, Tally, UnderChart, View } from "./view";
 
@@ -113,7 +113,7 @@ export function GapsView({ gaps }: { gaps: Analysis["gaps"] }) {
             <div className="flex flex-col-reverse gap-1">
               <dt className="text-xs text-muted-foreground">The middle half of {plural(gaps.count, "gap")}</dt>
               <dd className="text-2xl">
-                {Math.round(gaps.middleHalf.fromDays)} to {daysText(gaps.middleHalf.toDays)}
+                {daysRange(gaps.middleHalf.fromDays, gaps.middleHalf.toDays)}
               </dd>
             </div>
           )}

@@ -29,6 +29,11 @@ export function daysText(days: number): string {
   return `${count(whole)} ${whole === 1 ? "day" : "days"}`;
 }
 
+/** A range of days: "73 to 168 days", or "under a day to 5 days" when it starts under one. */
+export function daysRange(from: number, to: number): string {
+  return from < 1 ? `${daysText(from)} to ${daysText(to)}` : `${count(Math.round(from))} to ${daysText(to)}`;
+}
+
 /** The shelves the answer counts: the one asked for, or every shelf with a message on it. */
 export function countedShelves(analysis: Analysis): AnalysisShelf[] {
   return analysis.shelfId === null ? analysis.shelves.filter((shelf) => shelf.messages > 0) : analysis.shelves.filter((shelf) => shelf.id === analysis.shelfId);
