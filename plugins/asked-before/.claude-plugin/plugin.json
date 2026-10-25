@@ -5,7 +5,7 @@
   "description": "Records the how-to questions you ask Claude Code onto your Asked Before library cards, and runs cold reps on them in the chat. Needs Node.js 20 or later.",
   "author": { "name": "kymil4", "url": "https://github.com/kymil4" },
   "repository": "https://github.com/m1kuorg/asked-before",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": ["mcp", "learning", "cold-rep", "library-cards"],
   "userConfig": {
     "server_url": {
