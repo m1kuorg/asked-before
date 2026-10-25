@@ -218,7 +218,7 @@ const FAQ: [question: string, answer: string][] = [
   ["What if I ask again after proving it?", "The card becomes Asked since proven and needs a fresh cold rep."],
   ["Is there a daily limit?", "Yes. Asked Before runs on Cloudflare's free plan, so the whole app shares 20 model requests and 8,000 messages a day, guests included. More open at midnight UTC."],
   ["What does a guest see?", GUEST_NOTE],
-  ["Can I delete my data?", "Download all of it as one JSON file, or delete your account and everything in it, from Settings. Anything you delete stays in the backups of Cloudflare, Asked Before's host, for up to 30 days."],
+  ["Can I delete my data?", "Download all of it as one JSON file, or delete your account and everything in it, from Settings. Anything you delete stays in the backups of Cloudflare, Asked Before's host, for up to 7 days."],
   ["What counts as a card?", "A how-to you asked more than once, even in different words. The sort catches most repeats, not every one."],
   ["Can my coding agent use it?", "Yes, with an API key from Settings: the MCP server, the Claude Code plugin, or the SDK."],
 ];

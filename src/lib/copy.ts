@@ -8,15 +8,15 @@ import type { CardStatus, Source } from "@asked-before/sdk";
 
 /** Wherever your messages are about to leave, or have left: the upload page, the shelf, the card, the landing page. */
 export const PRIVACY_LINE =
-  "Only your own messages, with when you sent them, leave this computer. The chatbot's answers and your titles never do, and the model sees your words only, never your dates.";
+  "Only your own messages leave this computer, each with when you sent it and its id in the export, along with the export's file name and which chatbot it came from. The chatbot's answers and your titles never do, and the model sees your words only, never your dates.";
 export const LANDING_PRIVACY_NOTE = "System and tool messages stay too. The server logs requests, never your words.";
 export const READ_LOCALLY = "It's read here, on this computer.";
 
 export const BACKUPS_YOUR_DATA =
-  "Download everything Asked Before keeps for you as one JSON file: your account, your shelves and their uploads, every phrasing, and your cards with their lessons and cold reps. Your API keys and password aren't in it. Anything you delete stays in the backups of Cloudflare, Asked Before's host, for up to 30 days.";
+  "Download everything Asked Before keeps for you as one JSON file: your account, your shelves and their uploads, every phrasing, and your cards with their lessons and cold reps. Your API keys and password aren't in it. Anything you delete stays in the backups of Cloudflare, Asked Before's host, for up to 7 days.";
 export const BACKUPS_DELETING =
-  "Deleting your account deletes everything Asked Before keeps for you, though it stays in the backups of Cloudflare, Asked Before's host, for up to 30 days. It can't be undone, so download your data first if you want to keep it.";
-export const BACKUPS_DOCS = "What it deletes stays in the backups of Cloudflare, Asked Before's host, for up to 30 days.";
+  "Deleting your account deletes everything Asked Before keeps for you, though it stays in the backups of Cloudflare, Asked Before's host, for up to 7 days. It can't be undone, so download your data first if you want to keep it.";
+export const BACKUPS_DOCS = "What it deletes stays in the backups of Cloudflare, Asked Before's host, for up to 7 days.";
 
 /** What the database holds, row by row: the privacy page's "What the database holds" and Your data's "What Asked Before keeps". */
 export const DATABASE_HOLDS: [what: string, kept: string][] = [
@@ -42,7 +42,7 @@ export const GUEST_NOTE =
 /** Under "Shared guest" in the app's user row, as visible text. */
 export const GUEST_LINE = "Every guest shares this workspace, and it's wiped daily at midnight UTC.";
 export const GUEST_UPLOAD_WARNING =
-  "You're signed in as the shared guest, so every guest will see what you upload here, with its cards and cold reps. The guest workspace is wiped daily at midnight UTC, though Cloudflare's backups keep it for up to 30 days. Sign up to keep an export to yourself.";
+  "You're signed in as the shared guest, so every guest will see what you upload here, with its cards and cold reps. The guest workspace is wiped daily at midnight UTC, though Cloudflare's backups keep it for up to 7 days. Sign up to keep an export to yourself.";
 export const GUEST_SETTINGS_TITLE = "Settings are for your own account";
 export const GUEST_SETTINGS_BODY =
   "Sign up for an account of your own to have a profile, a password, API keys for your agents, and shelves only you see, which you can download or delete.";

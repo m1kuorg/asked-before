@@ -272,7 +272,7 @@ const guest: Section = {
     <>
       <P>{GUEST_NOTE}</P>
       <P>Each day's wipe deletes every shelf in it, with their uploads, messages, cards, and cold reps, then puts back the demo shelf, already sorted, so it asks the model nothing. Guests stay signed in.</P>
-      <P>So an export uploaded as a guest is seen by every guest until the wipe, and stays in Cloudflare's backups for up to 30 days after it. Sign up to keep an export to yourself. A guest has no account settings and no API keys.</P>
+      <P>So an export uploaded as a guest is seen by every guest until the wipe, and stays in Cloudflare's backups for up to 7 days after it. Sign up to keep an export to yourself. A guest has no account settings and no API keys.</P>
     </>
   ),
 };
@@ -312,21 +312,21 @@ const yourData: Section = {
         ]}
       />
       <P>
-        Both are in the app, in <TextLink href="/app/settings/data">Settings, under Your data</TextLink>. What you delete stays in Cloudflare's <TextLink href="#backups">backups</TextLink> for up to 30 days.
+        Both are in the app, in <TextLink href="/app/settings/data">Settings, under Your data</TextLink>. What you delete stays in Cloudflare's <TextLink href="#backups">backups</TextLink> for up to 7 days.
       </P>
     </>
   ),
 };
 
 // Sources: BACKUPS_DOCS, BACKUPS_DELETING, and GUEST_UPLOAD_WARNING (src/lib/copy.ts); docs/adr/0005 (anything a
-// learner deletes stays in Cloudflare's backups for up to 30 days); README.md, Installation step 6 (Time Travel's 7 days on
-// Free and 30 on Paid, and that it can't be turned off).
+// learner deletes stays in D1's Time Travel); README.md, Installation step 6 (Time Travel's 7 days on Free, which the
+// app runs on, and 30 on Paid, and that it can't be turned off). On Workers Paid, these lines would say 30 days.
 const backups: Section = {
   id: "backups",
   title: "Backups",
   body: (
     <>
-      <P>Anything deleted, by you or by the guest workspace's daily wipe, stays in the backups of Cloudflare, Asked Before's host, for up to 30 days. That holds for a shelf, an upload, or a key you delete, and for a whole account.</P>
+      <P>Anything deleted, by you or by the guest workspace's daily wipe, stays in the backups of Cloudflare, Asked Before's host, for up to 7 days. That holds for a shelf, an upload, or a key you delete, and for a whole account.</P>
       <P>The backups are D1's Time Travel, which can't be turned off. It keeps 7 days of the database's history on Cloudflare's free plan, which Asked Before runs on, and 30 on a paid one.</P>
     </>
   ),
@@ -342,6 +342,6 @@ export const IN_SHORT = (
     [cookie, `One cookie, the session, for ${SESSION_LASTS}.`],
     [thirdParties, "No analytics, ads, or trackers, and nothing on the pages from another site."],
     [logs, LOGS_NOTE],
-    [backups, "Anything deleted stays in Cloudflare's backups for up to 30 days."],
+    [backups, "Anything deleted stays in Cloudflare's backups for up to 7 days."],
   ] as const
 ).map(([section, text]) => ({ href: `#${section.id}`, text }));

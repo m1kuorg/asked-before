@@ -43,9 +43,9 @@ const SECRETS = [
   known.wrong,
   known.right,
 ];
-/** The privacy line, as the spec (m1kuorg/basics#40, Privacy) words it. */
+/** The privacy line, word for word: the spec's (m1kuorg/basics#40, Privacy), with what else an upload sends (m1kuorg/basics#78). */
 const PRIVACY =
-  "Only your own messages, with when you sent them, leave this computer. The chatbot's answers and your titles never do, and the model sees your words only, never your dates.";
+  "Only your own messages leave this computer, each with when you sent it and its id in the export, along with the export's file name and which chatbot it came from. The chatbot's answers and your titles never do, and the model sees your words only, never your dates.";
 
 // Dates and months as the page writes them, in UTC as the browsers here read them.
 const shortDate = (iso: string) => new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(iso));
