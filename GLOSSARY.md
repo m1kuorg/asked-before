@@ -42,6 +42,10 @@ One time you asked, stamped with the date of the phrasing's own timestamp.
 _On screen_: An ask, as in "asked 9 times" and "Every time you asked". A card never returned is To prove.
 _Avoid_: Occurrence, hit, repeat
 
+**Area**:
+One stop on the Roadmap's fixed path of developer skills, such as Git or CSS, with its own list of words. A card goes on the area whose words its skill's name holds most, the earlier area on a tie; a name with none is off the path.
+_Avoid_: Category, track, level
+
 **Unsorted**:
 A shelf's phrasings that aren't on a card, because nothing else so far asks the same thing.
 _On screen_: Not on a card. Never "asked once", since the sort misses some repeats.

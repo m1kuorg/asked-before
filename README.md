@@ -84,6 +84,7 @@ The other checks:
 | `bun run check:rep-rules` | The cold reps' rules through the SDK, with the model stubbed | |
 | `bun run check:card-page` | A card's page and its cold rep: card A failed, then Proven, with the real model; then waits and failures stubbed | Key, Chromium |
 | `bun run check:desk` | The Desk endpoint through the SDK, and Home in the page | Chromium |
+| `bun run check:roadmap` | The roadmap endpoint through the SDK, each demo card on its area under both of its names, ties, a card off the path, and the counts against the Desk; then the Roadmap screen as a learner and as the guest, on a desktop and a phone | Chromium |
 | `bun run check:settings` | API keys and the account, through the SDK and in Settings' three views: Account, API keys, and Your data | Chromium |
 | `bun run check:connect` | Connect your AI: the four steps in order, the Claude Code plugin first, this server's address in every snippet, a key made for the agent and filled in, its first use shown without a reload, and the guest's Sign up, with no model request | Chromium |
 | `bun run check:playground` | The Playground: nothing sent on load, real requests as the session and with a pasted key, a DELETE's and a model request's second click, an id clicked into the next request, the key never printed or kept, a 401 shown in place, and the phone's select, with the model stubbed | Chromium |
@@ -152,6 +153,8 @@ Wrangler applies, in order, only the migrations the database hasn't had, recordi
 ## The SDK
 
 `@asked-before/sdk`, in `packages/sdk`, is a typed client for the HTTP API, version 1, with one method per endpoint, and the export readers the upload page uses, which read an export on your computer in Bun, Node, or a browser. The page reaches the server only through it, except the Playground, `/app/playground`, which sends raw requests with `fetch` to show the HTTP exchange itself. It isn't on npm; `bun run build:sdk` builds it to JavaScript with type declarations, for your own code to add from your copy. Its [README](packages/sdk/README.md) has the quickstart, which reads an export, uploads it, and lists the cards. The docs page, at `/docs` on any Asked Before server, lists every endpoint with the credential it needs. In the app, the Playground sends one a real request, as your session or with a pasted key, and shows the answer, with the request as curl, SDK, and fetch code; the endpoints that would end your session or change your account don't run there.
+
+`client.roadmap.get()` places your cards, across your shelves, on a fixed path of 13 developer areas, from Terminal and the OS to Deploy and DevOps, by the words in each card's skill name. Code places them, never the model, so reading it spends no model request; `server/roadmap-areas.ts` holds the areas and their words.
 
 ## Agents
 
