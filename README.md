@@ -173,7 +173,7 @@ Landing, Search, Connect your AI, Playground, and Privacy show the live app as t
 
 ### Features
 
-- **Your words only.** Only your own messages leave your computer, with their times and ids. The chatbot's answers and your titles never do, and the model never sees your dates.
+- **Your words only.** Only your own messages leave your computer, each with when you sent it and its id in the export, along with the export's file name and which chatbot it came from. The chatbot's answers and your titles never do, and the model sees your words only, never your dates.
 - **Cards from your own history.** ChatGPT and Claude exports, sorted onto cards per shelf, most asked first. Shelves never share cards.
 - **Cold reps.** A lesson written once, a fresh problem every rep, and a verdict with its reason.
 - **Search, Analysis, and Roadmap.** Counted by code, never the model, so none of them spends a model request.
@@ -315,7 +315,7 @@ Asked Before runs on your computer under `wrangler dev`, which runs it as Cloudf
     bunx wrangler deploy
     ```
 
-    `SITE_DAILY_MODEL_REQUESTS` and `SITE_DAILY_PHRASINGS` in `vars` cap the whole app's day, to stay under D1 Free's 100,000 rows written a day; raise them on Workers Paid. D1's Time Travel keeps 7 days of the database's history on the free plan and 30 on a paid one, and can't be turned off, so what a learner deletes stays in Cloudflare's backups for up to 30 days.
+    `SITE_DAILY_MODEL_REQUESTS` and `SITE_DAILY_PHRASINGS` in `vars` cap the whole app's day, to stay under D1 Free's 100,000 rows written a day; raise them on Workers Paid. D1's Time Travel keeps 7 days of the database's history on the free plan and 30 on a paid one, and can't be turned off, so what a learner deletes stays in Cloudflare's backups for up to 7 days, or 30 on a paid plan.
 
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
