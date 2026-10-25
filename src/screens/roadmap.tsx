@@ -47,7 +47,7 @@ export function Roadmap({ client, navigate }: ScreenProps) {
   const cards = data ? onPath(data).length + data.elsewhere.length : 0;
   return (
     <div className="@container/roadmap flex flex-col">
-      <h1 className="line-clamp-2 text-2xl">
+      <h1 className="line-clamp-2 text-2xl text-pretty">
         {data ? (
           headline(data)
         ) : (
