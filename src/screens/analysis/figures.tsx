@@ -11,6 +11,7 @@ import { Figure } from "@/components/figure";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DASH, count, plural } from "@/lib/format";
+import { daysText } from "./sentences";
 
 const VIEWS = ["months", "gaps", "reps", "proven"] as const;
 export type ViewId = (typeof VIEWS)[number];
@@ -31,19 +32,23 @@ function tabsOf({ messages, reasks, gaps, reps, afterProof }: Analysis): Tab[] {
       id: "gaps",
       label: "Until you asked again",
       value:
-        gaps.medianDays === null ? (
-          DASH
-        ) : (
-          <>
-            <Figure n={Math.max(0, Math.round(gaps.medianDays))} />
-            <span className="text-sm text-muted-foreground"> {Math.round(gaps.medianDays) === 1 ? "day" : "days"}</span>
-          </>
-        ),
+        gaps.medianDays === null ? DASH : <Days days={gaps.medianDays} />,
       of: gaps.count ? `the median of ${plural(gaps.count, "gap")}` : "no card asked twice yet",
     },
     { id: "reps", label: "Cold reps passed", value: <Figure n={reps.passed} />, of: checked ? `${count(reps.failed)} not yet, of ${count(checked)} checked` : "none checked yet" },
     { id: "proven", label: "Asked since proven", value: <Figure n={afterProof.askedSince} />, of: afterProof.proven ? `of ${plural(afterProof.proven, "proven card")}` : "no card proven yet" },
   ];
+}
+
+/** Days as daysText says them, the number at the figure's size and its unit in grey: "85 days", or "under a day" in words. */
+function Days({ days }: { days: number }) {
+  if (days < 1) return <>{daysText(days)}</>;
+  return (
+    <>
+      <Figure n={Math.round(days)} />
+      <span className="text-sm text-muted-foreground"> {daysText(days).split(" ")[1]}</span>
+    </>
+  );
 }
 
 export function FigureTabs({ analysis }: { analysis: Analysis }) {
