@@ -7,6 +7,7 @@
 
 import { MAX_CHUNK, MAX_PHRASING_LENGTH } from "@asked-before/sdk";
 import { MCP_ENV } from "../../../packages/mcp/src/connect";
+import { BACKUPS_DOCS } from "@/lib/copy";
 import { count } from "@/lib/format";
 
 export type Who = "Key or session" | "Session only" | "None";
@@ -73,7 +74,7 @@ export const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/account",
         sdk: "account.delete",
         who: SESSION,
-        does: "Deletes the account and everything in it with { passwordKey }, and ends every session: 204. A wrong password is a 403. What it deletes stays in the backups of Cloudflare, Asked Before's host, for up to 30 days.",
+        does: `Deletes the account and everything in it with { passwordKey }, and ends every session: 204. A wrong password is a 403. ${BACKUPS_DOCS}`,
       },
     ],
   },

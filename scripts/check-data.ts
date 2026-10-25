@@ -16,7 +16,7 @@
 // Asked Before keeps first, the privacy page's rows, with its link to the
 // privacy page; what the file holds now beside the download; both
 // sections saying
-// that the host keeps deleted data in its backups for up to 30 days; the
+// that the host keeps deleted data in its backups for up to 7 days; the
 // download saved as one JSON file, the same as the SDK's; deleting, last, which
 // asks for the password and a confirmation, refuses a wrong password, keeps
 // everything on Escape or Keep it, and then deletes and logs out to the
@@ -393,7 +393,7 @@ const squish = (text: string | null | undefined) => (text ?? "").replace(/\s+/g,
 /** The focused element, as its tag and its words. */
 const focused = () => page.evaluate(() => `${document.activeElement?.tagName.toLowerCase()} "${document.activeElement?.textContent ?? ""}"`);
 /** What the data and delete sections say of D1's Time Travel, which keeps deleted data and can't be turned off. */
-const BACKUPS = /stays in the backups of Cloudflare, Asked Before's host, for up to 30 days/;
+const BACKUPS = /stays in the backups of Cloudflare, Asked Before's host, for up to 7 days/;
 const stillThere = async () => (await cy.client.auth.me()).email === CY.email && (await cy.client.shelves.list()).length === 1;
 
 try {
