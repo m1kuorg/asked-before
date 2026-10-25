@@ -15,7 +15,7 @@ A how-to question asks how to do a task the learner could learn to do alone: "ho
 2. Name the `shelf` when you know it. If `record_question` asks which shelf, call `list_shelves`, ask the learner which one their questions go to, and use it for the rest of the session.
 3. Read what `record_question` gives back:
    - **A card they asked before.** Tell the learner they've asked this before, naming the card's skill and how many times they've asked it, and, when it's Asked since proven, the date they proved it. Then offer a cold rep on it before you answer, since an answer in view would warm the rep. If they take it, run the cold rep below; if not, answer as usual.
-   - **New, waiting unsorted.** Answer as usual.
+   - **New, waiting as not on a card.** Answer as usual.
    - **Recorded less than ten minutes ago.** It wasn't counted again. Carry on from where the first one left off, without a second offer.
    - **A tool error.** The question wasn't recorded. Tell the learner Asked Before's message in one line, then answer as usual. Send it again only if they ask.
 

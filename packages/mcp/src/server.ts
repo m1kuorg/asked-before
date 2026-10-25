@@ -143,7 +143,7 @@ function build(): McpServer {
     {
       title: "Record a question",
       description:
-        "Record the learner's how-to question as a capture on one of their shelves, and sort it onto their cards at once. Send only the learner's own words, exactly as they asked: never your answer, their code, file contents, or secrets. Says whether it landed on a card they asked before, with how many times they've asked it and its status, so you can tell them and offer a cold rep; or that it's new, and waits unsorted until they ask the same thing again. The same words again within ten minutes don't count as another ask.",
+        "Record the learner's how-to question as a capture on one of their shelves, and sort it onto their cards at once. Send only the learner's own words, exactly as they asked: never your answer, their code, file contents, or secrets. Says whether it landed on a card they asked before, with how many times they've asked it and its status, so you can tell them and offer a cold rep; or that it's new, and waits as not on a card until they ask the same thing again. The same words again within ten minutes don't count as another ask.",
       inputSchema: z.object({
         question: z.string().min(1).max(MAX_PHRASING_LENGTH).describe("The learner's question, in their own words, word for word."),
         shelf: ShelfArg,
@@ -165,7 +165,7 @@ function build(): McpServer {
           : `Recorded on the shelf "${found.name}".`,
         capture.card
           ? `It's on the card ${cardLine(capture.card)} Tell the learner they've asked this before, and offer a cold rep on it with start_cold_rep.`
-          : "No card asks this yet, so it waits unsorted until the learner asks the same thing again.",
+          : "No card asks this yet, so it waits as not on a card until the learner asks the same thing again.",
       ];
       const { id, text, time } = capture.phrasing;
       return toolResult(lines.join(" "), { shelf: shelfRef(found), phrasing: { id, text, time }, card: capture.card && cardOut(capture.card), alreadyCaptured: capture.alreadyCaptured });

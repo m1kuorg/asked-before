@@ -177,7 +177,7 @@ Landing, Search, Connect your AI, Playground, and Privacy show the live app as t
 - **Cards from your own history.** ChatGPT and Claude exports, sorted onto cards per shelf, most asked first. Shelves never share cards.
 - **Cold reps.** A lesson written once, a fresh problem every rep, and a verdict with its reason.
 - **Search, Analysis, and Roadmap.** Counted by code, never the model, so none of them spends a model request.
-- **From your agent.** An MCP server with five tools, `list_shelves`, `list_cards`, `record_question`, `start_cold_rep`, and `check_answer`, and a Claude Code plugin ([README](/packages/mcp/README.md)). A question you ask an agent is recorded as you ask it, and lands on its card, or waits unsorted until something else asks the same.
+- **From your agent.** An MCP server with five tools, `list_shelves`, `list_cards`, `record_question`, `start_cold_rep`, and `check_answer`, and a Claude Code plugin ([README](/packages/mcp/README.md)). A question you ask an agent is recorded as you ask it, and lands on its card, or waits as not on a card until something else asks the same.
 - **SDK and API.** `@asked-before/sdk`, a typed TypeScript client for the HTTP API with the export readers, built from a clone since it isn't on npm ([README](/packages/sdk/README.md)); every endpoint listed at `/docs`; and the Playground for one real request.
 - **Guest workspace.** Try it with no account: every guest shares one sorted demo shelf, wiped back at midnight UTC.
 - **Your data.** API keys shown once, a download of everything Asked Before keeps, and account deletion.

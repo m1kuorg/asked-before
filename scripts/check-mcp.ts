@@ -163,7 +163,7 @@ try {
     const question = "how do I tune a ukulele by ear";
     const { isError, text, data } = await call(mcp, "record_question", { question, shelf: "Demo" });
     console.log(indent(text));
-    check(!isError && data.card === null && /waits unsorted/.test(text), `card ${data?.card?.skill ?? null}; its text says it waits unsorted`);
+    check(!isError && data.card === null && /waits as not on a card/.test(text), `card ${data?.card?.skill ?? null}; its text says it waits as not on a card`);
     const unsorted = await ada.cards.unsorted(demo.id);
     check(unsorted.phrasings[0]?.text === question, "it's the demo shelf's newest unsorted phrasing");
   });
