@@ -113,6 +113,12 @@ const EXTRAS: Record<string, Extra> = {
     },
   },
   "POST /cards/:cardId/reps": { noBody: true, spends: { title: "Start a cold rep on this card?", action: "Start it", cost: `It spends 1 model request, from ${SHARED}.` } },
+  "GET /search": {
+    query: [
+      { name: "q", label: "Words", hint: "Every one must be in the message: up to 8 words of 2 or more characters.", example: () => "git commit" },
+      { name: "shelfId", label: FIELD_NAMES.shelfId, hint: "Leave it empty to search every shelf.", id: true },
+    ],
+  },
   "POST /reps/:repId/check": {
     body: () => ({ answer: "git reset --soft HEAD~1" }),
     spends: { title: "Check this answer?", action: "Check it", cost: `It spends 1 model request, from ${SHARED}. A cold rep is checked once.` },
