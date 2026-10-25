@@ -10,12 +10,15 @@ export { ExportError, MAX_PHRASING_LENGTH, readExport, type Phrasing, type ReadE
 export { MAX_CHUNK } from "./uploads.ts";
 
 export type * from "./account.ts";
+export type * from "./analysis.ts";
 export type * from "./auth.ts";
 export type * from "./captures.ts";
 export type * from "./cards.ts";
 export type * from "./desk.ts";
 export type * from "./health.ts";
 export type * from "./keys.ts";
+export type * from "./roadmap.ts";
+export type * from "./search.ts";
 export type * from "./shelves.ts";
 export type * from "./reps.ts";
 export type * from "./uploads.ts";

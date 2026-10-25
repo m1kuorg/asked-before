@@ -62,6 +62,9 @@ async function screensOf(client: Client): Promise<Visit[]> {
   const shelfPath = `/app/shelves/${encodeURIComponent(shelf.id)}`;
   return [
     { name: "home", path: "/app/desk" },
+    { name: "search", path: "/app/search?q=git" },
+    { name: "analysis", path: "/app/analysis" },
+    { name: "roadmap", path: "/app/roadmap" },
     { name: "shelves", path: "/app/shelves" },
     { name: "shelf-cards", path: shelfPath },
     { name: "shelf-not-on-a-card", path: `${shelfPath}?view=once` },

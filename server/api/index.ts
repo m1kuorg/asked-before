@@ -5,6 +5,7 @@
 
 import type { RouteTable } from "../http";
 import { account } from "./account";
+import { analysis } from "./analysis";
 import { auth } from "./auth";
 import { captures } from "./captures";
 import { cards } from "./cards";
@@ -12,10 +13,12 @@ import { desk } from "./desk";
 import { health } from "./health";
 import { keys } from "./keys";
 import { reps } from "./reps";
+import { roadmap } from "./roadmap";
+import { search } from "./search";
 import { shelves } from "./shelves";
 import { uploads } from "./uploads";
 
-const areas: RouteTable[] = [auth, account, keys, shelves, uploads, cards, captures, reps, desk, health];
+const areas: RouteTable[] = [auth, account, keys, shelves, uploads, cards, captures, reps, desk, search, analysis, roadmap, health];
 
 export const apiRoutes: RouteTable = {};
 for (const area of areas) {

@@ -13,8 +13,8 @@
 // one redraws the screen with the new query, but doesn't remount it, scroll,
 // or move focus. A screen whose main resource answers 404 calls notFound()
 // while rendering, and shows the not-found screen. Card, Settings, Upload,
-// Connect your AI, and Playground come in chunks of their own (later()),
-// fetched as the app starts.
+// Search, Analysis, Roadmap, Connect your AI, and Playground come in chunks
+// of their own (later()), fetched as the app starts.
 
 import type { Account, Client } from "@asked-before/sdk";
 import { Component, use, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ComponentType, type ReactNode } from "react";
@@ -45,7 +45,7 @@ export type ScreenProps<P extends string = never> = {
 };
 
 /** The part of the sidebar a route belongs to. */
-export type Section = "home" | "shelves" | "connect" | "playground" | "settings";
+export type Section = "home" | "search" | "analysis" | "roadmap" | "shelves" | "connect" | "playground" | "settings";
 
 /** `local`: query params the screen changes in place, which don't make it a new screen. */
 export type Route = { name: string; path: string; section: Section | null; title: string; screen: ComponentType<ScreenProps<string>>; local: string[] };
@@ -115,10 +115,16 @@ const SettingsData = later("Your data", () => import("@/screens/settings").then(
 const Connect = later("Connect your AI", () => import("@/screens/connect").then((module) => module.Connect));
 const Playground = later("Playground", () => import("@/screens/playground").then((module) => module.Playground));
 const Upload = later("Upload a chat export", () => import("@/screens/upload").then((module) => module.Upload));
+const Search = later("Search", () => import("@/screens/search").then((module) => module.Search));
+const Analysis = later("Analysis", () => import("@/screens/analysis").then((module) => module.Analysis));
+const Roadmap = later("Roadmap", () => import("@/screens/roadmap").then((module) => module.Roadmap));
 
 const ROUTES = [
   route("home", "/app", "home", "Home", Home),
   route("home", "/app/desk", "home", "Home", Home),
+  route("search", "/app/search", "search", "Search", Search, ["q"]),
+  route("analysis", "/app/analysis", "analysis", "Analysis", Analysis, ["shelf"]),
+  route("roadmap", "/app/roadmap", "roadmap", "Roadmap", Roadmap),
   route("shelves", "/app/shelves", "shelves", "Shelves", Shelves),
   route("shelf", "/app/shelves/:shelfId", "shelves", "Shelf", Shelf, ["status"]),
   route("upload", "/app/shelves/:shelfId/upload", "shelves", "Upload a chat export", Upload),
