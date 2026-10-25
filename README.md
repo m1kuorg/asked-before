@@ -226,7 +226,7 @@ The repository started empty on October 16, 2026, and its first commit installs 
 - [`spec.md`](/devpost/spec.md), from `4-spec`: the stack, components, data, and files.
 - [`checklist.md`](/devpost/checklist.md) and [`app-map.html`](/devpost/app-map.html), from `5-build`: the build steps, each verified and committed.
 
-The proof of concept, one page running the whole journey on a made-up demo export, is `main`'s history up to commit `6bfe2dc`, and `devpost/` describes only that proof of concept. The app grew from it within the submission period, through accounts, Cloudflare Workers, a redesigned frontend, and the screens above, following tickets in the private planning repository rather than the Skill Pack. [`PRODUCT.md`](/PRODUCT.md), [`GLOSSARY.md`](/GLOSSARY.md), [`docs/adr/`](/docs/adr), and [`docs/code-map.md`](/docs/code-map.md) describe the app as it is now.
+The proof of concept, one page running the whole journey on a made-up demo export, is `main`'s history up to commit [`b1d7e64`](https://github.com/m1kuorg/asked-before/tree/b1d7e64), and `devpost/` describes only that proof of concept. The app grew from it within the submission period, through accounts, Cloudflare Workers, a redesigned frontend, and the screens above, following tickets in the private planning repository rather than the Skill Pack. [`PRODUCT.md`](/PRODUCT.md), [`GLOSSARY.md`](/GLOSSARY.md), [`docs/adr/`](/docs/adr), and [`docs/code-map.md`](/docs/code-map.md) describe the app as it is now.
 
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
