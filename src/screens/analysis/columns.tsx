@@ -63,7 +63,8 @@ export function Columns({ months, above, below, label, active, onActive, classNa
   const piled = cell >= 5 && maxUp * (cell + GAP) <= MAX_PILE && maxDown * (cell + GAP) <= MAX_PILE / 2;
   const axis = piled ? 0 : AXIS;
   const slot = piled ? slotIfPiled : fit(AXIS);
-  const column = piled ? cell : Math.max(2, Math.min(24, Math.round(slot * 0.6)));
+  // Solid columns stay thin, 16px at most, so the pink is marks rather than blocks.
+  const column = piled ? cell : Math.max(2, Math.min(16, Math.round(slot * 0.5)));
 
   // Heights: a pile is as tall as its tallest column (at least two cells); solid columns share one scale.
   const scaleTicks = piled ? [] : ticks(Math.max(maxUp, maxDown));

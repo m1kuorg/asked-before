@@ -362,11 +362,19 @@ try {
     check(offered.join(", ") === "All shelves 30, Bootcamp 28, Day job 2", `the filter offers every shelf with its messages: ${offered.join(", ")}`);
     await filter.getByRole("button", { name: /^Day job/ }).click();
     await main.getByRole("heading", { level: 1, name: "None of your 2 messages asked something you'd asked before.", exact: true }).waitFor();
-    check(new URL(page.url()).search === `?shelf=${dayJob.id}`, `choosing Day job puts it in the address (${new URL(page.url()).search})`);
+    check(new URL(page.url()).search === `?shelf=${dayJob.id}` && new URL(page.url()).hash === "#gaps", `choosing Day job puts it in the address, the open view kept in the hash (${new URL(page.url()).search}${new URL(page.url()).hash})`);
+    const told = await main.getByRole("status").filter({ hasText: /asked/ }).first().textContent();
+    check(told === "None of your 2 messages asked something you'd asked before.", `and a screen reader hears the new sentence: "${told}"`);
     check((await tab("Until you asked again").getAttribute("aria-selected")) === "true", "and the open tab stays open: the screen redrew in place");
     await filter.getByRole("button", { name: /^All shelves/ }).click();
     await main.getByRole("heading", { level: 1, name: sentence(answer), exact: true }).waitFor();
     check(new URL(page.url()).search === "", "All shelves takes it out again");
+    // A view can be linked to: its hash opens it.
+    await page.goto(`${app.url}/app/analysis#reps`);
+    await main.getByRole("heading", { level: 2, name: "Cold reps, passed and not yet", exact: true }).waitFor();
+    check((await tab("Cold reps passed").getAttribute("aria-selected")) === "true", "/app/analysis#reps opens the cold reps view");
+    await tab("Asked before").click();
+    check(new URL(page.url()).hash === "", "and the first view takes the hash away");
 
     const skills = main.getByRole("list", { name: "Your most asked cards, most asked first" });
     const links = await skills.getByRole("link").evaluateAll((all) => all.map((a) => `${a.textContent} ${a.getAttribute("href")}`));
