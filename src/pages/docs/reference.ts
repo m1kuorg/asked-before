@@ -258,7 +258,7 @@ export const STATUSES: [string, string][] = [
 export const TOOLS: [string, string][] = [
   ["list_shelves", "Lists your shelves, each with its cards and how many are To prove, Proven, and Asked since proven, and says which is the default."],
   ["list_cards", "Lists a shelf's cards, most asked first; with not_returned, only those that need a cold rep."],
-  ["record_question", "Records a question in your own words as a capture, and says whether it landed on a card you asked before, with its count and status, or waits unsorted."],
+  ["record_question", "Records a question in your own words as a capture, and says whether it landed on a card you asked before, with its count and status, or waits as not on a card."],
   ["start_cold_rep", "Starts a cold rep on a card: the problem, and the lesson on its first cold rep or after a failed one."],
   ["check_answer", "Checks your answer to a cold rep, as you wrote it: the verdict, the reason, and the card's status."],
 ];
