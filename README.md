@@ -160,6 +160,8 @@ Wrangler applies, in order, only the migrations the database hasn't had, recordi
 
 `client.roadmap.get()` places your cards, across your shelves, on a fixed path of 13 developer areas, from Terminal and the OS to Deploy and DevOps, by the words in each card's skill name. Code places them, never the model, so reading it spends no model request; `server/roadmap-areas.ts` holds the areas and their words.
 
+`client.search.get({ q, shelfId })`, `GET /api/v1/search`, answers "Have you asked this before?": it finds your messages that have every word of `q` (up to 8 words of 2 or more characters, anywhere in the text, A to Z in any case), on every shelf or one, word for word and newest first, with the cards they're on, most matches first, and any card whose skill's name has every word. Code matches them, never the model, so a search spends no model request; `searchWords(q)`, exported beside the client, says which words it will look for. The app shows it at `/app/search?q=`.
+
 ## Agents
 
 Coding agents reach your cards through the MCP server in `packages/mcp`, with an API key from Settings › API keys, or one that Connect your AI makes: it records your how-to questions as captures, in your own words only, tells you when one is on a card you've asked before, and runs cold reps in the chat. In Claude Code, the Asked Before plugin in `plugins/asked-before` brings the server and a skill that says when to use it, in one install from this repo's marketplace:
