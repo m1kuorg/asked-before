@@ -234,10 +234,13 @@ try {
     await markH1(page);
     const before = await page.evaluate(() => history.length);
     await field(page).click();
+    // Hold the page's clock, so only runFor moves it: the real time typing takes on a busy machine mustn't count.
+    await page.clock.pauseAt(Date.now() + 60_000);
     await page.keyboard.type("git commit");
     await page.clock.runFor(249);
     check(where(page) === "/app/search" && searches.length === 0, `249 ms after the last key, nothing yet (${where(page)}, ${searches.length} searches)`);
     await page.clock.runFor(1);
+    await page.clock.resume();
     await page.waitForURL(/\?q=git\+commit$/);
     await sentence(page).filter({ hasText: /^Yes: / }).waitFor();
     check(searches.join("|") === "git commit", `at 250 ms, one search, for the whole words (${JSON.stringify(searches)})`);
