@@ -1,7 +1,7 @@
 // The request's inputs, the ones the open endpoint takes: its path's ids (a
 // picker of your own shelves for :shelfId, a text field for any other id,
 // which a click on an id in a response fills), limit and cursor for a list
-// a page at a time, the JSON body of a POST or PATCH (one that reads none
+// a page at a time, the endpoint's other query parameters, the JSON body of a POST or PATCH (one that reads none
 // says {} is sent), and who it's sent as: this session, or a pasted API key
 // kept in memory only. A field the last Send found wrong is marked, holds
 // the message, and has focus. An endpoint that doesn't run here shows why,
@@ -37,6 +37,8 @@ type RequestFormProps = {
   ids: Draft["ids"];
   /** The open endpoint's body: as typed, or its example. */
   body: string;
+  /** The open endpoint's query fields: as typed, or their examples. */
+  query: Record<string, string>;
   problem: Problem | null;
   /** The id of the control for a field, so a problem can focus it. */
   idOf: (field: string) => string;
@@ -98,6 +100,22 @@ export function RequestForm(props: RequestFormProps) {
           </Field>
         ),
       )}
+
+      {entry.query?.map((field) => (
+        <Field key={field.name}>
+          <FieldLabel htmlFor={idOf(field.name)}>{field.label}</FieldLabel>
+          <Input
+            id={idOf(field.name)}
+            name={field.name}
+            autoComplete="off"
+            spellCheck={false}
+            value={props.query[field.name] ?? ""}
+            onChange={({ target: { value } }) => setDraft((before) => ({ ...before, query: { ...before.query, [field.name]: value } }))}
+            aria-describedby={`${idOf(field.name)}-hint`}
+          />
+          <FieldDescription id={`${idOf(field.name)}-hint`}>{field.hint}</FieldDescription>
+        </Field>
+      ))}
 
       {entry.paged && (
         <div className="grid gap-5 @md/request:grid-cols-[8rem_minmax(0,1fr)]">

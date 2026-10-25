@@ -12,13 +12,15 @@ import { STATUS_COUNTS } from "./shelves";
 /** How many items each of the Desk's lists holds at most. */
 const LIST = 10;
 
-type ShelfColumns = { shelf_name: string; shelf_demo: 0 | 1 };
+/** The shelf columns CARDS reads beside a card's, for any list of DeskCards. */
+export type ShelfColumns = { shelf_name: string; shelf_demo: 0 | 1 };
 
-const shelfOf = (row: { shelf_id: string } & ShelfColumns): DeskShelf => ({ id: row.shelf_id, name: row.shelf_name, demo: row.shelf_demo === 1 });
+export const shelfOf = (row: { shelf_id: string } & ShelfColumns): DeskShelf => ({ id: row.shelf_id, name: row.shelf_name, demo: row.shelf_demo === 1 });
 
-const CARDS = `SELECT ${CARD_COLUMNS}, sh.name AS shelf_name, sh.demo AS shelf_demo ${CARD_TABLES} WHERE sh.user_id = ?1`;
+/** Every card of the account ?1, with its status and its shelf: add AND clauses, ORDER BY, and LIMIT. */
+export const CARDS = `SELECT ${CARD_COLUMNS}, sh.name AS shelf_name, sh.demo AS shelf_demo ${CARD_TABLES} WHERE sh.user_id = ?1`;
 
-const toDeskCard = (row: CardRow & ShelfColumns): DeskCard => ({ ...toCard(row), shelf: shelfOf(row) });
+export const toDeskCard = (row: CardRow & ShelfColumns): DeskCard => ({ ...toCard(row), shelf: shelfOf(row) });
 
 type BorrowRow = {
   id: string;
