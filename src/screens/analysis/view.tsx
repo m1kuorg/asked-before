@@ -61,7 +61,7 @@ export function UnderChart({ table, readout }: { table: ReactNode; readout: Reac
   return (
     <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
       {table}
-      <p aria-hidden="true" className="text-xs text-muted-foreground tabular-nums">
+      <p aria-hidden="true" className="text-xs text-muted-foreground">
         {readout}
       </p>
     </div>

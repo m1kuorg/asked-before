@@ -12,7 +12,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DASH, count, plural } from "@/lib/format";
 
-export type ViewId = "months" | "gaps" | "reps" | "proven";
+const VIEWS = ["months", "gaps", "reps", "proven"] as const;
+export type ViewId = (typeof VIEWS)[number];
+
+/** The view a hash names ("#gaps"), or every month's messages. */
+export const viewOf = (hash: string): ViewId => VIEWS.find((view) => `#${view}` === hash) ?? "months";
 
 const LIST = "h-auto w-full min-w-max items-stretch justify-start gap-8 @min-[48rem]/analysis:grid @min-[48rem]/analysis:min-w-0 @min-[48rem]/analysis:grid-cols-4 @min-[48rem]/analysis:gap-6";
 const TAB = "h-auto min-w-36 flex-col items-start justify-start gap-1 pt-1 pb-3 text-left whitespace-normal";

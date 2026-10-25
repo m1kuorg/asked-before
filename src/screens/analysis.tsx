@@ -16,7 +16,7 @@
 // 60% until the new one arrives, so nothing jumps.
 
 import type { Analysis as Answer, AnalysisShelf } from "@asked-before/sdk";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "cn";
 import type { ScreenProps } from "@/app/router";
 import { useResource } from "@/app/use-resource";
@@ -31,7 +31,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { isNotFound } from "@/lib/client";
 import { FirstVisit } from "@/screens/home/empty";
-import { FigureTabs, FigureTabsLoading, type ViewId } from "./analysis/figures";
+import { FigureTabs, FigureTabsLoading, viewOf, type ViewId } from "./analysis/figures";
 import { countedShelves, headline, monthSpan, shelvesPhrase, zoneText } from "./analysis/sentences";
 import { Skills } from "./analysis/skills";
 import { GapsView, MonthsView, ProvenView, RepsView } from "./analysis/views";
@@ -41,13 +41,29 @@ const ALL = "all";
 export function Analysis({ client, query, navigate, signal }: ScreenProps) {
   const shelfId = query.get("shelf") || undefined;
   const analysis = useResource(() => client.analysis.get({ shelfId }), [shelfId]);
-  const [view, setView] = useState<ViewId>("months");
+  // The open view lives in the hash (#gaps), so it can be linked to: the router routes on the path and the query alone.
+  const [view, setView] = useState<ViewId>(() => viewOf(location.hash));
+  const openView = (next: ViewId) => {
+    setView(next);
+    history.replaceState(history.state, "", `${location.pathname}${location.search}${next === "months" ? "" : `#${next}`}`);
+  };
+  useEffect(() => {
+    // A link to another view from this same page changes only the hash.
+    const follow = () => setView(viewOf(location.hash));
+    addEventListener("hashchange", follow);
+    return () => removeEventListener("hashchange", follow);
+  }, []);
+  // After the learner changes the shelf, the new sentence is announced once it's counted.
+  const [changed, setChanged] = useState(false);
   // The last answer drawn, kept on screen (dimmed) while another shelf's loads.
   const last = useRef<Answer | undefined>(undefined);
   if (analysis.data) last.current = analysis.data;
   const data = analysis.data ?? (analysis.error === null ? last.current : undefined);
   const stale = data !== undefined && data !== analysis.data;
-  const setShelf = (id: string | null) => navigate(id ? `/app/analysis?shelf=${encodeURIComponent(id)}` : "/app/analysis", { replace: true });
+  const setShelf = (id: string | null) => {
+    setChanged(true);
+    navigate(`/app/analysis${id ? `?shelf=${encodeURIComponent(id)}` : ""}${location.hash}`, { replace: true });
+  };
 
   if (analysis.error !== null) {
     return (
@@ -70,7 +86,8 @@ export function Analysis({ client, query, navigate, signal }: ScreenProps) {
   const shelf = data?.shelves.find((one) => one.id === shelfId);
   return (
     <div className="@container/analysis flex flex-col lg:pt-9">
-      <h1 className="line-clamp-2 text-2xl">
+      {/* Not clamped: the sentence is the answer, and a cut one would hide its end. */}
+      <h1 className="text-2xl text-pretty">
         {data ? (
           headline(data, shelf?.name)
         ) : (
@@ -81,6 +98,9 @@ export function Analysis({ client, query, navigate, signal }: ScreenProps) {
         )}
       </h1>
       {data ? <Subline analysis={data} /> : <WaitLine className="mt-1">Counting your messages…</WaitLine>}
+      <p role="status" className="sr-only">
+        {changed && (stale ? "Counting your messages…" : analysis.data && headline(analysis.data, shelf?.name))}
+      </p>
 
       {data && (data.shelves.length > 1 || shelfId) && <ShelfFilter shelves={data.shelves} value={shelfId} onChange={setShelf} />}
 
@@ -94,7 +114,7 @@ export function Analysis({ client, query, navigate, signal }: ScreenProps) {
           <NoMessages analysis={data} shelf={shelf} client={client} navigate={navigate} />
         ) : (
           <>
-            <Tabs value={view} onValueChange={(value) => setView(value as ViewId)} className="mt-10 gap-8">
+            <Tabs value={view} onValueChange={(value) => openView(value as ViewId)} className="mt-10 gap-8">
               <FigureTabs analysis={data} />
               <TabsContent value="months">
                 <MonthsView analysis={data} />
@@ -142,21 +162,34 @@ function Subline({ analysis }: { analysis: Answer }) {
             <span key={shelf.id}>
               {i > 0 && (i === where.named.length - 1 ? (where.named.length > 2 ? ", and " : " and ") : ", ")}
               {shelf.name}
-              {shelf.demo && <DemoChip className="ml-1.5 align-text-bottom" />}
+              {/* The chip keeps the punctuation after it on its own line. */}
+              {shelf.demo ? (
+                <span className="whitespace-nowrap">
+                  <DemoChip className="ml-1.5 align-text-bottom" />
+                  {i === where.named.length - 1 && "."}
+                </span>
+              ) : (
+                i === where.named.length - 1 && "."
+              )}
             </span>
           ))}
         </>
       ) : (
         <>
           across {where.many} shelves
-          {where.demo > 0 && (
+          {where.demo > 0 ? (
             <>
-              , {where.demo} of them <DemoChip className="align-text-bottom" />
+              , {where.demo} of them{" "}
+              <span className="whitespace-nowrap">
+                <DemoChip className="align-text-bottom" />.
+              </span>
             </>
+          ) : (
+            "."
           )}
         </>
-      )}
-      . Months are in {zoneText(analysis.timeZone)}.
+      )}{" "}
+      Months are in {zoneText(analysis.timeZone)}.
     </p>
   );
 }
