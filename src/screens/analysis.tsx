@@ -13,9 +13,11 @@
 // The canvas is Home's: a centred 1100px column, each view 8 + 4 of 12
 // columns (729 + 16 + 355 = 1100), the chart beside its note, stacking under
 // 68.75rem. Changing the shelf redraws in place: the last answer stays at
-// 60% until the new one arrives, so nothing jumps.
+// 60% until the new one arrives, so nothing jumps, and the request it
+// replaces is aborted. Months are counted in the browser's time zone; if the
+// server doesn't know it (a 400), the screen asks again in UTC and says so.
 
-import type { Analysis as Answer, AnalysisShelf } from "@asked-before/sdk";
+import { ApiError, type Analysis as Answer, type AnalysisShelf } from "@asked-before/sdk";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "cn";
 import type { ScreenProps } from "@/app/router";
@@ -29,7 +31,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader } from "@/components
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { isNotFound } from "@/lib/client";
+import { clientFor, isNotFound } from "@/lib/client";
 import { FirstVisit } from "@/screens/home/empty";
 import { FigureTabs, FigureTabsLoading, viewOf, type ViewId } from "./analysis/figures";
 import { countedShelves, headline, monthSpan, shelvesPhrase, zoneText } from "./analysis/sentences";
@@ -38,9 +40,28 @@ import { GapsView, MonthsView, ProvenView, RepsView } from "./analysis/views";
 
 const ALL = "all";
 
+/** An answer, and whether it fell back to UTC because the server didn't know the browser's time zone. */
+type Loaded = { answer: Answer; utc: boolean };
+
 export function Analysis({ client, query, navigate, signal }: ScreenProps) {
   const shelfId = query.get("shelf") || undefined;
-  const analysis = useResource(() => client.analysis.get({ shelfId }), [shelfId]);
+  // In the browser's own time zone, until the server says it doesn't know it (a 400): then in UTC, as the grey line says.
+  const inUtc = useRef(false);
+  const analysis = useResource(
+    async (abort): Promise<Loaded> => {
+      const api = clientFor(abort);
+      if (!inUtc.current) {
+        try {
+          return { answer: await api.analysis.get({ shelfId }), utc: false };
+        } catch (error) {
+          if (!(error instanceof ApiError && error.status === 400)) throw error;
+          inUtc.current = true;
+        }
+      }
+      return { answer: await api.analysis.get({ shelfId, timeZone: "UTC" }), utc: true };
+    },
+    [shelfId],
+  );
   // The open view lives in the hash (#gaps), so it can be linked to: the router routes on the path and the query alone.
   const [view, setView] = useState<ViewId>(() => viewOf(location.hash));
   const openView = (next: ViewId) => {
@@ -56,10 +77,11 @@ export function Analysis({ client, query, navigate, signal }: ScreenProps) {
   // After the learner changes the shelf, the new sentence is announced once it's counted.
   const [changed, setChanged] = useState(false);
   // The last answer drawn, kept on screen (dimmed) while another shelf's loads.
-  const last = useRef<Answer | undefined>(undefined);
+  const last = useRef<Loaded | undefined>(undefined);
   if (analysis.data) last.current = analysis.data;
-  const data = analysis.data ?? (analysis.error === null ? last.current : undefined);
-  const stale = data !== undefined && data !== analysis.data;
+  const loaded = analysis.data ?? (analysis.error === null ? last.current : undefined);
+  const data = loaded?.answer;
+  const stale = loaded !== undefined && loaded !== analysis.data;
   const setShelf = (id: string | null) => {
     setChanged(true);
     navigate(`/app/analysis${id ? `?shelf=${encodeURIComponent(id)}` : ""}${location.hash}`, { replace: true });
@@ -97,9 +119,9 @@ export function Analysis({ client, query, navigate, signal }: ScreenProps) {
           </>
         )}
       </h1>
-      {data ? <Subline analysis={data} /> : <WaitLine className="mt-1">Counting your messages…</WaitLine>}
+      {loaded ? <Subline analysis={loaded.answer} utc={loaded.utc} /> : <WaitLine className="mt-1">Counting your messages…</WaitLine>}
       <p role="status" className="sr-only">
-        {changed && (stale ? "Counting your messages…" : analysis.data && headline(analysis.data, shelf?.name))}
+        {changed && (stale ? "Counting your messages…" : analysis.data && headline(analysis.data.answer, shelf?.name))}
       </p>
 
       {data && (data.shelves.length > 1 || shelfId) && <ShelfFilter shelves={data.shelves} value={shelfId} onChange={setShelf} />}
@@ -140,7 +162,7 @@ export function Analysis({ client, query, navigate, signal }: ScreenProps) {
 }
 
 /** The grey line: the months counted, the shelves (Demo data beside a demo one), and the time zone. */
-function Subline({ analysis }: { analysis: Answer }) {
+function Subline({ analysis, utc }: { analysis: Answer; utc: boolean }) {
   if (analysis.messages === 0) {
     return (
       <p className="mt-1 text-sm text-muted-foreground">
@@ -189,7 +211,7 @@ function Subline({ analysis }: { analysis: Answer }) {
           )}
         </>
       )}{" "}
-      Months are in {zoneText(analysis.timeZone)}.
+      {utc ? "Months are in UTC, since your browser's time zone wasn't recognized." : `Months are in ${zoneText(analysis.timeZone)}.`}
     </p>
   );
 }

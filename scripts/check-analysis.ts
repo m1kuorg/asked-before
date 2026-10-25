@@ -402,7 +402,28 @@ try {
     await phone.close();
   });
 
-  await step("7. The guest sees the shared demo workspace, labeled Demo data", async () => {
+  await step("7. A time zone the server doesn't know falls back to UTC, and the grey line says so", async () => {
+    const answer = await ada.client.analysis.get({ timeZone: "UTC" });
+    const { page, calls, errors, close } = await pageFor(ada, WIDE);
+    // The server refuses the browser's zone, as it would a legacy alias it doesn't know.
+    await page.route(
+      (url) => url.pathname === "/api/v1/analysis" && url.searchParams.get("timeZone") === ZONE,
+      (route) => route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: "timeZone isn't a time zone the server knows. Send an IANA name, such as Europe/Berlin." }) }),
+    );
+    const main = page.getByRole("main");
+    await page.goto(`${app.url}/app/analysis`);
+    await main.getByRole("heading", { level: 1, name: sentence(answer), exact: true }).waitFor();
+    const line = await say(main.getByRole("heading", { level: 1 }).locator("xpath=following-sibling::p[1]"));
+    check(line.endsWith("Months are in UTC, since your browser's time zone wasn't recognized."), `the screen asks again in UTC and says so: "${line}"`);
+    await main.getByRole("group", { name: "Shelves counted" }).getByRole("button", { name: /^Day job/ }).click();
+    await main.getByRole("heading", { level: 1, name: "None of your 2 messages asked something you'd asked before.", exact: true }).waitFor();
+    const asked = calls.filter((call) => call.startsWith("GET /api/v1/analysis")).map((call) => new URL(call.split(" ")[1]!, app.url).searchParams.get("timeZone"));
+    check(asked.join(", ") === `${ZONE}, UTC, UTC`, `the zone is tried once, then UTC, also for the next shelf (${asked.join(", ")})`);
+    check(errors.length === 0, `no console errors${errors.length ? `: ${errors.slice(0, 3).join(" | ")}` : ""}`);
+    await close();
+  });
+
+  await step("8. The guest sees the shared demo workspace, labeled Demo data", async () => {
     const guest = app.browser();
     await guest.client.auth.signInAsGuest();
     const answer = await guest.client.analysis.get({ timeZone: "UTC" });
@@ -422,7 +443,7 @@ try {
     }
   });
 
-  await step("8. With nothing to count, the screen says so and what to do; a shelf that isn't yours says that", async () => {
+  await step("9. With nothing to count, the screen says so and what to do; a shelf that isn't yours says that", async () => {
     const cy = app.browser();
     await cy.client.auth.signUp({ name: "Cy Example", email: "cy@example.com", password: "analytical engine" });
     const first = await pageFor(cy, WIDE);
