@@ -1,11 +1,15 @@
 // One column per month on a shared baseline, for every month's messages and
 // for cold reps. Series stack up from the baseline in the order given (the
-// first touches it), and `below` hangs under it, for Not yet. While the
-// tallest column is small, each column is a pile of square cells, one per
-// message or rep, so a count is read by counting; past that, the columns
-// are solid on a y scale of round ticks. Either way, 2px of white parts the
-// series, and the chart is only as wide as its months need (40px each at
-// most), so a short history stays a small chart.
+// first touches it), and `below` hangs under it, for Not yet. Each column is
+// a pile of square cells, one per message or rep, so a count is read by
+// counting. A square takes the room it has: as wide as its month's column,
+// less the space between months, and as tall as the tallest pile allows
+// within the chart's height (180px above the line, 140 on a phone, half that
+// below it). So a few messages a month draw large squares; once a square
+// would be under 5px, the columns turn solid on a y scale of whole-number
+// ticks. Either way, 2px of white parts the cells and the series, and the
+// chart is only as wide as its months need (40px each at most), so a short
+// history stays a short chart.
 //
 // It's SVG laid out in pixels from its box's width, with every position an
 // attribute, as the policy allows no style attribute. The hover only names
@@ -35,18 +39,18 @@ type ColumnsProps = {
 const MAX_SLOT = 40;
 /** The 2px of white between cells and between stacked series. */
 const GAP = 2;
-/** The tallest a pile of cells grows before the columns turn solid. */
-const MAX_PILE = 200;
+/** The smallest a square gets before the columns turn solid. */
+const MIN_CELL = 5;
 const BAR_HEIGHT = 160;
 const AXIS = 28;
 const TOP = 6;
 const LABELS = 22;
 
-/** Round ticks from 0 past `max`: steps of 1, 2, or 5 times a power of ten, four or five of them. */
+/** Round ticks from 0 past `max`: steps of 1, 2, or 5 times a power of ten, four or five of them, and never under 1, as counts are whole. */
 function ticks(max: number): number[] {
   const rough = max / 4;
   const power = 10 ** Math.floor(Math.log10(rough));
-  const step = [1, 2, 5, 10].map((m) => m * power).find((s) => s >= rough)!;
+  const step = Math.max(1, [1, 2, 5, 10].map((m) => m * power).find((s) => s >= rough)!);
   return Array.from({ length: Math.ceil(max / step) + 1 }, (_, i) => i * step);
 }
 
@@ -59,18 +63,21 @@ export function Columns({ months, above, below, label, active, onActive, classNa
 
   const fit = (axis: number) => Math.max(3, Math.min(MAX_SLOT, Math.floor((width - axis) / Math.max(n, 1))));
   const slotIfPiled = fit(0);
-  const cell = Math.max(2, Math.min(12, Math.round(slotIfPiled * 0.5)));
-  const piled = cell >= 5 && maxUp * (cell + GAP) <= MAX_PILE && maxDown * (cell + GAP) <= MAX_PILE / 2;
+  // The height a pile may take above the line, less on a phone; below it, half that.
+  const budget = width >= 640 ? 180 : 140;
+  const room = slotIfPiled - Math.max(4, Math.round(slotIfPiled * 0.2));
+  const cell = Math.floor(Math.min(room, budget / maxUp - GAP, maxDown ? budget / 2 / maxDown - GAP : Infinity));
+  const piled = cell >= MIN_CELL;
   const axis = piled ? 0 : AXIS;
   const slot = piled ? slotIfPiled : fit(AXIS);
   // Solid columns stay thin, 16px at most, so the pink is marks rather than blocks.
   const column = piled ? cell : Math.max(2, Math.min(16, Math.round(slot * 0.5)));
 
-  // Heights: a pile is as tall as its tallest column (at least two cells); solid columns share one scale.
+  // Heights: a pile is as tall as its tallest column; solid columns share one scale.
   const scaleTicks = piled ? [] : ticks(Math.max(maxUp, maxDown));
   const unit = piled ? cell + GAP : BAR_HEIGHT / scaleTicks.at(-1)!;
-  const upHeight = piled ? Math.max(2, maxUp) * unit : BAR_HEIGHT;
-  const downHeight = below ? (piled ? Math.max(1, maxDown) * unit : Math.ceil(maxDown * unit)) : 0;
+  const upHeight = piled ? maxUp * unit : BAR_HEIGHT;
+  const downHeight = below ? (piled ? maxDown * unit : Math.ceil(maxDown * unit)) : 0;
   const baseline = TOP + upHeight;
   const height = baseline + downHeight + (below ? GAP : 0) + LABELS;
   const plot = slot * n;

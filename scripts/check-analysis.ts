@@ -330,6 +330,8 @@ try {
     const pink = await chart.locator("rect.fill-ask").count();
     const grey = await chart.locator("rect.fill-edge").count();
     check(pink === answer.reasks && grey === answer.messages - answer.reasks, `one pink cell per re-ask (${pink}) and one grey per other message (${grey})`);
+    const side = Number(await chart.locator("rect.fill-ask").first().getAttribute("width"));
+    check(side >= 20, `with at most ${Math.max(...answer.months.map((m) => m.messages))} a month, the squares take the room they have (${side}px)`);
     await main.locator("summary", { hasText: "Every month in numbers" }).click();
     const rows = await main.getByRole("table", { name: "Every month in numbers" }).locator("tbody tr").evaluateAll((trs) => trs.map((tr) => [...tr.querySelectorAll("td")].map((td) => td.textContent).join(" ")));
     check(JSON.stringify(rows) === JSON.stringify(answer.months.map((m) => `${monthName(m.month)} ${m.messages} ${m.reasks}`)), `its table holds every month, ${rows.length} rows`);
