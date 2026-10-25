@@ -9,8 +9,8 @@
 //   node /tmp/archify/archify/bin/archify.mjs finalize architecture docs/readme/architecture.json /tmp/architecture.html --repo-root . --quality showcase --json
 //   node docs/readme/export-architecture.mjs /tmp/architecture.html .
 //
-// Writes docs/readme/architecture-light.svg and architecture-dark.svg. Needs Playwright's bundled
-// Chromium (bunx playwright install chromium).
+// Writes docs/readme/architecture-light.svg and architecture-dark.svg, on transparent backgrounds.
+// Needs Playwright's bundled Chromium (bunx playwright install chromium).
 import { createRequire } from 'node:module'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -27,7 +27,7 @@ const font = fs.readFileSync(path.join(repo, 'public/fonts/SchibstedGrotesk-Vari
 const THEMES = {
   dark: {
     '--bg': '#0d060b', // plum-black
-    '--mask': '#0d060b',
+    '--mask': 'transparent', // no halos: the export has no ground for them to match
     '--grid': 'transparent',
     '--text': '#ffffff',
     '--text-muted': '#9a8f97', // muted-on-dark
@@ -46,7 +46,7 @@ const THEMES = {
   },
   light: {
     '--bg': '#ffffff', // background
-    '--mask': '#ffffff',
+    '--mask': 'transparent',
     '--grid': 'transparent',
     '--text': '#101421', // foreground
     '--text-muted': '#5d5562', // muted-foreground
@@ -83,7 +83,9 @@ const tokenCss = [
   'svg .s-backend { color: var(--ab-accent); }',
   'svg :is(.s-cloud, .s-database, .s-external) { color: var(--text-muted); }',
   'svg .c-region { fill: none !important; stroke: var(--ab-frame) !important; stroke-dasharray: 6 4 !important; }',
-  'svg [data-graph-role="structural-frame-label-mask"] { fill: var(--bg) !important; stroke: var(--ab-frame) !important; }',
+  // A region's label and a line's label are chips in the server's fill, so they read on any ground once the background is gone.
+  'svg [data-graph-role="structural-frame-label-mask"] { fill: var(--ab-server-fill) !important; stroke: var(--ab-frame) !important; }',
+  'svg [data-edge-label] > .c-mask { fill: var(--ab-server-fill) !important; }',
   'svg [data-boundary-label] { fill: var(--text-muted); }',
   // One step up from the viewer's sizes, which it measured for its mono: the sans is narrower, so it still fits.
   'svg text[font-size="8"] { font-size: 9px; } svg text[font-size="9"] { font-size: 10px; } svg text[font-size="11"] { font-size: 12.5px; }',
@@ -114,7 +116,15 @@ try {
     // svg-light and svg-dark pin their theme: data-theme on the root and the resolved colours.
     await page.click('#btn-export')
     const [dl] = await Promise.all([page.waitForEvent('download'), page.click(`#export-menu [data-format="svg-${scheme}"]`)])
-    const svg = fs.readFileSync(await dl.path(), 'utf8')
+    // The export paints the theme's ground as one rect the size of the viewBox, first after its styles;
+    // without it the diagram sits on the page.
+    const painted = fs.readFileSync(await dl.path(), 'utf8')
+    const [, w, h] = painted.match(/<svg viewBox="0 0 ([\d.]+) ([\d.]+)"/) ?? []
+    const ground = `</style><rect x="0" y="0" width="${w}" height="${h}" fill="`
+    const at = painted.indexOf(ground)
+    if (!w || at < 0) throw new Error(`no background rect after the styles in the ${scheme} export`)
+    const end = painted.indexOf('"/>', at + ground.length) + 3
+    const svg = painted.slice(0, at) + '</style>' + painted.slice(end)
     if (!svg.includes('Schibsted Grotesk') || !svg.includes(`data-theme="${scheme}"`)) throw new Error(`unstyled ${scheme} export`)
     const file = path.join(out, `architecture-${scheme}.svg`)
     fs.writeFileSync(file, svg.replace(/[ \t]+$/gm, '').replace(/\n*$/, '\n'))
