@@ -119,6 +119,12 @@ const EXTRAS: Record<string, Extra> = {
       { name: "shelfId", label: FIELD_NAMES.shelfId, hint: "Leave it empty to search every shelf.", id: true },
     ],
   },
+  "GET /analysis": {
+    query: [
+      { name: "timeZone", label: "Time zone", hint: "The IANA time zone its months are counted in, such as Europe/Berlin. Yours fills it.", example: () => Intl.DateTimeFormat().resolvedOptions().timeZone },
+      { name: "shelfId", label: "Shelf", hint: "Count one shelf of yours, or leave it empty for every shelf.", id: true },
+    ],
+  },
   "POST /reps/:repId/check": {
     body: () => ({ answer: "git reset --soft HEAD~1" }),
     spends: { title: "Check this answer?", action: "Check it", cost: `It spends 1 model request, from ${SHARED}. A cold rep is checked once.` },
