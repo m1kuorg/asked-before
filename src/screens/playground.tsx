@@ -26,7 +26,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { CodeTabs } from "./playground/code-tabs";
 import { EndpointList, EndpointSelect, breakable } from "./playground/endpoint-list";
 import { FIELD_NAMES, FIRST, entryOf, hrefOf, type Entry, type Fillable, type Param } from "./playground/endpoints";
-import { build, exampleBody, send, type Built, type Draft } from "./playground/request";
+import { build, exampleBody, queryOf, send, type Built, type Draft } from "./playground/request";
 import { RequestForm, type Problem } from "./playground/request-form";
 import { ResponsePane, type Sent, type Shown } from "./playground/response";
 import { SpendConfirm } from "./playground/spend-confirm";
@@ -50,7 +50,7 @@ export function Playground({ client, account, query, navigate, signal }: ScreenP
   const asked = query.get("endpoint");
   const entry = entryOf(asked) ?? FIRST;
 
-  const [draft, setDraft] = useState<Draft>({ ids: {}, limit: "", cursor: "", bodies: {}, sendAs: "session", key: "" });
+  const [draft, setDraft] = useState<Draft>({ ids: {}, limit: "", cursor: "", query: {}, bodies: {}, sendAs: "session", key: "" });
   const [shown, setShown] = useState<Shown>({ state: "empty" });
   const [busy, setBusy] = useState(false);
   const [asking, setAsking] = useState<Asking>(null);
@@ -65,7 +65,8 @@ export function Playground({ client, account, query, navigate, signal }: ScreenP
   const shelfName = shelves.data?.find((shelf) => shelf.id === filled.shelfId)?.name;
   const example = useMemo(() => exampleBody(entry, shelfName), [entry, shelfName]);
   const body = draft.bodies[entry.id] ?? example;
-  const built = useMemo(() => build({ entry, ids: filled, limit: draft.limit, cursor: draft.cursor, body }), [entry, filled, draft.limit, draft.cursor, body]);
+  const fields = useMemo(() => queryOf(entry, draft.query), [entry, draft.query]);
+  const built = useMemo(() => build({ entry, ids: filled, limit: draft.limit, cursor: draft.cursor, query: fields, body }), [entry, filled, draft.limit, draft.cursor, fields, body]);
 
   // A change to the request closes a question Send asked about it, and clears the last Send's problem.
   const signature = `${entry.id} ${built.url} ${built.body} ${draft.sendAs} ${draft.key.trim() !== ""}`;
@@ -178,7 +179,7 @@ export function Playground({ client, account, query, navigate, signal }: ScreenP
           {/* Wide: the request and its code on the left, the response beside both. Narrow: the request, the response, then the code. */}
           <div className="grid items-start gap-x-6 gap-y-8 @3xl/work:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] @3xl/work:grid-rows-[auto_1fr]">
             <Pane title="Request" className="@container/request">
-              <RequestForm entry={entry} guest={account.guest} shelves={shelves} draft={draft} setDraft={setDraft} ids={filled} body={body} problem={problem} idOf={idOf} />
+              <RequestForm entry={entry} guest={account.guest} shelves={shelves} draft={draft} setDraft={setDraft} ids={filled} body={body} query={fields} problem={problem} idOf={idOf} />
             </Pane>
             <Pane title="Response" className="@3xl/work:col-start-2 @3xl/work:row-span-2 @3xl/work:row-start-1">
               <ResponsePane shown={shown} entry={entry} canSend={!entry.off} shortcut={SHORTCUT} picked={picked} onPick={pick} onRetry={onSend} />
@@ -207,7 +208,7 @@ type AddressProps = { entry: Entry; built: Built; ids: Partial<Record<Param, str
 
 /** The request's one line: the method, the path under /api/v1 with its ids and page, and Send at its end. */
 function Address({ entry, built, ids, busy, onSend, sendButton }: AddressProps) {
-  const query = new URLSearchParams(built.page).toString();
+  const query = new URLSearchParams({ ...built.query, ...built.page }).toString();
   return (
     <div role="group" aria-label="Address" className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-edge bg-background py-1.5 pr-1.5 pl-3">
       <code translate="no" className="rounded-md bg-panel px-1.5 py-0.5 text-xs font-medium">

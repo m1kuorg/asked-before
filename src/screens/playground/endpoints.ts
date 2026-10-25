@@ -27,6 +27,9 @@ export const FIELD_NAMES: Record<Fillable, string> = {
   cursor: "Cursor",
 };
 
+/** A query parameter a GET reads beyond limit and cursor, such as search's q: its name, what it's called on screen, its hint, and the value it opens with. */
+export type QueryField = { name: string; label: string; hint: string; example?: () => string; /** An id of yours: one that isn't yours is a 404. */ id?: true };
+
 /** A spending endpoint's second click: the question, the action, and its cost in words. */
 type Spend = { title: string; action: string; cost: string };
 
@@ -49,6 +52,8 @@ type Extra = {
   notGuest?: true;
   /** Takes limit and cursor. */
   paged?: true;
+  /** The other query parameters it reads, each a text field. */
+  query?: QueryField[];
 };
 
 const TO_SETTINGS = { href: "/app/settings", label: "Settings, Account" };
@@ -159,10 +164,10 @@ const HAS_LIMIT = new Set(["POST /uploads/:uploadId/phrasings", "POST /shelves/:
  */
 export function answers(entry: Entry): number[] {
   const list = [/\b201\b/.test(entry.does) ? 201 : /\b204\b/.test(entry.does) ? 204 : 200];
-  if ((sendsBody(entry) && !entry.noBody) || entry.paged) list.push(400);
+  if ((sendsBody(entry) && !entry.noBody) || entry.paged || entry.query) list.push(400);
   if (entry.who !== "None") list.push(401);
   if (entry.who === "Session only" || entry.notGuest) list.push(403);
-  if (entry.params.length) list.push(404);
+  if (entry.params.length || entry.query?.some((field) => field.id)) list.push(404);
   if (/\b409\b/.test(entry.does)) list.push(409);
   if (HAS_LIMIT.has(entry.id)) list.push(413);
   if (ASKS_MODEL.has(entry.id) || entry.id === "POST /uploads/:uploadId/phrasings") list.push(429);

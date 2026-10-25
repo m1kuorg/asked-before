@@ -49,6 +49,7 @@ export function fetchCode(origin: string, built: Built): string {
 
 export function sdkCode(origin: string, built: Built, entry: Entry, ids: Partial<Record<string, string>>): string {
   const args: string[] = entry.params.map((param) => JSON.stringify(ids[param]?.trim() || `:${param}`));
+  if (Object.keys(built.query).length) args.push(literal(built.query));
   if (entry.paged && (built.page.limit || built.page.cursor)) {
     const page: Record<string, unknown> = {};
     if (built.page.limit) page.limit = /^\d+$/.test(built.page.limit) ? Number(built.page.limit) : built.page.limit;

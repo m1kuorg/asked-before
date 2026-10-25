@@ -1,6 +1,7 @@
 // The request the inputs make, and sending it. build() turns the draft into
 // the path under /api/v1 (each id one encoded segment, an empty one left as
-// its :param), the list's limit and cursor, and the body: every POST and
+// its :param), the list's limit and cursor, the endpoint's other query
+// parameters, and the body: every POST and
 // PATCH sends JSON, {} when it's empty or reads none, since the server
 // refuses a session's change without it (server/auth.ts). send() is a raw
 // fetch on purpose, not the SDK: the playground's subject is the HTTP
@@ -19,6 +20,8 @@ export type Draft = {
   ids: Partial<Record<Param, string>>;
   limit: string;
   cursor: string;
+  /** The query fields typed, by name, shared across endpoints; one not typed in yet holds its example. */
+  query: Record<string, string>;
   /** The JSON body typed for each endpoint, by its id; an endpoint not typed in yet shows its example. */
   bodies: Record<string, string>;
   sendAs: SendAs;
@@ -40,10 +43,17 @@ export type Built = {
   missing: Param[];
   /** The page's limit and cursor, as given. */
   page: { limit?: string; cursor?: string };
+  /** The endpoint's other query parameters that aren't empty, by name. */
+  query: Record<string, string>;
 };
 
+/** The open endpoint's query fields as the inputs show them: as typed, or their examples. */
+export function queryOf(entry: Entry, typed: Draft["query"]): Record<string, string> {
+  return Object.fromEntries((entry.query ?? []).map((field) => [field.name, typed[field.name] ?? field.example?.() ?? ""]));
+}
+
 /** `ids` are the draft's with the shelf filled in, and `body` is the open endpoint's, as typed or its example. */
-export function build({ entry, ids, limit, cursor, body }: Pick<Draft, "ids" | "limit" | "cursor"> & { entry: Entry; body: string }): Built {
+export function build({ entry, ids, limit, cursor, query: asked, body }: Pick<Draft, "ids" | "limit" | "cursor" | "query"> & { entry: Entry; body: string }): Built {
   const missing = entry.params.filter((param) => !ids[param]?.trim());
   const path = entry.path.replace(/:(\w+)/g, (template, name: Param) => {
     const value = ids[name]?.trim();
@@ -52,16 +62,22 @@ export function build({ entry, ids, limit, cursor, body }: Pick<Draft, "ids" | "
   const page: Built["page"] = {};
   if (entry.paged && limit.trim()) page.limit = limit.trim();
   if (entry.paged && cursor.trim()) page.cursor = cursor.trim();
-  const query = new URLSearchParams(page);
-  const url = `/api/v1${path}${query.size ? `?${query}` : ""}`;
+  const query: Built["query"] = {};
+  for (const field of entry.query ?? []) {
+    const value = asked[field.name]?.trim();
+    if (value) query[field.name] = value;
+  }
+  const search = new URLSearchParams({ ...query, ...page });
+  const url = `/api/v1${path}${search.size ? `?${search}` : ""}`;
 
-  if (!sendsBody(entry)) return { method: entry.method, url, body: undefined, parsed: undefined, bodyError: null, missing, page };
-  if (entry.noBody || !body.trim()) return { method: entry.method, url, body: "{}", parsed: {}, bodyError: null, missing, page };
+  const made = { method: entry.method, url, missing, page, query };
+  if (!sendsBody(entry)) return { ...made, body: undefined, parsed: undefined, bodyError: null };
+  if (entry.noBody || !body.trim()) return { ...made, body: "{}", parsed: {}, bodyError: null };
   try {
     const parsed: unknown = JSON.parse(body);
-    return { method: entry.method, url, body: JSON.stringify(parsed), parsed, bodyError: null, missing, page };
+    return { ...made, body: JSON.stringify(parsed), parsed, bodyError: null };
   } catch (error) {
-    return { method: entry.method, url, body: body, parsed: undefined, bodyError: error instanceof Error ? error.message : String(error), missing, page };
+    return { ...made, body: body, parsed: undefined, bodyError: error instanceof Error ? error.message : String(error) };
   }
 }
 
