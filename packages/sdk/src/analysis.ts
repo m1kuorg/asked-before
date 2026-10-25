@@ -32,7 +32,7 @@ export type AnalysisRepMonth = { month: string; passed: number; failed: number }
 export type AnalysisShelf = DeskShelf & { messages: number; reasks: number; cards: number };
 
 export type Analysis = {
-  /** The time zone the months were counted in, as the server names it: "Europe/Berlin". */
+  /** The time zone the months were counted in, as asked: "Europe/Berlin". */
   timeZone: string;
   /** The shelf counted, or null for every shelf of yours. */
   shelfId: string | null;

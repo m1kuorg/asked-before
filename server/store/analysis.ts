@@ -98,7 +98,8 @@ export class Zone {
       minute: "numeric",
       second: "numeric",
     });
-    this.name = this.parts.resolvedOptions().timeZone;
+    // As asked: the runtime may know a zone by an older alias (Asia/Kolkata as Asia/Calcutta).
+    this.name = timeZone;
   }
 
   /** The local wall-clock time at `ms`, written as if it were UTC, and its month counted from year 0 (year * 12 + month - 1). */
