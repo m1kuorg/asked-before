@@ -76,7 +76,7 @@ export const CONNECTION_FAILURE = "Asked Before couldn't be reached. Check your 
 export const NOT_FOUND_TITLE = "This page doesn't exist";
 export const NOT_FOUND_BODY = "Nothing is filed at this address. It may be mistyped, or the page may have moved.";
 
-/** The new status words, by the API's status (brief section 2). StatusPill and status.ts use them. */
+/** The new status words, by the API's status (brief section 2). StatusPill, status.ts, and the MCP server use them. */
 export const STATUS_WORDS: Record<CardStatus, string> = {
   borrowed: "To prove",
   returned: "Proven",

@@ -12,6 +12,7 @@ import { ApiError, createClient, MAX_PHRASING_LENGTH, type Card, type CardStatus
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { z } from "zod";
+import { STATUS_WORDS } from "../../../src/lib/copy";
 import { MCP_ENV, SERVER_NAME } from "./connect";
 
 const baseUrl = process.env[MCP_ENV.url]?.trim();
@@ -23,19 +24,16 @@ if (!baseUrl || !apiKey) {
 }
 const api = createClient({ baseUrl, apiKey });
 
-const INSTRUCTIONS = `Asked Before keeps the learner's library cards. A card is one skill they asked a chatbot how to do more than once, such as "Undo a git commit", with a borrow for each time they asked. A card is returned when they pass a cold rep, a fresh problem of its skill answered without AI, and borrowed again when they ask it once more after that.
+const INSTRUCTIONS = `Asked Before keeps the learner's library cards. A card is one skill they asked a chatbot how to do more than once, such as "Undo a git commit", and its count is how many times they asked. A card is To prove until they pass a cold rep on it, a fresh problem of its skill answered without AI, which marks it Proven; once they ask it again after that, it's Asked since proven, and needs a fresh cold rep.
 
-When the learner asks you how to do something, record their question with record_question, in their own words: only what they wrote, never your answer, their code, or secrets. If it lands on a card they asked before, tell them how many times they've borrowed it and offer a cold rep. During a cold rep, show the problem as written, give no hints and no answer, and pass their answer to check_answer exactly as they wrote it.`;
-
-/** Each status in the library's words. */
-const STATUS: Record<CardStatus, string> = { borrowed: "borrowed", returned: "returned", borrowed_again: "borrowed again" };
+When the learner asks you how to do something, record their question with record_question, in their own words: only what they wrote, never your answer, their code, or secrets. If it lands on a card they asked before, tell them how many times they've asked it and offer a cold rep. During a cold rep, show the problem as written, give no hints and no answer, and pass their answer to check_answer exactly as they wrote it.`;
 
 /** A card as a tool gives it: the SDK's Card, less its shelf's id, which the tool gives once. */
 type CardOutput = Omit<Card, "shelfId">;
 const CardOut = z.object({
   id: z.string(),
   skill: z.string(),
-  status: z.enum(Object.keys(STATUS) as [CardStatus, ...CardStatus[]]),
+  status: z.enum(Object.keys(STATUS_WORDS) as [CardStatus, ...CardStatus[]]),
   count: z.number(),
   firstBorrowAt: z.string(),
   lastBorrowAt: z.string(),
@@ -50,8 +48,10 @@ const ShelfArg = z
 
 const day = (iso: string) => iso.slice(0, 10);
 const times = (n: number) => (n === 1 ? "once" : `${n} times`);
-const status = (card: Card) => (card.status === "returned" ? `returned ${day(card.returnedAt!)}` : STATUS[card.status]);
-const cardLine = (card: Card) => `"${card.skill}": borrowed ${times(card.count)}, first ${day(card.firstBorrowAt)}, last ${day(card.lastBorrowAt)}; ${status(card)}. Card id ${card.id}.`;
+/** A card's status in the app's words, with the day it was proven once it has been. */
+const status = (card: Card) =>
+  card.status === "returned" ? `${STATUS_WORDS.returned} ${day(card.returnedAt!)}` : card.status === "borrowed_again" ? `${STATUS_WORDS.borrowed_again} (proven ${day(card.returnedAt!)})` : STATUS_WORDS.borrowed;
+const cardLine = (card: Card) => `"${card.skill}": asked ${times(card.count)}, first ${day(card.firstBorrowAt)}, last ${day(card.lastBorrowAt)}; ${status(card)}. Card id ${card.id}.`;
 const cardOut = ({ shelfId, ...card }: Card): CardOutput => card;
 const shelfRef = ({ id, name }: Shelf) => ({ id, name });
 
@@ -91,7 +91,7 @@ function build(): McpServer {
     {
       title: "List shelves",
       description:
-        "List the learner's Asked Before shelves. A shelf is one named part of their history, such as Work, holding its own cards. Gives each shelf's cards and how many are borrowed, returned, and borrowed again, and says which is the default shelf. Sends nothing of the learner's.",
+        "List the learner's Asked Before shelves. A shelf is one named part of their history, such as Work, holding its own cards. Gives each shelf's cards and how many are To prove, Proven, and Asked since proven, and says which is the default shelf. Sends nothing of the learner's.",
       inputSchema: z.object({}),
       outputSchema: z.object({
         shelves: z.array(ShelfRef.extend({ demo: z.boolean(), cards: z.number(), borrowed: z.number(), returned: z.number(), borrowedAgain: z.number() })),
@@ -104,7 +104,7 @@ function build(): McpServer {
       const fallback = defaultShelf ? shelfNamed(shelves, defaultShelf) : undefined;
       const lines = shelves.map(
         (p) =>
-          `- "${p.name}"${p.demo ? " (demo data)" : ""}: ${p.counts.cards} cards, ${p.counts.borrowed} borrowed, ${p.counts.returned} returned, ${p.counts.borrowedAgain} borrowed again. Shelf id ${p.id}.`,
+          `- "${p.name}"${p.demo ? " (demo data)" : ""}: ${p.counts.cards} cards, ${p.counts.borrowed} To prove, ${p.counts.returned} Proven, ${p.counts.borrowedAgain} Asked since proven. Shelf id ${p.id}.`,
       );
       const which = fallback ? `The default shelf is "${fallback.name}".` : "No default shelf is set, so name one in each call.";
       return toolResult(shelves.length ? `The learner's shelves:\n${lines.join("\n")}\n${which}` : "The learner has no shelves yet. They make one in Asked Before.", {
@@ -119,10 +119,10 @@ function build(): McpServer {
     {
       title: "List cards",
       description:
-        'List a shelf\'s cards, most borrowed first. A card is one skill the learner asked about more than once, such as "Undo a git commit", and its count is how many times they borrowed it. A card is borrowed until a cold rep on it passes, then returned, and borrowed again once they ask it after that. Set not_returned to list only the cards still waiting for a cold rep. Sends nothing of the learner\'s.',
+        'List a shelf\'s cards, most asked first. A card is one skill the learner asked about more than once, such as "Undo a git commit", and its count is how many times they asked it. A card is To prove until a cold rep on it passes, then Proven, and Asked since proven once they ask it after that. Set not_returned to list only the cards that need a cold rep: To prove, or Asked since proven. Sends nothing of the learner\'s.',
       inputSchema: z.object({
         shelf: ShelfArg,
-        not_returned: z.boolean().default(false).describe("Only the cards that aren't returned: borrowed, or borrowed again."),
+        not_returned: z.boolean().default(false).describe("Only the cards that need a cold rep: To prove, or Asked since proven."),
       }),
       outputSchema: z.object({ shelf: ShelfRef, cards: z.array(CardOut) }),
       annotations: { readOnlyHint: true },
@@ -130,9 +130,9 @@ function build(): McpServer {
     async ({ shelf, not_returned }) => {
       const found = await shelfFor(shelf);
       const cards = (await callApi(() => api.cards.list(found.id))).filter((card) => !not_returned || card.status !== "returned");
-      const which = not_returned ? "cards not returned" : "cards";
+      const which = not_returned ? "cards that need a cold rep" : "cards";
       const text = cards.length
-        ? `"${found.name}" has ${cards.length} ${which}, most borrowed first:\n${cards.map((card) => `- ${cardLine(card)}`).join("\n")}`
+        ? `"${found.name}" has ${cards.length} ${which}, most asked first:\n${cards.map((card) => `- ${cardLine(card)}`).join("\n")}`
         : `"${found.name}" has no ${which}.`;
       return toolResult(text, { shelf: shelfRef(found), cards: cards.map(cardOut) });
     },
@@ -143,7 +143,7 @@ function build(): McpServer {
     {
       title: "Record a question",
       description:
-        "Record the learner's how-to question as a capture on one of their shelves, and sort it onto their cards at once. Send only the learner's own words, exactly as they asked: never your answer, their code, file contents, or secrets. Says whether it landed on a card they asked before, with how many times they've borrowed it and its status, so you can tell them and offer a cold rep; or that it's new, and waits unsorted until they ask the same thing again. The same words again within ten minutes add no borrow.",
+        "Record the learner's how-to question as a capture on one of their shelves, and sort it onto their cards at once. Send only the learner's own words, exactly as they asked: never your answer, their code, file contents, or secrets. Says whether it landed on a card they asked before, with how many times they've asked it and its status, so you can tell them and offer a cold rep; or that it's new, and waits unsorted until they ask the same thing again. The same words again within ten minutes don't count as another ask.",
       inputSchema: z.object({
         question: z.string().min(1).max(MAX_PHRASING_LENGTH).describe("The learner's question, in their own words, word for word."),
         shelf: ShelfArg,
@@ -161,7 +161,7 @@ function build(): McpServer {
       const capture = await callApi(() => api.captures.create(found.id, { text: question }));
       const lines = [
         capture.alreadyCaptured
-          ? `These words were recorded on the shelf "${found.name}" less than ten minutes ago, so no borrow was added.`
+          ? `These words were recorded on the shelf "${found.name}" less than ten minutes ago, so they weren't counted again.`
           : `Recorded on the shelf "${found.name}".`,
         capture.card
           ? `It's on the card ${cardLine(capture.card)} Tell the learner they've asked this before, and offer a cold rep on it with start_cold_rep.`
@@ -198,7 +198,7 @@ function build(): McpServer {
     {
       title: "Check an answer",
       description:
-        "Check the learner's answer to a cold rep; each cold rep is checked once. Send only the learner's own answer, exactly as they wrote it: never your own, a corrected one, or added hints. Gives the verdict, pass or fail, with the reason, and the card's status: a pass stamps the card returned. After a fail, a new cold rep on the card brings a different problem and the lesson again.",
+        "Check the learner's answer to a cold rep; each cold rep is checked once. Send only the learner's own answer, exactly as they wrote it: never your own, a corrected one, or added hints. Gives the verdict, pass or fail, with the reason, and the card's status: a pass marks the card Proven. After a fail, a new cold rep on the card brings a different problem and the lesson again.",
       inputSchema: z.object({
         rep_id: z.string().min(1).describe("The cold rep's id, from start_cold_rep."),
         answer: z.string().min(1).describe("The learner's own answer, word for word."),
@@ -211,8 +211,8 @@ function build(): McpServer {
       const verdict = rep.verdict!;
       const text =
         verdict === "pass"
-          ? `Passed. ${rep.reason} The card "${card.skill}" is returned, stamped ${day(card.returnedAt!)}.`
-          : `Not passed. ${rep.reason} The card "${card.skill}" is still ${STATUS[card.status]}. Another cold rep on it brings a different problem and the lesson again.`;
+          ? `Passed. ${rep.reason} The card "${card.skill}" is Proven, stamped ${day(card.returnedAt!)}.`
+          : `Not passed. ${rep.reason} The card "${card.skill}" is still ${STATUS_WORDS[card.status]}. Another cold rep on it brings a different problem and the lesson again.`;
       return toolResult(text, { verdict, reason: rep.reason!, card: cardOut(card) });
     },
   );

@@ -6,9 +6,9 @@
 // model. The server lists five tools described in the glossary's words,
 // saying only the learner's own words are sent; it lists the demo shelf
 // and its cards, records a rephrasing of undoing the last commit onto card
-// A with its count up by one, adds no borrow for the same words again,
+// A with its count up by one, doesn't count the same words again,
 // leaves a question nothing matches unsorted and says so, starts a cold
-// rep on card A, and passes the known right answer, stamping it returned.
+// rep on card A, and passes the known right answer, marking it Proven.
 // Then failures as tool errors, a default shelf, a bad key, an
 // unreachable server, missing settings, and no avoided word anywhere. It
 // prints each tool's text, which holds made-up demo data, and exits 1 if
@@ -125,7 +125,7 @@ try {
     check(/"Demo" \(demo data\)/.test(text) && data.defaultShelf === null && /No default shelf/.test(text), "its text labels it demo data, and says no default shelf is set");
   });
 
-  await step("3. list_cards gives the demo shelf's cards, most borrowed first, with card A first", async () => {
+  await step("3. list_cards gives the demo shelf's cards, most asked first, with card A first", async () => {
     const { isError, text, data } = await call(mcp, "list_cards", { shelf: "demo" });
     console.log(indent(text));
     const [a] = data?.cards ?? [];
@@ -146,15 +146,15 @@ try {
     const sent = model.requests.slice(before);
     check(sent.length === 1 && kindOf(sent[0]!) === "sort" && sent[0]!.body.output_config?.effort === "low", `${sent.length} model request, a sort at effort ${sent[0]?.body.output_config?.effort}, sent to the real model`);
     check(!isError && data.card?.id === cardA && data.card.count === key.skills[0]!.count + 1 && !data.alreadyCaptured, `card A, now ${data?.card?.count} borrows, already captured ${data?.alreadyCaptured}`);
-    check(data.phrasing?.text === rephrasing && /borrowed 10 times/.test(text) && /start_cold_rep/.test(text), "it kept the words as sent, and its text gives the count and offers a cold rep");
+    check(data.phrasing?.text === rephrasing && /asked 10 times/.test(text) && /start_cold_rep/.test(text), "it kept the words as sent, and its text gives the count and offers a cold rep");
   });
 
-  await step("5. Recording the same words again within ten minutes adds no borrow", async () => {
+  await step("5. Recording the same words again within ten minutes doesn't count them again", async () => {
     const before = model.requests.length;
     const { isError, text, data } = await call(mcp, "record_question", { question: rephrasing, shelf: "Demo" });
     console.log(indent(text));
     check(!isError && data.alreadyCaptured && data.card?.count === 10 && model.requests.length === before, `already captured ${data?.alreadyCaptured}, card A still ${data?.card?.count}, ${model.requests.length - before} model requests`);
-    check(/no borrow was added/.test(text), "its text says no borrow was added");
+    check(/weren't counted again/.test(text), "its text says they weren't counted again");
     const cards = await call(mcp, "list_cards", { shelf: "Demo" });
     check(cards.data?.cards?.[0]?.count === 10, `list_cards gives card A ${cards.data?.cards?.[0]?.count} borrows`);
   });
@@ -178,11 +178,11 @@ try {
     check(text.includes(data.problem) && text.includes(repId) && /check_answer/.test(text), "its text holds the problem, the rep id, and says to pass the answer to check_answer");
   });
 
-  await step("8. check_answer with the known right answer passes, and stamps card A returned", async () => {
+  await step("8. check_answer with the known right answer passes, and marks card A Proven", async () => {
     const { isError, text, data } = await call(mcp, "check_answer", { rep_id: repId, answer: known.right });
     console.log(indent(text));
     check(!isError && data.verdict === "pass" && data.card.id === cardA && data.card.status === "returned", `${data?.verdict}, card A ${data?.card?.status}`);
-    check(/^Passed\./.test(text) && /is returned, stamped \d{4}-\d{2}-\d{2}/.test(text), "its text says so, with the stamp");
+    check(/^Passed\./.test(text) && /is Proven, stamped \d{4}-\d{2}-\d{2}/.test(text), "its text says so, with the stamp");
     const open = await call(mcp, "list_cards", { shelf: "Demo", not_returned: true });
     const skills = (open.data?.cards ?? []).map((c: { skill: string }) => c.skill);
     check(skills.length === key.skills.length - 1 && !skills.includes(key.skills[0]!.name), `not_returned lists ${skills.length} cards, without card A`);

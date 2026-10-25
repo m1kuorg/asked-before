@@ -1,6 +1,6 @@
 # Asked Before
 
-Asked Before turns the questions you keep asking a chatbot into library cards, and won't stamp a card returned until you pass a cold rep without AI. The app's screens say some of these terms in plainer words, given under _On screen_; the API, the SDK, and the docs page keep the terms.
+Asked Before turns the questions you keep asking a chatbot into library cards, and won't stamp a card returned until you pass a cold rep without AI. The app's screens, and the MCP server and the plugin's skill, say some of these terms in plainer words, given under _On screen_; the API, the SDK, and the docs page's API reference keep the terms.
 
 ## Language
 
