@@ -201,6 +201,18 @@ export const AREAS: { area: string; endpoints: Endpoint[] }[] = [
     ],
   },
   {
+    area: "Search",
+    endpoints: [
+      {
+        method: "GET",
+        path: "/search",
+        sdk: "search.get",
+        who: KEY,
+        does: "Your phrasings with every word of ?q= (up to 8 words of 2 or more characters, anywhere in the text, A to Z in any case), across your shelves or on ?shelfId=: { q, words, searched, total, cards, phrasings }, the cards with a match, most matches first, then those whose skill's name has every word, and up to 50 matches, newest first. A q with no such word is a 400.",
+      },
+    ],
+  },
+  {
     area: "Roadmap",
     endpoints: [
       {
