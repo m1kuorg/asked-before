@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Asked Before",
+    "output": "architecture.html",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "legend": {
+      "entries": {
+        "frontend": { "label": "Asked Before client" },
+        "backend": { "label": "Asked Before server" },
+        "database": { "visible": false },
+        "cloud": { "label": "Cloudflare service" }
+      }
+    },
+    "repository": {
+      "url": "https://github.com/m1kuorg/asked-before",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "e0878ad7ad3d4e593a77630c8b03d21799bd87ac"
+    }
+  },
+  "components": [
+    {
+      "id": "export",
+      "type": "external",
+      "label": "Chat export",
+      "sublabel": "ChatGPT or Claude",
+      "pos": [40, 190],
+      "size": [150, 64],
+      "sources": [
+        { "path": "packages/sdk/src/readers.ts", "line": 1, "end_line": 19, "label": "readExport, your messages" },
+        { "path": "docs/adr/0001-keep-only-your-words-on-a-hosted-server.md", "line": 7, "label": "only your phrasings" }
+      ]
+    },
+    {
+      "id": "page",
+      "type": "frontend",
+      "label": "Browser page",
+      "sublabel": "React + SDK",
+      "pos": [330, 190],
+      "size": [160, 64],
+      "sources": [
+        { "path": "src/lib/client.ts", "line": 1, "end_line": 25, "label": "the SDK, session cookie" },
+        { "path": "src/screens/upload/flow.tsx", "line": 65, "end_line": 105, "label": "readExport, then upload" },
+        { "path": "docs/adr/0004-the-page-is-an-api-client.md", "line": 5, "end_line": 7 }
+      ]
+    },
+    {
+      "id": "agent",
+      "type": "external",
+      "label": "Coding agent",
+      "sublabel": "Claude Code, Cursor",
+      "pos": [40, 310],
+      "size": [150, 64],
+      "sources": [
+        { "path": "packages/mcp/src/connect.ts", "line": 1, "end_line": 20, "label": "agent setup" }
+      ]
+    },
+    {
+      "id": "mcp",
+      "type": "frontend",
+      "label": "MCP server",
+      "sublabel": "or Claude Code plugin",
+      "pos": [330, 310],
+      "size": [160, 64],
+      "sources": [
+        { "path": "packages/mcp/src/server.ts", "line": 1, "end_line": 24, "label": "stdio, SDK, API key" },
+        { "path": "plugins/asked-before/.mcp.json", "line": 1, "end_line": 13, "label": "the plugin launches it" }
+      ]
+    },
+    {
+      "id": "scripts",
+      "type": "external",
+      "label": "Scripts",
+      "sublabel": "@asked-before/sdk",
+      "pos": [330, 430],
+      "size": [160, 64],
+      "sources": [
+        { "path": "packages/sdk/examples/quickstart.ts", "line": 1, "end_line": 24, "label": "SDK quickstart" },
+        { "path": "packages/sdk/src/http.ts", "line": 30, "end_line": 39, "label": "Bearer API key" }
+      ]
+    },
+    {
+      "id": "assets",
+      "type": "cloud",
+      "label": "Static assets",
+      "sublabel": "pages from dist/",
+      "pos": [680, 40],
+      "size": [160, 64],
+      "sources": [
+        { "path": "wrangler.jsonc", "line": 14, "end_line": 18, "label": "assets, /api/* first" },
+        { "path": "scripts/build-pages.ts", "line": 1, "end_line": 10 }
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API Worker",
+      "sublabel": "answers /api/*",
+      "pos": [680, 190],
+      "size": [160, 304],
+      "sources": [
+        { "path": "worker/index.ts", "line": 1, "end_line": 25, "label": "fetch and scheduled" },
+        { "path": "server/api/index.ts", "line": 1, "end_line": 29, "label": "route table" },
+        { "path": "server/auth.ts", "line": 1, "end_line": 50, "label": "API key or session" }
+      ]
+    },
+    {
+      "id": "cron",
+      "type": "cloud",
+      "label": "Cron trigger",
+      "sublabel": "stalled sorts, guest reset",
+      "pos": [960, 190],
+      "size": [170, 64],
+      "sources": [
+        { "path": "wrangler.jsonc", "line": 32, "end_line": 36, "label": "*/5 * * * *" },
+        { "path": "server/sort.ts", "line": 312, "end_line": 331, "label": "resumeStalledSorts" },
+        { "path": "server/store/guest.ts", "line": 1, "end_line": 11, "label": "daily guest reset" }
+      ]
+    },
+    {
+      "id": "d1",
+      "type": "database",
+      "label": "D1 database",
+      "sublabel": "phrasings, cards, reps",
+      "pos": [960, 310],
+      "size": [170, 64],
+      "sources": [
+        { "path": "wrangler.jsonc", "line": 19, "end_line": 28, "label": "binding DB" },
+        { "path": "server/store/db.ts", "line": 1, "end_line": 14 }
+      ]
+    },
+    {
+      "id": "sorter",
+      "type": "backend",
+      "label": "Sorter",
+      "sublabel": "Durable Object per shelf",
+      "pos": [960, 430],
+      "size": [170, 64],
+      "sources": [
+        { "path": "worker/sorter.ts", "line": 1, "end_line": 44, "label": "one per shelf, alarms" },
+        { "path": "server/sort.ts", "line": 284, "end_line": 310, "label": "sortNextBatch" },
+        { "path": "server/api/uploads.ts", "line": 79, "end_line": 92, "label": "finish starts the sort" }
+      ]
+    },
+    {
+      "id": "anthropic",
+      "type": "external",
+      "label": "Anthropic API",
+      "sublabel": "claude-haiku-5-5",
+      "pos": [960, 600],
+      "size": [170, 64],
+      "sources": [
+        { "path": "server/model.ts", "line": 1, "end_line": 21, "label": "MODEL" },
+        { "path": "server/sort.ts", "line": 17, "end_line": 21, "label": "ids and words, never a time" },
+        { "path": "server/reps.ts", "line": 1, "end_line": 10, "label": "reps: words only" }
+      ]
+    }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Your computer", "wraps": ["export", "page", "agent", "mcp", "scripts"] },
+    { "kind": "region", "label": "Cloudflare", "wraps": ["assets", "api", "cron", "d1", "sorter"] }
+  ],
+  "connections": [
+    { "id": "export-to-page", "from": "export", "to": "page", "label": "read in browser" },
+    { "id": "assets-to-page", "from": "assets", "to": "page", "label": "HTML, JS, CSS" },
+    { "id": "page-to-api", "from": "page", "to": "api", "label": "your messages only", "variant": "emphasis" },
+    { "id": "agent-to-mcp", "from": "agent", "to": "mcp", "label": "stdio" },
+    { "id": "mcp-to-api", "from": "mcp", "to": "api", "label": "API key" },
+    { "id": "scripts-to-api", "from": "scripts", "to": "api", "label": "API key" },
+    { "id": "cron-to-api", "from": "cron", "to": "api", "label": "every 5 min" },
+    { "id": "api-to-d1", "from": "api", "to": "d1", "label": "SQL" },
+    { "id": "api-to-sorter", "from": "api", "to": "sorter", "label": "start sort", "variant": "emphasis" },
+    { "id": "sorter-to-d1", "from": "sorter", "to": "d1", "label": "cards, progress" },
+    { "id": "sorter-to-model", "from": "sorter", "to": "anthropic", "label": "message texts only", "variant": "emphasis" },
+    { "id": "api-to-model", "from": "api", "to": "anthropic", "label": "reps, captures" }
+  ]
+}

@@ -1,186 +1,402 @@
-# Asked Before
+<a id="readme-top"></a>
 
-It finds the questions you keep asking a chatbot, puts each one on a card that counts every time you asked it, and won't mark a card Proven until you pass a cold rep: a fresh problem of the same kind, solved without AI.
+<!-- PROJECT LOGO -->
 
-You sign up, make a shelf for each part of your life, and upload a ChatGPT or Claude export onto it. Your browser reads the export and sends only your own messages, with when you sent them; the chatbot's answers and your titles never leave your computer, and the model sees your words only, never your dates. The privacy page, at `/privacy`, says what happens to your words: what the model sees, what's kept, and how to delete it. Asked Before sorts them into cards, most asked first, and Home shows the cards across your shelves that still need a cold rep. A TypeScript SDK, an MCP server, and a Claude Code plugin let your scripts and coding agents reach the same cards, so a question you ask an agent lands on its card as you ask it.
+<br />
+<div align="center">
+  <a href="https://github.com/m1kuorg/asked-before">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="/docs/readme/banner-dark.png">
+      <source media="(prefers-color-scheme: light)" srcset="/docs/readme/banner-light.png">
+      <img src="/docs/readme/banner-light.png" alt="Asked Before banner">
+    </picture>
+  </a>
 
-The app runs on Cloudflare Workers, with its data in D1 ([ADR 0005](docs/adr/0005-cloudflare-workers-d1-and-a-durable-object-per-shelf.md)), and its pages are React, Tailwind CSS, and shadcn/ui, bundled by Bun. Until it merged into `main` on October 18, 2026, `main` held the proof of concept submitted to the hackathon, a single page on a made-up demo export; that's `main`'s history up to commit `6bfe2dc`.
+  <h3>Asked Before</h3>
 
-Contents:
+  <p>
+    Finds the how-to questions you keep asking AI in your ChatGPT or Claude export, makes each a card, and tests you on it without AI until it's proven.
+    <br />
+    <a href="https://asked-before.m1kuorg.workers.dev"><strong>Live Demo &rarr;</strong></a>
+    &middot;
+    <a href="#screenshots">Screenshots</a>
+    &middot;
+    <a href="https://github.com/m1kuorg/asked-before/issues/new?labels=bug">Report a Bug</a>
+    <br />
+  </p>
 
-1. [Run it](#run-it)
-1. [Check it](#check-it)
-1. [Deploy it](#deploy-it)
-1. [The SDK](#the-sdk)
-1. [Agents](#agents)
-1. [Disclosures](#disclosures)
-1. [License](#license)
+[![TypeScript][typescript-badge]][typescript-url]
+[![React][react-badge]][react-url]
+[![Tailwind CSS][tailwindcss-badge]][tailwindcss-url]
+[![shadcn/ui][shadcnui-badge]][shadcnui-url]
+[![Bun][bun-badge]][bun-url]
+[![Cloudflare Workers][cloudflareworkers-badge]][cloudflareworkers-url]
+[![Cloudflare D1][cloudflared1-badge]][cloudflared1-url]
+[![Claude][claude-badge]][claude-url]
+[![Model Context Protocol][modelcontextprotocol-badge]][modelcontextprotocol-url]
+[![Playwright][playwright-badge]][playwright-url]
+[![Zod][zod-badge]][zod-url]
 
-## Run it
+</div>
 
-You need [Bun](https://bun.com) 1.4 or later, [Node.js](https://nodejs.org) 22 or later, and an Anthropic API key. You don't need a Cloudflare account: Wrangler, Cloudflare's command line, runs the app on your computer as Workers would, on Node.js.
+<!-- TABLE OF CONTENTS -->
 
-```sh
-git clone https://github.com/m1kuorg/asked-before.git
-cd asked-before
-bun install
-cp .env.example .env        # then set ANTHROPIC_API_KEY=...
-bun run dev
-```
+## Table of Contents
 
-`bun run dev` builds the pages into `dist/`, applies the schema's migrations to a local database in `.wrangler/`, and starts the app with `wrangler dev`. Then open the address it prints, <http://localhost:8787> unless that port is taken, sign up, and make a shelf. A new learner can try the demo shelf, made from a made-up demo export and labeled as demo data, before finding their own export. Or sign in as a guest, with no account: every guest shares one workspace, the Guest account's, whose demo shelf comes already sorted, from `demo/sorted.json`, and which is wiped at midnight UTC each day. The Worker isn't the only reader of the key: Wrangler gives it to the Worker from `.env`, and Bun loads the same file into the check scripts, which read the key too, to check for it before calling the real model and to pass it on to the `wrangler dev` they start. `.env` is gitignored; a key exported in your shell works too, and wins over `.env`.
+<details>
+  <summary>Expand</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#screenshots">Screenshots</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#tech-stack">Tech Stack</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#hackathon">Hackathon</a>
+      <ul>
+        <li><a href="#skill-pack-and-planning-docs">Skill Pack and Planning Docs</a></li>
+        <li><a href="#testing">Testing</a></li>
+        <li><a href="#disclosures">Disclosures</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
 
-Your local data stays in `.wrangler/` from one run to the next; delete that folder to start again with an empty database. Wrangler reloads the Worker when its code changes, but not the pages: run `bun run build:pages` to see a change to them.
+<!-- ABOUT THE PROJECT -->
 
-The key is the only setting you need. The others are vars in `wrangler.jsonc`, each with a default:
+## About The Project
 
-| Setting | Default | What it does |
-| --- | --- | --- |
-| `ANTHROPIC_API_KEY` | none | The model key, from `.env` or your shell, and a Worker secret once deployed. The app starts without it, but every sort and cold rep fails. |
-| `PUBLIC_URL` | empty | The address people reach the deployed app at. Empty, a request's own origin counts as the app's; an `https` address makes the session cookie `Secure`. `bun run dev` always runs with it empty. `bun run build:pages` reads it from `wrangler.jsonc` too, and stops without it: it's the address in every page's canonical link and link-embed banner, in `robots.txt`, and in `sitemap.xml`. |
-| `SITE_DAILY_MODEL_REQUESTS` | `20` | Model requests the whole app may make per UTC day, counted once for everyone, guests included. |
-| `SITE_DAILY_PHRASINGS` | `8000` | Phrasings the whole app may take per UTC day, uploads and captures together, counted once for everyone, guests included. |
-| `SORT_BATCH_SIZE` | `300` | Phrasings a sort sends the model at once. |
+Turn a question you keep asking into one you can answer without AI. You ask a chatbot how to undo a git commit, and months later you ask again in other words. Asked Before reads your own messages from a ChatGPT or Claude export and puts the ones that ask how to do the same thing on one card, most asked first, with every ask dated from the message's own timestamp. A card is Proven only once you pass a cold rep: a fresh problem of the same skill, answered in a plain box without AI. Ask it again after that, and the card needs a fresh cold rep.
 
-The schema is a series of Wrangler's D1 migrations, the numbered files in `migrations/`; see [Deploy it](#deploy-it).
+Your browser reads the export and sends only your own messages, each with when you sent it and the export's own id for it, so a re-upload isn't counted twice; the upload itself carries the file's name and which chatbot it came from. The chatbot's answers and your conversation titles stay behind, and the model sees your words only, never your dates. Code does the counting and dating; the model sorts your words onto cards, writes each card's lesson and problems, and checks your answers. The [privacy page](https://asked-before.m1kuorg.workers.dev/privacy) has the whole list.
 
-## Check it
+It's for students and early-career developers who ask a chatbot many times a day and suspect they aren't learning from it. Coding agents record your questions onto the same cards as you ask them, through the MCP server or the Claude Code plugin.
 
-There are no unit tests. Every check starts its own copy of the app under `wrangler dev`, on a free port, with a fresh local database, and drives it from outside: the API through the SDK, the pages in a real browser, and the MCP server through the official MCP client. Each one prints its steps and exits 1 naming the step that failed. `bun run typecheck` checks the types of the Worker, the pages, and the scripts. The browser checks drive Playwright's Chromium, so a fresh clone needs it once:
+Built for [Build With AI: Basics](https://learn-ai-basics.devpost.com/), Devpost's learning hackathon, with the Devpost Learn Skill Pack. See [Hackathon](#hackathon).
 
-```sh
-bunx playwright install chromium
-```
+<p align="right"><a href="#readme-top">&uarr;</a></p>
 
-Then walk the whole product:
+### Screenshots
 
-```sh
-bun run journey
-```
+Landing, Search, Connect your AI, Playground, and Privacy show the live app as the guest. Home, Analysis, and Roadmap show a local copy, signed in as a made-up learner who uploaded the demo export, with the real model.
 
-It needs the key, and makes 7 model calls, with nothing stubbed. In Chromium at 1920×1080, it signs up from the landing page, makes a shelf, uploads the demo export through the upload page's file input, and checks card A against the demo export's answer key, word for word. It fails a cold rep on card A with a known wrong answer and passes the next with a known right one, sees card A under Latest proven on Home, and makes an API key in Settings › API keys. Then it lists the cards through the SDK with that key, and records a rephrasing of card A's question through the MCP server, so card A's count goes up by one and it's Asked since proven. It saves a screenshot of each step in your temp folder, or in `<dir>` with `bun run journey <dir>`. With `--video`, it also records the run to `journey.webm` there; `--pause <ms>` holds each step that long, for a watchable pace; and `--demo-shelf` takes Home's "Try the demo shelf" instead of making a shelf and choosing the export, so the Demo data label shows. `JOURNEY_URL=<address>` walks a deployed app instead of starting one, as a new learner whose email it prints, and leaves that account there.
+<table>
+  <tr>
+    <td width="50%" valign="top" align="left">
+      <img src="/docs/readme/screenshots/landing.png" alt="Landing" width="100%">
+      <br />
+      <strong>Landing</strong> · The public page asks "Asked before?", with a guest sign-in that needs no account.
+    </td>
+    <td width="50%" valign="top" align="left">
+      <img src="/docs/readme/screenshots/home.png" alt="Home" width="100%">
+      <br />
+      <strong>Home</strong> · The cards that need a cold rep across your shelves, most asked first, beside your latest asks.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top" align="left">
+      <img src="/docs/readme/screenshots/search.png" alt="Search" width="100%">
+      <br />
+      <strong>Search</strong> · "Have you asked this before?" finds every message of yours with all the words, and the cards they're on.
+    </td>
+    <td width="50%" valign="top" align="left">
+      <img src="/docs/readme/screenshots/analysis.png" alt="Analysis" width="100%">
+      <br />
+      <strong>Analysis</strong> · How you ask, counted from your messages' own times: what you'd asked before, month by month, the wait until you asked again, and cold reps.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top" align="left">
+      <img src="/docs/readme/screenshots/roadmap.png" alt="Roadmap" width="100%">
+      <br />
+      <strong>Roadmap</strong> · Your cards on a path of 13 developer areas, from the terminal to deploying, with the next one to prove.
+    </td>
+    <td width="50%" valign="top" align="left">
+      <img src="/docs/readme/screenshots/connect-your-ai.png" alt="Connect your AI" width="100%">
+      <br />
+      <strong>Connect your AI</strong> · Pick your agent and paste its setup, with this server's address filled in. A key made for the agent needs an account.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top" align="left">
+      <img src="/docs/readme/screenshots/playground.png" alt="Playground" width="100%">
+      <br />
+      <strong>Playground</strong> · Send one real API request, as this session or with a key, and read the whole answer beside the same request as code.
+    </td>
+    <td width="50%" valign="top" align="left">
+      <img src="/docs/readme/screenshots/privacy.png" alt="Privacy" width="100%">
+      <br />
+      <strong>Privacy</strong> · What leaves your computer, what the model sees, what's kept, and how to delete it.
+    </td>
+  </tr>
+</table>
 
-The other checks:
+<p align="right"><a href="#readme-top">&uarr;</a></p>
 
-| Command | What it checks | Needs |
-| --- | --- | --- |
-| `bun run check:smoke` | The app on Workers: every page, an asset, and the demo export with the security headers, one content security policy, the answer key never served, an unknown endpoint's 404 JSON, and signing up | |
-| `bun run check:key` | The demo export's answer key against the export | |
-| `bun run check:accounts` | Accounts and shelves through the SDK: sessions, `next`, 404s across accounts, the Origin rule, the logs, the throttle, by IPv4 address or IPv6 /64 | |
-| `bun run check:guest` | Signing in as a guest: two browsers sharing the sorted demo shelf and a cold rep, Settings saying why a guest has none while the server refuses it, the upload page's warning, and the daily reset through the local cron route, with no model request and every guest still signed in | Chromium |
-| `bun run check:passwords` | The password never reaching the server: every request the page sends to sign up, log in, change the password or email, and delete the account, the API refusing anything but a key, and the database keeping only its salted hash | Chromium |
-| `bun run check:caps` | The app's two daily caps, set small: two accounts and the guest spending its model requests and phrasings between them, then a 429 for whoever sends the next, through the SDK and in the upload page, and a refused request counting toward nothing | Chromium |
-| `bun run check:shell` | The app's shell: sign up, Home, the sidebar, your shelves, log out, and the redirect to log in and back | Chromium |
-| `bun run check:landing` | The landing page's demo cards against the demo export, and signing up and logging in from it | Chromium |
-| `bun run check:readers` | The SDK's export readers on every fixture, and on broken exports | |
-| `bun run check:uploads` | The uploads endpoints, and uploading the same export twice | |
-| `bun run check:upload-page` | The upload page: the preview, what it sends, a zip read under the content security policy, failures, and the demo action | Chromium |
-| `bun run check:sort` | Sorting the demo export three ways, against the answer key; `bun run check:sort 10` for 10 runs | Key |
-| `bun run check:sort-recall` | Sorting a made-up history of 469 labeled phrasings, scored against its labels by recall and precision; `bun run check:sort-recall 3` for 3 runs | Key |
-| `bun run check:sort-rules` | The sort's rules and the cards endpoints, with the model stubbed, a sort that carries on after `wrangler dev` is killed mid-sort, and sorts that fail to start or stall, which a retry or the cron starts again | |
-| `bun run check:sort-page` | The upload page's sort progress, its last pass over the messages not on a card, failure, retry, and daily cap, with the model stubbed | Chromium |
-| `bun run check:shelf` | A shelf's cards and their statuses, its messages not on a card, and its uploads | Chromium |
-| `bun run check:reps` | Five cold reps on card A: lessons, problems, and verdicts | Key |
-| `bun run check:rep-rules` | The cold reps' rules through the SDK, with the model stubbed | |
-| `bun run check:card-page` | A card's page and its cold rep: card A failed, then Proven, with the real model; then waits and failures stubbed | Key, Chromium |
-| `bun run check:desk` | The Desk endpoint through the SDK, and Home in the page | Chromium |
-| `bun run check:search` | Search: the endpoint through the SDK, its words, scope, limits, and 400 and 404; then the screen, typing and Enter, aborted and failed searches, examples, and `/`, as a learner and as the guest, at both widths, with the model stubbed | Chromium |
-| `bun run check:analysis` | The Analysis endpoint through the SDK, against counts worked out from the demo export's own times in four time zones, with cold reps and a proven card asked again; then the Analysis screen as a learner and as the guest, at 1440×900 and 390×844 | Chromium |
-| `bun run check:roadmap` | The roadmap endpoint through the SDK, each demo card on its area under both of its names, ties, a card off the path, and the counts against the Desk; then the Roadmap screen as a learner and as the guest, on a desktop and a phone | Chromium |
-| `bun run check:settings` | API keys and the account, through the SDK and in Settings' three views: Account, API keys, and Your data | Chromium |
-| `bun run check:connect` | Connect your AI: the four steps in order, the Claude Code plugin first, this server's address in every snippet, a key made for the agent and filled in, its first use shown without a reload, and the guest's Sign up, with no model request | Chromium |
-| `bun run check:playground` | The Playground: nothing sent on load, real requests as the session and with a pasted key, a DELETE's and a model request's second click, an id clicked into the next request, the key never printed or kept, a 401 shown in place, and the phone's select, with the model stubbed | Chromium |
-| `bun run check:data` | Downloading and deleting your data, a big account's too, each download read in one D1 batch | Chromium |
-| `bun run check:captures` | Captures' rules through the SDK, with the model stubbed | |
-| `bun run check:capture-sort` | Where captures land with the real model; `bun run check:capture-sort 3` for 3 runs | Key |
-| `bun run check:mcp` | The MCP server over stdio with the official client and a real key | Key |
-| `bun run check:plugin` | The Claude Code plugin: validated, its server's build fresh, and the build run from a copy as Claude Code runs it | `claude` |
-| `bun run check:docs` | The docs page against the server's route table, and the SDK's quickstart run on the demo export | Chromium |
-| `bun run check:chrome` | Every page's head on the production address, the icons, banners, manifest, `robots.txt`, and `sitemap.xml` at their types and sizes, each page's line without JavaScript, and the privacy page against the code, with no model request | Chromium |
-| `bun run check:sdk` | The SDK's build, used from a package outside the repo, in Bun and in Node | |
-| `bun run check:styles` | Every public page, logged out too, and every app screen, as a learner and as the guest, at 1440×900 and 390×844: no sideways scroll, one h1, the font loaded, no text under 12px, contrast of 4.5:1 (3:1 for large text), and no console errors | Chromium |
-| `bun run check:migrations` | The schema's D1 migrations: each applied once on a fresh database; a new one, added in a copy of the app, that rebuilds a table and keeps the data beneath it; and a failing one applying nothing | |
+### How It Works
 
-A check that needs the key and stubs nothing calls the real model; the others stub it inside the script, never in the app, so they need no key. Every check starts its app with the daily caps lifted, unless it checks one. After a change to the MCP server or the SDK, `bun run build:plugin` rebuilds the plugin's server, which `check:plugin` fails on until you do. A new API route needs its row on the docs page, in `src/pages/docs/reference.ts`, or `check:docs` fails. [`docs/code-map.md`](docs/code-map.md) says where each piece lives.
+1.  **Upload a chat export.** Make a shelf for one part of your life, such as Work or Bootcamp, and drop in a ChatGPT or Claude export: the zip, or the `conversations.json` inside it. Your browser reads it and shows what will leave your computer before anything is sent. No export yet? Choose **Try the demo shelf**, made from a labeled demo export, or try it as a guest.
 
-## Deploy it
+    <img src="/docs/readme/steps/1-upload-a-chat-export.png" alt="Upload a chat export" width="100%">
 
-The app runs on [Workers Free](https://developers.cloudflare.com/workers/platform/pricing/). Free gives a request, a cron run, and each of the sort's Durable Object alarms 10 ms of CPU time, so the server never hashes a password: the SDK, in the page or your script, derives a key from it with scrypt, and the server keeps only a salted SHA-256 of that key (ADR 0006). Free's real ceiling is D1's 100,000 rows written a day for the whole Cloudflare account, past which every query fails, logging in too; a phrasing stored and sorted writes 7 to 9. The two daily caps in [Run it](#run-it) keep the app under it, each for the whole app and counted once for everyone, guests included: 8,000 phrasings and 20 model requests a day. An upload's sort makes one model request for each batch of up to 300 phrasings and one more for its last pass over the unsorted, so the demo export takes 2 and an upload of 2,000 phrasings 8. The cron, every five minutes, resets the guest workspace on its first run after midnight UTC: it deletes the Guest account's shelves, counting the phrasings deleted toward the new day's, since deleting writes too, and restores its demo shelf from `demo/sorted.json` with no model request. [Workers Paid](https://developers.cloudflare.com/workers/platform/pricing/), $5 a month, lifts the CPU and D1 limits; raise the caps in `wrangler.jsonc`'s `vars` to match. Deploying is a one-time setup on a Cloudflare account, from your clone, with your key exported in your shell:
+2.  **See what you keep asking.** The sort puts the messages that ask how to do the same thing on one card, most asked first, with a pink dot for every time you asked. A message nothing else asks yet stays Not on a card.
 
-1. Log in to that account:
+    <img src="/docs/readme/steps/2-see-what-you-keep-asking.png" alt="See what you keep asking" width="100%">
 
-   ```sh
-   bunx wrangler login
-   ```
+3.  **Prove it without AI.** A card shows every time you asked, word for word. Start a cold rep for the lesson behind it and a fresh problem of the same skill, then answer in a plain box without AI.
 
-1. Make the D1 database. This writes its `database_id` into the `DB` binding in `wrangler.jsonc`:
+    <img src="/docs/readme/steps/3-prove-it-without-ai.png" alt="Prove it without AI" width="100%">
 
-   ```sh
-   bunx wrangler d1 create asked-before --binding DB
-   ```
+4.  **Fail, and try again.** A failed rep says Not yet, with the reason and the lesson again. The next cold rep is a different problem.
 
-1. Apply the schema's migrations to it:
+    <img src="/docs/readme/steps/4-fail-and-try-again.png" alt="Fail, and try again" width="100%">
 
-   ```sh
-   bunx wrangler d1 migrations apply DB --remote
-   ```
+5.  **Proven, until you ask again.** A pass marks the card Proven with the date. Ask it again after that, in a new export or through your agent, and it's Asked since proven, waiting for a fresh cold rep.
 
-1. Set the key as the Worker's secret, from your shell, without writing it down. The Worker doesn't exist yet, so Wrangler makes it to hold the secret:
+    Steps 1 to 3 show the live app as the guest. Steps 4 and 5 show the local copy from [Screenshots](#screenshots), with the real model's reason and lesson.
 
-   ```sh
-   printenv ANTHROPIC_API_KEY | bunx wrangler secret put ANTHROPIC_API_KEY
-   ```
+    <img src="/docs/readme/steps/5-proven-until-you-ask-again.png" alt="Proven, until you ask again" width="100%">
 
-1. Set `PUBLIC_URL` in `wrangler.jsonc`'s `vars` to the app's address: `https://asked-before.<your-subdomain>.workers.dev`, with your account's workers.dev subdomain from the Cloudflare dashboard, or a custom domain.
+<p align="right"><a href="#readme-top">&uarr;</a></p>
 
-1. Build the pages and deploy:
+### Features
 
-   ```sh
-   bun run build:pages
-   bunx wrangler deploy
-   ```
+- **Your words only.** Only your own messages leave your computer, with their times and ids. The chatbot's answers and your titles never do, and the model never sees your dates.
+- **Cards from your own history.** ChatGPT and Claude exports, sorted onto cards per shelf, most asked first. Shelves never share cards.
+- **Cold reps.** A lesson written once, a fresh problem every rep, and a verdict with its reason.
+- **Search, Analysis, and Roadmap.** Counted by code, never the model, so none of them spends a model request.
+- **From your agent.** An MCP server with five tools, `list_shelves`, `list_cards`, `record_question`, `start_cold_rep`, and `check_answer`, and a Claude Code plugin ([README](/packages/mcp/README.md)). A question you ask an agent is recorded as you ask it, and lands on its card, or waits unsorted until something else asks the same.
+- **SDK and API.** `@asked-before/sdk`, a typed TypeScript client for the HTTP API with the export readers, built from a clone since it isn't on npm ([README](/packages/sdk/README.md)); every endpoint listed at `/docs`; and the Playground for one real request.
+- **Guest workspace.** Try it with no account: every guest shares one sorted demo shelf, wiped back at midnight UTC.
+- **Your data.** API keys shown once, a download of everything Asked Before keeps, and account deletion.
+- **No password on the server.** The page derives a key from your password with scrypt, and the server keeps only a salted SHA-256 of that key.
+- **Honest limits.** On Workers Free the whole app gets 20 model requests and 8,000 messages a day, guests included, and says so when a cap is reached.
 
-Then commit `wrangler.jsonc`, which now holds the database's id and the address, so the next deploy uses them. The Worker's logs carry only each request's method, path, status, and duration, never your words, and they stay off Cloudflare's observability.
+<p align="right"><a href="#readme-top">&uarr;</a></p>
 
-To deploy a change, apply any new migrations first, then build and deploy again:
+### Architecture
 
-```sh
-bunx wrangler d1 migrations apply DB --remote
-bun run build:pages
-bunx wrangler deploy
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="/docs/readme/architecture-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="/docs/readme/architecture-light.svg">
+  <img src="/docs/readme/architecture-light.svg" alt="Asked Before architecture">
+</picture>
 
-Wrangler applies, in order, only the migrations the database hasn't had, recording each in its `d1_migrations` table, and stops at one that fails; locally, `check:migrations` proves that a failing one applies nothing. D1's Time Travel keeps 7 days of the database's history on Free and 30 on Paid, so it can be restored to a minute before a bad migration, and it can't be turned off: what a learner deletes stays in Cloudflare's backups for up to 30 days, which Settings › Your data and the privacy page say.
+Made with [Archify](https://github.com/tt-a1i/archify) from [`architecture.json`](/docs/readme/architecture.json).
 
-## The SDK
+<p align="right"><a href="#readme-top">&uarr;</a></p>
 
-`@asked-before/sdk`, in `packages/sdk`, is a typed client for the HTTP API, version 1, with one method per endpoint, and the export readers the upload page uses, which read an export on your computer in Bun, Node, or a browser. The page reaches the server only through it, except the Playground, `/app/playground`, which sends raw requests with `fetch` to show the HTTP exchange itself. It isn't on npm; `bun run build:sdk` builds it to JavaScript with type declarations, for your own code to add from your copy. Its [README](packages/sdk/README.md) has the quickstart, which reads an export, uploads it, and lists the cards. The docs page, at `/docs` on any Asked Before server, lists every endpoint with the credential it needs. In the app, the Playground sends one a real request, as your session or with a pasted key, and shows the answer, with the request as curl, SDK, and fetch code; the endpoints that would end your session or change your account don't run there.
+### Tech Stack
 
-`client.analysis.get({ timeZone, shelfId })`, `GET /api/v1/analysis`, counts how you ask, by code from your messages' own times, your cards, and your cold reps, never the model: your messages and the re-asks among them, every month in your time zone (the runtime's own unless you give one), the gaps until you asked again, your most asked cards, cold reps by month, and proven cards asked again, on every shelf or one. The app draws it at `/app/analysis`.
+- **Languages:** TypeScript for the Worker, the pages, the SDK, the MCP server, and the checks.
+- **Frontend:** [React](https://react.dev/) 19, [Tailwind CSS](https://tailwindcss.com/) 4, and [shadcn/ui](https://ui.shadcn.com/) on [Base UI](https://base-ui.com/), bundled by [Bun](https://bun.com/), with self-hosted Schibsted Grotesk and JetBrains Mono.
+- **Backend:** [Cloudflare Workers](https://developers.cloudflare.com/workers/), [D1](https://developers.cloudflare.com/d1/) with Wrangler's migrations, a [Durable Object](https://developers.cloudflare.com/durable-objects/) per shelf that runs its sort, and a cron every five minutes that restarts stalled sorts and resets the guest workspace.
+- **AI:** Anthropic's [Claude](https://claude.com/product/overview) Haiku 5.5 (`claude-haiku-5-5`) with structured outputs, through the Anthropic TypeScript SDK.
+- **Agents:** an MCP server on the [Model Context Protocol](https://modelcontextprotocol.io/) TypeScript SDK and [Zod](https://zod.dev/), and a [Claude Code](https://claude.com/product/claude-code) plugin.
+- **Tooling:** [Wrangler](https://developers.cloudflare.com/workers/wrangler/), TypeScript, and [Playwright](https://playwright.dev/) for end-to-end checks. There are no unit tests.
 
-`client.roadmap.get()` places your cards, across your shelves, on a fixed path of 13 developer areas, from Terminal and the OS to Deploy and DevOps, by the words in each card's skill name. Code places them, never the model, so reading it spends no model request; `server/roadmap-areas.ts` holds the areas and their words.
+<p align="right"><a href="#readme-top">&uarr;</a></p>
 
-`client.search.get({ q, shelfId })`, `GET /api/v1/search`, answers "Have you asked this before?": it finds your messages that have every word of `q` (up to 8 words of 2 or more characters, anywhere in the text, A to Z in any case), on every shelf or one, word for word and newest first, with the cards they're on, most matches first, and any card whose skill's name has every word. Code matches them, never the model, so a search spends no model request; `searchWords(q)`, exported beside the client, says which words it will look for. The app shows it at `/app/search?q=`.
+<!-- HACKATHON -->
 
-## Agents
+## Hackathon
 
-Coding agents reach your cards through the MCP server in `packages/mcp`, with an API key from Settings › API keys, or one that Connect your AI makes: it records your how-to questions as captures, in your own words only, tells you when one is on a card you've asked before, and runs cold reps in the chat. In Claude Code, the Asked Before plugin in `plugins/asked-before` brings the server and a skill that says when to use it, in one install from this repo's marketplace:
+Built for [Build With AI: Basics](https://learn-ai-basics.devpost.com/), Devpost's learning hackathon, between September 22 and October 26, 2026.
 
-```sh
-claude plugin marketplace add m1kuorg/asked-before
-claude plugin install asked-before@asked-before \
-  --config server_url=http://localhost:8787 \
-  --config api_key=YOUR_API_KEY
-```
+<p align="right"><a href="#readme-top">&uarr;</a></p>
 
-The plugin installs once the repo is public. Connect your AI, at `/app/connect`, shows each agent's setup, the plugin's too, with your server's address filled in, makes a key for the agent, and says when the key is first used; the [MCP server's README](packages/mcp/README.md) explains it.
+### Skill Pack and Planning Docs
 
-## Disclosures
+The repository started empty on October 16, 2026, and its first commit installs the [Devpost Learn Skill Pack](https://github.com/challengepost/learn-ai-basics), pinned in [`skills-lock.json`](/skills-lock.json). Its skills wrote the planning docs in [`devpost/`](/devpost):
+
+- [`scope.md`](/devpost/scope.md), from `2-scope`: the idea, cut down to a proof of concept.
+- [`prd.md`](/devpost/prd.md), from `3-prd`: the journey, every behavior, and the proof of concept's boundary.
+- [`spec.md`](/devpost/spec.md), from `4-spec`: the stack, components, data, and files.
+- [`checklist.md`](/devpost/checklist.md) and [`app-map.html`](/devpost/app-map.html), from `5-build`: the build steps, each verified and committed.
+
+The proof of concept, one page running the whole journey on a made-up demo export, is `main`'s history up to commit `6bfe2dc`, and `devpost/` describes only that proof of concept. The app grew from it within the submission period, through accounts, Cloudflare Workers, a redesigned frontend, and the screens above, following tickets in the private planning repository rather than the Skill Pack. [`PRODUCT.md`](/PRODUCT.md), [`GLOSSARY.md`](/GLOSSARY.md), [`docs/adr/`](/docs/adr), and [`docs/code-map.md`](/docs/code-map.md) describe the app as it is now.
+
+<p align="right"><a href="#readme-top">&uarr;</a></p>
+
+### Testing
+
+- **Live app.** Open [asked-before.m1kuorg.workers.dev](https://asked-before.m1kuorg.workers.dev) and choose **Try it as a guest**. It needs no account, password, or payment. Every guest shares one workspace that already holds a sorted demo shelf, wiped back at midnight UTC.
+- **Demo data.** The demo shelf comes from [`demo/export.json`](/demo/export.json), a made-up chat export, labeled as demo data wherever it shows. Its top card is "Undo a git commit", asked 9 times.
+- **Shared workspace.** Every guest sees what any guest uploads, with its cards and cold reps, until the midnight wipe.
+- **Daily caps.** The whole app gets 20 model requests a day, shared by everyone, and they reset at midnight UTC. Search, Analysis, the Roadmap, and browsing cards spend none. A cold rep spends 2, one to write the problem and one to check the answer, so the day holds about 10 across all visitors; an upload's sort and an agent's recorded question spend some too. Past the cap, the app says so. To try more, run it locally with your own key and raise the cap, as [Getting Started](#getting-started) says.
+
+<p align="right"><a href="#readme-top">&uarr;</a></p>
+
+### Disclosures
 
 **AI assistance.** The entrant works with Astra 6 via Codex, Gemini models via Antigravity, and DeepSeek, GLM, etc. models via OMP as coding assistants throughout the development of the project, and worked with the Devpost Learn Skill Pack manually.
 
 **Pre-existing work.** None. The project was newly created during the hackathon submission period, with no pre-existing work.
+<p align="right"><a href="#readme-top">&uarr;</a></p>
+
+<!-- GETTING STARTED -->
+
+## Getting Started
+
+Asked Before runs on your computer under `wrangler dev`, which runs it as Cloudflare Workers would, with no Cloudflare account. Sorts and cold reps need an Anthropic API key; the rest of the app runs without one.
+
+<p align="right"><a href="#readme-top">&uarr;</a></p>
+
+### Prerequisites
+
+- [Bun](https://bun.com/) 1.4 or later.
+- [Node.js](https://nodejs.org/) 22 or later, which Wrangler runs on.
+- An [Anthropic API key](https://platform.claude.com/), for sorts and cold reps.
+
+<p align="right"><a href="#readme-top">&uarr;</a></p>
+
+### Installation
+
+1.  **Clone and install.**
+
+    ```sh
+    git clone https://github.com/m1kuorg/asked-before.git
+    cd asked-before
+    bun install
+    ```
+
+2.  **Add your key.** Copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`. `.env` is gitignored, and a key exported in your shell works too.
+
+    ```sh
+    cp .env.example .env
+    ```
+
+3.  **Start the app.** `bun run dev` builds the pages into `dist/`, applies the D1 migrations to a local database in `.wrangler/`, and starts `wrangler dev`.
+
+    ```sh
+    bun run dev
+    ```
+
+4.  **Open it.** Open the address Wrangler prints, [http://localhost:8787](http://localhost:8787) unless that port is taken. Sign up and choose **Try the demo shelf** on Home, or try it as a guest. Your local data stays in `.wrangler/`; delete that folder to start again. Wrangler reloads the Worker when its code changes, but not the pages: run `bun run build:pages` after changing them.
+
+    The local app keeps the live app's daily caps, from `wrangler.jsonc`'s `vars`: 20 model requests and 8,000 messages a day. For more, raise `SITE_DAILY_MODEL_REQUESTS` and `SITE_DAILY_PHRASINGS` there and start the app again.
+
+5.  **Run the checks.** Each check starts its own copy of the app with a fresh database and drives it from outside: through the SDK, in a real browser, or with the official MCP client. The browser checks need Playwright's Chromium once.
+
+    ```sh
+    bunx playwright install chromium
+    bun run typecheck
+    bun run journey
+    ```
+
+    `bun run journey` walks the core journey in Chromium with the real model, in 7 model calls: it signs up, uploads the demo export, fails and then passes a cold rep, makes an API key, lists the cards through the SDK, and records a question through the MCP server. `package.json` has a `check:*` script for each area, such as `check:guest`, `check:search`, and `check:mcp`. Most stub the model inside the script; the few that call the real model need the key.
+
+6.  **Optionally, deploy to Cloudflare.** It runs on Workers Free. `wrangler.jsonc` holds the live app's database id and address, so replace both with your own. With your key exported in your shell, log in, make the database, and replace the `database_id` in `wrangler.jsonc`'s `DB` binding with its id. Then apply the migrations and set the key as the Worker's secret; Wrangler offers to create the Worker for it.
+
+    ```sh
+    bunx wrangler login
+    bunx wrangler d1 create asked-before
+    bunx wrangler d1 migrations apply DB --remote
+    printenv ANTHROPIC_API_KEY | bunx wrangler secret put ANTHROPIC_API_KEY
+    ```
+
+    Replace `PUBLIC_URL` in `wrangler.jsonc`'s `vars` with your app's address, then build and deploy. To deploy a change, apply any new migrations first, then build and deploy again.
+
+    ```sh
+    bun run build:pages
+    bunx wrangler deploy
+    ```
+
+    `SITE_DAILY_MODEL_REQUESTS` and `SITE_DAILY_PHRASINGS` in `vars` cap the whole app's day, to stay under D1 Free's 100,000 rows written a day; raise them on Workers Paid. D1's Time Travel keeps 7 days of the database's history on the free plan and 30 on a paid one, and can't be turned off, so what a learner deletes stays in Cloudflare's backups for up to 30 days.
+
+<p align="right"><a href="#readme-top">&uarr;</a></p>
+
+<!-- ROADMAP -->
+
+## Roadmap
+
+See [open issues](https://github.com/m1kuorg/asked-before/issues) for a full list of proposed features (and known issues).
+
+<p align="right"><a href="#readme-top">&uarr;</a></p>
+
+<!-- CONTRIBUTING -->
+
+## Team
+
+<a href="https://github.com/m1kuorg/asked-before/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=m1kuorg/asked-before" alt="Asked Before team" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
+
+<p align="right"><a href="#readme-top">&uarr;</a></p>
+
+<!-- LICENSE -->
 
 ## License
 
-[MIT](LICENSE). Third-party files keep their own licenses: the Skill Pack's MIT license, the impeccable skill's Apache 2.0 license, the SIL Open Font License of the self-hosted Schibsted Grotesk and JetBrains Mono fonts in `public/fonts/`, and the licenses of the landing page's archival pictures and film, each credited on the page and listed with its source in `public/images/credits.json`: two photographs under CC BY 4.0 (Topi Toivanen's 1958 matriculation examination at Nurmes, and Bror Brandt's "A Pupil", 1956, from the Finnish Heritage Agency), and a 1932 card catalog photograph by Harris & Ewing and a 1946 Polygoon newsreel of an examination in Frisian, both in the public domain, via Wikimedia Commons. The components in `src/components/ui/` start from shadcn/ui's (MIT). The plugin's built MCP server, `plugins/asked-before/dist/server.js`, carries the MCP TypeScript SDK (Apache 2.0) and zod (MIT) inside it.
+See [LICENSE](/LICENSE) for more information.
+
+Third-party files keep their own licenses:
+
+- The Devpost Learn Skill Pack, [MIT](https://github.com/challengepost/learn-ai-basics/blob/main/LICENSE), Copyright (c) 2026 Devpost, in `.agents/skills/`, `agent/skills/`, and `.claude/skills/`.
+- The impeccable skill, Apache 2.0, in `.claude/skills/impeccable/` and `.claude/agents/`.
+- shadcn/ui's components, MIT, the starting point of `src/components/ui/`.
+- The MCP TypeScript SDK's server and core, Apache 2.0, and Zod and `@noble/hashes`, MIT, bundled into the plugin's built server, `plugins/asked-before/dist/server.js`.
+- Schibsted Grotesk and JetBrains Mono, SIL Open Font License 1.1, in `public/fonts/`.
+- The landing page's archival pictures and film, each credited on the page and listed with its source and license in [`public/images/credits.json`](/public/images/credits.json): two photographs under CC BY 4.0, and a photograph and a newsreel in the public domain.
+
+<p align="right"><a href="#readme-top">&uarr;</a></p>
+
+<!-- ACKNOWLEDGMENTS -->
+
+## Acknowledgments
+
+- [Build With AI: Basics](https://learn-ai-basics.devpost.com/) and the [Devpost Learn Skill Pack](https://github.com/challengepost/learn-ai-basics): the hackathon, and the skills that planned and built the proof of concept.
+- [Anthropic](https://www.anthropic.com/): Claude Haiku 5.5 sorts the cards and writes the cold reps.
+- [Cloudflare](https://www.cloudflare.com/): Workers, D1, and Durable Objects host the live app.
+- [shadcn/ui](https://ui.shadcn.com/) and [Base UI](https://base-ui.com/): the app's components.
+- [impeccable](https://impeccable.style/) and [taste-skill](https://github.com/leonxlnx/taste-skill): the design skills behind the frontend.
+- [Schibsted Grotesk](https://fonts.google.com/specimen/Schibsted+Grotesk) and [JetBrains Mono](https://www.jetbrains.com/lp/mono/): the type.
+- Topi Toivanen, Bror Brandt, Harris & Ewing, and Polygoon Hollands Nieuws, via [Wikimedia Commons](https://commons.wikimedia.org/): the landing page's pictures and film.
+- [Archify](https://github.com/tt-a1i/archify)
+- [contrib.rocks](https://contrib.rocks)
+- [Shields.io](https://shields.io)
+
+<p align="right"><a href="#readme-top">&uarr;</a></p>
+
+<!-- MARKDOWN LINKS & IMAGES -->
+
+[typescript-badge]: https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white
+[typescript-url]: https://www.typescriptlang.org/
+[react-badge]: https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black
+[react-url]: https://react.dev/
+[tailwindcss-badge]: https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white
+[tailwindcss-url]: https://tailwindcss.com/
+[shadcnui-badge]: https://img.shields.io/badge/shadcn%2Fui-000000?style=for-the-badge&logo=shadcnui&logoColor=white
+[shadcnui-url]: https://ui.shadcn.com/
+[bun-badge]: https://img.shields.io/badge/Bun-000000?style=for-the-badge&logo=bun&logoColor=white
+[bun-url]: https://bun.com/
+[cloudflareworkers-badge]: https://img.shields.io/badge/Cloudflare_Workers-F38020?style=for-the-badge&logo=cloudflareworkers&logoColor=white
+[cloudflareworkers-url]: https://developers.cloudflare.com/workers/
+[cloudflared1-badge]: https://img.shields.io/badge/Cloudflare_D1-F38020?style=for-the-badge&logo=cloudflare&logoColor=white
+[cloudflared1-url]: https://developers.cloudflare.com/d1/
+[claude-badge]: https://img.shields.io/badge/Claude-D97757?style=for-the-badge&logo=claude&logoColor=white
+[claude-url]: https://claude.com/product/overview
+[modelcontextprotocol-badge]: https://img.shields.io/badge/Model_Context_Protocol-000000?style=for-the-badge&logo=modelcontextprotocol&logoColor=white
+[modelcontextprotocol-url]: https://modelcontextprotocol.io/
+[playwright-badge]: https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge
+[playwright-url]: https://playwright.dev/
+[zod-badge]: https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white
+[zod-url]: https://zod.dev/
