@@ -1,7 +1,7 @@
 // The app's shell, the open plane (brief sections 4 and 7): a 240px sidebar
 // on the white ground behind one hairline, holding the one
 // <nav aria-label="Asked Before">: the mark and name, Home with the count of
-// cards that need a cold rep, the shelves (long names truncated, with a
+// cards that need a cold rep, Search, Analysis, and Roadmap, the shelves (long names truncated, with a
 // tooltip), All shelves, then Connect your AI, Playground, Docs, Settings
 // (its three areas listed under it while one is open, but not for the
 // guest, whose Settings is one view saying why it has none), and the user
@@ -15,7 +15,7 @@
 
 import type { Account, Desk, Shelf } from "@asked-before/sdk";
 import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
-import { BookOpenIcon, HouseIcon, LibraryIcon, MenuIcon, PlugIcon, SettingsIcon, SquareTerminalIcon } from "lucide-react";
+import { BookOpenIcon, ChartColumnIcon, HouseIcon, LibraryIcon, MenuIcon, PlugIcon, RouteIcon, SearchIcon, SettingsIcon, SquareTerminalIcon } from "lucide-react";
 import { cn } from "cn";
 import { DemoChip } from "@/components/demo-chip";
 import { Figure } from "@/components/figure";
@@ -117,6 +117,15 @@ function Nav({ account, current, routeName, desk, shelves }: NavProps) {
             <span className="sr-only">, {queue === 1 ? "1 card needs" : `${count(queue)} cards need`} a cold rep</span>
           </>
         )}
+      </NavItem>
+      <NavItem href="/app/search" icon={SearchIcon} current={current === "search"}>
+        Search
+      </NavItem>
+      <NavItem href="/app/analysis" icon={ChartColumnIcon} current={current === "analysis"}>
+        Analysis
+      </NavItem>
+      <NavItem href="/app/roadmap" icon={RouteIcon} current={current === "roadmap"}>
+        Roadmap
       </NavItem>
       <p id="nav-shelves" className="mt-5 mb-1 px-2 text-xs text-muted-foreground">
         Shelves
