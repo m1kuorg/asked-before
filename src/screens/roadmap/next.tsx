@@ -62,7 +62,7 @@ export function NextOnPath({ map, client, navigate, className }: NextProps) {
       <div className="@container/next">
         <div className={cn(rowCard, "flex flex-col gap-3 @min-[36rem]/next:flex-row @min-[36rem]/next:items-center @min-[36rem]/next:gap-4")}>
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <a href={cardPath} className={cn(nameLink, "line-clamp-2")}>
+            <a href={cardPath} className={cn(nameLink, "line-clamp-2 break-words")}>
               {card.skill}
             </a>
             <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">

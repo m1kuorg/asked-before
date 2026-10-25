@@ -21,7 +21,7 @@ export function OffPath({ cards }: { cards: RoadmapCard[] }) {
             {cards.map((card) => (
               <li key={card.id} className="flex items-start gap-3 border-b border-rule py-2.5 last:border-b-0">
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <a href={`/app/cards/${encodeURIComponent(card.id)}`} className={nameLink}>
+                  <a href={`/app/cards/${encodeURIComponent(card.id)}`} className={`${nameLink} line-clamp-2 break-words`}>
                     {card.skill}
                   </a>
                   <CardFacts card={card} why={false} />

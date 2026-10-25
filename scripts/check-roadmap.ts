@@ -78,6 +78,13 @@ const OWN: { skill: string; place: Place; asks: string[] }[] = [
   { skill: "Write a Dockerfile for Bun", place: ["node", ["bun"]], asks: ["dockerfile for a bun app", "how do i containerize my bun server"] },
   { skill: "Index a JSON column in Postgres", place: ["sql", ["index", "postgres"]], asks: ["index a jsonb field in postgres", "make postgres queries on a json column fast"] },
   { skill: "Read a CSV file in Rust", place: [null, []], asks: ["read a csv file in rust", "parse csv rows with serde in rust"] },
+  // Six on one area, one more than it shows before "Show all".
+  { skill: "Mock a fetch call in Jest", place: ["testing", ["mock", "jest"]], asks: ["mock fetch in a jest test", "jest mock for a fetch request"] },
+  { skill: "Read a Python stack trace", place: ["testing", ["stack", "trace"]], asks: ["how do i read this python traceback", "what does this stack trace mean"] },
+  { skill: "Debug a failing test in Vitest", place: ["testing", ["debug", "test", "vitest"]], asks: ["vitest test fails only in ci", "step through a failing vitest test"] },
+  { skill: "Silence an ESLint error", place: ["testing", ["eslint", "error"]], asks: ["disable one eslint rule for a line", "turn off an eslint warning"] },
+  { skill: "Log errors to a file", place: ["testing", ["log", "errors"]], asks: ["write errors to a log file", "save exceptions to a file"] },
+  { skill: "Set a breakpoint in Chrome", place: ["testing", ["breakpoint"]], asks: ["pause javascript in chrome devtools", "set a breakpoint in the browser"] },
 ];
 
 const failures: string[] = [];
@@ -278,6 +285,14 @@ try {
       check((await main.getByText(`${placed.length} cards on the path, ${map.elsewhere.length} off it, from Bootcamp and Side projects.`, { exact: true }).count()) === 1, "the line under it counts the cards and names their shelves");
       check((await main.getByRole("heading", { level: 2, name: "Placed by the words in its name", exact: true }).count()) === 1, "it says how a card is placed: by the words in its name");
 
+      // An area shows its 5 most asked cards, and "Show all" the rest, in place.
+      const testing = main.getByRole("list", { name: "Cards on Testing and debugging, most asked first" });
+      const showAll = main.getByRole("button", { name: "Show all 6 cards on Testing and debugging", exact: true });
+      check((await testing.getByRole("listitem").count()) === 5 && (await showAll.getAttribute("aria-expanded")) === "false", "Testing and debugging shows 5 of its 6 cards, and a button for the rest");
+      await showAll.click();
+      const fewer = main.getByRole("button", { name: "Show fewer", exact: true });
+      check((await testing.getByRole("listitem").count()) === 6 && (await fewer.getAttribute("aria-expanded")) === "true" && (await fewer.evaluate((node) => node === document.activeElement)), "which shows all 6 in place, keeping focus, and offers fewer");
+
       const drawn = await areas.locator(":scope > li").evaluateAll((items) =>
         items.map((item) => ({
           name: item.querySelector("h3")?.textContent ?? "",
@@ -286,7 +301,7 @@ try {
             href: row.querySelector("a")?.getAttribute("href") ?? "",
             text: (row.textContent ?? "").replace(/\s+/g, " "),
           })),
-          end: item.querySelector(":scope > p:last-child")?.textContent ?? "",
+          end: [...item.querySelectorAll(":scope > div:last-child > p")].at(-1)?.textContent ?? "",
         })),
       );
       check(drawn.map((area) => area.name).join() === NAMES.join(), `the map lists the 13 areas in path order, as headings (${drawn.length})`);

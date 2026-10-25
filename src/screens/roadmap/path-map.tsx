@@ -20,15 +20,17 @@
 // Narrower (a phone, or a canvas beside the sidebar under 56rem), the same
 // list is an indented tree: the spine down the left edge with a ring on it
 // at each area's 16/500 heading, and the cards as rule rows with their pill
-// at the right.
+// at the right. Either way an area shows its 5 most asked cards, and a
+// button shows the rest in place.
 import type { RoadmapArea, RoadmapCard } from "@asked-before/sdk";
 import { useEffect, useState } from "react";
 import { cn } from "cn";
 import { DemoChip } from "@/components/demo-chip";
 import { Figure } from "@/components/figure";
 import { StatusPill } from "@/components/status-pill";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { askedTimes } from "@/lib/format";
+import { askedTimes, count } from "@/lib/format";
 import { areaCount, areaEnd, because } from "./sentences";
 
 const cardPath = (id: string) => `/app/cards/${encodeURIComponent(id)}`;
@@ -83,9 +85,15 @@ export function PathMap({ areas }: { areas: RoadmapArea[] }) {
   );
 }
 
+/** How many cards an area shows before the rest wait behind "Show all". */
+const SHOWN = 5;
+
 /** `shelves`: the map holds cards from more than one shelf, so each says which. */
 function Area({ area, shelves }: { area: RoadmapArea; shelves: boolean }) {
   const empty = area.cards.length === 0;
+  const [all, setAll] = useState(false);
+  const listId = `area-${area.id}-cards`;
+  const cards = all ? area.cards : area.cards.slice(0, SHOWN);
   return (
     <li id={`area-${area.id}`} className={cn(areaRow, "group/area")}>
       <div className={nodeCell}>
@@ -99,12 +107,19 @@ function Area({ area, shelves }: { area: RoadmapArea; shelves: boolean }) {
       <p className="mt-1 text-sm text-muted-foreground [grid-area:about] @min-[56rem]/map:mt-0 @min-[56rem]/map:pt-2.75 @min-[56rem]/map:pr-6 @min-[56rem]/map:text-right">{area.about}</p>
       {!empty && (
         <>
-          <ul aria-label={`Cards on ${area.name}, most asked first`} className="mt-2 flex flex-col [grid-area:cards] @min-[56rem]/map:mt-0 @min-[56rem]/map:pt-2.75">
-            {area.cards.map((card) => (
+          <ul id={listId} aria-label={`Cards on ${area.name}, most asked first`} className="mt-2 flex flex-col [grid-area:cards] @min-[56rem]/map:mt-0 @min-[56rem]/map:pt-2.75">
+            {cards.map((card) => (
               <Station key={card.id} card={card} shelf={shelves} />
             ))}
           </ul>
-          <p className="mt-1 text-sm text-muted-foreground [grid-area:end] @min-[56rem]/map:pl-12">{areaEnd(area)}</p>
+          <div className="mt-1 flex flex-col items-start gap-1 [grid-area:end] @min-[56rem]/map:pl-12">
+            {area.cards.length > SHOWN && (
+              <Button variant="ghost" size="sm" aria-expanded={all} aria-controls={listId} onClick={() => setAll(!all)} className="-ml-3">
+                {all ? "Show fewer" : `Show all ${count(area.cards.length)} cards on ${area.name}`}
+              </Button>
+            )}
+            <p className="text-sm text-muted-foreground">{areaEnd(area)}</p>
+          </div>
         </>
       )}
     </li>
@@ -120,7 +135,7 @@ function Station({ card, shelf }: { card: RoadmapCard; shelf: boolean }) {
         className={cn("absolute top-3.25 left-7 hidden size-2.5 rounded-full border-[1.5px] @min-[56rem]/map:block", proven ? "border-primary bg-primary" : "border-input bg-background")}
       />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <a href={cardPath(card.id)} className="line-clamp-2 font-medium text-foreground underline-offset-4 hover:underline">
+        <a href={cardPath(card.id)} className="line-clamp-2 font-medium break-words text-foreground underline-offset-4 hover:underline">
           {card.skill}
         </a>
         <CardFacts card={card} shelf={shelf} />
