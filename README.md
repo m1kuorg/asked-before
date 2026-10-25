@@ -84,6 +84,7 @@ The other checks:
 | `bun run check:rep-rules` | The cold reps' rules through the SDK, with the model stubbed | |
 | `bun run check:card-page` | A card's page and its cold rep: card A failed, then Proven, with the real model; then waits and failures stubbed | Key, Chromium |
 | `bun run check:desk` | The Desk endpoint through the SDK, and Home in the page | Chromium |
+| `bun run check:search` | Search: the endpoint through the SDK, its words, scope, limits, and 400 and 404; then the screen, typing and Enter, aborted and failed searches, examples, and `/`, as a learner and as the guest, at both widths, with the model stubbed | Chromium |
 | `bun run check:roadmap` | The roadmap endpoint through the SDK, each demo card on its area under both of its names, ties, a card off the path, and the counts against the Desk; then the Roadmap screen as a learner and as the guest, on a desktop and a phone | Chromium |
 | `bun run check:settings` | API keys and the account, through the SDK and in Settings' three views: Account, API keys, and Your data | Chromium |
 | `bun run check:connect` | Connect your AI: the four steps in order, the Claude Code plugin first, this server's address in every snippet, a key made for the agent and filled in, its first use shown without a reload, and the guest's Sign up, with no model request | Chromium |
