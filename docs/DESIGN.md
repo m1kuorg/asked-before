@@ -232,7 +232,7 @@ components:
 
 Asked Before has two rooms built from one palette and one typeface. The public pages (landing, log in, sign up, 404) lead with type: full-bleed fields of plum and white, one enormous statement per chapter in Schibsted Grotesk at 800, everything else small, square corners, and colour that changes by chapter. The visitor's own material, the same question asked nine different ways, is the main picture. Beside it, the landing carries found documents of the same habit from before AI: four archival black-and-white photographs (a card catalog, a pupil at the blackboard, an examination hall) and one muted newsreel loop of a written examination, all square, untouched, and captioned with what and when. The landing's direction contract still says "type and nothing else"; the build added the pictures, and this record follows the build. The app (`/app/*`) and the two reading pages, docs and privacy, are the opposite temperature: a light, soft, editorial workspace on a white ground, a 240px open-plane sidebar behind one hairline, tonal panels one step off white toward the plum, regular-weight numbers, and nothing louder than 24px.
 
-What ties the rooms together is the ask strip: pink dots on a 2px grey track, one per time you asked, with a plum-black tick on the day you proved you could do it without AI. It is the product's mark, the main data element of every list, and the one place pink appears inside the app. Pink is rare on purpose: in the app it is data, not decoration.
+What ties the rooms together is the ask strip: pink dots on a 2px grey track, one per time you asked, with a plum-black tick on the day you proved you could do it without AI. It is the product's mark, the main data element of every list, and, with the charts that count asks, the one place pink appears inside the app. Pink is rare on purpose: in the app it is data, not decoration.
 
 Density in the app is calm and readable (14px body, 32px nav rows, 8px gaps between row cards). The public pages run at the opposite extreme of scale: 9 to 21vw display lines against 15 to 19px text, with nothing in between.
 
@@ -255,7 +255,7 @@ A near-black plum and a hot pink, bracketing a white working surface whose greys
 - **Plum Surface** (`plum-surface`): the landing's Proof chapter, the alternating dark rows (tables, agent rows) on plum-black, and the ground behind every found picture and the film while they load.
 
 ### Secondary
-- **Hot Pink** (`pink`, the app's `--ask`): on the public pages, primary buttons and footer links on plum; in the app, only the ask strip's dots and span, and the sidebar mark. It sits under 3:1 on the tinted panel, so it goes on white or plum only. `pink-hover` is the pink button under the pointer.
+- **Hot Pink** (`pink`, the app's `--ask`): on the public pages, primary buttons and footer links on plum; in the app, only the ask strip's dots and span, the sidebar mark, and a chart's marks for asks, one per ask. It sits under 3:1 on the tinted panel, so it goes on white or plum only. `pink-hover` is the pink button under the pointer.
 - **Pink Ink** (`ask-ink`): pink when it has to be text on white (6.0:1), and the caret colour of every input and textarea.
 - **Selection Pink** (`selection`): text selection, with navy ink; also the words a search found, marked in your messages and cards' names on Search, the app's one highlight.
 
@@ -277,7 +277,7 @@ A near-black plum and a hot pink, bracketing a white working surface whose greys
 - **Proven** (`positive` / `positive-foreground`), **Asked since proven** (`notice` / `notice-foreground`, with `notice-border`), **Not yet and errors** (`negative` / `negative-foreground`): pale grounds with dark ink of the same hue. **Destructive Red** (`destructive`) is the outlined delete button and invalid-field border only.
 
 ### Named Rules
-**The Pink Is Data Rule.** In the app, pink appears only in the ask strip and the sidebar mark, under 2% of pixels, and as Pink Ink on the literal values of the Playground's JSON. Buttons, links, headings, and highlights are never pink inside `/app`; Search's marked words take the pale Selection Pink of selected text, never the ask pink.
+**The Pink Is Data Rule.** In the app, pink appears only in the ask strip and the sidebar mark, under 2% of pixels, and as Pink Ink on the literal values of the Playground's JSON. Amended 2026-10-25 for Analysis: a pink mark is one ask, wherever asks are counted, so a chart may draw asks (and re-asks) as pink marks, on white only; what's derived from asks (medians, gaps, counts of cards, cold reps) stays ink and grey. Buttons, links, headings, and highlights are never pink inside `/app`; Search's marked words take the pale Selection Pink of selected text, never the ask pink.
 
 **The White Behind Pink Rule.** The ask strip sits on white (a row card, the card page, a `data-ui` fragment), never directly on the panel tint, where pink drops under 3:1.
 
@@ -410,6 +410,17 @@ The card's asks on a time axis shared by every strip in a list (from the first d
 - **Proven tick:** a 2px plum-black vertical line at the strip's full height, taller than the bar.
 - **The mark:** the same grammar at 24px (three pink dots on the track, the plum-black tick) beside "Asked Before" in the sidebar. Never a letter in a square.
 
+### Analysis
+The screen of your own asking habits (`/app/analysis`), on the white ground with no frames, since its charts carry pink.
+- **Title:** the answer as the h1 at 24/400 ("15 of your 27 messages asked something you'd asked before."), not clamped, so a long sentence keeps its end; a grey line names the months, the shelves (Demo data beside a demo one), and the time zone. More than one shelf adds a segmented control of them, each with its messages.
+- **Figures as tabs:** four underline tabs on a 1px rule, each a 14px label, a 24/400 figure, and a 12px grey caption saying what it's of; the open one carries the 2px ink line. On a phone the row scrolls sideways inside itself.
+- **A view:** 8 + 4 of 12. Left: a 16/500 heading with its legend at the right, the finding as one 14px sentence in ink, the chart, and its numbers in a table behind "Every month in numbers". Right: "How this is counted", 14/600 over 14px grey.
+- **Month columns:** one square cell per message, 2px of white between cells, the re-asks pink at the base of each pile and the rest in the quiet edge grey. A month is 40px at most, so a short history stays a small chart. A pile taller than 200px turns into solid columns, 16px wide at most, on four or five round ticks with `border` gridlines and no y-axis line. Cold reps use the same columns: passes above the line in plum-black, the proven tick's colour, and Not yet below it in the negative ink.
+- **Gaps:** the median and the middle half as 24/400 figures, then five rule rows of buckets, each with a bar in `active-foreground` ink, never pink.
+- **Proven, then asked again:** one 24px bar split by status, the positive pair then the notice pair with its amber border, 2px apart, with the pills and their counts under it.
+- **Too few to chart:** under 5 messages, gaps, or checked cold reps (or 3 proven cards), a view says its finding in words and gives its counts in their pills, and draws nothing.
+- **The skills you re-ask most:** rule rows on white, each the skill and its shelf, the ask strip on one shared axis, times asked, the median gap, and the status pill; its heading row holds the screen's one filled "Start a cold rep".
+
 ### Found Picture and Film (landing)
 - **Picture:** a square-cornered frame on the plum surface while it loads, the photograph untouched in black and white, lazy-loaded, with a 15px grey caption under it: what it shows on the left, its date on the right. A large picture may drift inside its frame with the scroll.
 - **Film:** the same frame and caption, a muted H.264 loop with its first frame as the poster, playing only while in view; a 44px-tall Play / Pause link in 15px/600 sits on the caption's first line at the right.
@@ -446,7 +457,7 @@ The card page's one authored moment: "Proven" at 24/600 over its date, in the po
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep pink in the app to the ask strip and the sidebar mark, on white surfaces only.
+- **Do** keep pink in the app to asks: the ask strip, the sidebar mark, and a chart's marks for asks, on white surfaces only.
 - **Do** use the four status words and their pairs exactly: To prove, Proven, Asked since proven, and Not yet for a failed check; "Not on a card" for messages no card asks yet; "Start a cold rep" as the one rep verb. Where the API's names show (the docs), map each to its on-screen word.
 - **Do** set numbers at regular weight with the `Figure` component's tabular digits.
 - **Do** use one filled primary button per app screen, and one pink action per landing chapter.

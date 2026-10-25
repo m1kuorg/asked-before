@@ -46,6 +46,11 @@ _Avoid_: Occurrence, hit, repeat
 One stop on the Roadmap's fixed path of developer skills, such as Git or CSS, with its own list of words. A card goes on the area whose words its skill's name holds most, the earlier area on a tie; a name with none is off the path.
 _Avoid_: Category, track, level
 
+**Re-ask**:
+A borrow that isn't its card's first, by time: so a card's borrows less one. Analysis counts them.
+_On screen_: Asked before, as in "15 of your 27 messages asked something you'd asked before."
+_Avoid_: Repeat, duplicate
+
 **Unsorted**:
 A shelf's phrasings that aren't on a card, because nothing else so far asks the same thing.
 _On screen_: Not on a card. Never "asked once", since the sort misses some repeats.
