@@ -5,11 +5,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/m1kuorg/asked-before">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="/docs/readme/banner-dark.png">
-      <source media="(prefers-color-scheme: light)" srcset="/docs/readme/banner-light.png">
-      <img src="/docs/readme/banner-light.png" alt="Asked Before banner">
-    </picture>
+    <img src="/docs/readme/banner.png" alt="Asked Before banner: “Asked before?” in large white type on a plum field over faint pink lines of how-to questions, beside “If you keep asking a chatbot the same how-to, Asked Before finds those questions in your own chat history, then tests you on each one without AI.”">
   </a>
 
   <h3>Asked Before</h3>
@@ -355,7 +351,7 @@ Third-party files keep their own licenses:
 - shadcn/ui's components, MIT, the starting point of `src/components/ui/`.
 - The MCP TypeScript SDK's server and core, Apache 2.0, and Zod and `@noble/hashes`, MIT, bundled into the plugin's built server, `plugins/asked-before/dist/server.js`.
 - Schibsted Grotesk and JetBrains Mono, SIL Open Font License 1.1, in `public/fonts/`.
-- The landing page's archival pictures and film, each credited on the page and listed with its source and license in [`public/images/credits.json`](/public/images/credits.json): two photographs under CC BY 4.0, and a photograph and a newsreel in the public domain.
+- The landing page's archival pictures and film, each credited on the page and listed with its source and license in [`public/images/credits.json`](/public/images/credits.json): two photographs under CC BY 4.0, and a photograph and a newsreel in the public domain. The banner is the landing page's opening chapter, whose field is adapted from ["Nurmeksen yhteislyseo vuonna 1958. Ylioppilaskirjoitukset."](https://commons.wikimedia.org/wiki/File:Nurmeksen_yhteislyseo_vuonna_1958_Ylioppilaskirjoitukset_(5394%2B(numero)).jpg) by Topi Toivanen, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0), via Wikimedia Commons: the photograph is rebuilt in the demo's questions, set in type.
 
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
@@ -369,7 +365,7 @@ Third-party files keep their own licenses:
 - [shadcn/ui](https://ui.shadcn.com/) and [Base UI](https://base-ui.com/): the app's components.
 - [impeccable](https://impeccable.style/) and [taste-skill](https://github.com/leonxlnx/taste-skill): the design skills behind the frontend.
 - [Schibsted Grotesk](https://fonts.google.com/specimen/Schibsted+Grotesk) and [JetBrains Mono](https://www.jetbrains.com/lp/mono/): the type.
-- Topi Toivanen, Bror Brandt, Harris & Ewing, and Polygoon Hollands Nieuws, via [Wikimedia Commons](https://commons.wikimedia.org/): the landing page's pictures and film.
+- Topi Toivanen, Bror Brandt, Harris & Ewing, and Polygoon Hollands Nieuws, via [Wikimedia Commons](https://commons.wikimedia.org/): the landing page's pictures and film; Topi Toivanen's photograph also underlies the banner.
 - [Archify](https://github.com/tt-a1i/archify)
 - [contrib.rocks](https://contrib.rocks)
 - [Shields.io](https://shields.io)
