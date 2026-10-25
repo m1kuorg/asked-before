@@ -214,6 +214,10 @@ try {
       [`/app/shelves/${dayJob.id}/upload`, "Upload a chat export"],
       // A card that isn't there is the app's not-found screen.
       ["/app/cards/c1", "This page doesn't exist"],
+      ["/app/search", "Have you asked this before?"],
+      // Analysis's and Roadmap's h1s for an account with a shelf and no cards.
+      ["/app/analysis", "No messages yet."],
+      ["/app/roadmap", "No cards on the path yet."],
       ["/app/connect", "Connect your AI"],
       ["/app/playground", "Playground"],
       ["/app/settings", "Account"],
@@ -239,6 +243,9 @@ try {
     await main.getByRole("heading", { level: 1, name: "API keys", exact: true }).waitFor();
     check((await say(marked)) === "API keys", `the API keys area is current: "${await say(marked)}"`);
     for (const [name, at, title] of [
+      ["Search", "/app/search", "Have you asked this before?"],
+      ["Analysis", "/app/analysis", "No messages yet."],
+      ["Roadmap", "/app/roadmap", "No cards on the path yet."],
       ["Connect your AI", "/app/connect", "Connect your AI"],
       ["Playground", "/app/playground", "Playground"],
     ] as const) {
