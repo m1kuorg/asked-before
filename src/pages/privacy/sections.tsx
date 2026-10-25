@@ -319,7 +319,7 @@ const yourData: Section = {
 };
 
 // Sources: BACKUPS_DOCS, BACKUPS_DELETING, and GUEST_UPLOAD_WARNING (src/lib/copy.ts); docs/adr/0005 (anything a
-// learner deletes stays in Cloudflare's backups for up to 30 days); README.md, "Deploy it" (Time Travel's 7 days on
+// learner deletes stays in Cloudflare's backups for up to 30 days); README.md, Installation step 6 (Time Travel's 7 days on
 // Free and 30 on Paid, and that it can't be turned off).
 const backups: Section = {
   id: "backups",

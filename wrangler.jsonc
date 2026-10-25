@@ -1,7 +1,7 @@
 // Asked Before on Cloudflare Workers (ADR 0005). One Worker answers the API
 // under /api/; every other path is a static asset that `bun run build:pages`
 // writes to dist/ first. `bun run dev` runs it all locally, with no
-// Cloudflare account; the README's "Deploy it" says how to deploy it.
+// Cloudflare account; the README's Installation, step 6, says how to deploy it.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "asked-before",
