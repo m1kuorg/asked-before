@@ -213,6 +213,18 @@ export const AREAS: { area: string; endpoints: Endpoint[] }[] = [
     ],
   },
   {
+    area: "Analysis",
+    endpoints: [
+      {
+        method: "GET",
+        path: "/analysis",
+        sdk: "analysis.get",
+        who: KEY,
+        does: "How you ask, counted by code from your phrasings' own times, your cards, and your cold reps, across your shelves or on one (?shelfId=): your phrasings, on a card or not, and the re-asks among them (borrows after their card's first); every month from the first to the last in the time zone ?timeZone= names (an IANA name, UTC unless given; the SDK sends the runtime's own); the gaps between one borrow and the card's next, as a median, a middle half, and buckets; up to 10 cards, most borrowed first, with their median gaps; cold reps passed and failed by month; how many returned cards were borrowed again; and each shelf's counts. An unknown time zone is a 400, and a shelf that isn't yours a 404.",
+      },
+    ],
+  },
+  {
     area: "Roadmap",
     endpoints: [
       {
