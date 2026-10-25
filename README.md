@@ -323,7 +323,7 @@ Asked Before runs on your computer under `wrangler dev`, which runs it as Cloudf
 
 ## Roadmap
 
-See [open issues](https://github.com/m1kuorg/asked-before/issues) for a full list of proposed features (and known issues).
+Proposed features and known issues are tickets in m1kuorg/basics, the private planning repository, not in this repository's issues.
 
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
