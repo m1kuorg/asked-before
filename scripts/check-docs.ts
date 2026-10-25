@@ -65,7 +65,7 @@ async function statuses(): Promise<string[]> {
 
 await mkdir(OUT, { recursive: true });
 const model = await startModelStub(reply(keySorter));
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 const browser = await chromium.launch();
 
 try {
