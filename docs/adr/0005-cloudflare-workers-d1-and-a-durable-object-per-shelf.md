@@ -8,7 +8,7 @@ The app runs on Cloudflare Workers, so a learner reaches it at a public address 
 
 D1's Time Travel keeps 7 days of a database's history on Workers Free and 30 on Paid, and it can't be turned off, so anything a learner deletes stays in Cloudflare's backups for up to 30 days. The settings page says so beside downloading and deleting your data, and so does the docs page beside deleting the account.
 
-The entrant chose Cloudflare Workers on October 18, 2026 (m1kuorg/basics#60), and its Free plan on October 19 (m1kuorg/basics#68).
+The entrant chose Cloudflare Workers on October 18, 2026 (m1kuorg/basics#60), and its Free plan on October 19 (m1kuorg/basics#68). The m1kuorg/basics numbers here are tickets in the private planning repository.
 
 ## Considered options
 
