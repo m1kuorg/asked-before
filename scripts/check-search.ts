@@ -290,7 +290,7 @@ try {
     check(mark.join() === "rgb(249, 207, 224),rgb(16, 20, 33)", `marks are the selection pink with ink (${mark.join(" / ")})`);
   });
 
-  await step("10. A newer search aborts the one on its way, the wait shows, and a failure shows with its retry", async () => {
+  await step("10. A newer search aborts the one on its way, the wait shows, a stale answer is dimmed under its own words, and a failure shows with its retry", async () => {
     const { page, failed, searches } = ada1440!;
     const main = page.getByRole("main");
     await page.goto(`${app.url}/app/search`);
@@ -304,8 +304,8 @@ try {
     failed.length = 0;
     await field(page).fill("port");
     await field(page).press("Enter");
-    await main.getByRole("status").filter({ hasText: "Looking through your messages…" }).first().waitFor();
-    check(true, "while it waits, it says it's looking through your messages");
+    await main.getByRole("status").filter({ hasText: "Looking for “port”…" }).waitFor();
+    check(true, "while it waits, it says which words it's looking for");
     await field(page).fill("free port");
     await field(page).press("Enter");
     await sentence(page).filter({ hasText: /^Yes: / }).waitFor();
@@ -313,6 +313,32 @@ try {
     check(searches.join("|") === "port|free port" && failed.some((line) => line === "port net::ERR_ABORTED"), `the first search was aborted by the second (${failed.join(", ")})`);
     const answer = await ada.client.search.get({ q: "free port" });
     check((await say(main.getByText(/^Looked for /))).startsWith("Looked for “free” and “port”") && (await main.locator("mark").count()) > 0, `and the answer shown is the newer one's (${answer.total} messages)`);
+    await page.unroute("**/api/v1/search?**");
+
+    // A held search: the answer before stays, dimmed and busy, still naming its own words, with the wait for the new ones under it.
+    let release = () => {};
+    await page.route("**/api/v1/search?**", async (route) => {
+      await new Promise<void>((done) => (release = done));
+      await route.continue().catch(() => {});
+    });
+    await field(page).fill("squash");
+    await field(page).press("Enter");
+    const waiting = main.getByRole("status").filter({ hasText: "Looking for “squash”…" });
+    await waiting.waitFor();
+    const region = main.locator("[aria-live]").first();
+    const shown = {
+      busy: await region.getAttribute("aria-busy"),
+      opacity: await region.evaluate((el) => getComputedStyle(el).opacity),
+      words: await say(region.getByText(/^Looked for /)),
+      panels: await main.locator('[aria-busy="true"]').count(),
+    };
+    check(
+      shown.busy === "true" && shown.opacity === "0.6" && shown.words.startsWith("Looked for “free” and “port”") && shown.panels === 2,
+      `while "squash" is held, the "free port" answer stays dimmed and busy, still saying ${shown.words.split(" in ")[0]}, its panels busy too (${JSON.stringify(shown)})`,
+    );
+    release();
+    await region.getByText(/^Looked for “squash”/).waitFor();
+    check((await region.getAttribute("aria-busy")) === null && (await waiting.count()) === 0 && (await main.locator('[aria-busy="true"]').count()) === 0, "once it answers, the new answer is at full strength and nothing is busy");
     await page.unroute("**/api/v1/search?**");
 
     let failOnce = true;
