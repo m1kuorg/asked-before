@@ -8,7 +8,7 @@ The app runs on Workers Free, where a request has 10 ms of CPU time, and scrypt 
 
 What it costs: the salt is predictable, so an attacker who knows an email can spend scrypt's work on it before any breach, where a random salt made them wait for one; and the server can't hold a password to its length any more, so the SDK does. What it gains beside fitting Free: a password reused elsewhere never reaches the server or its logs. Each guess still costs scrypt, online or offline. The email salts the key, so changing the email needs the password, and sends the key both emails make.
 
-The entrant chose Workers Free on October 19, 2026, and this way to fit it (m1kuorg/basics#68).
+The entrant chose Workers Free on October 19, 2026, and this way to fit it (m1kuorg/basics#68, a ticket in the private planning repository).
 
 ## Considered options
 
