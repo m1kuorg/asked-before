@@ -12,7 +12,7 @@
 // check fails, naming the step.
 // Run: bun run check:sdk
 
-import { mkdtemp, readdir, rm } from "node:fs/promises";
+import { mkdtemp, readdir, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { passwordKey } from "@asked-before/sdk";
@@ -71,11 +71,14 @@ try {
     const added = await run(["bun", "add", SDK], scratch);
     check(added.code === 0, `bun add ${SDK} exits ${added.code}${added.code ? `: ${lastLine(added.err || added.out)}` : ""}`);
     await Bun.write(join(scratch, "quickstart.ts"), Bun.file(join(SDK, "examples", "quickstart.ts")));
-    // Bun links each of a folder's files into node_modules, so the package resolves to the folder's own path.
+    // Bun links each of a folder's files into the scratch package's node_modules, so the package resolves there,
+    // and both runtimes give a real path: on macOS, tmpdir()'s /var is a link to /private/var (m1kuorg/basics#76).
+    // So it's compared with the real path of the dist/index.js installed there.
+    const installed = await realpath(join(scratch, "node_modules", "@asked-before", "sdk", "dist", "index.js"));
     const resolve = `console.log(import.meta.resolve("@asked-before/sdk"))`;
     for (const [runtime, cmd] of [["Bun", ["bun", "-e", resolve]], ["Node", ["node", "--input-type=module", "-e", resolve]]] as const) {
       const resolved = (await run([...cmd], scratch)).out.replace(/^file:\/\//, "");
-      check(resolved === join(SDK, "dist", "index.js"), `${runtime} resolves it to ${resolved.replace(ROOT, "<repo>")}`);
+      check(resolved === installed, `${runtime} resolves it to ${resolved.replace(ROOT, "<repo>")}`);
     }
   });
 
