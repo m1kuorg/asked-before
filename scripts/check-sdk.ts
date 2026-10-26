@@ -97,7 +97,7 @@ try {
     const ada = app.browser().client;
     await ada.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
     const { key: apiKey } = await ada.keys.create({ name: "Scratch package" });
-    const want = key.skills.map((skill) => `${skill.name}: borrowed ${skill.count} times, borrowed`);
+    const want = key.skills.map((skill) => `${skill.name}: asked ${skill.count} times, To prove (borrowed)`);
     for (const runtime of ["bun", "node"]) {
       const quickstart = await run([runtime, "quickstart.ts", join(ROOT, "demo", "export.json")], scratch, { ASKED_BEFORE_URL: app.url, ASKED_BEFORE_API_KEY: apiKey });
       const lines = quickstart.out.split("\n");
