@@ -15,7 +15,7 @@
     <br />
     <a href="https://asked-before.m1kuorg.workers.dev"><strong>Live Demo &rarr;</strong></a>
     &middot;
-    <a href="https://youtu.be/mFd-x714JtU">Demo Video</a>
+    <a href="https://youtu.be/VfSAbG3JX9c">Demo Video</a>
     &middot;
     <a href="https://github.com/m1kuorg/asked-before/issues/new?labels=bug">Report a Bug</a>
     <br />
