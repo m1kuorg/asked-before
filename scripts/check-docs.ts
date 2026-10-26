@@ -157,7 +157,7 @@ try {
     const [output, errors, code] = await Promise.all([new Response(run.stdout).text(), new Response(run.stderr).text(), run.exited]);
     const lines = output.trim().split("\n");
     console.log(lines.map((line) => `       ${line}`).join("\n"));
-    const want = key.skills.map((skill) => `${skill.name}: borrowed ${skill.count} times, borrowed`);
+    const want = key.skills.map((skill) => `${skill.name}: asked ${skill.count} times, To prove (borrowed)`);
     check(code === 0 && JSON.stringify(lines.slice(1)) === JSON.stringify(want), `it uploads the demo export and lists the answer key's ${want.length} cards${code ? `; exit ${code}: ${errors.trim().split("\n").at(-1)}` : ""}`);
   });
 

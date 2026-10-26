@@ -30,7 +30,9 @@ while (upload.status === "waiting" || upload.status === "sorting") {
 }
 if (upload.status === "failed") throw new Error(`The sort failed: ${upload.error}`);
 
-// List the shelf's cards, most borrowed first.
+// List the shelf's cards, most asked first, each with its status: the word
+// the app shows for it, then the API's name.
+const onScreen = { borrowed: "To prove", returned: "Proven", borrowed_again: "Asked since proven" };
 for (const card of await client.cards.list(shelf.id)) {
-  console.log(`${card.skill}: borrowed ${card.count} times, ${card.status}`);
+  console.log(`${card.skill}: asked ${card.count} times, ${onScreen[card.status]} (${card.status})`);
 }
