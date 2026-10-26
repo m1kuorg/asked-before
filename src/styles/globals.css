@@ -7,7 +7,8 @@
  * setting --radius: 0 on its root (its data-ui fragments set it back).
  *
  * The CSP is default-src 'self': fonts are files at /fonts/ (never data:
- * URIs), and nothing here or in the components injects a <style> element.
+ * URIs), and nothing here or in the components injects a <style> element;
+ * the one Base UI's Select would inject is a rule below instead.
  */
 
 @import "tailwindcss" source("../");
@@ -205,6 +206,14 @@
   samp {
     font-family: var(--font-mono);
   }
+}
+
+/* The rule Base UI's Select would inject for the class it puts on its list: no scrollbar beside its scroll arrows (src/components/ui/select.tsx). */
+.base-ui-disable-scrollbar {
+  scrollbar-width: none;
+}
+.base-ui-disable-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Feedback only, and none of it for those who ask the system for less motion. */

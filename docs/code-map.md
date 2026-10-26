@@ -305,7 +305,8 @@ What every screen and page composes is in `src/components/`, and the code they s
 
 - the faces: Schibsted Grotesk, the one typeface, a variable file from 400 to 900, and JetBrains Mono, for code, API keys, and IDs only, both as files at `/fonts/`;
 - the tokens, as variables in `:root` that `@theme inline` makes into classes: shadcn's roles on the app's light tokens, the app's own (such as `--panel`, `--ask`, `--track`, and the pairs for each status), and the landing's plum palette. There's no dark mode. Radii follow `--radius`, 10px; the landing sets it to 0 on its root and back to 10px on each `data-ui` fragment;
-- the base layer: one focus outline for every control, none on a heading the router focuses, the selection, the caret, the monospace on `pre` and `code`, and every animation and transition cut short under `prefers-reduced-motion`.
+- the base layer: one focus outline for every control, none on a heading the router focuses, the selection, the caret, the monospace on `pre` and `code`, and every animation and transition cut short under `prefers-reduced-motion`;
+- and Base UI's rule for its `base-ui-disable-scrollbar` class, which a Select puts on its list: the Select's popup would inject it as a `<style>` that the CSP blocks, so `src/components/ui/select.tsx` turns that off with `CSPProvider disableStyleElements` (m1kuorg/basics#80).
 
 The landing page's own type steps and motion are plain CSS in `src/pages/landing/landing.css`, which `src/pages/landing.tsx` imports. Everything else is styled with Tailwind's classes on the tokens.
 
