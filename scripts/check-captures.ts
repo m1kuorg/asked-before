@@ -69,8 +69,8 @@ async function failure(call: Promise<unknown>): Promise<ApiError | null> {
 }
 const say = (error: ApiError | null) => (error ? `${error.status} "${error.message}"` : "no error");
 
-const model = await startModelStub(sortsByKey());
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const model = await startModelStub(sortsByKey(refuse()));
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 const ada = app.browser();
 await ada.client.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
 
@@ -269,7 +269,7 @@ try {
   });
 
   await step("12. Past the daily cap, a capture the model must sort is a 429 and keeps nothing; the same words again need no model", async () => {
-    const capped = await startApp({ ANTHROPIC_BASE_URL: model.url, SITE_DAILY_MODEL_REQUESTS: "1" });
+    const capped = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in", SITE_DAILY_MODEL_REQUESTS: "1" });
     try {
       const { client } = capped.browser();
       await client.auth.signUp({ name: "Cy Example", email: "cy@example.com", password: "jacquard loom" });

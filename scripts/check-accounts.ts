@@ -26,7 +26,7 @@ const model = await startModelStub(
     newer,
   ),
 );
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 const failures: string[] = [];
 let current = "";
 

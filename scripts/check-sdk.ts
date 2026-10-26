@@ -51,7 +51,7 @@ const lastLine = (text: string) => text.split("\n").at(-1) ?? "";
 
 const scratch = await mkdtemp(join(tmpdir(), "asked-before-sdk-"));
 const model = await startModelStub(reply(keySorter));
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 
 try {
   await step("1. The build emits JavaScript and type declarations, and the package's exports and types point at them", async () => {

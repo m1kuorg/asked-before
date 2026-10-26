@@ -46,7 +46,7 @@ await mkdir(OUT, { recursive: true });
 // Sorts as the key does, with any phrasing `also` names placed on its skill's card; a rep or check takes the answer a step queues.
 const also = new Map<string, string>();
 const model = await startModelStub(sortsByKey(refuse(), also));
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 const browser = await chromium.launch();
 
 const ada = app.browser();

@@ -61,7 +61,7 @@ const model = await startModelStub(
     return refuse()(request, raw, body);
   }, also),
 );
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 const ada = app.browser();
 await ada.client.auth.signUp({ name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" });
 
@@ -267,7 +267,7 @@ try {
 
   await step("11. Past the daily cap, starting and checking a rep get 429, without asking the model", async () => {
     const CAP = 4;
-    const capped = await startApp({ ANTHROPIC_BASE_URL: model.url, SITE_DAILY_MODEL_REQUESTS: String(CAP) });
+    const capped = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in", SITE_DAILY_MODEL_REQUESTS: String(CAP) });
     try {
       const cy = capped.browser();
       await cy.client.auth.signUp({ name: "Cy Example", email: "cy@example.com", password: "jacquard loom" });

@@ -64,7 +64,7 @@ const models: ModelStub[] = [];
 /** A copy of the app whose model is a stand-in answering as the key does, and a learner signed up on it. */
 async function copy(env: Record<string, string> = {}) {
   const model = await startModelStub(reply(keySorter));
-  const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ...env });
+  const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in", ...env });
   models.push(model);
   apps.push(app);
   const { client } = app.browser();
@@ -305,7 +305,7 @@ try {
     const model = await startModelStub(reply(keySorter));
     models.push(model);
     try {
-      const before = await startApp({ ANTHROPIC_BASE_URL: model.url }, { state });
+      const before = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" }, { state });
       const learner = before.browser().client;
       await learner.auth.signUp({ name: "Cy Example", email: "cy@example.com", password: "jacquard loom" });
       const shelf = await learner.shelves.create({ name: "Restarted" });
@@ -316,7 +316,7 @@ try {
       // Wrangler and workerd get SIGKILL mid-batch, with the model's answer still to come.
       await before.kill();
       held.release(refuse());
-      const after = await startApp({ ANTHROPIC_BASE_URL: model.url }, { state });
+      const after = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" }, { state });
       apps.push(after);
       const again = after.browser().client;
       await again.auth.logIn({ email: "cy@example.com", password: "jacquard loom" });
@@ -337,7 +337,7 @@ try {
     // One address across both starts, so the learner keeps her session.
     const dee = browser(`http://localhost:${port}`).client;
     // SORTER_FAULT=start makes every start() of the sort's Durable Object throw.
-    let app: App | undefined = await startApp({ ANTHROPIC_BASE_URL: model.url, SORTER_FAULT: "start" }, { state, port });
+    let app: App | undefined = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in", SORTER_FAULT: "start" }, { state, port });
     try {
       await dee.auth.signUp({ name: "Dee Example", email: "dee@example.com", password: "punched cards" });
       const shelf = await dee.shelves.create({ name: "Unstarted" });
@@ -351,7 +351,7 @@ try {
       ended.push(app);
       await app.stop();
       app = undefined;
-      app = await startApp({ ANTHROPIC_BASE_URL: model.url }, { state, port });
+      app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" }, { state, port });
       ended.push(app);
       const retried = await failure(dee.uploads.retry(made!.id));
       check(retried === null, `once start() works, the learner's retry is taken: ${say(retried)}`);
@@ -373,7 +373,7 @@ try {
   let waiting: Upload | undefined;
   await step("14. A database failure in the sort's alarm escapes nothing, and leaves its upload waiting", async () => {
     // SORTER_FAULT=database makes every query the sort's Durable Object's alarm makes fail, as a database out of reach would.
-    const app = await startApp({ ANTHROPIC_BASE_URL: strandedModel.url, SORTER_FAULT: "database" }, strandedAt);
+    const app = await startApp({ ANTHROPIC_BASE_URL: strandedModel.url, ANTHROPIC_API_KEY: "stand-in", SORTER_FAULT: "database" }, strandedAt);
     ended.push(app);
     try {
       await eve.auth.signUp({ name: "Eve Example", email: "eve@example.com", password: "tabulating machine" });
@@ -391,7 +391,7 @@ try {
   });
 
   await step("15. The cron starts a sort left waiting with no alarm once it has stalled, and it ends as the key sorts", async () => {
-    const app = await startApp({ ANTHROPIC_BASE_URL: strandedModel.url }, strandedAt);
+    const app = await startApp({ ANTHROPIC_BASE_URL: strandedModel.url, ANTHROPIC_API_KEY: "stand-in" }, strandedAt);
     ended.push(app);
     try {
       const upload = waiting!;

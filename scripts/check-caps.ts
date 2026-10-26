@@ -46,6 +46,7 @@ await mkdir(OUT, { recursive: true });
 const model = await startModelStub(sortsByKey(refuse()));
 const app = await startApp({
   ANTHROPIC_BASE_URL: model.url,
+  ANTHROPIC_API_KEY: "stand-in",
   SITE_DAILY_MODEL_REQUESTS: "4",
   SITE_DAILY_PHRASINGS: "60",
   // The caps m1kuorg/basics#73 removed, set as small as they went: none of them holds anything back now.

@@ -86,7 +86,7 @@ const ONE_BATCH = ["d1_first", "d1_batch"];
 
 // Rep and check requests nobody queued an answer for are refused, so nothing here reaches the real model.
 const model = await startModelStub(sortsByKey((request, raw, body) => refuse()(request, raw, body)));
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 const withKey = (apiKey: string) => createClient({ baseUrl: app.url, apiKey });
 
 const ADA = { name: "Ada Lovelace", email: "ada@example.com", password: "analytical engine" };

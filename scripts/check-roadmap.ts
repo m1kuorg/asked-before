@@ -128,7 +128,7 @@ function sortsByName(request: ModelRequest) {
 
 await mkdir(OUT, { recursive: true });
 const model = await startModelStub((request, raw, body) => (kindOf(request) === "sort" ? reply(sortsByName) : refuse())(request, raw, body));
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 const browser = await chromium.launch();
 
 const ada = app.browser();

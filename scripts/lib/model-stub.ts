@@ -1,7 +1,10 @@
 // A stand-in for the Anthropic API, for the checks that read or steer what
 // the app sends the model. Start the app with
 // startApp({ ANTHROPIC_BASE_URL: model.url }): the Anthropic SDK reads that
-// variable, so nothing in the app changes. Every request is recorded, then
+// variable, so nothing in the app changes. A check whose stand-in forwards
+// nothing adds ANTHROPIC_API_KEY: "stand-in", since the app asks no model
+// without a key, and one that forwards adds none, so the app keeps the
+// shell's (m1kuorg/basics#92). Every request is recorded, then
 // answered by the next queued answer, or else by the stub's default:
 // forwarded to the real API with the app's own key (as check:sort does),
 // or answered here (as the checks that only need a sort to finish do).

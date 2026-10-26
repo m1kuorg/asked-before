@@ -23,7 +23,7 @@ import { startApp } from "./lib/app";
 import { reply, startModelStub } from "./lib/model-stub";
 
 const model = await startModelStub(reply(keySorter));
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 const failures: string[] = [];
 let current = "";
 
