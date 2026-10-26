@@ -1,18 +1,19 @@
 // Home (/app, /app/desk; desk.get() and shelves.list()). Its question: what
 // should I prove next? The greeting is the h1, built from the data ("4 cards
 // need a cold rep, 1 is proven."), over a grey line naming the shelves and
-// the last ask (brief sections 4 and 7; taste-sheet-app.md, "home").
+// the last ask (m1kuorg/basics#74; .taste-skill/app/direction.json, "home").
 //
 // The grid: a centred 1100px column of 12 columns, 77px wide with 16px
 // gutters (12 x 77 + 11 x 16 = 1100). The four tiles take 3 columns each.
 // Then 8 + 4 (729 + 16 + 355 = 1100): on the left, Prove next over Your
 // shelves over Latest proven, the queue, where it comes from, and where it
 // goes; on the right, Latest asks, the stream of your own words beside them
-// (app-screens section 3.4: a right rail for recent items). The left column
-// stacks the blocks whose sizes pull against each other (every card is
-// either still to prove or proven), so it keeps nearly one height whatever
-// the split, and the row stretches so both sides end level (section 4.2).
-// Below a 1100px canvas everything stacks; on a phone the tiles are 2 x 2.
+// (a right rail for recent items, as .impeccable/surfaces/src-app-main-tsx.md
+// records). The left column stacks the blocks whose sizes pull against each
+// other (every card is either still to prove or proven), so it keeps nearly
+// one height whatever the split, and the row stretches so both sides end
+// level (the same file: side by side, the lists ended ragged). Below a 1100px
+// canvas everything stacks; on a phone the tiles are 2 x 2.
 import type { ScreenProps } from "@/app/router";
 import { useResource } from "@/app/use-resource";
 import { ErrorNotice } from "@/components/error-notice";

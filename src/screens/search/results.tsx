@@ -1,10 +1,10 @@
-// Search's two answers under its sentence (plan section 3): the cards the
-// matches are on, then the matching messages. Cards are white row cards on
-// the panel, since each holds its ask strip (a span on one axis shared by
-// every row), with its shelf, how many of its messages match, and its
-// status pill; a card only its name matched says so. Messages are rule
-// rows, newest first, word for word with the words marked, each with its
-// date and a link to its card, or to its shelf's messages not on a card.
+// Search's two answers under its sentence (docs/DESIGN.md, "Layout"): the
+// cards the matches are on, then the matching messages. Cards are white row
+// cards on the panel, since each holds its ask strip (a span on one axis
+// shared by every row), with its shelf, how many of its messages match, and
+// its status pill; a card only its name matched says so. Messages are rule
+// rows, newest first, word for word with the words marked, each with its date
+// and a link to its card, or to its shelf's messages not on a card.
 import type { SearchAnswer, SearchCard, SearchPhrasing } from "@asked-before/sdk";
 import { cn } from "cn";
 import { AskStrip, askAxis, type Axis } from "@/components/ask-strip";

@@ -1,4 +1,4 @@
-// "Your shelves" (brief section 7), under Prove next: each shelf (to its
+// "Your shelves" (m1kuorg/basics#74), under Prove next: each shelf (to its
 // page, with Demo data) and how many of its cards need a cold rep, as
 // rule-separated rows on the panel, then "Upload an export". With one shelf
 // that's a link to its upload page; with more, a menu asks which shelf. The

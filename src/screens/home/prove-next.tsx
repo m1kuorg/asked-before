@@ -1,7 +1,7 @@
-// "Prove next" (brief sections 4 and 7), the panel that answers Home's
-// question: up to 10 cards that need a cold rep, most asked first, each a
-// white row card with the skill (to the card, which spends no model request),
-// its shelf, its ask strip on one axis shared by every row (the earliest first
+// "Prove next" (m1kuorg/basics#74), the panel that answers Home's question:
+// up to 10 cards that need a cold rep, most asked first, each a white row
+// card with the skill (to the card, which spends no model request), its
+// shelf, its ask strip on one axis shared by every row (the earliest first
 // ask to today), "asked 9 times", and "Start a cold rep" to
 // /app/cards/<id>?rep=start. The top row's is the screen's one filled
 // primary. The rows share their column lines through a subgrid, so every

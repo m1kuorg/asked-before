@@ -1,9 +1,9 @@
 // What the playground knows of each endpoint beyond its docs row. The list
 // itself is AREAS (src/pages/docs/reference.ts), the one list check:docs
-// holds to the server's routes; this adds, by "METHOD /path", the classes of
-// plan-review.md's table: the endpoints that would end or replace this
-// session or the account and so don't run here, with the reason and where
-// the app does it; what a model-spending one costs, in words, and its second
+// holds to the server's routes; this adds, by "METHOD /path", the classes
+// m1kuorg/basics#77 sets apart: the endpoints that would end or replace this
+// session or the account and so don't run here, with the reason and where the
+// app does it; what a model-spending one costs, in words, and its second
 // click; what a DELETE confirms, naming the object; the notes said before a
 // send; the example body, built from the learner's own data; how the SDK
 // takes its inputs; and which field an id in its answer fills. An endpoint

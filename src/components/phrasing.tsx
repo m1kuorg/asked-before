@@ -1,5 +1,5 @@
 // Your words, word for word, as text (never markup), with each command flag
-// (-m, --soft) kept on one line (inventory.md, "Shared behaviour").
+// (-m, --soft) kept on one line (m1kuorg/basics#74).
 import { Fragment } from "react";
 
 export function Phrasing({ text }: { text: string }) {

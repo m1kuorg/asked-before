@@ -1,12 +1,11 @@
-// Settings: one view per area (app-screens.md 8.2), each with the area's
-// name as its h1 and its sections in two columns (taste-sheet-app.md):
-// Account at /app/settings (Profile, then Password), API keys at
-// /app/settings/keys (Your keys, then What a key can do), and Your data at
-// /app/settings/data (What Asked Before keeps, Download your data, then
-// Delete your account, last). Each section has its own form, status line,
-// and errors (brief section 4, item 6; inventory.md, Settings), and its
-// label column carries the current values the API gives, rather than a
-// void beside a taller panel.
+// Settings: one view per area (m1kuorg/basics#77), each with the area's name
+// as its h1 and its sections in two columns (.taste-skill/app/direction.json,
+// "Settings in two columns"): Account at /app/settings (Profile, then
+// Password), API keys at /app/settings/keys (Your keys, then What a key can
+// do), and Your data at /app/settings/data (What Asked Before keeps, Download
+// your data, then Delete your account, last). Each section has its own form,
+// status line, and errors (m1kuorg/basics#74), and its label column carries
+// the current values the API gives, rather than a void beside a taller panel.
 // The shared guest has none of them: at every settings path it gets one
 // view, titled Settings, with the way to an account of one's own and, in
 // the same two columns, what each of an account's three areas holds and

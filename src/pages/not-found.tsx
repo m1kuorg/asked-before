@@ -1,7 +1,7 @@
-// The not-found page outside the app (dist/404.html, HTTP 404): brief
-// section 5. One plum field, like the landing's hero: the wordmark, the
-// heading at display size over two lines, then the sentence and the way back
-// to the start on one line at the foot. Square corners, the pink action.
+// The not-found page outside the app (dist/404.html, HTTP 404;
+// m1kuorg/basics#74). One plum field, like the landing's hero: the wordmark,
+// the heading at display size over two lines, then the sentence and the way
+// back to the start on one line at the foot. Square corners, the pink action.
 import { createRoot } from "react-dom/client";
 import { cn } from "cn";
 import { buttonVariants } from "@/components/ui/button";

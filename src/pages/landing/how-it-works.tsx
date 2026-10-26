@@ -20,7 +20,7 @@ import { AXIS, CARD_A, CARDS, DEMO_MESSAGES } from "./demo";
 import { Photo } from "./photo";
 
 const FILE = "chatgpt-export.zip";
-/** Every ask on the demo shelf's cards: the shelf's subline counts these (brief section 7). */
+/** Every ask on the demo shelf's cards: the shelf's subline counts these (m1kuorg/basics#74). */
 const ASKS = CARDS.reduce((sum, card) => sum + card.borrows.length, 0);
 const ANSWER = "git reset --soft HEAD~1 undoes the commit and keeps the changes staged";
 const REASON = "Right: git reset --soft HEAD~1 moves the branch back one commit and leaves your changes staged.";

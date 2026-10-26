@@ -1,11 +1,11 @@
-// One upload after sending (?upload=<id>; inventory.md, "Upload", flow 9):
-// how many of its messages were new, then where its sort stands, asked for
-// with uploads.get a second after each answer while it waits or sorts, and
-// never again once the screen is left. Sorting shows "120 of 300 sorted" on a
-// bar, then the last pass over the messages not on a card; a failed sort
-// shows its error (the daily model cap's message included) and "Try again",
-// which runs uploads.retry. When a sort it watched ends, the sidebar's counts
-// refresh. "Go to <shelf>" and "Upload another export" close every state.
+// One upload after sending (?upload=<id>; m1kuorg/basics#74): how many of its
+// messages were new, then where its sort stands, asked for with uploads.get a
+// second after each answer while it waits or sorts, and never again once the
+// screen is left. Sorting shows "120 of 300 sorted" on a bar, then the last
+// pass over the messages not on a card; a failed sort shows its error (the
+// daily model cap's message included) and "Try again", which runs
+// uploads.retry. When a sort it watched ends, the sidebar's counts refresh.
+// "Go to <shelf>" and "Upload another export" close every state.
 
 import type { Client, Shelf, Upload } from "@asked-before/sdk";
 import { useEffect, useRef, useState, type RefObject } from "react";

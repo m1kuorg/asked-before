@@ -1,11 +1,11 @@
-// The landing page (brief section 5 as amended in section 7, and
-// taste-sheet-landing.md): type and nothing else on the first screen, a few
-// credited archival pictures further down, colour by chapter. Each
+// The landing page (m1kuorg/basics#74, and the direction in
+// .taste-skill/direction.json): type and nothing else on the first screen, a
+// few credited archival pictures further down, colour by chapter. Each
 // chapter is a full-bleed field of one palette colour and says which ink it
 // takes (data-chapter-ink); the fixed header's corners take the ink of the
 // chapter beneath them. Parts marked data-reveal rise once as they enter.
-// "Skip to content" comes first, past the header. No API call is made until
-// a guest button is pressed.
+// "Skip to content" comes first, past the header. No API call is made until a
+// guest button is pressed.
 import { useEffect, useRef, useState } from "react";
 import { cn } from "cn";
 import { SkipLink } from "@/components/skip-link";
