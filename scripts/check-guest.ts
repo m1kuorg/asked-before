@@ -59,7 +59,7 @@ const check = (ok: boolean, what: string) => {
 await mkdir(OUT, { recursive: true });
 // Sorts as the key does; a cold rep or its check takes the answer a step queues, and anything else is refused.
 const model = await startModelStub(sortsByKey(refuse()));
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 const browser = await chromium.launch();
 const errors: string[] = [];
 let shot = 0;

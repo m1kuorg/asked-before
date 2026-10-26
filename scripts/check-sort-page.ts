@@ -38,7 +38,7 @@ const check = (ok: boolean, what: string) => {
 
 await mkdir(OUT, { recursive: true });
 const model = await startModelStub(reply(keySorter));
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url, SORT_BATCH_SIZE: "10", SITE_DAILY_MODEL_REQUESTS: String(CAP) });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in", SORT_BATCH_SIZE: "10", SITE_DAILY_MODEL_REQUESTS: String(CAP) });
 const browser = await chromium.launch();
 
 const learner = app.browser();

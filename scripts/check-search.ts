@@ -50,7 +50,7 @@ const check = (ok: boolean, what: string) => {
 
 await mkdir(OUT, { recursive: true });
 const model = await startModelStub(sortsByKey(refuse()));
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 const browser = await chromium.launch();
 
 async function step(name: string, run: () => Promise<void>) {
