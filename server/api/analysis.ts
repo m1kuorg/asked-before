@@ -1,8 +1,8 @@
-// Analysis (app-notes/depth/plan.md, section 1): how you ask, and what you
-// keep re-asking, counted by code, never by the model. A session or an API
-// key can read it. `timeZone` is the IANA zone the months are counted in, UTC
-// unless given; one the runtime doesn't know is a 400 that doesn't repeat it.
-// `shelfId` counts one shelf; another account's, or none, is a 404.
+// Analysis (m1kuorg/basics#79): how you ask, and what you keep re-asking,
+// counted by code, never by the model. A session or an API key can read it.
+// `timeZone` is the IANA zone the months are counted in, UTC unless given;
+// one the runtime doesn't know is a 400 that doesn't repeat it. `shelfId`
+// counts one shelf; another account's, or none, is a 404.
 //
 // CPU (Workers Free allows 10 ms a request): SQL does the counting, and the
 // JavaScript only works out each month's start in the zone and shapes the

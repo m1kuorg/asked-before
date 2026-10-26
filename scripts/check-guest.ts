@@ -43,7 +43,7 @@ const NOT_FOR_GUESTS = "A guest can't do this. Sign up for an account of your ow
 /** The guest's settings view, at every settings path: its h2, and the h2 of what an account's settings hold. */
 const GUEST_SETTINGS = "Settings are for your own account";
 const ACCOUNTS_SETTINGS = "What an account's settings hold";
-/** The guest's line in the sidebar, and the upload page's warning, word for word (inventory.md, "Copy with product, legal, or privacy weight"). */
+/** The guest's line in the sidebar, and the upload page's warning, word for word (m1kuorg/basics#74). */
 const GUEST_LINE = "Every guest shares this workspace, and it's wiped daily at midnight UTC.";
 const UPLOAD_WARNING =
   "You're signed in as the shared guest, so every guest will see what you upload here, with its cards and cold reps. The guest workspace is wiped daily at midnight UTC, though Cloudflare's backups keep it for up to 7 days. Sign up to keep an export to yourself.";
