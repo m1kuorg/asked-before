@@ -200,7 +200,6 @@ const BY_CONTAINER: Record<string, Param> = {
   card: "cardId",
   mostBorrowed: "cardId",
   latestReturns: "cardId",
-  elsewhere: "cardId",
   reps: "repId",
   rep: "repId",
   keys: "keyId",

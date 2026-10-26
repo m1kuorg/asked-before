@@ -28,7 +28,7 @@ type NextProps = { map: Roadmap; client: Client; navigate: (path: string) => voi
 export function NextOnPath({ map, client, navigate, className }: NextProps) {
   const next = nextOnPath(map);
   if (!next) {
-    const cards = onPath(map).length + map.elsewhere.length;
+    const cards = onPath(map).cards + map.elsewhere.counts.cards;
     return (
       <Panel title="Next on your path" className={className}>
         {cards === 0 ? (
@@ -46,7 +46,7 @@ export function NextOnPath({ map, client, navigate, className }: NextProps) {
           </Empty>
         ) : (
           <p className="text-sm text-muted-foreground">
-            {onPath(map).length
+            {onPath(map).cards
               ? "Nothing on the path needs a cold rep: every card on it is proven. A card comes back here when you ask it again."
               : "None of your cards is on the path, so nothing here needs a cold rep. They're listed under the map."}
           </p>
