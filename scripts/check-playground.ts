@@ -38,7 +38,7 @@ const MADE = "Made in the playground";
 
 await mkdir(OUT, { recursive: true });
 const model = await startModelStub(reply(keySorter));
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 const browser = await chromium.launch();
 const failures: string[] = [];
 let current = "";

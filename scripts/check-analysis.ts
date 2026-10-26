@@ -54,7 +54,7 @@ const check = (ok: boolean, what: string) => {
 await mkdir(OUT, { recursive: true });
 const also = new Map<string, string>();
 const model = await startModelStub(sortsByKey(refuse(), also));
-const app = await startApp({ ANTHROPIC_BASE_URL: model.url });
+const app = await startApp({ ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" });
 let browser: Chromium | undefined;
 
 async function step(name: string, run: () => Promise<void>) {

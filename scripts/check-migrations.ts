@@ -168,7 +168,7 @@ const databaseOf = (folder: string) => {
 
 // Sorts end as the answer key sorts, and rep and check requests get the answers queued for them.
 const model = await startModelStub(sortsByKey(refuse()));
-const env = { ANTHROPIC_BASE_URL: model.url };
+const env = { ANTHROPIC_BASE_URL: model.url, ANTHROPIC_API_KEY: "stand-in" };
 // One port for every start on Ada's state, so her browser keeps its address and its session cookie.
 const port = freePort();
 const ada = browser(`http://localhost:${port}`);
