@@ -80,7 +80,7 @@ Build mode: fast
 
 ## Final Review
 
-- [x] Stack's "nothing asked more than once" state keeps the plate with the count of your own messages (DESIGN.md's Plate Holds Rule) — `showStack` in `src/screens/stack.ts` adds `messagePlate()`, and `public/styles.css`'s short-block rule now covers every block with a plate, so it sits inside the padding; `check:styles`, `check:rep`, and `journey` pass. Retried by the learner on 3131 at 55555ed: the plate sits inside the block (plate 133 to 359, block foot 404), with no regressions in the other states' plates.
+- [x] Stack's "nothing asked more than once" state keeps the plate with the count of your own messages (DESIGN.md's Plate Holds Rule) — `showStack` in `src/screens/stack.ts` adds `messagePlate()`, and `public/styles.css`'s short-block rule now covers every block with a plate, so it sits inside the padding; `check:styles`, `check:rep`, and `journey` pass. Retried by the learner on 3131 at 4dc6b28: the plate sits inside the block (plate 133 to 359, block foot 404), with no regressions in the other states' plates.
 - [x] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
@@ -89,11 +89,11 @@ Build mode: fast
 - [x] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
 - [x] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
-Activity and evidence: Guided route (the default, since no learning outcome was written down) on one action: submitting a cold-rep answer. The learner opened each stop in the source at 855607d and matched it to what the final review's browser walk showed: the three keys in each check request, "Still borrowed" and "The lesson, again" after both wrong answers, reasons naming that answer, and key A struck after the pass, with a reload starting over. Practice to reuse in the map: the Plate Holds Rule checked as a measurement on the running app, which caught the plate hanging past the block's foot in the final-review fix.
+Activity and evidence: Guided route (the default, since no learning outcome was written down) on one action: submitting a cold-rep answer. The learner opened each stop in the source at 783396b and matched it to what the final review's browser walk showed: the three keys in each check request, "Still borrowed" and "The lesson, again" after both wrong answers, reasons naming that answer, and key A struck after the pass, with a reload starting over. Practice to reuse in the map: the Plate Holds Rule checked as a measurement on the running app, which caught the plate hanging past the block's foot in the final-review fix.
 Route and stops: all three completed — `src/screens/rep.ts` `answer()` (posts to `/api/check`, fail and pass branches, `onReturned(date)`); `server/routes/check.ts` `check()`, `Verdict` (reason before verdict), `SYSTEM`; `src/main.ts` `showRep()` (`returned.set(card.skill, date)` into the in-memory `Map`).
 Edit outcome: declined — the suggested label change isn't in the entrant's written decisions.
 Reflection: offered; completed during the wrap-up.
-Activity mode: live app and editor — source read at 855607d against the final review's browser walk on 3131. Map: `devpost/app-map.html`, checked offline with scripts disabled at 1920x1080.
+Activity mode: live app and editor — source read at 783396b against the final review's browser walk on 3131. Map: `devpost/app-map.html`, checked offline with scripts disabled at 1920x1080.
 
 ## Revisions
 
