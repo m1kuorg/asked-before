@@ -18,8 +18,12 @@
 // Run: bun run journey [screenshot dir] [--video] [--pause <ms>] [--demo-shelf]
 //   --video        also records the run, at 1920×1080, to journey.webm in the
 //                  screenshot dir, and says when each step began and ended in it;
-//                  its screenshots show the window, not the whole page
-//   --pause <ms>   waits this long on the landing page, after each step, and before
+//                  its screenshots show the window, not the whole page; and writes
+//                  the MCP server's record_question call and its whole reply, text
+//                  and structured content, to mcp-reply.json there, a file that
+//                  holds message text, which the log never prints
+//   --pause <ms>   waits this long on the landing page, on the shelf with card A's
+//                  count loaded before opening card A, after each step, and before
 //                  each submit, for a watchable pace
 //   --demo-shelf   takes Home's "Try the demo shelf" instead of making Work and
 //                  choosing the demo export, so the demo-data label shows
@@ -86,6 +90,9 @@ const SHELF = DEMO_SHELF ? "Demo" : "Work";
 const REPHRASING = "how do I undo the commit I just made? I haven't pushed it yet";
 
 await mkdir(OUT, { recursive: true });
+/** The MCP call and its reply, which a recorded run writes in the MCP step; an earlier run's is gone first. */
+const MCP_REPLY = join(OUT, "mcp-reply.json");
+if (values.video) await rm(MCP_REPLY, { force: true });
 const app = LIVE_URL ? { url: LIVE_URL, stop: async () => {} } : await startApp();
 let browser: Browser;
 try {
@@ -249,6 +256,8 @@ try {
     const top = cards().getByRole("listitem").first();
     const listed = { skill: await say(top.getByRole("link")), said: await say(top) };
     expect(listed.skill === A.name && listed.said.includes(`${A.count} times asked`), `the shelf lists "${listed.skill}" first, not card A with ${A.count} asks: "${listed.said}"`);
+    // With --pause, the shelf's cards stay on screen, card A's count loaded, before card A opens.
+    await pause();
     await top.getByRole("link", { name: A.name, exact: true }).click();
     await settles(h1(A.name));
     const line = await say(main.locator("header p"));
@@ -342,7 +351,9 @@ try {
     const transport = new StdioClientTransport({ command: process.execPath, args: [join(ROOT, ENTRY_IN_CLONE)], env: { [MCP_ENV.url]: app.url, [MCP_ENV.apiKey]: apiKey }, stderr: "pipe" });
     mcp = new Client({ name: "journey", version: "0.0.0" });
     await mcp.connect(transport);
-    const result = await mcp.callTool({ name: "record_question", arguments: { question: REPHRASING, shelf: SHELF } });
+    const call = { name: "record_question", arguments: { question: REPHRASING, shelf: SHELF } };
+    const result = await mcp.callTool(call);
+    if (values.video) await Bun.write(MCP_REPLY, `${JSON.stringify({ call, reply: result }, null, 2)}\n`);
     const data = result.structuredContent as { card: { id: string; count: number; status: string } | null } | undefined;
     const said = (result.content as { text?: string }[]).map((c) => c.text ?? "").join(" ");
     expect(result.isError !== true, `record_question failed: ${said}`);
