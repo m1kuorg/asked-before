@@ -1,9 +1,10 @@
 // The current values a settings section is about, in its label column under
-// the description (app-screens.md 8.2: a summary of the current values
-// rather than a void beside a taller panel), as a key-value list on row
-// rules: the term in grey on the left, the value in ink on the right (a
-// count in its own tabular Figure). Facts only, from the API. A value still
-// loading is a flat bar on the line's centre, so nothing moves when it lands.
+// the description (.taste-skill/app/direction.json, "Settings in two
+// columns": a summary of the current values rather than a void beside a
+// taller panel), as a key-value list on row rules: the term in grey on the
+// left, the value in ink on the right (a count in its own tabular Figure).
+// Facts only, from the API. A value still loading is a flat bar on the line's
+// centre, so nothing moves when it lands.
 
 import type { ReactNode } from "react";
 import { cn } from "cn";

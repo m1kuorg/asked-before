@@ -1,12 +1,12 @@
-// The sign-up page (/signup): brief section 5, inventory "Sign up". The
-// password goes only through auth.signUp, which refuses a weak one before
-// anything is sent and derives its key in the page (ADR 0006); the form never
-// submits itself, and the submit stays locked while scrypt runs and the next
-// page loads. A message that names one field ("A name is needed.", "That
-// email already has an account. Log in instead.") shows on that field. A
-// sign up sets the signed-in hint and goes to `next`, or Home. The
-// cross-link and the guest sign-in carry `next` along. The fine print under
-// the button links to the privacy page.
+// The sign-up page (/signup; m1kuorg/basics#74). The password goes only
+// through auth.signUp, which refuses a weak one before anything is sent and
+// derives its key in the page (ADR 0006); the form never submits itself, and
+// the submit stays locked while scrypt runs and the next page loads. A
+// message that names one field ("A name is needed.", "That email already has
+// an account. Log in instead.") shows on that field. A sign up sets the
+// signed-in hint and goes to `next`, or Home. The cross-link and the guest
+// sign-in carry `next` along. The fine print under the button links to the
+// privacy page.
 import { useId } from "react";
 import { createRoot } from "react-dom/client";
 import { TextLink } from "@/components/text-link";

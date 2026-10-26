@@ -1,9 +1,8 @@
-// "New shelf" (inventory.md, Shelves list and Flows 5): a one-line form at the
-// top right of the shelves list. shelves.create({ name }) adds the row in
-// place; the field is cleared and keeps focus, and nothing navigates. A
-// refused name ("A shelf needs a name.", "A shelf's name can have at most 80
-// characters.", from shelfName or the server) marks the field, describes it,
-// and focuses it.
+// "New shelf" (m1kuorg/basics#74): a one-line form at the top right of the
+// shelves list. shelves.create({ name }) adds the row in place; the field is
+// cleared and keeps focus, and nothing navigates. A refused name ("A shelf
+// needs a name.", "A shelf's name can have at most 80 characters.", from
+// shelfName or the server) marks the field, describes it, and focuses it.
 import type { Client, Shelf } from "@asked-before/sdk";
 import { useId, type RefObject } from "react";
 import { Button } from "@/components/ui/button";

@@ -1,13 +1,13 @@
-// A delete confirmation in place, never a modal (inventory.md, "Shared
-// behaviour"): role="group" labelled by its question, the body naming
-// everything that goes and that it can't be undone, the action ("Delete
-// Work") and "Keep it". Focus starts on Keep it; Escape keeps it; both lock
-// while the delete runs; a failure shows inside and unlocks. Keeping it
-// returns focus to `returnFocus` (the button that opened it), or to whatever
-// had focus when it opened. Render it where it belongs, such as a detail row
-// under the table row. It takes the width it's given and asks for none (width
-// 0, at least all of it), so in a table cell it never widens the table: a long
-// name wraps in the question and is cut in the action.
+// A delete confirmation in place, never a modal (docs/DESIGN.md, "Do's and
+// Don'ts"): role="group" labelled by its question, the body naming everything
+// that goes and that it can't be undone, the action ("Delete Work") and "Keep
+// it". Focus starts on Keep it; Escape keeps it; both lock while the delete
+// runs; a failure shows inside and unlocks. Keeping it returns focus to
+// `returnFocus` (the button that opened it), or to whatever had focus when it
+// opened. Render it where it belongs, such as a detail row under the table
+// row. It takes the width it's given and asks for none (width 0, at least all
+// of it), so in a table cell it never widens the table: a long name wraps in
+// the question and is cut in the action.
 import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";

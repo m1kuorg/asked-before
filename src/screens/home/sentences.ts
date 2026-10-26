@@ -1,5 +1,5 @@
-// Home's greeting and the grey line under it, built from desk.get() (brief
-// sections 4 and 7): "4 cards need a cold rep, 1 is proven." over "Across 2
+// Home's greeting and the grey line under it, built from desk.get()
+// (m1kuorg/basics#74): "4 cards need a cold rep, 1 is proven." over "Across 2
 // shelves. You last asked one of them on Sep 2, 2026." The queue is To prove
 // plus Asked since proven, the same sum the sidebar's Home count shows.
 import type { Desk } from "@asked-before/sdk";

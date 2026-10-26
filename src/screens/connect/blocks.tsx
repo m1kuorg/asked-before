@@ -3,9 +3,9 @@
 // 16px pad, 20px from 640px up), an <li> of its <ol> whose 16/500 h2 says
 // what to do ("Give it a key"); it's a container, so what's inside fits its
 // own width. A block of the rail beside it is reference, so it sits on the
-// ground with no frame of its own (app-screens.md 3.4: a rail's headings
-// sit outside its cards): a 14/600 h2, as Home's panels have, an optional
-// link on its right, and a grey line under it.
+// ground with no frame of its own (docs/DESIGN.md, "Cards / Containers"): a
+// 14/600 h2, as Home's panels have, an optional link on its right, and a grey
+// line under it.
 
 import { useId, type ReactNode } from "react";
 

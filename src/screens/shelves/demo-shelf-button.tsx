@@ -1,8 +1,8 @@
-// "Try the demo shelf" (inventory.md, Flows 8): makes a shelf flagged demo,
-// tells the shell a shelf was made, then goes to its upload page with
-// ?export=demo, which loads the demo export there. The button locks while the
-// shelf is made; a failure shows under it and unlocks it. Home's first visit
-// and the empty shelves list both offer it.
+// "Try the demo shelf" (m1kuorg/basics#74): makes a shelf flagged demo, tells
+// the shell a shelf was made, then goes to its upload page with ?export=demo,
+// which loads the demo export there. The button locks while the shelf is
+// made; a failure shows under it and unlocks it. Home's first visit and the
+// empty shelves list both offer it.
 import type { Client } from "@asked-before/sdk";
 import { useState } from "react";
 import { useShell } from "@/app/shell";

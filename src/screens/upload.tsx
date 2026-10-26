@@ -1,14 +1,14 @@
 // Upload a chat export (/app/shelves/:shelfId/upload, with ?upload=<id> or
-// ?export=demo; brief section 4 item 4, as amended in section 7). The
-// question: what leaves this computer, and did it sort? One screen whose main
-// column advances: choose, read here, preview, send, then (at ?upload=) the
-// sort watched to its end. The side column says how to get an export. A
-// guest is warned, word for word, above both columns. Which state shows:
-// ?upload= names an upload (on this shelf, or it's not found); else
-// ?export=demo on a demo shelf uploads the demo export; else the drop target.
-// Grid: 12 columns, 16px gutters, 8 + 4 once the canvas is 896px or wider
-// (1100 = 12 x 77 + 11 x 16; 8 columns are 728, 4 are 356); while a file is
-// chosen, the drop target takes all 12 above the 8 + 4.
+// ?export=demo; m1kuorg/basics#74). The question: what leaves this computer,
+// and did it sort? One screen whose main column advances: choose, read here,
+// preview, send, then (at ?upload=) the sort watched to its end. The side
+// column says how to get an export. A guest is warned, word for word, above
+// both columns. Which state shows: ?upload= names an upload (on this shelf,
+// or it's not found); else ?export=demo on a demo shelf uploads the demo
+// export; else the drop target. Grid: 12 columns, 16px gutters, 8 + 4 once
+// the canvas is 896px or wider (1100 = 12 x 77 + 11 x 16; 8 columns are 728,
+// 4 are 356); while a file is chosen, the drop target takes all 12 above the
+// 8 + 4.
 
 import { useEffect } from "react";
 import { notFound, type ScreenProps } from "@/app/router";

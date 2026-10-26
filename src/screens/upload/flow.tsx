@@ -1,13 +1,13 @@
-// An upload before its sort (inventory.md, "Upload"; flows 8 and 9):
-// choose a file (under the drop target, what will leave this computer),
-// read it here with the SDK's readExport (nothing is sent), preview it, then
-// send it: uploads.create, uploads.append in chunks of
-// MAX_CHUNK with the bar at the true ratio, and uploads.finish, then replace
-// the address with ?upload=<id> so Back skips the sending. A failure while
-// sending shows its error (the daily cap's 429 included) and "Try again",
-// which carries on from the chunk that failed, in the same upload. The demo
-// path (?export=demo on a demo shelf) fetches /demo/export.json, reads it the
-// same way, and sends it at once, with the privacy line in view.
+// An upload before its sort (m1kuorg/basics#74): choose a file (under the
+// drop target, what will leave this computer), read it here with the SDK's
+// readExport (nothing is sent), preview it, then send it: uploads.create,
+// uploads.append in chunks of MAX_CHUNK with the bar at the true ratio, and
+// uploads.finish, then replace the address with ?upload=<id> so Back skips
+// the sending. A failure while sending shows its error (the daily cap's 429
+// included) and "Try again", which carries on from the chunk that failed, in
+// the same upload. The demo path (?export=demo on a demo shelf) fetches
+// /demo/export.json, reads it the same way, and sends it at once, with the
+// privacy line in view.
 //
 // Leaving mid-send doesn't stop the chunks (so the upload still finishes);
 // nothing is drawn, and nobody is sent anywhere, after the screen is left.

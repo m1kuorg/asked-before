@@ -1,9 +1,9 @@
-// The showcase's matcher (brief section 7): which demo card a typed question
-// is, in the browser, with no request. Words are lowercased, stripped of stop
-// words, lightly stemmed, and mapped through a small synonym list; a card's
-// words are its skill's and every phrasing's. The card sharing the most of
-// the question's words wins, if it shares at least half of them, so one
-// common word ("way", "file") never makes a match on its own.
+// The showcase's matcher (m1kuorg/basics#74): which demo card a typed
+// question is, in the browser, with no request. Words are lowercased,
+// stripped of stop words, lightly stemmed, and mapped through a small synonym
+// list; a card's words are its skill's and every phrasing's. The card sharing
+// the most of the question's words wins, if it shares at least half of them,
+// so one common word ("way", "file") never makes a match on its own.
 
 import type { DemoCard } from "../demo-card";
 
@@ -13,7 +13,7 @@ const STOP = new Set(
   ),
 );
 
-/** The brief's synonyms, each group to one word. */
+/** The redesign's synonyms (m1kuorg/basics#74), each group to one word. */
 const SYNONYMS: Record<string, string> = {
   dicts: "dict",
   dictionary: "dict",

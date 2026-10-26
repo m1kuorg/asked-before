@@ -1,11 +1,11 @@
-// The signature element (brief sections 3 and 7): a card's asks on a time
-// axis that every strip in a list shares. Pink dots on a 2px grey track, one
-// per ask (`asks`, the card page), or the span from first to last ask
-// (`first`, `last`, `count`, the list rows) with the count beside it; a
-// plum-black tick, taller than the bar, on the day it was proven. Dots on the
-// same day sit side by side; a span is at least 6px wide. Draw it on white
-// only: the pink is under 3:1 on the panel. Positions are percentages, so it
-// takes the width it's given.
+// The signature element (docs/DESIGN.md, "Ask Strip (signature)"): a card's
+// asks on a time axis that every strip in a list shares. Pink dots on a 2px
+// grey track, one per ask (`asks`, the card page), or the span from first to
+// last ask (`first`, `last`, `count`, the list rows) with the count beside
+// it; a plum-black tick, taller than the bar, on the day it was proven. Dots
+// on the same day sit side by side; a span is at least 6px wide. Draw it on
+// white only: the pink is under 3:1 on the panel. Positions are percentages,
+// so it takes the width it's given.
 //
 //   const axis = askAxis(cards.map((card) => card.firstBorrowAt));
 //   <AskStrip axis={axis} first={card.firstBorrowAt} last={card.lastBorrowAt} count={card.count} provenAt={card.returnedAt} />

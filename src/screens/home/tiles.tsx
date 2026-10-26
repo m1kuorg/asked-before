@@ -1,8 +1,8 @@
-// Home's four count tiles (taste-sheet-app.md, "home"; brief section 7): To
-// prove, Asked since proven, Proven, and All cards, 3 columns each, 128px
-// tall, 16px pad, the label over the value at regular weight in tabular
-// figures and a plain caption. They sum visibly: All cards' caption is the
-// other three added. A 2 x 2 grid on a phone.
+// Home's four count tiles (.taste-skill/app/direction.json, "home";
+// m1kuorg/basics#74): To prove, Asked since proven, Proven, and All cards, 3
+// columns each, 128px tall, 16px pad, the label over the value at regular
+// weight in tabular figures and a plain caption. They sum visibly: All cards'
+// caption is the other three added. A 2 x 2 grid on a phone.
 import type { Desk } from "@asked-before/sdk";
 import { Figure } from "@/components/figure";
 import { Skeleton } from "@/components/ui/skeleton";

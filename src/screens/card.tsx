@@ -1,10 +1,9 @@
 // A card (/app/cards/:cardId, ?rep=start; cards.get, then shelves.get, then
-// reps.start and reps.check): can I do this without AI? Brief section 4,
-// item 5, as amended in section 7. The skill and its status, the ask strip
-// with every ask, then 7 + 5 columns on the 12-column canvas (7 x 77 + 6 x 16
-// = 635, 16, 5 x 77 + 4 x 16 = 449: 1100): the cold rep panel, and every time
-// you asked; then the earlier cold reps, under the panel. Below an 896px
-// canvas they stack.
+// reps.start and reps.check; m1kuorg/basics#74): can I do this without AI?
+// The skill and its status, the ask strip with every ask, then 7 + 5 columns
+// on the 12-column canvas (7 x 77 + 6 x 16 = 635, 16, 5 x 77 + 4 x 16 = 449:
+// 1100): the cold rep panel, and every time you asked; then the earlier cold
+// reps, under the panel. Below an 896px canvas they stack.
 //
 // Opening a card spends no model request. ?rep=start (Home's "Start cold
 // rep", a pass's "Next") is dropped from the address with a replace at once,

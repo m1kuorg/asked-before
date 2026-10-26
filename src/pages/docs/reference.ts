@@ -1,12 +1,13 @@
-// The docs page's tables, as data: every endpoint by the spec's areas (paths
-// under /api/v1), the error statuses, and the MCP server's tools and
-// settings. The endpoint rows are written by hand, not generated:
-// `bun run check:docs` holds them to the server's route table (apiRoutes in
-// server/api/index.ts), so a new endpoint needs its row here. The rows say
-// the app's words for the API's terms (docs/DESIGN.md), never borrowed or
-// returned in plain English, and name a field such as borrows beside its word
-// where they must; /docs sets those names as code by API_NAMES in sections.tsx,
-// so a newly named one goes on that list too.
+// The docs page's tables, as data: every endpoint by area, one area to each
+// of the SDK's modules (packages/sdk/src/; paths under /api/v1), the error
+// statuses, and the MCP server's tools and settings. The endpoint rows are
+// written by hand, not generated: `bun run check:docs` holds them to the
+// server's route table (apiRoutes in server/api/index.ts), so a new endpoint
+// needs its row here. The rows say the app's words for the API's terms
+// (docs/DESIGN.md), never borrowed or returned in plain English, and name a
+// field such as borrows beside its word where they must; /docs sets those
+// names as code by API_NAMES in sections.tsx, so a newly named one goes on
+// that list too.
 
 import { MAX_CHUNK, MAX_PHRASING_LENGTH, ROADMAP_CARDS } from "@asked-before/sdk";
 import { MCP_ENV } from "../../../packages/mcp/src/connect";

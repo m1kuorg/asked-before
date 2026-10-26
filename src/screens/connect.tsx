@@ -4,11 +4,11 @@
 // check it. The key is made here, shown once, and filled into the snippet;
 // then the check watches for its first use while the page is open. Beside
 // the flow, the rail: the account's keys with their last use, what the agent
-// can do, and what it sends (app-notes/more-pages/plan.md, "Connect your AI",
-// with plan-review.md's notes). The key made here lives in this screen's
-// memory only, never in the URL or in storage, and goes when the learner
-// leaves. The shared guest has no keys (the server answers it 403), so its
-// key step says why and offers Sign up, and it gets no keys list.
+// can do, and what it sends (m1kuorg/basics#77). The key made here lives in
+// this screen's memory only, never in the URL or in storage, and goes when
+// the learner leaves. The shared guest has no keys (the server answers it
+// 403), so its key step says why and offers Sign up, and it gets no keys
+// list.
 //
 // The grid: the canvas's 12 columns, 77px with 16px gutters at its full
 // 1100px (12 x 77 + 11 x 16 = 1100). The flow takes 8 (729) and the rail 4

@@ -34,7 +34,7 @@ export function messageOf(error: unknown): string {
   return error instanceof ApiError ? error.message : CONNECTION_FAILURE;
 }
 
-/** Whether "Try again" can help: a network failure, a 5xx, or a 429 (brief section 7). A 4xx otherwise needs a different request. */
+/** Whether "Try again" can help: a network failure, a 5xx, or a 429 (m1kuorg/basics#74). A 4xx otherwise needs a different request. */
 export function canRetry(error: unknown): boolean {
   return !(error instanceof ApiError) || error.status >= 500 || error.status === 429;
 }

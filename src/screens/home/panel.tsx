@@ -1,8 +1,8 @@
-// One of Home's tonal panels (taste-sheet-app.md, "home"): the panel colour
-// one step off white toward the plum, 16px corners, a 20px pad, a 14/600
-// title with an optional count chip and link on its right, a grey line under
-// it, then its rows, then an optional footer: an action or a total, nothing
-// else.
+// One of Home's tonal panels (docs/DESIGN.md, "Cards / Containers"): the
+// panel colour one step off white toward the plum, 16px corners, a 20px pad,
+// a 14/600 title with an optional count chip and link on its right, a grey
+// line under it, then its rows, then an optional footer: an action or a
+// total, nothing else.
 import { useId, type ReactNode } from "react";
 import { cn } from "cn";
 

@@ -1,19 +1,18 @@
 // Playground (/app/playground): what does this endpoint answer? It sends a
 // real request to /api/v1 with fetch, as this session or with a pasted API
-// key, and shows the whole answer (plan.md, Playground; plan-review.md notes
-// 4 and 8 and its table of endpoint classes). The endpoints are the docs'
-// (endpoints.ts), opened by ?endpoint=GET%20/shelves, a local query param,
-// so picking one redraws the screen without remounting it: the inputs, the
-// key, and the last answer stay. Under the address, with Send at its end
-// (or ⌘Enter, Ctrl+Enter elsewhere), what the endpoint does and who may
-// send it; then the request's inputs beside the response, and the request
-// as code. Nothing runs on page load. A DELETE asks first, in place, naming
-// the object; one that spends model requests says what it costs and needs a
+// key, and shows the whole answer (m1kuorg/basics#77). The endpoints are the
+// docs' (endpoints.ts), opened by ?endpoint=GET%20/shelves, a local query
+// param, so picking one redraws the screen without remounting it: the inputs,
+// the key, and the last answer stay. Under the address, with Send at its end
+// (or ⌘Enter, Ctrl+Enter elsewhere), what the endpoint does and who may send
+// it; then the request's inputs beside the response, and the request as code.
+// Nothing runs on page load. A DELETE asks first, in place, naming the
+// object; one that spends model requests says what it costs and needs a
 // second click; one that would end or replace this session or the account
-// doesn't run here. A send that changes something refreshes the shelf
-// picker and the sidebar. Ids picked in a response fill their fields, which
-// every endpoint shares. On a canvas under 42rem the panes stack and the
-// endpoint list is a select.
+// doesn't run here. A send that changes something refreshes the shelf picker
+// and the sidebar. Ids picked in a response fill their fields, which every
+// endpoint shares. On a canvas under 42rem the panes stack and the endpoint
+// list is a select.
 
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import type { ScreenProps } from "@/app/router";

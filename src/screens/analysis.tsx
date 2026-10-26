@@ -1,6 +1,6 @@
 // Analysis (/app/analysis, ?shelf= to count one shelf; analysis.get()). Its
 // question: how do I ask, and what do I keep re-asking? Every figure on it is
-// counted by code from the answer, never by the model (plan.md, section 1).
+// counted by code from the answer, never by the model (m1kuorg/basics#79).
 //
 // The h1 is the answer as a sentence ("15 of your 27 messages asked
 // something you'd asked before."), over a grey line naming the months, the

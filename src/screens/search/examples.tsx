@@ -1,8 +1,8 @@
-// What Search offers before a search, and beside a "No" (plan section 3):
-// a few searches made from the learner's own cards, from desk.get(), most
-// asked first, each a link to ?q=<two words of its skill>, which always
-// finds that card by its name. It never searches with an empty q. With no
-// card yet, it says what's true and where to go next.
+// What Search offers before a search, and beside a "No" (docs/DESIGN.md,
+// "Layout"): a few searches made from the learner's own cards, from
+// desk.get(), most asked first, each a link to ?q=<two words of its skill>,
+// which always finds that card by its name. It never searches with an empty
+// q. With no card yet, it says what's true and where to go next.
 import type { Desk, DeskCard } from "@asked-before/sdk";
 import { cn } from "cn";
 import type { Resource } from "@/app/use-resource";

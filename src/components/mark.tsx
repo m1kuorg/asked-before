@@ -1,6 +1,7 @@
 // The product's mark, drawn from the ask strip: three asks on a track and
 // the plum-black tick where it was proven. The one pink element outside the
-// data (brief section 7). Decorative: the name "Asked Before" sits beside it.
+// data (docs/DESIGN.md, "Do's and Don'ts"). Decorative: the name "Asked
+// Before" sits beside it.
 import { cn } from "cn";
 
 export function Mark({ className }: { className?: string }) {

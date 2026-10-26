@@ -1,20 +1,20 @@
-// The app's client routing, under /app only (brief section 4; inventory.md,
-// "Router behaviour"). Trailing slashes are ignored, and a malformed %
-// escape in a :param matches nothing, so it shows not-found. Same-origin
-// links to /app paths are followed without a reload (not with a modifier
-// key, another button, target, or download), and back and forward redraw.
-// Each path (pathname and query) mounts its screen afresh, with an
-// AbortSignal aborted when it's left; the title becomes "<screen> · Asked
-// Before" (a screen may name itself with setTitle), the page scrolls to the
-// top, and focus moves to the new h1, or to the screen's view heading when
-// only the query changed (another view of a shelf). A link that only changes
-// the hash, such as "Skip to content", is left to the browser. A route's
-// `local` query params (the shelf's ?status=) are the screen's own: changing
-// one redraws the screen with the new query, but doesn't remount it, scroll,
-// or move focus. A screen whose main resource answers 404 calls notFound()
-// while rendering, and shows the not-found screen. Card, Settings, Upload,
-// Search, Analysis, Roadmap, Connect your AI, and Playground come in chunks
-// of their own (later()), fetched as the app starts.
+// The app's client routing, under /app only (m1kuorg/basics#74). Trailing
+// slashes are ignored, and a malformed % escape in a :param matches nothing,
+// so it shows not-found. Same-origin links to /app paths are followed without
+// a reload (not with a modifier key, another button, target, or download),
+// and back and forward redraw. Each path (pathname and query) mounts its
+// screen afresh, with an AbortSignal aborted when it's left; the title
+// becomes "<screen> · Asked Before" (a screen may name itself with setTitle),
+// the page scrolls to the top, and focus moves to the new h1, or to the
+// screen's view heading when only the query changed (another view of a
+// shelf). A link that only changes the hash, such as "Skip to content", is
+// left to the browser. A route's `local` query params (the shelf's ?status=)
+// are the screen's own: changing one redraws the screen with the new query,
+// but doesn't remount it, scroll, or move focus. A screen whose main resource
+// answers 404 calls notFound() while rendering, and shows the not-found
+// screen. Card, Settings, Upload, Search, Analysis, Roadmap, Connect your AI,
+// and Playground come in chunks of their own (later()), fetched as the app
+// starts.
 
 import type { Account, Client } from "@asked-before/sdk";
 import { Component, use, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ComponentType, type ReactNode } from "react";

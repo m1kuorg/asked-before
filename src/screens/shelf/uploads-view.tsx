@@ -2,9 +2,9 @@
 // (linking to its own page, where its sort is watched), the file, the
 // chatbot, how many of your messages it held, and how many were new; an
 // upload whose sort isn't done says where it stands. Delete opens the
-// confirmation in place under the row (inventory.md, "Shelf"). Below 640px a
-// row is the date over a grey line of the rest, with Delete at the right. A
-// long file name wraps anywhere rather than being cut.
+// confirmation in place under the row (docs/DESIGN.md, "Do's and Don'ts").
+// Below 640px a row is the date over a grey line of the rest, with Delete at
+// the right. A long file name wraps anywhere rather than being cut.
 //
 // Beside the list, where the sort put the shelf's messages: on its cards (their
 // asks added up, as in the shelf's subline) or not on a card, and the two in

@@ -1,8 +1,9 @@
-// The landing's type chapters, in the sheet's order around the showcase and
-// how it works (page.tsx): the hero, the nine phrasings, what leaves your
-// computer, the agents, the questions, the closing question, and the footer.
-// Every word is the brief's copy deck (sections 5 and 7); the lines with
-// product or privacy weight come from copy.ts.
+// The landing's type chapters, in the order of .taste-skill/direction.json's
+// sections around the showcase and how it works (page.tsx): the hero, the
+// nine phrasings, what leaves your computer, the agents, the questions, the
+// closing question, and the footer. Every word is the redesign's copy
+// (m1kuorg/basics#74); the lines with product or privacy weight come from
+// copy.ts.
 import { Fragment } from "react";
 import { cn } from "cn";
 import { AskStrip } from "@/components/ask-strip";

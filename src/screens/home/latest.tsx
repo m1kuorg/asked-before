@@ -1,4 +1,4 @@
-// Home's two activity panels (brief sections 4 and 7), each a list of
+// Home's two activity panels (docs/DESIGN.md, "Layout"), each a list of
 // rule-separated rows on the panel, with no card of their own. "Latest asks",
 // Home's right rail: your 10 newest messages on a card, word for word, each
 // with its date and its card. "Latest proven", under Your shelves: the cards

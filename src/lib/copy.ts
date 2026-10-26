@@ -1,8 +1,8 @@
-// Every line of copy with product, legal, or privacy weight, word for word
-// (inventory.md, "Copy with product, legal, or privacy weight"), and the
-// redesign's status words and queue words (brief sections 2 and 7). Import
-// these rather than retyping them; checks compare several exactly. No JSX and
-// no "@/" imports here: scripts/check-upload-page.ts imports this file too.
+// Every line of copy with product, legal, or privacy weight, word for word,
+// and the redesign's status words and queue words (m1kuorg/basics#74;
+// GLOSSARY.md gives each beside the API's term). Import these rather than
+// retyping them; checks compare several exactly. No JSX and no "@/" imports
+// here: scripts/check-upload-page.ts imports this file too.
 
 import type { CardStatus, Source } from "@asked-before/sdk";
 
@@ -76,7 +76,7 @@ export const CONNECTION_FAILURE = "Asked Before couldn't be reached. Check your 
 export const NOT_FOUND_TITLE = "This page doesn't exist";
 export const NOT_FOUND_BODY = "Nothing is filed at this address. It may be mistyped, or the page may have moved.";
 
-/** The new status words, by the API's status (brief section 2). StatusPill, status.ts, and the MCP server use them. */
+/** The new status words, by the API's status (m1kuorg/basics#74, GLOSSARY.md). StatusPill, status.ts, and the MCP server use them. */
 export const STATUS_WORDS: Record<CardStatus, string> = {
   borrowed: "To prove",
   returned: "Proven",

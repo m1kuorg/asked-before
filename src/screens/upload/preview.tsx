@@ -1,10 +1,10 @@
 // What a read export holds, before anything is sent: the count of your own
 // messages, the file and its chatbot, any left out for length, and "What
-// leaves this computer" row by row (brief section 7), then the privacy line
-// and "Upload 27 messages". Below 640px each row of the table is what it is
-// over one grey line saying where it goes. The same table, without counts,
-// is the promise under the drop target before a file is chosen, and the
-// record under a shelf's uploads.
+// leaves this computer" row by row (docs/DESIGN.md, "What Leaves This
+// Computer"), then the privacy line and "Upload 27 messages". Below 640px
+// each row of the table is what it is over one grey line saying where it
+// goes. The same table, without counts, is the promise under the drop target
+// before a file is chosen, and the record under a shelf's uploads.
 
 import { MAX_PHRASING_LENGTH, type ReadExport } from "@asked-before/sdk";
 import type { Ref } from "react";

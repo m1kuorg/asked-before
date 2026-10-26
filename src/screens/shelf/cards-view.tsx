@@ -10,8 +10,8 @@
 // cell says what it is to assistive technology. Below 640px a row is two lines
 // and the strip.
 //
-// Under the list, what its status words mean and the privacy line (inventory.md,
-// "Copy with product, legal, or privacy weight": the shelf shows it).
+// Under the list, what its status words mean and the privacy line, which the
+// redesign keeps on the shelf (m1kuorg/basics#74).
 //
 // With no cards, the empty state says why, from the first page of uploads:
 // nothing uploaded, a sort under way (with a link to watch it), or nothing

@@ -4,10 +4,10 @@
 // the keys beside the flow show it too. It stops at that first use, when the
 // key is gone (revoked elsewhere), or when the screen's signal aborts. Every
 // Bearer call stamps a key's use, so the line says only what's true: when
-// the key was first used, never which program used it (plan-review.md,
-// note 4). The line is the screen's answer, so it's set at 16/500 with a
-// still mark, and it's one status region, so the change is announced; a
-// failed check shows in the step with Try again, which asks at once.
+// the key was first used, never which program used it (m1kuorg/basics#77).
+// The line is the screen's answer, so it's set at 16/500 with a still mark,
+// and it's one status region, so the change is announced; a failed check
+// shows in the step with Try again, which asks at once.
 
 import type { ApiKey, CreatedApiKey } from "@asked-before/sdk";
 import { useEffect, useRef, useState } from "react";

@@ -1,10 +1,10 @@
 /*
  * Every page's one stylesheet: Tailwind CSS v4, compiled at build time by
  * scripts/tailwind-plugin.ts from the classes used under src/, with the
- * shadcn/ui variables mapped onto Asked Before's tokens (the redesign brief,
- * section 3). The app is light and soft; the landing page's plum palette is
- * here too, as extra colours, and the landing sets its own square corners by
- * setting --radius: 0 on its root (its data-ui fragments set it back).
+ * shadcn/ui variables mapped onto Asked Before's tokens (docs/DESIGN.md). The
+ * app is light and soft; the landing page's plum palette is here too, as
+ * extra colours, and the landing sets its own square corners by setting
+ * --radius: 0 on its root (its data-ui fragments set it back).
  *
  * The CSP is default-src 'self': fonts are files at /fonts/ (never data:
  * URIs), and nothing here or in the components injects a <style> element;
@@ -81,7 +81,7 @@
   --selection: #f9cfe0;
   --selection-foreground: #101421;
 
-  /* The landing palette (taste-sheet-landing.md). */
+  /* The landing palette (the palette in .taste-skill/direction.json). */
   --plum-black: #0d060b; /* landing ground, ink on pink */
   --plum-surface: #1b0e17; /* landing panels */
   --plum-field: #470c35; /* the hero field, one chapter */
@@ -151,9 +151,9 @@
 }
 
 /*
- * The landing's display type (brief section 3): 800, -0.05em, leading 0.88,
- * as font-extrabold tracking-display leading-display. The app keeps
- * tracking 0 and the sizes 12/14/16/24 (text-xs, text-sm, text-base,
+ * The landing's display type (docs/DESIGN.md, "Typography"): 800, -0.05em,
+ * leading 0.88, as font-extrabold tracking-display leading-display. The app
+ * keeps tracking 0 and the sizes 12/14/16/24 (text-xs, text-sm, text-base,
  * text-2xl), nothing over 32px.
  */
 @theme {

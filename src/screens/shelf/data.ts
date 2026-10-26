@@ -1,9 +1,10 @@
 // What the shelf screen loads, in one go, for every view: the shelf, its
 // cards, and the first page of its messages not on a card and of its
-// uploads, since the tabs count all three (brief section 7: a tab's count is
-// the first page's length, or "50+" when there's a page after). The router
-// mounts the screen afresh on every ?view= change, so the last answer per
-// shelf is kept here and drawn at once while the screen asks again.
+// uploads, since the tabs count all three (the redesign's rule,
+// m1kuorg/basics#74: a tab's count is the first page's length, or "50+" when
+// there's a page after). The router mounts the screen afresh on every ?view=
+// change, so the last answer per shelf is kept here and drawn at once while
+// the screen asks again.
 
 import type { Card, Client, Shelf, UnsortedPage, Upload, UploadPage } from "@asked-before/sdk";
 

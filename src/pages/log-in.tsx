@@ -1,10 +1,10 @@
-// The log-in page (/login): brief section 5, inventory "Log in". The
-// password goes only through auth.logIn, which derives its key in the page
-// (ADR 0006); the form never submits itself, and the submit stays locked
-// while scrypt runs and the next page loads. A message that names one field
-// shows on that field; "Wrong email or password." names neither, so it shows
-// above the button. A log in sets the signed-in hint and goes to `next`, or
-// Home. The cross-link and the guest sign-in carry `next` along.
+// The log-in page (/login; m1kuorg/basics#74). The password goes only through
+// auth.logIn, which derives its key in the page (ADR 0006); the form never
+// submits itself, and the submit stays locked while scrypt runs and the next
+// page loads. A message that names one field shows on that field; "Wrong
+// email or password." names neither, so it shows above the button. A log in
+// sets the signed-in hint and goes to `next`, or Home. The cross-link and the
+// guest sign-in carry `next` along.
 import { useId } from "react";
 import { createRoot } from "react-dom/client";
 import { Button } from "@/components/ui/button";

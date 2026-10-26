@@ -1,17 +1,17 @@
-// The app's shell, the open plane (brief sections 4 and 7): a 240px sidebar
-// on the white ground behind one hairline, holding the one
-// <nav aria-label="Asked Before">: the mark and name, Home with the count of
-// cards that need a cold rep, Search, Analysis, and Roadmap, the shelves (long names truncated, with a
-// tooltip), All shelves, then Connect your AI, Playground, Docs, Settings
-// (its three areas listed under it while one is open, but not for the
-// guest, whose Settings is one view saying why it has none), and the user
-// row. Under 1024px it folds into a 48px top bar with the screen's name
-// and a menu button opening the nav in a full-screen sheet. The shell loads
-// desk.get() and shelves.list() once; a screen calls useShell().refreshShell()
-// after anything that changes the counts or the shelves. "Skip to content"
-// comes first, past the nav to <main>. ShellSkeleton is the frame while the
-// app asks who's logged in, and ScreenSkeleton the column while a screen's
-// chunk arrives.
+// The app's shell, the open plane (docs/DESIGN.md, "Layout"): a 240px sidebar
+// on the white ground behind one hairline, holding the one <nav
+// aria-label="Asked Before">: the mark and name, Home with the count of cards
+// that need a cold rep, Search, Analysis, and Roadmap, the shelves (long
+// names truncated, with a tooltip), All shelves, then Connect your AI,
+// Playground, Docs, Settings (its three areas listed under it while one is
+// open, but not for the guest, whose Settings is one view saying why it has
+// none), and the user row. Under 1024px it folds into a 48px top bar with the
+// screen's name and a menu button opening the nav in a full-screen sheet. The
+// shell loads desk.get() and shelves.list() once; a screen calls
+// useShell().refreshShell() after anything that changes the counts or the
+// shelves. "Skip to content" comes first, past the nav to <main>.
+// ShellSkeleton is the frame while the app asks who's logged in, and
+// ScreenSkeleton the column while a screen's chunk arrives.
 
 import type { Account, Desk, Shelf } from "@asked-before/sdk";
 import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
@@ -91,7 +91,7 @@ type Current = Route["section"] | "all-shelves" | { shelfId: string };
 
 type NavProps = { account: Account; current: Current; routeName: string; desk: Resource<Desk>; shelves: Resource<Shelf[]> };
 
-/** Settings' areas, each its own view (app-screens.md 8.2), listed under Settings while one is open. */
+/** Settings' areas, each its own view (docs/DESIGN.md, "Layout"), listed under Settings while one is open. */
 const SETTINGS_AREAS = [
   { name: "settings", href: "/app/settings", label: "Account" },
   { name: "settings-keys", href: "/app/settings/keys", label: "API keys" },
