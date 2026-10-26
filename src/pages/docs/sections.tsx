@@ -28,6 +28,10 @@ const Code = ({ caption, code }: { caption: string; code: string }) => (
   <CopyBlock className="code-block max-w-full [&_button]:text-sm [&_pre]:rounded-2xl [&_pre]:border-0 [&_pre]:p-5 [&_pre]:text-sm [&_pre]:leading-6" caption={caption} code={code} />
 );
 
+/** The API's own names that the tables' shared words mention, set as code here; the app's screens that show the same rows show them plain. */
+const API_NAMES = /\b(borrowed|borrowedAgain|borrows|latestBorrows|latestReturns|mostBorrowed|not_returned|returned)\b/;
+const apiNamesAsCode = (words: string) => words.split(API_NAMES).map((part, i) => (i % 2 ? <code key={i}>{part}</code> : part));
+
 /** A two-column reference table: a name in code, then what it is. */
 function Pairs({ caption, name, what, rows, className, code = true }: { caption: string; name: string; what: string; rows: [string, string][]; className?: string; code?: boolean }) {
   return (
@@ -44,7 +48,7 @@ function Pairs({ caption, name, what, rows, className, code = true }: { caption:
           {rows.map(([key, value]) => (
             <TableRow key={key}>
               <TableCell className="align-top break-words whitespace-normal">{code ? <code>{key}</code> : key}</TableCell>
-              <TableCell className="align-top whitespace-normal">{value}</TableCell>
+              <TableCell className="align-top whitespace-normal">{apiNamesAsCode(value)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -77,7 +81,7 @@ function Endpoints({ area, endpoints }: { area: string; endpoints: Endpoint[] })
               </TableCell>
               {/* Stacked, the credential names its column in generated text, so the cell's own text stays exactly the credential. */}
               <TableCell className="align-top text-muted-foreground max-md:p-0 max-md:before:content-['Credential:_']">{e.who}</TableCell>
-              <TableCell className="align-top whitespace-normal max-md:p-0">{e.does}</TableCell>
+              <TableCell className="align-top whitespace-normal max-md:p-0">{apiNamesAsCode(e.does)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -105,7 +109,7 @@ const api: Section = {
       <P>
         Scripts and agents send an API key from Settings with every request, as <C>{"Authorization: Bearer ab_<id>_<secret>"}</C>. When a key comes with a request, the session cookie is ignored. A wrong or revoked key is a 401.
       </P>
-      <P>A key can read your shelves, cards, uploads, and the Desk, and make shelves, uploads, captures, and cold reps. Deleting anything, downloading your data, managing keys, and changing the account need a session: a key gets 403 there.</P>
+      <P>A key can read your shelves, cards, uploads, and what Home shows, and make shelves, uploads, captures, and cold reps. Deleting anything, downloading your data, managing keys, and changing the account need a session: a key gets 403 there.</P>
       <P>The page uses the session cookie that logging in sets, for 30 days. A cookie request that changes something must carry the page's Origin and a JSON body, or it's a 403, so another site can't act for you.</P>
       <P>Signing in as a guest sets the same cookie, for the shared Guest account, which every guest uses at once. A guest can do what a session can, but the account's endpoints and API keys answer it 403, and the Guest account can't be logged into with a password.</P>
       <P>
@@ -124,7 +128,7 @@ const api: Section = {
       <H3>The daily caps</H3>
       <P>Two daily caps, each counted per UTC day for the whole app, once for everyone, guests included, keep Asked Before inside Cloudflare's free plan. Each is a setting of the server's, given here with its default.</P>
       <P>
-        Every model request counts toward the app's cap, 20 a day (<C>SITE_DAILY_MODEL_REQUESTS</C>). An upload's sort makes one request per batch of up to 300 phrasings, and one more for its last pass over the unsorted, each asked up to twice more when an answer breaks a rule: so the demo export takes 2, and an upload of 2,000 phrasings 8. A capture the model places makes one; so do starting a cold rep and checking an answer.
+        Every model request counts toward the app's cap, 20 a day (<C>SITE_DAILY_MODEL_REQUESTS</C>). An upload's sort makes one request per batch of up to 300 phrasings, and one more for its last pass over the phrasings not on a card, each asked up to twice more when an answer breaks a rule: so the demo export takes 2, and an upload of 2,000 phrasings 8. A capture the model places makes one; so do starting a cold rep and checking an answer.
       </P>
       <P>
         Every phrasing sent counts toward the app's cap, 8,000 a day, uploads and captures together (<C>SITE_DAILY_PHRASINGS</C>). A chunk counts every phrasing it carries, even one the shelf holds already, since recording that the upload sent it writes too. The guest workspace's daily wipe counts the phrasings it deletes toward the new day's, since deleting them writes too. So an export bigger than what's left of a day is carried on the next day in the same upload, with Try again on the upload page.
@@ -159,9 +163,9 @@ const sortWindow: Section = {
   body: (
     <>
       <P>
-        An upload is sorted in batches. Each batch carries up to <C>SORT_BATCH_SIZE</C> (300) new phrasings, plus up to as many of the shelf's most recent unsorted ones, and later batches see the cards earlier ones made. Once the batches are done, a last pass offers those most recent unsorted phrasings again, against the cards as they stand then and each other, so one an earlier batch left unsorted can still join a card a later batch made. So an older unsorted phrasing is compared again only while it's inside that window. This is a known limit: once 300 or more unsorted phrasings dated after it are on the shelf, a new phrasing that asks the same thing can wait unsorted beside it instead of making a card.
+        An upload is sorted in batches. Each batch carries up to <C>SORT_BATCH_SIZE</C> (300) new phrasings, plus up to as many of the shelf's most recent ones not on a card, and later batches see the cards earlier ones made. Once the batches are done, a last pass offers those most recent phrasings not on a card again, against the cards as they stand then and each other, so one an earlier batch didn't place can still join a card a later batch made. So an older phrasing not on a card is compared again only while it's inside that window. This is a known limit: once 300 or more phrasings not on a card, dated after it, are on the shelf, a new phrasing that asks the same thing can wait beside it, not on a card either, instead of making a card.
       </P>
-      <P>A capture is compared with the shelf's cards and its 50 most recent unsorted phrasings.</P>
+      <P>A capture is compared with the shelf's cards and its 50 most recent phrasings not on a card.</P>
     </>
   ),
 };

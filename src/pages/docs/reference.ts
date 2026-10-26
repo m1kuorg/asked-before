@@ -2,8 +2,11 @@
 // under /api/v1), the error statuses, and the MCP server's tools and
 // settings. The endpoint rows are written by hand, not generated:
 // `bun run check:docs` holds them to the server's route table (apiRoutes in
-// server/api/index.ts), so a new endpoint needs its row here. The API keeps
-// its own words (shelves, cards, borrows, returned): this page documents it.
+// server/api/index.ts), so a new endpoint needs its row here. The rows say
+// the app's words for the API's terms (docs/DESIGN.md), never borrowed or
+// returned in plain English, and name a field such as borrows beside its word
+// where they must; /docs sets those names as code by API_NAMES in sections.tsx,
+// so a newly named one goes on that list too.
 
 import { MAX_CHUNK, MAX_PHRASING_LENGTH } from "@asked-before/sdk";
 import { MCP_ENV } from "../../../packages/mcp/src/connect";
@@ -89,7 +92,7 @@ export const AREAS: { area: string; endpoints: Endpoint[] }[] = [
   {
     area: "Shelves",
     endpoints: [
-      { method: "GET", path: "/shelves", sdk: "shelves.list", who: KEY, does: "{ shelves }: each with its counts of cards, borrowed, returned, and borrowed again, and when its latest upload was made." },
+      { method: "GET", path: "/shelves", sdk: "shelves.list", who: KEY, does: "{ shelves }: each with its counts, of its cards and of those To prove (borrowed), Proven (returned), and Asked since proven (borrowedAgain), and when its latest upload was made." },
       { method: "POST", path: "/shelves", sdk: "shelves.create", who: KEY, does: "Makes a shelf named { name }, of 1 to 80 characters, or a demo shelf with demo: true: 201 with the shelf." },
       { method: "GET", path: "/shelves/:shelfId", sdk: "shelves.get", who: KEY, does: "The shelf, with its counts." },
       { method: "PATCH", path: "/shelves/:shelfId", sdk: "shelves.rename", who: SESSION, does: "Renames it with { name }: the shelf." },
@@ -140,7 +143,7 @@ export const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/uploads/:uploadId",
         sdk: "uploads.delete",
         who: SESSION,
-        does: "Deletes the upload and its phrasings: 204. A card left with fewer than two borrows goes too, with its cold reps, and its last phrasing becomes unsorted.",
+        does: "Deletes the upload and its phrasings: 204. A card left with fewer than two asks goes too, with its cold reps, and its last phrasing goes back to not on a card.",
       },
     ],
   },
@@ -152,10 +155,10 @@ export const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/shelves/:shelfId/cards",
         sdk: "cards.list",
         who: KEY,
-        does: "{ cards }, most borrowed first, ties to the later last borrow: each card's skill, status, count, first and last borrow, and return stamp.",
+        does: "{ cards }, most asked first, ties to the later last ask: each card's skill, status, count, first and last ask, and when it was proven.",
       },
-      { method: "GET", path: "/shelves/:shelfId/unsorted", sdk: "cards.unsorted", who: KEY, does: "The shelf's unsorted phrasings, a page at a time, newest first: { phrasings, next }." },
-      { method: "GET", path: "/cards/:cardId", sdk: "cards.get", who: KEY, does: "The card with its lesson, its borrows, oldest first, and its cold reps." },
+      { method: "GET", path: "/shelves/:shelfId/unsorted", sdk: "cards.unsorted", who: KEY, does: "The shelf's phrasings not on a card, a page at a time, newest first: { phrasings, next }." },
+      { method: "GET", path: "/cards/:cardId", sdk: "cards.get", who: KEY, does: "The card with its lesson, its asks (borrows), oldest first, and its cold reps." },
     ],
   },
   {
@@ -166,7 +169,7 @@ export const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/shelves/:shelfId/captures",
         sdk: "captures.create",
         who: KEY,
-        does: "Records { text }, one question in your own words, and sorts it at once: 201 with { phrasing, card, alreadyCaptured }, its card the one it landed on, or null while it waits unsorted. The same words on the same shelf within ten minutes give 200 with that earlier capture, and add no borrow. Any other counts toward the daily phrasings.",
+        does: "Records { text }, one question in your own words, and sorts it at once: 201 with { phrasing, card, alreadyCaptured }, its card the one it landed on, or null while it waits, not on a card. The same words on the same shelf within ten minutes give 200 with that earlier capture, and add no ask. Any other counts toward the daily phrasings.",
       },
     ],
   },
@@ -185,19 +188,19 @@ export const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/reps/:repId/check",
         sdk: "reps.check",
         who: KEY,
-        does: "Checks { answer }, of up to 4,000 characters, once: { rep, card }, the rep with its verdict and reason, and the card, stamped returned after a pass. A rep checked already, or one a newer cold rep on its card replaced, is a 409.",
+        does: "Checks { answer }, of up to 4,000 characters, once: { rep, card }, the rep with its verdict and reason, and the card, marked Proven after a pass. A rep checked already, or one a newer cold rep on its card replaced, is a 409.",
       },
     ],
   },
   {
-    area: "Desk",
+    area: "Home",
     endpoints: [
       {
         method: "GET",
         path: "/desk",
         sdk: "desk.get",
         who: KEY,
-        does: "The Desk, across your shelves: your cards' totals by status, up to 10 cards not returned, most borrowed first, your 10 latest borrows, and your 10 latest returns.",
+        does: "What Home shows, across your shelves: your cards' totals by status, up to 10 cards that need a cold rep (mostBorrowed), most asked first, your 10 latest asks (latestBorrows), and up to 10 cards you've proven, latest first (latestReturns).",
       },
     ],
   },
@@ -221,7 +224,7 @@ export const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/analysis",
         sdk: "analysis.get",
         who: KEY,
-        does: "How you ask, counted by code from your phrasings' own times, your cards, and your cold reps, across your shelves or on one (?shelfId=): your phrasings, on a card or not, and the re-asks among them (borrows after their card's first); every month from the first to the last in the time zone ?timeZone= names (an IANA name, UTC unless given; the SDK sends the runtime's own); the gaps between one borrow and the card's next, as a median, a middle half, and buckets; up to 10 cards, most borrowed first, with their median gaps; cold reps passed and failed by month; how many returned cards were borrowed again; and each shelf's counts. An unknown time zone is a 400, and a shelf that isn't yours a 404.",
+        does: "How you ask, counted by code from your phrasings' own times, your cards, and your cold reps, across your shelves or on one (?shelfId=): your phrasings, on a card or not, and the re-asks among them (asks after their card's first); every month from the first to the last in the time zone ?timeZone= names (an IANA name, UTC unless given; the SDK sends the runtime's own); the gaps between one ask and the card's next, as a median, a middle half, and buckets; up to 10 cards, most asked first, with their median gaps; cold reps passed and failed by month; of the cards ever proven, how many were asked since; and each shelf's counts. An unknown time zone is a 400, and a shelf that isn't yours a 404.",
       },
     ],
   },
@@ -233,7 +236,7 @@ export const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/roadmap",
         sdk: "roadmap.get",
         who: KEY,
-        does: "Your cards across your shelves on a fixed path of 13 developer areas, Terminal and the OS first and Deploy and DevOps last: { areas, elsewhere }. Each area, in path order and empty ones too, has its id, name, about, counts, and cards, most borrowed first. Each card is placed by the words in its name, by code, not the model: its skill name, lowercased, is split into words on anything but letters, digits, # and +; it goes to the area with the most of those words on its list, the earlier on a tie, with matched listing them; a card with none is elsewhere.",
+        does: "Your cards across your shelves on a fixed path of 13 developer areas, Terminal and the OS first and Deploy and DevOps last: { areas, elsewhere }. Each area, in path order and empty ones too, has its id, name, about, counts, and cards, most asked first. Each card is placed by the words in its name, by code, not the model: its skill name, lowercased, is split into words on anything but letters, digits, # and +; it goes to the area with the most of those words on its list, the earlier on a tie, with matched listing them; a card with none is elsewhere.",
       },
     ],
   },
