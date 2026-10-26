@@ -148,8 +148,8 @@ const model: Section = {
         name="Request"
         what="What the model sees"
         rows={[
-          ["Sorting an upload", "The words of its messages and of the shelf's most recent unsorted ones, each cut to its first 300 characters, and the shelf's cards, each as its skill and three of its messages."],
-          ["Placing a capture", "Its words, the same way, against the shelf's cards and its 50 most recent unsorted messages. Words that match a message on a card join that card without asking the model."],
+          ["Sorting an upload", "The words of its messages and of the shelf's most recent ones not on a card, each cut to its first 300 characters, and the shelf's cards, each as its skill and three of its messages."],
+          ["Placing a capture", "Its words, the same way, against the shelf's cards and its 50 most recent messages not on a card. Words that match a message on a card join that card without asking the model."],
           ["Writing a cold rep", "The card's skill, the first 300 characters of each of its 20 most recent messages, and the problems it was given before."],
           ["Checking your answer", "The card's skill, the problem, and your answer as you wrote it."],
         ]}
