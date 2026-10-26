@@ -3,9 +3,10 @@
 // answer sends, and how many more there are; or, with none, the sentence
 // saying every card is on the path.
 import type { Roadmap } from "@asked-before/sdk";
+import { Showing } from "@/components/showing";
 import { StatusPill } from "@/components/status-pill";
 import { nameLink } from "@/screens/home/panel";
-import { CardFacts, Showing } from "./path-map";
+import { CardFacts } from "./path-map";
 
 export function OffPath({ elsewhere }: { elsewhere: Roadmap["elsewhere"] }) {
   const { cards, counts } = elsewhere;

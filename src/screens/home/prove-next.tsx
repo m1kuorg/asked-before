@@ -14,6 +14,7 @@ import { cn } from "cn";
 import { AskStrip, askAxis, type Axis } from "@/components/ask-strip";
 import { DemoChip } from "@/components/demo-chip";
 import { Figure } from "@/components/figure";
+import { Showing } from "@/components/showing";
 import { Time } from "@/components/time";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -55,7 +56,7 @@ export function ProveNext({ desk, empty, signal, className }: { desk: Desk; empt
         )
       }
       description={rows.length ? `Most asked first. ${GLOSS}` : GLOSS}
-      footer={rows.length < queue && <Truncated shown={rows.length} queue={queue} />}
+      footer={rows.length < queue && <Showing shown={rows.length} of={queue} />}
     >
       {rows.length ? <Rows rows={rows} signal={signal} /> : empty}
     </Panel>
@@ -130,16 +131,6 @@ function Row({ card, axis, times, top }: { card: DeskCard; axis: Axis; times: st
   );
 }
 
-function Truncated({ shown, queue }: { shown: number; queue: number }) {
-  return (
-    <p className="text-sm text-muted-foreground">
-      Showing {count(shown)} of {count(queue)}.{" "}
-      <a href="/app/shelves" className="text-foreground underline underline-offset-4 decoration-input hover:decoration-foreground">
-        The rest are on each shelf.
-      </a>
-    </p>
-  );
-}
 
 /** Rows at their real size while the desk loads. */
 export function ProveNextLoading({ className }: { className?: string }) {

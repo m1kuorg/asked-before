@@ -28,10 +28,10 @@ import { useEffect, useState } from "react";
 import { cn } from "cn";
 import { DemoChip } from "@/components/demo-chip";
 import { Figure } from "@/components/figure";
+import { Showing } from "@/components/showing";
 import { StatusPill } from "@/components/status-pill";
-import { TextLink } from "@/components/text-link";
 import { Skeleton } from "@/components/ui/skeleton";
-import { askedTimes, count } from "@/lib/format";
+import { askedTimes } from "@/lib/format";
 import { areaCount, areaEnd, because } from "./sentences";
 
 const cardPath = (id: string) => `/app/cards/${encodeURIComponent(id)}`;
@@ -113,16 +113,6 @@ function Area({ area, shelves }: { area: RoadmapArea; shelves: boolean }) {
         </>
       )}
     </li>
-  );
-}
-
-/** Under a list the answer cut short, Home's line: "Showing 5 of 12. The rest are on each shelf.", the second sentence a link to the shelves. */
-export function Showing({ shown, of }: { shown: number; of: number }) {
-  if (of <= shown) return null;
-  return (
-    <p className="text-sm text-muted-foreground">
-      Showing {count(shown)} of {count(of)}. <TextLink href="/app/shelves">The rest are on each shelf.</TextLink>
-    </p>
   );
 }
 
