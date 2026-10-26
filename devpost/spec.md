@@ -59,7 +59,7 @@ Decided by the entrant (#25 Shape, TRD.md Stack) unless marked otherwise.
 - **Submission** needs the demo video and a public GitHub repository. Deployment isn't planned. Making the repo public, the YouTube upload, and the Devpost submission wait for the entrant's approval (#34).
 - **Shared** after the entrant approved on #34 (October 26, 2026):
   - **Repository:** <https://github.com/m1kuorg/asked-before>, public under Apache-2.0.
-  - **Demo video:** <https://youtu.be/mFd-x714JtU>, unlisted on YouTube by the entrant's choice.
+  - **Demo video:** <https://youtu.be/VfSAbG3JX9c>, unlisted on YouTube by the entrant's choice.
 
 ## Look and Feel
 Carries forward `prd.md > Look and Feel` and `scope.md > Inspiration & Identity`. The detailed references are copied from m1kuorg/basics in the planning repo's layout, because DESIGN.md links to `/.impeccable/…` and the impeccable skill reads `.impeccable/` (#7's final scope):
