@@ -1,7 +1,7 @@
 // How the app writes numbers and dates: en-US, in the learner's own time
-// zone (inventory.md, "Shared behaviour"). Counts are grouped ("2,000"), a
-// missing value is a dash, and a card's months read "March 2025 to
-// September 2026". Put figures that line up or update in tabular-nums.
+// zone (m1kuorg/basics#74). Counts are grouped ("2,000"), a missing value is
+// a dash, and a card's months read "March 2025 to September 2026". Put
+// figures that line up or update in tabular-nums.
 
 const grouping = new Intl.NumberFormat("en-US");
 const shortDay = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });

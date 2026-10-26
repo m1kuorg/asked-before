@@ -2,7 +2,7 @@
 // developer's path are the things I can't yet do alone? The h1 is a
 // sentence from the data ("5 cards need a cold rep, across 5 areas of the
 // path."), over a grey line naming how many cards and from which shelves,
-// with Demo data on a demo shelf (app-notes/depth/plan.md, "2. Roadmap").
+// with Demo data on a demo shelf (m1kuorg/basics#79).
 //
 // The grid: a centred 1100px column of 12 (77px columns, 16px gutters), as
 // Home's. First 8 + 4 (729 + 16 + 355): "Next on your path", the first area

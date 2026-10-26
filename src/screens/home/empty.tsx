@@ -1,7 +1,7 @@
-// What "Prove next" holds when it has no rows (brief section 4; inventory.md,
-// Desk): on a first visit, the demo shelf and a one-line form to name your
-// first shelf, which goes to its upload page; with shelves but no cards, the
-// way to your shelves; with every card proven, the sentence that says so.
+// What "Prove next" holds when it has no rows (m1kuorg/basics#74): on a first
+// visit, the demo shelf and a one-line form to name your first shelf, which
+// goes to its upload page; with shelves but no cards, the way to your
+// shelves; with every card proven, the sentence that says so.
 import type { Client } from "@asked-before/sdk";
 import { useId } from "react";
 import { useShell } from "@/app/shell";

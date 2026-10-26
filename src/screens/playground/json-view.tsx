@@ -4,12 +4,12 @@
 // alone), punctuation faint. Each line is indented by its depth and wraps
 // under its own indent, so a long message or id stays in view at any width
 // without scrolling sideways. An id that fills one of the request's fields
-// is a button (plan-review.md note 8): a shelf's, an upload's, a card's, a
-// cold rep's, or a key's id, by the key it sits under or the object it's
-// in, and a list's next for its cursor. A click fills that field. A long
-// answer scrolls inside its box, at most 70% of the screen tall. An answer
-// past LARGE characters, such as a big export, is shown plain, since it
-// would be tens of thousands of spans.
+// is a button (m1kuorg/basics#77): a shelf's, an upload's, a card's, a cold
+// rep's, or a key's id, by the key it sits under or the object it's in, and a
+// list's next for its cursor. A click fills that field. A long answer scrolls
+// inside its box, at most 70% of the screen tall. An answer past LARGE
+// characters, such as a big export, is shown plain, since it would be tens of
+// thousands of spans.
 
 import type { ReactNode } from "react";
 import { FIELD_NAMES, fillsField, kindOf, type Fillable, type Param } from "./endpoints";

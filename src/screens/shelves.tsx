@@ -1,10 +1,10 @@
 // Shelves (/app/shelves; shelves.list()). A list screen: the h1, what a
 // shelf is for, "New shelf" at the top right, then a table of every shelf
-// with its counts and Rename and Delete in place (brief section 4; inventory.md,
-// Shelves list and Flows 5 to 8). Under each shelf that has cards to prove,
-// its most asked ones with their ask spans (cards.list per shelf,
-// top-cards.tsx); under the table, how shelves work. So the first screen
-// holds the learner's own queue and the list's rules, not a blank half.
+// with its counts and Rename and Delete in place (m1kuorg/basics#74). Under
+// each shelf that has cards to prove, its most asked ones with their ask
+// spans (cards.list per shelf, top-cards.tsx); under the table, how shelves
+// work. So the first screen holds the learner's own queue and the list's
+// rules, not a blank half.
 // One row is open at a time: opening Rename
 // closes a Delete and the reverse. Every change calls refreshShell() so the
 // sidebar's shelves and counts follow, and is said in a status line for

@@ -1,8 +1,8 @@
-// The non-secret hint that this browser has a session (brief section 7):
+// The non-secret hint that this browser has a session (m1kuorg/basics#74):
 // "asked-before:signed-in" = "1" after a log in, sign up, or guest sign-in,
-// removed on log out or when the app finds the session gone. The landing
-// page reads it to offer "Open the app" instead of a guest sign-in that would
-// end a real session. Only a hint: the session is the HttpOnly cookie.
+// removed on log out or when the app finds the session gone. The landing page
+// reads it to offer "Open the app" instead of a guest sign-in that would end
+// a real session. Only a hint: the session is the HttpOnly cookie.
 
 const KEY = "asked-before:signed-in";
 

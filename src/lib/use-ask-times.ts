@@ -1,11 +1,12 @@
 // Each listed card's every ask, fetched after the list draws (cards.get, its
 // borrows), so a row can trade its ask span for one dot per ask once its card
-// arrives: every card carries its own history (brief section 3). Requests go
-// in the list's order, at most 4 at a time, and all are aborted when `signal`
-// is (the learner leaves the screen) or the list unmounts. A card already
-// fetched isn't asked for again unless its count or last ask has changed; a
-// card whose request fails keeps its span. Pass only the rows worth the
-// requests (Home's Prove next, the first 25 of a shelf's filter).
+// arrives: every card carries its own history
+// (.impeccable/surfaces/src-app-main-tsx.md). Requests go in the list's
+// order, at most 4 at a time, and all are aborted when `signal` is (the
+// learner leaves the screen) or the list unmounts. A card already fetched
+// isn't asked for again unless its count or last ask has changed; a card
+// whose request fails keeps its span. Pass only the rows worth the requests
+// (Home's Prove next, the first 25 of a shelf's filter).
 //
 //   const timesOf = useAskTimes(rows, signal);
 //   const times = timesOf(card); // undefined until it arrives

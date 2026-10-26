@@ -1,4 +1,4 @@
-// The landing's one action, "Try it as a guest" (brief sections 5 and 7):
+// The landing's one action, "Try it as a guest" (m1kuorg/basics#74):
 // auth.signInAsGuest with `next`, the signed-in hint, then `session.next`.
 // A refusal (the throttle's 429) shows its notice after the button, in the
 // app's pale failure pair so it reads on every chapter's ground, until the

@@ -1,9 +1,9 @@
-// A list that comes a page at a time (inventory.md, "Shared behaviour"):
-// "Show more" fetches the page after, with "Finding more…" beside it while it
-// runs, and an error with "Try again" in its place if it fails. Focus stays
-// on "Show more" while there's more; after the last page it moves to the
-// first row that page brought, so it never drops to the page's top. Rows mark
-// themselves with data-row={index}, inside the element given `list`.
+// A list that comes a page at a time (m1kuorg/basics#74): "Show more" fetches
+// the page after, with "Finding more…" beside it while it runs, and an error
+// with "Try again" in its place if it fails. Focus stays on "Show more" while
+// there's more; after the last page it moves to the first row that page
+// brought, so it never drops to the page's top. Rows mark themselves with
+// data-row={index}, inside the element given `list`.
 
 import { useEffect, useRef, useState } from "react";
 import { ErrorNotice } from "@/components/error-notice";

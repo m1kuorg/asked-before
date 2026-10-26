@@ -1,13 +1,13 @@
-// One shelf in the shelves table (brief section 4; inventory.md, Shelves
-// list): its name (to the shelf, with Demo data), Cards, Need a rep, Proven,
-// Last upload, and Rename and Delete. Rename turns the name into a field in
-// place, with Save and Cancel; Escape cancels. Delete opens the confirmation
-// in a row under it, never a modal; its toggle is "Delete Work…", and the
-// confirmation's action "Delete Work". Below a 40rem canvas the figures move to
-// a grey second line under the name. Under the row (and under its open
-// confirmation), `below` gets a row of its own across every column: the
-// shelf's top cards that need a cold rep. The list owns which row is open and
-// where focus goes next; the row focuses its own controls when asked.
+// One shelf in the shelves table (m1kuorg/basics#74): its name (to the shelf,
+// with Demo data), Cards, Need a rep, Proven, Last upload, and Rename and
+// Delete. Rename turns the name into a field in place, with Save and Cancel;
+// Escape cancels. Delete opens the confirmation in a row under it, never a
+// modal; its toggle is "Delete Work…", and the confirmation's action "Delete
+// Work". Below a 40rem canvas the figures move to a grey second line under
+// the name. Under the row (and under its open confirmation), `below` gets a
+// row of its own across every column: the shelf's top cards that need a cold
+// rep. The list owns which row is open and where focus goes next; the row
+// focuses its own controls when asked.
 import type { Client, Shelf } from "@asked-before/sdk";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { ConfirmInline } from "@/components/confirm-inline";

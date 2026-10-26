@@ -1,11 +1,11 @@
-// A shelf (/app/shelves/:shelfId, ?view=once or ?view=uploads; brief section
-// 4 item 3, as amended in section 7). The question: which of this shelf's
-// cards do I still need to prove? The h1 is the shelf's name (with "Demo
-// data"), over "5 cards from 20 of your messages, last upload Oct 23, 2026.",
-// where 20 is the sum of the cards' counts; "Upload an export" is the one
-// primary action. Underline tabs switch the view in the URL: Cards (the
-// filter, as ?status=, and the rows on one ask-strip axis), Not on a card,
-// and Uploads; after a switch, focus is on the view's heading.
+// A shelf (/app/shelves/:shelfId, ?view=once or ?view=uploads;
+// m1kuorg/basics#74). The question: which of this shelf's cards do I still
+// need to prove? The h1 is the shelf's name (with "Demo data"), over "5 cards
+// from 20 of your messages, last upload Oct 23, 2026.", where 20 is the sum
+// of the cards' counts; "Upload an export" is the one primary action.
+// Underline tabs switch the view in the URL: Cards (the filter, as ?status=,
+// and the rows on one ask-strip axis), Not on a card, and Uploads; after a
+// switch, focus is on the view's heading.
 // Every view loads the same four things (data.ts), and on a switch between
 // views the last answer is drawn at once while the screen asks again. A 404 shows the
 // in-app not-found screen. After an upload is deleted the view reloads, its

@@ -1,5 +1,5 @@
-// The frame the log-in and sign-up pages share (brief section 5): on the
-// left, the plum field with the wordmark, the h1 at display size, and one
+// The frame the log-in and sign-up pages share (docs/DESIGN.md, "Layout"): on
+// the left, the plum field with the wordmark, the h1 at display size, and one
 // line; on the right, the white panel with the form, its cross-link, and the
 // guest sign-in. The landing's palette, type, and square corners.
 import { useEffect, type ReactNode } from "react";

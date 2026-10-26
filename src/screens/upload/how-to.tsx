@@ -1,5 +1,5 @@
 // The side column: how to get an export from ChatGPT and from Claude
-// (inventory.md, "Upload"), on the one tonal panel of the screen.
+// (m1kuorg/basics#74), on the one tonal panel of the screen.
 
 import { useId } from "react";
 import { cn } from "cn";

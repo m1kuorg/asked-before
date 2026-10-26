@@ -1,13 +1,12 @@
 /*
- * The landing page's own type steps and motion (taste-sheet-landing.md,
- * brief sections 5 and 7). Plain CSS beside the Tailwind stylesheet: the five
- * type steps, the hero's load sequence, the entrances that run once as each
- * chapter arrives, the header's ink following the chapter beneath it, and
- * the photograph's slow settle with the scroll. Transform and opacity only;
- * no CSS animation loops (the newsreel is a <video> with its own Pause), and
- * every hidden starting state sits inside
- * prefers-reduced-motion: no-preference, so the reduced page is the
- * finished page.
+ * The landing page's own type steps and motion (docs/DESIGN.md, "Typography"
+ * and "Layout"). Plain CSS beside the Tailwind stylesheet: the five type
+ * steps, the hero's load sequence, the entrances that run once as each
+ * chapter arrives, the header's ink following the chapter beneath it, and the
+ * photograph's slow settle with the scroll. Transform and opacity only; no
+ * CSS animation loops (the newsreel is a <video> with its own Pause), and
+ * every hidden starting state sits inside prefers-reduced-motion:
+ * no-preference, so the reduced page is the finished page.
  */
 
 /* The fixed header covers the top of the page: whatever takes focus or is scrolled to stops below it. */
