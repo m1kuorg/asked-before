@@ -1,12 +1,11 @@
 // The stdio MCP server (m1kuorg/basics#50): tools for an agent to list the
 // learner's shelves and cards, record a question as a capture, and run a
-// cold rep in the chat, on the official MCP SDK (v2, app-notes/mcp-sdk.md)
-// and @asked-before/sdk. It's configured by its environment (connect.ts):
-// the Asked Before server's URL, an API key, and optionally a default
-// shelf, by name or id, for calls that name none. Each tool answers with
-// a text for the agent and the same facts as structured content; a failure
-// is a tool error carrying Asked Before's message. Nothing goes to stdout
-// but the protocol.
+// cold rep in the chat, on the official MCP SDK (v2) and @asked-before/sdk.
+// It's configured by its environment (connect.ts): the Asked Before server's
+// URL, an API key, and optionally a default shelf, by name or id, for calls
+// that name none. Each tool answers with a text for the agent and the same
+// facts as structured content; a failure is a tool error carrying Asked
+// Before's message. Nothing goes to stdout but the protocol.
 
 import { ApiError, createClient, MAX_PHRASING_LENGTH, type Card, type CardStatus, type Shelf } from "@asked-before/sdk";
 import { McpServer } from "@modelcontextprotocol/server";

@@ -77,7 +77,7 @@ const ICONS: { path: string; type: RegExp; size?: number }[] = [
   ...BANNERS.map(({ file }) => ({ path: `/og/${file}`, type: /^image\/png$/ })),
 ];
 
-/** The privacy page's sections, as the brief names them. */
+/** The privacy page's sections, as the plan for it named them (m1kuorg/basics#77). */
 const PRIVACY_SECTIONS = ["What leaves your computer", "What the model sees", "What's stored", "The one cookie", "No analytics", "The logs", "The guest workspace", "API keys", "Your data", "Backups"];
 const NEEDS_JS = "Asked Before needs JavaScript to show this page.";
 

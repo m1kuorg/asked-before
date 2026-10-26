@@ -1,7 +1,7 @@
 // The public API's route table, version 1, composed here and only here.
-// Each area of the spec's API table is its own module, built by its own
-// ticket. Anything else under /api/, a path or a method, is a 404
-// (server/http.ts).
+// Each area of the spec's API table (m1kuorg/basics#40, "Public API, version
+// 1") is its own module, built by its own ticket. Anything else under /api/,
+// a path or a method, is a 404 (server/http.ts).
 
 import type { RouteTable } from "../http";
 import { account } from "./account";

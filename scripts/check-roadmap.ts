@@ -1,33 +1,33 @@
-// Checks the roadmap (app-notes/depth/plan.md, "2. Roadmap") on a fresh copy
-// of the app: first the endpoint through the SDK, then the screen in a real
-// browser at 1440×900 and 390×844, as a learner and as the guest. The app's
-// model is a stand-in in this script: a sort ends as the demo export's
-// answer key says, with a few more skills this script names, and a cold rep
-// takes the answers a step queues. Through the SDK: a new account's roadmap
-// has all 13 areas, in path order, empty; after the demo export, each of the
-// key's five cards is on its area, with `matched` listing the words of its
-// name that scored, and so are this script's own skills: a tie on the
-// earlier area, the most words winning, and a name with none of them
-// elsewhere. Every answer is checked against the roadmap this script works
-// out itself, from cards.list on each of the account's shelves and its own
-// table of where each skill goes: each area, and elsewhere, sends its 5 most
-// asked cards (ROADMAP_CARDS) in cards.list's order, and counts every one of
-// its cards by status; the counts add up to the Desk's totals; `next` is the
-// first area holding a card that needs a cold rep, with its most asked such
-// card; and `shelves` the shelves holding a card. A pass and a newer ask move
-// a card to Proven and to Asked since proven; the guest's five cards, named
-// as demo/sorted.json names them, land on the same areas; an API key reads
-// the same roadmap, another account sees none of it, and no one logged out
-// does. In the browser: the h1, the map as an ordered list of the 13 areas in
-// path order, each card with its link, status, count, and why it's there,
-// the sentence where each area ends, "Next on your path" with its one "Start
-// a cold rep", an area past 5 cards saying how many it holds, the cards off
-// the path, the index's links on a desktop and the tree on a phone, demo
-// data labeled, one request for the roadmap, no model request, and no
-// console errors; a new account's empty path; and an account with 7 cards on
-// one area and 7 off the path, its 5 most asked on the area proven: the
-// answer sends 5 of each, counts all 7, and names the 6th as next, and the
-// screen draws all of that from the answer (m1kuorg/basics#81).
+// Checks the roadmap (m1kuorg/basics#79) on a fresh copy of the app: first
+// the endpoint through the SDK, then the screen in a real browser at 1440×900
+// and 390×844, as a learner and as the guest. The app's model is a stand-in
+// in this script: a sort ends as the demo export's answer key says, with a
+// few more skills this script names, and a cold rep takes the answers a step
+// queues. Through the SDK: a new account's roadmap has all 13 areas, in path
+// order, empty; after the demo export, each of the key's five cards is on its
+// area, with `matched` listing the words of its name that scored, and so are
+// this script's own skills: a tie on the earlier area, the most words
+// winning, and a name with none of them elsewhere. Every answer is checked
+// against the roadmap this script works out itself, from cards.list on each
+// of the account's shelves and its own table of where each skill goes: each
+// area, and elsewhere, sends its 5 most asked cards (ROADMAP_CARDS) in
+// cards.list's order, and counts every one of its cards by status; the counts
+// add up to the Desk's totals; `next` is the first area holding a card that
+// needs a cold rep, with its most asked such card; and `shelves` the shelves
+// holding a card. A pass and a newer ask move a card to Proven and to Asked
+// since proven; the guest's five cards, named as demo/sorted.json names them,
+// land on the same areas; an API key reads the same roadmap, another account
+// sees none of it, and no one logged out does. In the browser: the h1, the
+// map as an ordered list of the 13 areas in path order, each card with its
+// link, status, count, and why it's there, the sentence where each area ends,
+// "Next on your path" with its one "Start a cold rep", an area past 5 cards
+// saying how many it holds, the cards off the path, the index's links on a
+// desktop and the tree on a phone, demo data labeled, one request for the
+// roadmap, no model request, and no console errors; a new account's empty
+// path; and an account with 7 cards on one area and 7 off the path, its 5
+// most asked on the area proven: the answer sends 5 of each, counts all 7,
+// and names the 6th as next, and the screen draws all of that from the answer
+// (m1kuorg/basics#81).
 // It prints ids, counts, and skill names, never phrasing text, and exits 1
 // if any check fails, naming the step.
 // Run: bun run check:roadmap [screenshot dir]
@@ -46,7 +46,7 @@ const OUT = process.argv[2] ?? join(tmpdir(), "asked-before-roadmap");
 const DESKTOP = { width: 1440, height: 900 };
 const PHONE = { width: 390, height: 844 };
 
-/** The path, as the plan's table orders it. */
+/** The path, as the plan's table orders it (m1kuorg/basics#79). */
 const PATH = ["terminal", "git", "html", "css", "javascript", "typescript", "frameworks", "node", "python", "sql", "http", "testing", "deploy"];
 const NAMES = [
   "Terminal and the OS",
