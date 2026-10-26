@@ -1,9 +1,9 @@
-// Analysis, as the store counts it (app-notes/depth/plan.md, section 1): one
-// account's phrasings, cards, and cold reps, on every shelf or one, counted
-// in SQL. Each card's borrows are ordered by time (ties by id) with window
-// functions: the first is its first ask, every later one a re-ask, and LAG()
-// gives the gap since the one before. Medians and quartiles are read off the
-// ranked gaps in SQL, so only the few rows at those ranks come back.
+// Analysis, as the store counts it (m1kuorg/basics#79): one account's
+// phrasings, cards, and cold reps, on every shelf or one, counted in SQL.
+// Each card's borrows are ordered by time (ties by id) with window functions:
+// the first is its first ask, every later one a re-ask, and LAG() gives the
+// gap since the one before. Medians and quartiles are read off the ranked
+// gaps in SQL, so only the few rows at those ranks come back.
 //
 // Months are the learner's own, in the time zone asked for. The JavaScript
 // works out the UTC instant each local month starts, once per month of the

@@ -1,8 +1,8 @@
-// Checks Search (app-notes/depth/plan.md, section 3) on a fresh copy of the
-// app: first GET /api/v1/search through the SDK, then the screen at
-// /app/search in a real browser, as a learner and as the guest, at
-// 1440×900 and 390×844. The model is a stand-in that sorts as the demo
-// export's answer key does; a search itself asks it nothing.
+// Checks Search (m1kuorg/basics#79) on a fresh copy of the app: first GET
+// /api/v1/search through the SDK, then the screen at /app/search in a real
+// browser, as a learner and as the guest, at 1440×900 and 390×844. The model
+// is a stand-in that sorts as the demo export's answer key does; a search
+// itself asks it nothing.
 // Through the SDK: a search finds the demo export's phrasings that have
 // every word, word for word and newest first, with the key's cards they're
 // on, most matches first; words are lowercased from A to Z, trimmed of

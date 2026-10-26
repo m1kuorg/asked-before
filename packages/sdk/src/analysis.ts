@@ -1,9 +1,8 @@
-// Analysis (app-notes/depth/plan.md, section 1): how you ask, and what you
-// keep re-asking, counted by code from your phrasings' own timestamps, your
-// cards, and your cold reps. Nothing in it calls the model. Months are
-// counted in the time zone you ask for, so a message sent late on the 31st
-// lands in the month you sent it in. Counts and medians only: no streaks or
-// scores.
+// Analysis (m1kuorg/basics#79): how you ask, and what you keep re-asking,
+// counted by code from your phrasings' own timestamps, your cards, and your
+// cold reps. Nothing in it calls the model. Months are counted in the time
+// zone you ask for, so a message sent late on the 31st lands in the month you
+// sent it in. Counts and medians only: no streaks or scores.
 
 import type { DeskCard, DeskShelf } from "./desk.ts";
 import type { Requester } from "./http.ts";

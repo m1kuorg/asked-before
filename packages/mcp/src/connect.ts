@@ -4,9 +4,9 @@
 // environment names from here, and the settings and docs pages show the
 // snippets with their own server's address filled in. It's configured by
 // an API key, the server URL, and an optional default shelf
-// (app-notes/mcp-sdk.md). It runs from a clone of the repo, with bun, or
-// from the Claude Code plugin, which carries a single-file build of it and
-// launches it with node (app-notes/claude-code-plugin.md).
+// (m1kuorg/basics#50). It runs from a clone of the repo, with bun, or from
+// the Claude Code plugin, which carries a single-file build of it and
+// launches it with node (m1kuorg/basics#51).
 // No imports, so the page can bundle it.
 
 /** The settings the MCP server reads from its environment. */

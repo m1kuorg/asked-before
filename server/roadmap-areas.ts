@@ -1,6 +1,6 @@
-// The roadmap's path and its placing rule (app-notes/depth/plan.md, "2.
-// Roadmap"), in one place, as data. The areas run in path order, from the
-// terminal to deploying, each with the words that place a card on it.
+// The roadmap's path and its placing rule (m1kuorg/basics#79), in one place,
+// as data. The areas run in path order, from the terminal to deploying, each
+// with the words that place a card on it.
 // Placing is code, in one stage, and never asks the model: lowercase the
 // card's skill name and split it into words on anything but letters,
 // digits, # and +; an area scores how many distinct words of its list are

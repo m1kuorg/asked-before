@@ -1,7 +1,7 @@
-// Checks Analysis (app-notes/depth/plan.md, section 1) on a fresh copy of the
-// app: the endpoint through the SDK, then the screen in a real browser, as a
-// learner and as the guest, at 1440×900 and 390×844. The model is a stand-in:
-// a sort ends as the demo export's answer key says, and a cold rep takes the
+// Checks Analysis (m1kuorg/basics#79) on a fresh copy of the app: the
+// endpoint through the SDK, then the screen in a real browser, as a learner
+// and as the guest, at 1440×900 and 390×844. The model is a stand-in: a sort
+// ends as the demo export's answer key says, and a cold rep takes the
 // verdicts a step queues.
 //
 // Through the SDK: a new account's analysis is empty; after the demo export
