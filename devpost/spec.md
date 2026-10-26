@@ -57,6 +57,9 @@ Decided by the entrant (#25 Shape, TRD.md Stack) unless marked otherwise.
 - `.env` is gitignored; `.env.example` ships with `ANTHROPIC_API_KEY=` empty. The key is read only by the server; Bun loads `.env` automatically.
 - **For the recording:** a browser window at 1920×1080. The whole journey on the demo export: load, the stack, open key A, a known wrong answer, a fail, a known right answer, and the returned card back on the stack. Under three minutes, with the fail and the pass inside the first minute. Record on a run where grouping matches the answer key.
 - **Submission** needs the demo video and a public GitHub repository. Deployment isn't planned. Making the repo public, the YouTube upload, and the Devpost submission wait for the entrant's approval (#34).
+- **Shared** after the entrant approved on #34 (October 26, 2026):
+  - **Repository:** <https://github.com/m1kuorg/asked-before>, public under Apache-2.0.
+  - **Demo video:** <https://youtu.be/mFd-x714JtU>, unlisted on YouTube by the entrant's choice.
 
 ## Look and Feel
 Carries forward `prd.md > Look and Feel` and `scope.md > Inspiration & Identity`. The detailed references are copied from m1kuorg/basics in the planning repo's layout, because DESIGN.md links to `/.impeccable/…` and the impeccable skill reads `.impeccable/` (#7's final scope):
