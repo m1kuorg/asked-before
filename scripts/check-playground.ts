@@ -15,8 +15,10 @@
 // the address, and the page's storage never hold the key; a made-up key's
 // 401 shows in the pane rather than sending the page to log in; the guest
 // sees GET /keys answer 403; and on the phone the endpoint list is a
-// select. It prints each step's checks, saves screenshots, and exits 1 if
-// any fails, naming the step.
+// select. Opening each select, the Shelf picker and the phone's endpoint
+// list, logs no console error, such as a CSP violation, and the desktop's
+// steps log none at all. It prints each step's checks, saves screenshots,
+// and exits 1 if any fails, naming the step.
 // Run: bun run check:playground [screenshot dir]
 
 import { mkdir } from "node:fs/promises";
@@ -63,8 +65,14 @@ async function step(name: string, run: () => Promise<void>) {
 const requestsSince = (from: number) => app.workerLog().requests.slice(from);
 const logLength = () => app.workerLog().requests.length;
 
+/** Every page's console errors, less Chrome's line for each 4xx answer, which the steps ask for on purpose. */
+const consoleErrors: string[] = [];
+
 async function contextFor(viewport: { width: number; height: number }, cookie: string): Promise<BrowserContext> {
   const context = await browser.newContext({ viewport, deviceScaleFactor: 1 });
+  context.on("console", (message) => {
+    if (message.type() === "error" && !message.text().startsWith("Failed to load resource")) consoleErrors.push(message.text().split("\n")[0]!);
+  });
   const pairs = cookie.split("; ").map((pair) => pair.split("="));
   await context.addCookies(pairs.map(([name, value]) => ({ name: name!, value: value!, url: app.url })));
   return context;
@@ -75,6 +83,16 @@ const send = (page: Page) => page.getByRole("button", { name: "Send", exact: tru
 const address = (page: Page) => page.getByRole("group", { name: "Address" }).locator("code").last();
 const response = (page: Page) => page.getByRole("region", { name: "Response" });
 const pickEndpoint = (page: Page, id: string) => page.getByRole("link", { name: id, exact: true }).click();
+/** Opens the select named `name`, checks that its open menu logged no console error, and picks `option`. */
+async function pickFromSelect(page: Page, name: string, option: string) {
+  const before = consoleErrors.length;
+  await page.getByRole("combobox", { name }).click();
+  await page.getByRole("listbox").waitFor();
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const since = consoleErrors.slice(before);
+  check(since.length === 0, `opening the ${name} select logs no console error${since.length ? `: ${since.join("; ")}` : ""}`);
+  await page.getByRole("option", { name: option }).click();
+}
 /** The status the response pane shows, once one shows. */
 async function answered(page: Page, status: string) {
   await response(page).getByText(status, { exact: true }).waitFor({ timeout: 15_000 });
@@ -147,8 +165,7 @@ try {
   await step("4. A DELETE asks first, naming the shelf, and sends nothing until it's confirmed", async () => {
     const made = (await learner.client.shelves.list()).find((shelf) => shelf.name === MADE)!;
     await pickEndpoint(page, "DELETE /shelves/:shelfId");
-    await page.getByRole("combobox", { name: "Shelf" }).click();
-    await page.getByRole("option", { name: MADE }).click();
+    await pickFromSelect(page, "Shelf", MADE);
     check(((await address(page).textContent()) ?? "").includes(made.id), "the address holds the picked shelf's id");
     const before = logLength();
     await send(page).click();
@@ -170,8 +187,7 @@ try {
 
   await step("5. An id clicked in a response fills its field, and a model-spending endpoint sends nothing on the first click", async () => {
     await pickEndpoint(page, "GET /shelves/:shelfId/cards");
-    await page.getByRole("combobox", { name: "Shelf" }).click();
-    await page.getByRole("option", { name: "Work" }).click();
+    await pickFromSelect(page, "Shelf", "Work");
     await send(page).click();
     check(await answered(page, "200 OK"), "the Work shelf's cards answer 200 OK");
     const [card] = await learner.client.cards.list(work.id);
@@ -222,7 +238,7 @@ try {
     check(new URL(page.url()).pathname === "/app/playground", "and the page stays here, not sent to log in");
   });
 
-  check(errors.length === 0, `no page errors: ${errors.join("; ")}`);
+  check(errors.length === 0 && consoleErrors.length === 0, `no page or console errors: ${[...errors, ...consoleErrors].join("; ")}`);
   await context.close();
 
   await step("7. The guest sees GET /keys answer 403", async () => {
@@ -247,8 +263,7 @@ try {
     check(!(await phonePage.getByRole("link", { name: "GET /shelves", exact: true }).isVisible()), "the list is folded away");
     const select = phonePage.getByRole("combobox", { name: "Endpoint" });
     check(await select.isVisible(), "and the select shows");
-    await select.click();
-    await phonePage.getByRole("option", { name: "GET /desk" }).click();
+    await pickFromSelect(phonePage, "Endpoint", "GET /desk");
     await phonePage.waitForURL(/endpoint=GET%20\/desk$/);
     check(((await address(phonePage).textContent()) ?? "").endsWith("/api/v1/desk"), "picking GET /desk opens it");
     const overflow = await phonePage.evaluate(() => document.documentElement.scrollWidth - innerWidth);
