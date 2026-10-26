@@ -23,7 +23,8 @@
 // It prints each run's time, model requests, and tokens, then the skills
 // not whole on one card and the cards holding more than one skill, by name
 // (the history's labels and the cards' skills), never a phrasing's words.
-// It exits 1 if the mean misses the floor or any sort fails.
+// It exits 1 if the mean misses the floor or any sort fails. It needs
+// ANTHROPIC_API_KEY, and stops before it starts anything without one.
 // Run: bun run check:sort-recall [runs]
 
 import type { Phrasing } from "@asked-before/sdk";
@@ -31,6 +32,11 @@ import { join } from "node:path";
 import { startApp } from "./lib/app";
 import { allUnsorted, sortEnds, upload } from "./lib/answer-key";
 import { forward, startModelStub, type Answer } from "./lib/model-stub";
+
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.error("check:sort-recall asks the real model: set ANTHROPIC_API_KEY.");
+  process.exit(1);
+}
 
 /** The floor the runs' mean must reach. */
 const RECALL = 0.75;

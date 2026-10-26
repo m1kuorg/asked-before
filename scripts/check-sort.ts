@@ -9,13 +9,19 @@
 // short ids, skills, and texts cut to 300 characters, never a date or a
 // source id. It repeats the three for as many runs as asked, to tune the
 // sort's effort as the grouping check did, and prints ids and skill names,
-// never phrasing text. It exits 1 if any run misses the key.
+// never phrasing text. It exits 1 if any run misses the key. It needs
+// ANTHROPIC_API_KEY, and stops before it starts anything without one.
 // Run: bun run check:sort [runs]
 
 import type { Client, Upload } from "@asked-before/sdk";
 import { startApp, type App } from "./lib/app";
 import { compareWithKey, phrasings, sortEnds, upload } from "./lib/answer-key";
 import { forward, sortRequest, startModelStub, type ModelStub } from "./lib/model-stub";
+
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.error("check:sort asks the real model: set ANTHROPIC_API_KEY.");
+  process.exit(1);
+}
 
 const runs = Number(process.argv[2] ?? 1);
 
