@@ -8,7 +8,7 @@
 // where they must; /docs sets those names as code by API_NAMES in sections.tsx,
 // so a newly named one goes on that list too.
 
-import { MAX_CHUNK, MAX_PHRASING_LENGTH } from "@asked-before/sdk";
+import { MAX_CHUNK, MAX_PHRASING_LENGTH, ROADMAP_CARDS } from "@asked-before/sdk";
 import { MCP_ENV } from "../../../packages/mcp/src/connect";
 import { BACKUPS_DOCS } from "@/lib/copy";
 import { count } from "@/lib/format";
@@ -236,7 +236,7 @@ export const AREAS: { area: string; endpoints: Endpoint[] }[] = [
         path: "/roadmap",
         sdk: "roadmap.get",
         who: KEY,
-        does: "Your cards across your shelves on a fixed path of 13 developer areas, Terminal and the OS first and Deploy and DevOps last: { areas, elsewhere }. Each area, in path order and empty ones too, has its id, name, about, counts, and cards, most asked first. Each card is placed by the words in its name, by code, not the model: its skill name, lowercased, is split into words on anything but letters, digits, # and +; it goes to the area with the most of those words on its list, the earlier on a tie, with matched listing them; a card with none is elsewhere.",
+        does: `Your cards across your shelves on a fixed path of 13 developer areas, Terminal and the OS first and Deploy and DevOps last: { areas, elsewhere, next, shelves }. Each area, in path order and empty ones too, has its id, name, about, cards (its ${ROADMAP_CARDS} most asked), and counts (all its cards, by status); elsewhere, the cards none of the areas' words match, is { cards, counts } the same way. next names the first area holding a card that needs a cold rep, with its most asked such card, even one past the ${ROADMAP_CARDS}, or is null; shelves are the shelves holding a card. Each card is placed by the words in its name, by code, not the model: its skill name, lowercased, is split into words on anything but letters, digits, # and +; it goes to the area with the most of those words on its list, the earlier on a tie, with matched listing them; a card with none is elsewhere.`,
       },
     ],
   },

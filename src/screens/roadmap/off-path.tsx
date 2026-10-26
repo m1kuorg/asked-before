@@ -1,21 +1,23 @@
 // Under the map: the cards no area's words match, as rule rows on the white
-// ground, each with its facts and its status pill; or, with none, the
-// sentence saying every card is on the path.
-import type { RoadmapCard } from "@asked-before/sdk";
+// ground, each with its facts and its status pill, the 5 most asked the
+// answer sends, and how many more there are; or, with none, the sentence
+// saying every card is on the path.
+import type { Roadmap } from "@asked-before/sdk";
 import { StatusPill } from "@/components/status-pill";
 import { nameLink } from "@/screens/home/panel";
-import { CardFacts } from "./path-map";
+import { CardFacts, Showing } from "./path-map";
 
-export function OffPath({ cards }: { cards: RoadmapCard[] }) {
+export function OffPath({ elsewhere }: { elsewhere: Roadmap["elsewhere"] }) {
+  const { cards, counts } = elsewhere;
   return (
     <section aria-labelledby="off-path" className="flex flex-col gap-1">
       <h2 id="off-path" className="text-base font-medium">
         Off the path
       </h2>
-      {cards.length ? (
+      {counts.cards ? (
         <>
           <p className="text-sm text-muted-foreground">
-            {cards.length === 1 ? "This card's name holds" : "These cards' names hold"} none of the areas' words, so code leaves {cards.length === 1 ? "it" : "them"} here, most asked first.
+            {counts.cards === 1 ? "This card's name holds" : "These cards' names hold"} none of the areas' words, so code leaves {counts.cards === 1 ? "it" : "them"} here, most asked first.
           </p>
           <ul aria-label="Cards off the path, most asked first" className="mt-2 flex flex-col">
             {cards.map((card) => (
@@ -30,6 +32,7 @@ export function OffPath({ cards }: { cards: RoadmapCard[] }) {
               </li>
             ))}
           </ul>
+          <Showing shown={cards.length} of={counts.cards} />
         </>
       ) : (
         <p className="text-sm text-muted-foreground">Every card's name places it on the path, so none is off it.</p>

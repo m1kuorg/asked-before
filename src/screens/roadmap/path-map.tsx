@@ -20,15 +20,16 @@
 // Narrower (a phone, or a canvas beside the sidebar under 56rem), the same
 // list is an indented tree: the spine down the left edge with a ring on it
 // at each area's 16/500 heading, and the cards as rule rows with their pill
-// at the right. Either way an area shows its 5 most asked cards, and a
-// button shows the rest in place.
+// at the right. Either way an area shows the cards the answer sends, its 5
+// most asked (ROADMAP_CARDS), and says how many more it holds, as Home does:
+// "Showing 5 of 12. The rest are on each shelf."
 import type { RoadmapArea, RoadmapCard } from "@asked-before/sdk";
 import { useEffect, useState } from "react";
 import { cn } from "cn";
 import { DemoChip } from "@/components/demo-chip";
 import { Figure } from "@/components/figure";
 import { StatusPill } from "@/components/status-pill";
-import { Button } from "@/components/ui/button";
+import { TextLink } from "@/components/text-link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { askedTimes, count } from "@/lib/format";
 import { areaCount, areaEnd, because } from "./sentences";
@@ -71,13 +72,13 @@ const station = cn(
 /** The connector to a Proven card: solid plum-black. */
 const provenLine = "@min-[56rem]/map:after:border-solid @min-[56rem]/map:after:border-primary";
 
-export function PathMap({ areas }: { areas: RoadmapArea[] }) {
-  const shelves = new Set(areas.flatMap((area) => area.cards.map((card) => card.shelf.id))).size;
+/** `shelves`: the account's cards are on more than one shelf, so each card says which. */
+export function PathMap({ areas, shelves }: { areas: RoadmapArea[]; shelves: boolean }) {
   return (
     <div className="grid grid-cols-1 gap-4 @min-[56rem]/map:grid-cols-[minmax(0,1fr)_2rem]">
       <ol aria-label="Areas, in path order" className="flex flex-col">
         {areas.map((area) => (
-          <Area key={area.id} area={area} shelves={shelves > 1} />
+          <Area key={area.id} area={area} shelves={shelves} />
         ))}
       </ol>
       <AreaIndex areas={areas} />
@@ -85,15 +86,8 @@ export function PathMap({ areas }: { areas: RoadmapArea[] }) {
   );
 }
 
-/** How many cards an area shows before the rest wait behind "Show all". */
-const SHOWN = 5;
-
-/** `shelves`: the map holds cards from more than one shelf, so each says which. */
 function Area({ area, shelves }: { area: RoadmapArea; shelves: boolean }) {
-  const empty = area.cards.length === 0;
-  const [all, setAll] = useState(false);
-  const listId = `area-${area.id}-cards`;
-  const cards = all ? area.cards : area.cards.slice(0, SHOWN);
+  const empty = area.counts.cards === 0;
   return (
     <li id={`area-${area.id}`} className={cn(areaRow, "group/area")}>
       <div className={nodeCell}>
@@ -107,22 +101,28 @@ function Area({ area, shelves }: { area: RoadmapArea; shelves: boolean }) {
       <p className="mt-1 text-sm text-muted-foreground [grid-area:about] @min-[56rem]/map:mt-0 @min-[56rem]/map:pt-2.75 @min-[56rem]/map:pr-6 @min-[56rem]/map:text-right">{area.about}</p>
       {!empty && (
         <>
-          <ul id={listId} aria-label={`Cards on ${area.name}, most asked first`} className="mt-2 flex flex-col [grid-area:cards] @min-[56rem]/map:mt-0 @min-[56rem]/map:pt-2.75">
-            {cards.map((card) => (
+          <ul aria-label={`Cards on ${area.name}, most asked first`} className="mt-2 flex flex-col [grid-area:cards] @min-[56rem]/map:mt-0 @min-[56rem]/map:pt-2.75">
+            {area.cards.map((card) => (
               <Station key={card.id} card={card} shelf={shelves} />
             ))}
           </ul>
           <div className="mt-1 flex flex-col items-start gap-1 [grid-area:end] @min-[56rem]/map:pl-12">
-            {area.cards.length > SHOWN && (
-              <Button variant="ghost" size="sm" aria-expanded={all} aria-controls={listId} onClick={() => setAll(!all)} className="-ml-3">
-                {all ? "Show fewer" : `Show all ${count(area.cards.length)} cards on ${area.name}`}
-              </Button>
-            )}
+            <Showing shown={area.cards.length} of={area.counts.cards} />
             <p className="text-sm text-muted-foreground">{areaEnd(area)}</p>
           </div>
         </>
       )}
     </li>
+  );
+}
+
+/** Under a list the answer cut short, Home's line: "Showing 5 of 12. The rest are on each shelf.", the second sentence a link to the shelves. */
+export function Showing({ shown, of }: { shown: number; of: number }) {
+  if (of <= shown) return null;
+  return (
+    <p className="text-sm text-muted-foreground">
+      Showing {count(shown)} of {count(of)}. <TextLink href="/app/shelves">The rest are on each shelf.</TextLink>
+    </p>
   );
 }
 
@@ -224,7 +224,7 @@ function AreaIndex({ areas }: { areas: RoadmapArea[] }) {
                 aria-current={here ? "location" : undefined}
                 className="group/tick relative flex h-6 w-8 items-center justify-end rounded-sm"
               >
-                <span aria-hidden="true" className={cn("block", here ? "h-0.5 w-6 bg-primary" : area.cards.length ? "h-px w-4 bg-input" : "h-px w-2.5 bg-input")} />
+                <span aria-hidden="true" className={cn("block", here ? "h-0.5 w-6 bg-primary" : area.counts.cards ? "h-px w-4 bg-input" : "h-px w-2.5 bg-input")} />
                 <span aria-hidden="true" className="pointer-events-none absolute right-full mr-2 hidden rounded-md border border-border bg-popover px-2 py-1 text-xs whitespace-nowrap text-foreground shadow-md group-hover/tick:block group-focus-visible/tick:block">
                   {area.name}
                   <span className="text-muted-foreground">

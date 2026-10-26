@@ -13,7 +13,7 @@
 // order with every area on it, empty ones too, beside a tick index. Then
 // the cards that aren't on the path. Below a 1100px canvas the two blocks
 // stack, and below a 56rem map the map is an indented tree.
-import type { Roadmap as RoadmapData, RoadmapCard } from "@asked-before/sdk";
+import type { Roadmap as RoadmapData, Shelf } from "@asked-before/sdk";
 import { cn } from "cn";
 import type { ScreenProps } from "@/app/router";
 import { useResource } from "@/app/use-resource";
@@ -44,7 +44,7 @@ export function Roadmap({ client, navigate }: ScreenProps) {
   }
 
   const data = map.data;
-  const cards = data ? onPath(data).length + data.elsewhere.length : 0;
+  const cards = data ? onPath(data).cards + data.elsewhere.counts.cards : 0;
   return (
     <div className="@container/roadmap flex flex-col">
       <h1 className="line-clamp-2 text-2xl text-pretty">
@@ -74,14 +74,14 @@ export function Roadmap({ client, navigate }: ScreenProps) {
               {data ? `${count(data.areas.length)} areas` : "Its areas"} in a fixed order, from the terminal to deploying. An area with no card stays on it, and nothing on it is locked.
             </p>
           </div>
-          {data && <Key cards={onPath(data)} />}
+          {data && <Key counts={onPath(data)} />}
         </div>
-        {data ? <PathMap areas={data.areas} /> : <PathMapLoading />}
+        {data ? <PathMap areas={data.areas} shelves={data.shelves.length > 1} /> : <PathMapLoading />}
       </section>
 
       {data && cards > 0 && (
         <div className="mt-12">
-          <OffPath cards={data.elsewhere} />
+          <OffPath elsewhere={data.elsewhere} />
         </div>
       )}
     </div>
@@ -90,16 +90,16 @@ export function Roadmap({ client, navigate }: ScreenProps) {
 
 /** "5 cards on the path, from Demo [Demo data]." */
 function Subline({ map }: { map: RoadmapData }) {
-  const placed = onPath(map);
-  const all = [...placed, ...map.elsewhere];
-  if (!all.length) {
+  const placed = onPath(map).cards;
+  const elsewhere = map.elsewhere.counts.cards;
+  if (!placed && !elsewhere) {
     return <p className="mt-1 text-sm text-muted-foreground">Every question you've asked a chatbot more than once becomes a card, and the words in its name place it on the path.</p>;
   }
-  const shelves = [...new Map(all.map((card) => [card.shelf.id, card.shelf])).values()];
-  const off = map.elsewhere.length ? `, ${count(map.elsewhere.length)} off it` : "";
+  const { shelves } = map;
+  const off = elsewhere ? `, ${count(elsewhere)} off it` : "";
   return (
     <p className="mt-1 text-sm text-muted-foreground">
-      {plural(placed.length, "card")} on the path{off}, from{" "}
+      {plural(placed, "card")} on the path{off}, from{" "}
       {shelves.length > 3
         ? `${count(shelves.length)} shelves`
         : shelves.map((shelf, i) => (
@@ -115,8 +115,8 @@ function Subline({ map }: { map: RoadmapData }) {
 }
 
 /** The map's key: the house pills, each with how many cards on the path it marks, and what the connectors mean. */
-function Key({ cards }: { cards: RoadmapCard[] }) {
-  const counted = (status: RoadmapCard["status"]) => cards.filter((card) => card.status === status).length;
+function Key({ counts }: { counts: Shelf["counts"] }) {
+  const counted = { borrowed: counts.borrowed, returned: counts.returned, borrowed_again: counts.borrowedAgain };
   return (
     <div className="flex flex-col gap-2 @min-[56rem]/map:items-end">
       <dl aria-label="Cards on the path, by status" className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -126,12 +126,12 @@ function Key({ cards }: { cards: RoadmapCard[] }) {
               <StatusPill status={status} />
             </dt>
             <dd className="text-sm">
-              <Figure n={counted(status)} />
+              <Figure n={counted[status]} />
             </dd>
           </div>
         ))}
       </dl>
-      <p className={cn("hidden flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground", cards.length > 0 && "@min-[56rem]/map:flex")}>
+      <p className={cn("hidden flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground", counts.cards > 0 && "@min-[56rem]/map:flex")}>
         <span className="flex items-center gap-1.5">
           <Connector proven />
           to a proven card
