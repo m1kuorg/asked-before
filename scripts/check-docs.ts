@@ -114,8 +114,8 @@ try {
   await step("4. The sort window's known limit and the daily caps are stated, with the server's numbers", async () => {
     const text = (await main.getByRole("region", { name: "The sort window", exact: true }).textContent({ timeout: 2000 })) ?? "";
     check(text.includes(`SORT_BATCH_SIZE (${config.sortBatchSize})`), `it names SORT_BATCH_SIZE and its default, ${config.sortBatchSize}`);
-    check(/compared again only while it's inside that window/.test(text), "it says an older unsorted phrasing is compared again only inside the window");
-    check(text.includes(`${CAPTURE_WINDOW} most recent unsorted`), `it gives a capture's window, ${CAPTURE_WINDOW}`);
+    check(/an older phrasing not on a card is compared again only while it's inside that window/.test(text), "it says an older phrasing not on a card is compared again only inside the window");
+    check(text.includes(`${CAPTURE_WINDOW} most recent phrasings not on a card`), `it gives a capture's window, ${CAPTURE_WINDOW}`);
     const api = (await main.getByRole("region", { name: "The API", exact: true }).textContent()) ?? "";
     for (const [name, cap] of [
       ["SITE_DAILY_MODEL_REQUESTS", config.dailyModelRequests],
