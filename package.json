@@ -1,16 +1,9 @@
 {
-  "name": "asked-before",
-  "private": true,
-  "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/m1kuorg/asked-before.git"
-  },
-  "type": "module",
-  "workspaces": [
-    "apps/*"
-  ],
   "scripts": {
+    "graph": "graphify update .",
+    "lint": "prettier --check .",
+    "lint:fix": "prettier --write .",
+    "prepare": "husky",
     "dev": "bun run --cwd apps/web dev",
     "typecheck": "bun run --cwd apps/web typecheck",
     "journey": "bun run --cwd apps/web journey",
@@ -53,5 +46,26 @@
     "build:pages": "bun run --cwd apps/web build:pages",
     "build:plugin": "bun run --cwd apps/web build:plugin",
     "build:sdk": "bun run --cwd apps/web build:sdk"
-  }
+  },
+  "lint-staged": {
+    "*": "prettier --write --ignore-unknown"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10"
+  },
+  "name": "asked-before",
+  "private": true,
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/m1kuorg/asked-before.git"
+  },
+  "type": "module",
+  "workspaces": [
+    "apps/*"
+  ]
 }
