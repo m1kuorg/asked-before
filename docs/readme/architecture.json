@@ -30,8 +30,7 @@
       "pos": [40, 190],
       "size": [150, 64],
       "sources": [
-        { "path": "packages/sdk/src/readers.ts", "line": 1, "end_line": 19, "label": "readExport, your messages" },
-        { "path": "docs/adr/0001-keep-only-your-words-on-a-hosted-server.md", "line": 7, "label": "only your phrasings" }
+        { "path": "apps/sdk/src/readers.ts", "line": 1, "end_line": 19, "label": "readExport, your messages" }
       ]
     },
     {
@@ -42,9 +41,8 @@
       "pos": [330, 190],
       "size": [160, 64],
       "sources": [
-        { "path": "src/lib/client.ts", "line": 1, "end_line": 25, "label": "the SDK, session cookie" },
-        { "path": "src/screens/upload/flow.tsx", "line": 65, "end_line": 105, "label": "readExport, then upload" },
-        { "path": "docs/adr/0004-the-page-is-an-api-client.md", "line": 5, "end_line": 7 }
+        { "path": "apps/web/src/lib/client.ts", "line": 1, "end_line": 25, "label": "the SDK, session cookie" },
+        { "path": "apps/web/src/screens/upload/flow.tsx", "line": 65, "end_line": 105, "label": "readExport, then upload" }
       ]
     },
     {
@@ -55,7 +53,7 @@
       "pos": [40, 310],
       "size": [150, 64],
       "sources": [
-        { "path": "packages/mcp/src/connect.ts", "line": 1, "end_line": 20, "label": "agent setup" }
+        { "path": "apps/mcp/src/connect.ts", "line": 1, "end_line": 20, "label": "agent setup" }
       ]
     },
     {
@@ -66,8 +64,8 @@
       "pos": [330, 310],
       "size": [160, 64],
       "sources": [
-        { "path": "packages/mcp/src/server.ts", "line": 1, "end_line": 24, "label": "stdio, SDK, API key" },
-        { "path": "plugins/asked-before/.mcp.json", "line": 1, "end_line": 13, "label": "the plugin launches it" }
+        { "path": "apps/mcp/src/server.ts", "line": 1, "end_line": 24, "label": "stdio, SDK, API key" },
+        { "path": "apps/plugin/.mcp.json", "line": 1, "end_line": 13, "label": "the plugin launches it" }
       ]
     },
     {
@@ -78,8 +76,8 @@
       "pos": [330, 430],
       "size": [160, 64],
       "sources": [
-        { "path": "packages/sdk/examples/quickstart.ts", "line": 1, "end_line": 24, "label": "SDK quickstart" },
-        { "path": "packages/sdk/src/http.ts", "line": 30, "end_line": 39, "label": "Bearer API key" }
+        { "path": "apps/sdk/examples/quickstart.ts", "line": 1, "end_line": 24, "label": "SDK quickstart" },
+        { "path": "apps/sdk/src/http.ts", "line": 30, "end_line": 39, "label": "Bearer API key" }
       ]
     },
     {
@@ -90,8 +88,8 @@
       "pos": [680, 40],
       "size": [160, 64],
       "sources": [
-        { "path": "wrangler.jsonc", "line": 14, "end_line": 18, "label": "assets, /api/* first" },
-        { "path": "scripts/build-pages.ts", "line": 1, "end_line": 10 }
+        { "path": "apps/web/wrangler.jsonc", "line": 14, "end_line": 18, "label": "assets, /api/* first" },
+        { "path": "apps/web/scripts/build-pages.ts", "line": 1, "end_line": 10 }
       ]
     },
     {
@@ -102,9 +100,9 @@
       "pos": [680, 190],
       "size": [160, 304],
       "sources": [
-        { "path": "worker/index.ts", "line": 1, "end_line": 25, "label": "fetch and scheduled" },
-        { "path": "server/api/index.ts", "line": 1, "end_line": 29, "label": "route table" },
-        { "path": "server/auth.ts", "line": 1, "end_line": 50, "label": "API key or session" }
+        { "path": "apps/web/worker/index.ts", "line": 1, "end_line": 25, "label": "fetch and scheduled" },
+        { "path": "apps/web/server/api/index.ts", "line": 1, "end_line": 29, "label": "route table" },
+        { "path": "apps/web/server/auth.ts", "line": 1, "end_line": 50, "label": "API key or session" }
       ]
     },
     {
@@ -115,9 +113,9 @@
       "pos": [960, 190],
       "size": [170, 64],
       "sources": [
-        { "path": "wrangler.jsonc", "line": 32, "end_line": 36, "label": "*/5 * * * *" },
-        { "path": "server/sort.ts", "line": 312, "end_line": 331, "label": "resumeStalledSorts" },
-        { "path": "server/store/guest.ts", "line": 1, "end_line": 11, "label": "daily guest reset" }
+        { "path": "apps/web/wrangler.jsonc", "line": 32, "end_line": 36, "label": "*/5 * * * *" },
+        { "path": "apps/web/server/sort.ts", "line": 312, "end_line": 331, "label": "resumeStalledSorts" },
+        { "path": "apps/web/server/store/guest.ts", "line": 1, "end_line": 11, "label": "daily guest reset" }
       ]
     },
     {
@@ -128,8 +126,8 @@
       "pos": [960, 310],
       "size": [170, 64],
       "sources": [
-        { "path": "wrangler.jsonc", "line": 19, "end_line": 28, "label": "binding DB" },
-        { "path": "server/store/db.ts", "line": 1, "end_line": 14 }
+        { "path": "apps/web/wrangler.jsonc", "line": 19, "end_line": 28, "label": "binding DB" },
+        { "path": "apps/web/server/store/db.ts", "line": 1, "end_line": 14 }
       ]
     },
     {
@@ -140,9 +138,9 @@
       "pos": [960, 430],
       "size": [170, 64],
       "sources": [
-        { "path": "worker/sorter.ts", "line": 1, "end_line": 44, "label": "one per shelf, alarms" },
-        { "path": "server/sort.ts", "line": 284, "end_line": 310, "label": "sortNextBatch" },
-        { "path": "server/api/uploads.ts", "line": 79, "end_line": 92, "label": "finish starts the sort" }
+        { "path": "apps/web/worker/sorter.ts", "line": 1, "end_line": 44, "label": "one per shelf, alarms" },
+        { "path": "apps/web/server/sort.ts", "line": 284, "end_line": 310, "label": "sortNextBatch" },
+        { "path": "apps/web/server/api/uploads.ts", "line": 79, "end_line": 92, "label": "finish starts the sort" }
       ]
     },
     {
@@ -153,9 +151,9 @@
       "pos": [960, 600],
       "size": [170, 64],
       "sources": [
-        { "path": "server/model.ts", "line": 1, "end_line": 21, "label": "MODEL" },
-        { "path": "server/sort.ts", "line": 17, "end_line": 21, "label": "ids and words, never a time" },
-        { "path": "server/reps.ts", "line": 1, "end_line": 10, "label": "reps: words only" }
+        { "path": "apps/web/server/model.ts", "line": 1, "end_line": 21, "label": "MODEL" },
+        { "path": "apps/web/server/sort.ts", "line": 17, "end_line": 21, "label": "ids and words, never a time" },
+        { "path": "apps/web/server/reps.ts", "line": 1, "end_line": 10, "label": "reps: words only" }
       ]
     }
   ],

@@ -1,7 +1,7 @@
 // Exports the README architecture diagram in the Asked Before design system.
 //
 // Archify (https://github.com/tt-a1i/archify) renders docs/readme/architecture.json into a standalone
-// HTML viewer. This script restyles that viewer with the docs/DESIGN.md colours and the bundled
+// HTML viewer. This script restyles that viewer with the app's colours and the bundled
 // Schibsted Grotesk, then saves the viewer's own SVG export once per colour scheme.
 //
 // Re-run from the repository root, with archify 3.2.0 cloned to /tmp/archify
@@ -10,18 +10,18 @@
 //   node docs/readme/export-architecture.mjs /tmp/architecture.html .
 //
 // Writes docs/readme/architecture-light.svg and architecture-dark.svg, on transparent backgrounds.
-// Needs Playwright's bundled Chromium (bunx playwright install chromium).
+// Needs Playwright's bundled Chromium (bun run --cwd apps/web playwright install chromium).
 import { createRequire } from 'node:module'
 import fs from 'node:fs'
 import path from 'node:path'
 
 const [input, repo] = process.argv.slice(2)
 if (!input || !repo) throw new Error('usage: node export-architecture.mjs <archify.html> <repo root>')
-const require = createRequire(path.join(path.resolve(repo), 'package.json'))
+const require = createRequire(path.join(path.resolve(repo), 'apps/web/package.json'))
 const { chromium } = require('playwright')
-const font = fs.readFileSync(path.join(repo, 'public/fonts/SchibstedGrotesk-Variable.woff2')).toString('base64')
+const font = fs.readFileSync(path.join(repo, 'apps/web/public/fonts/SchibstedGrotesk-Variable.woff2')).toString('base64')
 
-// docs/DESIGN.md: the landing's plum grounds for dark, the app's white ground for light.
+// The landing's plum grounds for dark, the app's white ground for light.
 // Pink marks Asked Before's own parts: it fills the clients, with plum-black ink on it as on the
 // landing's pink buttons, and outlines the server. Cloudflare's services and the outside parts stay quiet.
 const THEMES = {

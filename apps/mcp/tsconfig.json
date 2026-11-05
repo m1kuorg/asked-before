@@ -1,0 +1,13 @@
+// The MCP server, with Bun's types, which the web app installs. It shares the
+// web app's base (../web/tsconfig.base.json), whose paths take the SDK from
+// its sources, so running or bundling the server needs no build of the SDK.
+// `bun run typecheck` checks it with the web app's scripts (../web/tsconfig.json).
+{
+  "extends": "../web/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "typeRoots": ["../web/node_modules/@types"],
+    "types": ["bun"]
+  },
+  "include": ["."]
+}

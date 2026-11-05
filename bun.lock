@@ -4,6 +4,27 @@
   "workspaces": {
     "": {
       "name": "asked-before",
+    },
+    "apps/mcp": {
+      "name": "@asked-before/mcp",
+      "version": "0.1.0",
+      "dependencies": {
+        "@asked-before/sdk": "workspace:*",
+        "@modelcontextprotocol/server": "^2.3.1",
+        "zod": "^4.6.7",
+      },
+    },
+    "apps/sdk": {
+      "name": "@asked-before/sdk",
+      "version": "0.1.0",
+      "dependencies": {
+        "@noble/hashes": "^2.4.0",
+        "fflate": "^0.8.3",
+      },
+    },
+    "apps/web": {
+      "name": "@asked-before/web",
+      "version": "0.1.0",
       "dependencies": {
         "@anthropic-ai/sdk": "^0.135.0",
         "@asked-before/sdk": "workspace:*",
@@ -32,30 +53,15 @@
         "wrangler": "^4.151.1",
       },
     },
-    "packages/mcp": {
-      "name": "@asked-before/mcp",
-      "version": "0.1.0",
-      "dependencies": {
-        "@asked-before/sdk": "workspace:*",
-        "@modelcontextprotocol/server": "^2.3.1",
-        "zod": "^4.6.7",
-      },
-    },
-    "packages/sdk": {
-      "name": "@asked-before/sdk",
-      "version": "0.1.0",
-      "dependencies": {
-        "@noble/hashes": "^2.4.0",
-        "fflate": "^0.8.3",
-      },
-    },
   },
   "packages": {
     "@anthropic-ai/sdk": ["@anthropic-ai/sdk@0.135.0", "", { "dependencies": { "@opentelemetry/api": "^1.4.1", "json-schema-to-ts": "^3.1.1", "standardwebhooks": "^1.0.0" }, "peerDependencies": { "zod": "^3.25.0 || ^4.0.0" }, "optionalPeers": ["zod"], "bin": { "anthropic-ai-sdk": "bin/cli" } }, "sha512-WWrdL57JhU5KoynpTjt9GXK6k7ud9nPw2uw/Trn+oBXh6s0KpjhAccWZm2Qxw08ARYG1UDQj5iC+JO42j1rt/g=="],
 
-    "@asked-before/mcp": ["@asked-before/mcp@workspace:packages/mcp"],
+    "@asked-before/mcp": ["@asked-before/mcp@workspace:apps/mcp"],
 
-    "@asked-before/sdk": ["@asked-before/sdk@workspace:packages/sdk"],
+    "@asked-before/sdk": ["@asked-before/sdk@workspace:apps/sdk"],
+
+    "@asked-before/web": ["@asked-before/web@workspace:apps/web"],
 
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
 

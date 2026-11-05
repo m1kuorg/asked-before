@@ -175,8 +175,8 @@ Landing, Search, Connect your AI, Playground, and Privacy show the live app as t
 - **Cards from your own history.** ChatGPT and Claude exports, sorted onto cards per shelf, most asked first. Shelves never share cards.
 - **Cold reps.** A lesson written once, a fresh problem every rep, and a verdict with its reason.
 - **Search, Analysis, and Roadmap.** Counted by code, never the model, so none of them spends a model request.
-- **From your agent.** An MCP server with five tools, `list_shelves`, `list_cards`, `record_question`, `start_cold_rep`, and `check_answer`, and a Claude Code plugin ([README](/packages/mcp/README.md)). A question you ask an agent is recorded as you ask it, and lands on its card, or waits as not on a card until something else asks the same.
-- **SDK and API.** `@asked-before/sdk`, a typed TypeScript client for the HTTP API with the export readers, built from a clone since it isn't on npm ([README](/packages/sdk/README.md)); every endpoint listed at `/docs`; and the Playground for one real request.
+- **From your agent.** An MCP server with five tools, `list_shelves`, `list_cards`, `record_question`, `start_cold_rep`, and `check_answer`, and a Claude Code plugin. A question you ask an agent is recorded as you ask it, and lands on its card, or waits as not on a card until something else asks the same.
+- **SDK and API.** `@asked-before/sdk`, a typed TypeScript client for the HTTP API with the export readers, built from a clone since it isn't on npm; every endpoint listed at `/docs`; and the Playground for one real request.
 - **Guest workspace.** Try it with no account: every guest shares one sorted demo shelf, wiped back at midnight UTC.
 - **Your data.** API keys shown once, a download of everything Asked Before keeps, and account deletion.
 - **No password on the server.** The page derives a key from your password with scrypt, and the server keeps only a salted SHA-256 of that key.
@@ -217,21 +217,16 @@ Built for [Build With AI: Basics](https://learn-ai-basics.devpost.com/), Devpost
 
 ### Skill Pack and Planning Docs
 
-The repository started empty on October 16, 2026, and its first commit installs the [Devpost Learn Skill Pack](https://github.com/challengepost/learn-ai-basics), pinned in [`skills-lock.json`](/skills-lock.json). Its skills wrote the planning docs in [`devpost/`](/devpost):
+The repository started empty on October 16, 2026, and its first commit installs the [Devpost Learn Skill Pack](https://github.com/challengepost/learn-ai-basics). Its skills wrote the planning docs, `scope.md` from `2-scope`, `prd.md` from `3-prd`, `spec.md` from `4-spec`, and `checklist.md` and `app-map.html` from `5-build`, which describe only the proof of concept and are no longer in the tree.
 
-- [`scope.md`](/devpost/scope.md), from `2-scope`: the idea, cut down to a proof of concept.
-- [`prd.md`](/devpost/prd.md), from `3-prd`: the journey, every behavior, and the proof of concept's boundary.
-- [`spec.md`](/devpost/spec.md), from `4-spec`: the stack, components, data, and files.
-- [`checklist.md`](/devpost/checklist.md) and [`app-map.html`](/devpost/app-map.html), from `5-build`: the build steps, each verified and committed.
-
-The proof of concept, one page running the whole journey on a made-up demo export, is `main`'s history up to commit [`f272695`](https://github.com/m1kuorg/asked-before/tree/f272695), and `devpost/` describes only that proof of concept. The app grew from it within the submission period, through accounts, Cloudflare Workers, a redesigned frontend, and the screens above, following tickets in the private planning repository rather than the Skill Pack. [`PRODUCT.md`](/PRODUCT.md), [`GLOSSARY.md`](/GLOSSARY.md), [`docs/adr/`](/docs/adr), and [`docs/code-map.md`](/docs/code-map.md) describe the app as it is now.
+The proof of concept, one page running the whole journey on a made-up demo export, is `main`'s history up to commit [`f272695`](https://github.com/m1kuorg/asked-before/tree/f272695), whose `devpost/` holds those docs. The app grew from it within the submission period, through accounts, Cloudflare Workers, a redesigned frontend, and the screens above, following tickets in the private planning repository rather than the Skill Pack.
 
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
 ### Testing
 
 - **Live app.** Open [asked-before.m1kuorg.workers.dev](https://asked-before.m1kuorg.workers.dev) and choose **Try it as a guest**. It needs no account, password, or payment. Every guest shares one workspace that already holds a sorted demo shelf, wiped back at midnight UTC.
-- **Demo data.** The demo shelf comes from [`demo/export.json`](/demo/export.json), a made-up chat export, labeled as demo data wherever it shows. Its top card is "Undo a git commit", asked 9 times.
+- **Demo data.** The demo shelf comes from [`apps/web/demo/export.json`](/apps/web/demo/export.json), a made-up chat export, labeled as demo data wherever it shows. Its top card is "Undo a git commit", asked 9 times.
 - **Shared workspace.** Every guest sees what any guest uploads, with its cards and cold reps, until the midnight wipe.
 - **Daily caps.** The whole app gets 20 model requests a day, shared by everyone, and they reset at midnight UTC. Search, Analysis, the Roadmap, and browsing cards spend none. A cold rep spends 2, one to write the problem and one to check the answer, so the day holds about 10 across all visitors; an upload's sort and an agent's recorded question spend some too. Past the cap, the app says so. To try more, run it locally with your own key and raise the cap, as [Getting Started](#getting-started) says.
 
@@ -271,42 +266,43 @@ Asked Before runs on your computer under `wrangler dev`, which runs it as Cloudf
     bun install
     ```
 
-2.  **Add your key.** Copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`. `.env` is gitignored, and a key exported in your shell works too.
+2.  **Add your key.** Copy `apps/web/.env.example` to `apps/web/.env`, beside `wrangler.jsonc`, and set `ANTHROPIC_API_KEY`. `.env` is gitignored, and a key exported in your shell works too.
 
     ```sh
-    cp .env.example .env
+    cp apps/web/.env.example apps/web/.env
     ```
 
-3.  **Start the app.** `bun run dev` builds the pages into `dist/`, applies the D1 migrations to a local database in `.wrangler/`, and starts `wrangler dev`.
+3.  **Start the app.** `bun run dev` builds the pages into `apps/web/dist/`, applies the D1 migrations to a local database in `apps/web/.wrangler/`, and starts `wrangler dev`.
 
     ```sh
     bun run dev
     ```
 
-4.  **Open it.** Open the address Wrangler prints, [http://localhost:8787](http://localhost:8787) unless that port is taken. Sign up and choose **Try the demo shelf** on Home, or try it as a guest. Your local data stays in `.wrangler/`; delete that folder to start again. Wrangler reloads the Worker when its code changes, but not the pages: run `bun run build:pages` after changing them.
+4.  **Open it.** Open the address Wrangler prints, [http://localhost:8787](http://localhost:8787) unless that port is taken. Sign up and choose **Try the demo shelf** on Home, or try it as a guest. Your local data stays in `apps/web/.wrangler/`; delete that folder to start again. Wrangler reloads the Worker when its code changes, but not the pages: run `bun run build:pages` after changing them.
 
-    The local app keeps the live app's daily caps, from `wrangler.jsonc`'s `vars`: 20 model requests and 8,000 messages a day. For more, raise `SITE_DAILY_MODEL_REQUESTS` and `SITE_DAILY_PHRASINGS` there and start the app again.
+    The local app keeps the live app's daily caps, from `apps/web/wrangler.jsonc`'s `vars`: 20 model requests and 8,000 messages a day. For more, raise `SITE_DAILY_MODEL_REQUESTS` and `SITE_DAILY_PHRASINGS` there and start the app again.
 
 5.  **Run the checks.** Each check starts its own copy of the app with a fresh database and drives it from outside: through the SDK, in a real browser, or with the official MCP client. The browser checks need Playwright's Chromium once.
 
     ```sh
-    bunx playwright install chromium
+    bun run --cwd apps/web playwright install chromium
     bun run typecheck
     bun run journey
     ```
 
-    `bun run journey` walks the core journey in Chromium with the real model, in 7 model calls: it signs up, uploads the demo export, fails and then passes a cold rep, makes an API key, lists the cards through the SDK, and records a question through the MCP server. `package.json` has a `check:*` script for each area, such as `check:guest`, `check:search`, and `check:mcp`. Most stub the model inside the script; the few that call the real model need the key.
+    `bun run journey` walks the core journey in Chromium with the real model, in 7 model calls: it signs up, uploads the demo export, fails and then passes a cold rep, makes an API key, lists the cards through the SDK, and records a question through the MCP server. The root `package.json` has a `check:*` script for each area, run in `apps/web`, such as `check:guest`, `check:search`, and `check:mcp`. Most stub the model inside the script; the few that call the real model need the key.
 
-6.  **Optionally, deploy to Cloudflare.** It runs on Workers Free. `wrangler.jsonc` holds the live app's database id and address, so replace both with your own. With your key exported in your shell, log in, make the database, and replace the `database_id` in `wrangler.jsonc`'s `DB` binding with its id. Then apply the migrations and set the key as the Worker's secret; Wrangler offers to create the Worker for it.
+6.  **Optionally, deploy to Cloudflare.** It runs on Workers Free. `apps/web/wrangler.jsonc` holds the live app's database id and address, so replace both with your own. Run Wrangler from `apps/web`, beside its config. With your key exported in your shell, log in, make the database, and replace the `database_id` in `wrangler.jsonc`'s `DB` binding with its id. Then apply the migrations and set the key as the Worker's secret; Wrangler offers to create the Worker for it.
 
     ```sh
+    cd apps/web
     bunx wrangler login
     bunx wrangler d1 create asked-before
     bunx wrangler d1 migrations apply DB --remote
     printenv ANTHROPIC_API_KEY | bunx wrangler secret put ANTHROPIC_API_KEY
     ```
 
-    Replace `PUBLIC_URL` in `wrangler.jsonc`'s `vars` with your app's address, then build and deploy. To deploy a change, apply any new migrations first, then build and deploy again.
+    Replace `PUBLIC_URL` in `wrangler.jsonc`'s `vars` with your app's address, then build and deploy, still in `apps/web`. To deploy a change, apply any new migrations first, then build and deploy again.
 
     ```sh
     bun run build:pages
@@ -345,12 +341,10 @@ See [LICENSE](/LICENSE) for more information.
 
 Third-party files keep their own licenses:
 
-- The Devpost Learn Skill Pack, [MIT](https://github.com/challengepost/learn-ai-basics/blob/main/LICENSE), Copyright (c) 2026 Devpost, in `.agents/skills/`, `agent/skills/`, and `.claude/skills/`.
-- The impeccable skill, Apache 2.0, in `.claude/skills/impeccable/` and `.claude/agents/`.
-- shadcn/ui's components, MIT, the starting point of `src/components/ui/`.
-- The MCP TypeScript SDK's server and core, Apache 2.0, and Zod and `@noble/hashes`, MIT, bundled into the plugin's built server, `plugins/asked-before/dist/server.js`.
-- Schibsted Grotesk and JetBrains Mono, SIL Open Font License 1.1, in `public/fonts/`.
-- The landing page's archival pictures and film, each credited on the page and listed with its source and license in [`public/images/credits.json`](/public/images/credits.json): two photographs under CC BY 4.0, and a photograph and a newsreel in the public domain. The banner is the landing page's opening chapter, whose field is adapted from ["Nurmeksen yhteislyseo vuonna 1958. Ylioppilaskirjoitukset."](https://commons.wikimedia.org/wiki/File:Nurmeksen_yhteislyseo_vuonna_1958_Ylioppilaskirjoitukset_(5394%2B(numero)).jpg) by Topi Toivanen, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0), via Wikimedia Commons: the photograph is rebuilt in the demo's questions, set in type.
+- shadcn/ui's components, MIT, the starting point of `apps/web/src/components/ui/`.
+- The MCP TypeScript SDK's server and core, Apache 2.0, and Zod and `@noble/hashes`, MIT, bundled into the plugin's built server, `apps/plugin/dist/server.js`.
+- Schibsted Grotesk and JetBrains Mono, SIL Open Font License 1.1, in `apps/web/public/fonts/`.
+- The landing page's archival pictures and film, each credited on the page and listed with its source and license in [`apps/web/public/images/credits.json`](/apps/web/public/images/credits.json): two photographs under CC BY 4.0, and a photograph and a newsreel in the public domain. The banner is the landing page's opening chapter, whose field is adapted from ["Nurmeksen yhteislyseo vuonna 1958. Ylioppilaskirjoitukset."](https://commons.wikimedia.org/wiki/File:Nurmeksen_yhteislyseo_vuonna_1958_Ylioppilaskirjoitukset_(5394%2B(numero)).jpg) by Topi Toivanen, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0), via Wikimedia Commons: the photograph is rebuilt in the demo's questions, set in type.
 
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 

@@ -1,0 +1,10 @@
+// The Bun scripts and the packages, with Bun's types (see tsconfig.base.json).
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["bun"]
+  },
+  "include": ["scripts", "../sdk", "../mcp"],
+  "exclude": ["node_modules", "../*/dist"]
+}

@@ -1,7 +1,7 @@
 // Renders the README banner from the landing page's opening chapter: "Asked
 // before?" on the plum field, over the ASCII field that rebuilds the 1958
-// exam-hall photograph from the demo's phrasings (src/pages/landing/
-// chapters.tsx, HeroChapter). The fixed header is hidden, and reduced motion
+// exam-hall photograph from the demo's phrasings (apps/web/src/pages/
+// landing/chapters.tsx, HeroChapter). The fixed header is hidden, and reduced motion
 // gives the field's one still frame. The viewport is 1600×800, so the
 // chapter's lead fits beside the title at the banner's 2:1.
 //
@@ -10,9 +10,12 @@
 //   bun docs/readme/export-banner.mjs [https://asked-before.m1kuorg.workers.dev/]
 //
 // Writes docs/readme/banner.png, 2560×1280. Needs Playwright's bundled Chromium
-// (bunx playwright install chromium). It stops if the page fails or the field never draws.
+// (bun run --cwd apps/web playwright install chromium). It stops if the page fails or the field never draws.
+import { createRequire } from "node:module";
 import { join } from "node:path";
-import { chromium } from "playwright";
+
+// Playwright is the web app's dependency, so it resolves from apps/web.
+const { chromium } = createRequire(join(import.meta.dir, "..", "..", "apps", "web", "package.json"))("playwright");
 
 const url = process.argv[2] ?? "https://asked-before.m1kuorg.workers.dev/";
 const out = join(import.meta.dir, "banner.png");
