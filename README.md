@@ -5,7 +5,11 @@
 <br />
 <div align="center">
   <a href="https://github.com/m1kuorg/asked-before">
-    <img src="/docs/readme/banner.png" alt="Asked Before banner: “Asked before?” in large white type on a plum field over faint pink lines of how-to questions, beside “If you keep asking a chatbot the same how-to, Asked Before finds those questions in your own chat history, then tests you on each one without AI.”">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="/docs/readme/banner.png">
+      <source media="(prefers-color-scheme: light)" srcset="/docs/readme/banner.png">
+      <img src="/docs/readme/banner.png" alt="Asked Before banner: “Asked before?” in large white type on a plum field over faint pink lines of how-to questions, beside “If you keep asking a chatbot the same how-to, Asked Before finds those questions in your own chat history, then tests you on each one without AI.”">
+    </picture>
   </a>
 
   <h3>Asked Before</h3>
@@ -51,14 +55,6 @@
       </ul>
     </li>
     <li>
-      <a href="#hackathon">Hackathon</a>
-      <ul>
-        <li><a href="#skill-pack-and-proof-of-concept">Skill Pack and Proof of Concept</a></li>
-        <li><a href="#testing">Testing</a></li>
-        <li><a href="#disclosures">Disclosures</a></li>
-      </ul>
-    </li>
-    <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
@@ -82,7 +78,7 @@ Your browser reads the export and sends only your own messages, each with when y
 
 It's for students and early-career developers who ask a chatbot many times a day and suspect they aren't learning from it. Coding agents record your questions onto the same cards as you ask them, through the MCP server or the Claude Code plugin.
 
-Built for [Build With AI: Basics](https://learn-ai-basics.devpost.com/), Devpost's learning hackathon, with the Devpost Learn Skill Pack. See [Hackathon](#hackathon).
+Built for [Build With AI: Basics](https://learn-ai-basics.devpost.com/), Devpost's learning hackathon, with the Devpost Learn Skill Pack.
 
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
@@ -207,39 +203,6 @@ Made with [Archify](https://github.com/tt-a1i/archify) from [`architecture.json`
 
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
-<!-- HACKATHON -->
-
-## Hackathon
-
-Built for [Build With AI: Basics](https://learn-ai-basics.devpost.com/), Devpost's learning hackathon, between September 22 and October 26, 2026.
-
-<p align="right"><a href="#readme-top">&uarr;</a></p>
-
-### Skill Pack and Proof of Concept
-
-The repository started empty on October 16, 2026, and its first commit installs the [Devpost Learn Skill Pack](https://github.com/challengepost/learn-ai-basics). Its skills planned and built the proof of concept.
-
-The proof of concept, one page running the whole journey on a made-up demo export, is `main`'s history up to commit [`f272695`](https://github.com/m1kuorg/asked-before/tree/f272695). The app grew from it within the submission period, through accounts, Cloudflare Workers, a redesigned frontend, and the screens above, following tickets in the private planning repository rather than the Skill Pack.
-
-<p align="right"><a href="#readme-top">&uarr;</a></p>
-
-### Testing
-
-- **Live app.** Open [asked-before.m1kuorg.workers.dev](https://asked-before.m1kuorg.workers.dev) and choose **Try it as a guest**. It needs no account, password, or payment. Every guest shares one workspace that already holds a sorted demo shelf, wiped back at midnight UTC.
-- **Demo data.** The demo shelf comes from [`apps/web/demo/export.json`](/apps/web/demo/export.json), a made-up chat export, labeled as demo data wherever it shows. Its top card is "Undo a git commit", asked 9 times.
-- **Shared workspace.** Every guest sees what any guest uploads, with its cards and cold reps, until the midnight wipe.
-- **Daily caps.** The whole app gets 20 model requests a day, shared by everyone, and they reset at midnight UTC. Search, Analysis, the Roadmap, and browsing cards spend none. A cold rep spends 2, one to write the problem and one to check the answer, so the day holds about 10 across all visitors; an upload's sort and an agent's recorded question spend some too. Past the cap, the app says so. To try more, run it locally with your own key and raise the cap, as [Getting Started](#getting-started) says.
-
-<p align="right"><a href="#readme-top">&uarr;</a></p>
-
-### Disclosures
-
-**AI assistance.** The entrant works with Astra 6 via Codex, Claude 5.5 via Claude Code, Gemini models via Antigravity, and DeepSeek, GLM, etc. models via OMP as coding assistants throughout the development of the project. The entrant worked with the Devpost Learn Skill Pack manually by directly stepping through each stage (`1-start` through `6-ship`), answering the interview prompts to formulate the planning documents (`scope.md`, `prd.md`, and `spec.md`), and conducting the hands-on testing and review checkpoints across each build slice in `checklist.md`.
-
-**Pre-existing work.** None. The project was newly created during the hackathon submission period, with no pre-existing work.
-
-<p align="right"><a href="#readme-top">&uarr;</a></p>
-
 <!-- GETTING STARTED -->
 
 ## Getting Started
@@ -344,7 +307,7 @@ Third-party files keep their own licenses:
 - shadcn/ui's components, MIT, the starting point of `apps/web/src/components/ui/`.
 - The MCP TypeScript SDK's server and core, Apache 2.0, and Zod and `@noble/hashes`, MIT, bundled into the plugin's built server, `apps/plugin/dist/server.js`.
 - Schibsted Grotesk and JetBrains Mono, SIL Open Font License 1.1, in `apps/web/public/fonts/`.
-- The landing page's archival pictures and film, each credited on the page and listed with its source and license in [`apps/web/public/images/credits.json`](/apps/web/public/images/credits.json): two photographs under CC BY 4.0, and a photograph and a newsreel in the public domain. The banner is the landing page's opening chapter, whose field is adapted from ["Nurmeksen yhteislyseo vuonna 1958. Ylioppilaskirjoitukset."](https://commons.wikimedia.org/wiki/File:Nurmeksen_yhteislyseo_vuonna_1958_Ylioppilaskirjoitukset_(5394%2B(numero)).jpg) by Topi Toivanen, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0), via Wikimedia Commons: the photograph is rebuilt in the demo's questions, set in type.
+- The landing page's archival pictures and film, each credited on the page and listed with its source and license in [`apps/web/public/images/credits.json`](/apps/web/public/images/credits.json): two photographs under CC BY 4.0, and a photograph and a newsreel in the public domain. The banner is the landing page's opening chapter, whose field is adapted from ["Nurmeksen yhteislyseo vuonna 1958. Ylioppilaskirjoitukset."](<https://commons.wikimedia.org/wiki/File:Nurmeksen_yhteislyseo_vuonna_1958_Ylioppilaskirjoitukset_(5394%2B(numero)).jpg>) by Topi Toivanen, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0), via Wikimedia Commons: the photograph is rebuilt in the demo's questions, set in type.
 
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
