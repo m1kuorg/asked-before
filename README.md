@@ -188,7 +188,7 @@ Landing, Search, Connect your AI, Playground, and Privacy show the live app as t
   <img src="/docs/readme/architecture-light.svg" alt="Asked Before architecture">
 </picture>
 
-Made with [Archify](https://github.com/tt-a1i/archify) from [`architecture.json`](/docs/readme/architecture.json).
+Made with [Archify](https://github.com/tt-a1i/archify).
 
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
