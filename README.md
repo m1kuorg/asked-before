@@ -78,8 +78,6 @@ Your browser reads the export and sends only your own messages, each with when y
 
 It's for students and early-career developers who ask a chatbot many times a day and suspect they aren't learning from it. Coding agents record your questions onto the same cards as you ask them, through the MCP server or the Claude Code plugin.
 
-Built for [Build With AI: Basics](https://learn-ai-basics.devpost.com/), Devpost's learning hackathon, with the Devpost Learn Skill Pack.
-
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
 ### Screenshots
@@ -315,7 +313,6 @@ Third-party files keep their own licenses:
 
 ## Acknowledgments
 
-- [Build With AI: Basics](https://learn-ai-basics.devpost.com/) and the [Devpost Learn Skill Pack](https://github.com/challengepost/learn-ai-basics): the hackathon, and the skills that planned and built the proof of concept.
 - [Anthropic](https://www.anthropic.com/): Claude Haiku 5.5 sorts the cards and writes the cold reps.
 - [Cloudflare](https://www.cloudflare.com/): Workers, D1, and Durable Objects host the live app.
 - [shadcn/ui](https://ui.shadcn.com/) and [Base UI](https://base-ui.com/): the app's components.
