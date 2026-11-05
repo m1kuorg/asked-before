@@ -53,7 +53,7 @@
     <li>
       <a href="#hackathon">Hackathon</a>
       <ul>
-        <li><a href="#skill-pack-and-planning-docs">Skill Pack and Planning Docs</a></li>
+        <li><a href="#skill-pack-and-proof-of-concept">Skill Pack and Proof of Concept</a></li>
         <li><a href="#testing">Testing</a></li>
         <li><a href="#disclosures">Disclosures</a></li>
       </ul>
@@ -215,11 +215,11 @@ Built for [Build With AI: Basics](https://learn-ai-basics.devpost.com/), Devpost
 
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
-### Skill Pack and Planning Docs
+### Skill Pack and Proof of Concept
 
-The repository started empty on October 16, 2026, and its first commit installs the [Devpost Learn Skill Pack](https://github.com/challengepost/learn-ai-basics). Its skills wrote the planning docs, `scope.md` from `2-scope`, `prd.md` from `3-prd`, `spec.md` from `4-spec`, and `checklist.md` and `app-map.html` from `5-build`, which describe only the proof of concept and are no longer in the tree.
+The repository started empty on October 16, 2026, and its first commit installs the [Devpost Learn Skill Pack](https://github.com/challengepost/learn-ai-basics). Its skills planned and built the proof of concept.
 
-The proof of concept, one page running the whole journey on a made-up demo export, is `main`'s history up to commit [`f272695`](https://github.com/m1kuorg/asked-before/tree/f272695), whose `devpost/` holds those docs. The app grew from it within the submission period, through accounts, Cloudflare Workers, a redesigned frontend, and the screens above, following tickets in the private planning repository rather than the Skill Pack.
+The proof of concept, one page running the whole journey on a made-up demo export, is `main`'s history up to commit [`f272695`](https://github.com/m1kuorg/asked-before/tree/f272695). The app grew from it within the submission period, through accounts, Cloudflare Workers, a redesigned frontend, and the screens above, following tickets in the private planning repository rather than the Skill Pack.
 
 <p align="right"><a href="#readme-top">&uarr;</a></p>
 
