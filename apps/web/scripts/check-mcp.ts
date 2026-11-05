@@ -3,7 +3,7 @@
 // a real API key on a fresh copy of the app. The demo export's upload is
 // sorted by a stand-in in this script as the answer key says (the sort has
 // its own check); every capture, cold rep, and check goes on to the real
-// model. The server lists five tools described in the glossary's words,
+// model. The server lists five tools described in the app's own terms,
 // saying only the learner's own words are sent; it lists the demo shelf
 // and its cards, records a rephrasing of undoing the last commit onto card
 // A with its count up by one, doesn't count the same words again,
@@ -48,9 +48,9 @@ async function step(name: string, run: () => Promise<void>) {
 }
 
 const ENTRY = join(import.meta.dir, "..", "..", "..", ENTRY_IN_CLONE);
-/** The glossary's terms: each tool's description names one. */
+/** The app's terms: each tool's description names one. */
 const TERMS = ["export", "phrasing", "upload", "capture", "shelf", "skill", "card", "borrow", "area", "re-ask", "unsorted", "sort", "lesson", "cold rep", "returned", "borrowed again", "desk", "guest", "guest workspace", "playground"];
-/** The words the glossary says to avoid: nothing the server says uses one. */
+/** The words the app avoids: nothing the server says uses one. */
 const AVOID = [
   "dump", "backup", "history file", "prompt", "query", "import", "sync", "log", "track", "project", "workspace", "folder", "topic", "category", "intent", "flashcard", "item",
   "occurrence", "hit", "repeat", "level", "duplicate", "inbox", "orphans", "singletons", "regroup", "classify", "cluster", "explanation", "tutorial", "quiz", "test", "flashcard review",
@@ -113,7 +113,7 @@ try {
     said.push(instructions, ...tools.flatMap((t) => [t.title ?? "", t.description ?? "", fieldNames(t.inputSchema), fieldNames(t.outputSchema)]));
     const terms = TERMS;
     const bare = tools.filter((t) => !terms.some((term) => (t.description ?? "").toLowerCase().includes(term)));
-    check(bare.length === 0, `each description names the glossary's ${terms.filter((term) => tools.some((t) => (t.description ?? "").toLowerCase().includes(term))).join(", ")}${bare.length ? `; not ${bare.map((t) => t.name).join(", ")}` : ""}`);
+    check(bare.length === 0, `each description names the app's ${terms.filter((term) => tools.some((t) => (t.description ?? "").toLowerCase().includes(term))).join(", ")}${bare.length ? `; not ${bare.map((t) => t.name).join(", ")}` : ""}`);
     const describe = (name: string) => tools.find((t) => t.name === name)?.description ?? "";
     check(/only the learner's own words/.test(describe("record_question")) && /never your answer, their code, file contents, or secrets/.test(describe("record_question")), "record_question says only the learner's own words are sent, never the agent's answer, code, or secrets");
     check(/only the learner's own answer, exactly as they wrote it/.test(describe("check_answer")) && /Don't hint, explain, or answer/.test(describe("start_cold_rep")), "check_answer sends only their own answer as written, and start_cold_rep gives no hints");
@@ -231,7 +231,7 @@ try {
     check(code === 1 && stderr.includes(MCP_ENV.url) && stderr.includes(MCP_ENV.apiKey), `with no settings it exits ${code}: ${stderr.trim()}`);
   });
 
-  await step("11. Nothing the server says, field names included, uses a word the glossary says to avoid", async () => {
+  await step("11. Nothing the server says, field names included, uses a word the app avoids", async () => {
     const avoid = AVOID;
     const found = avoid.filter((word) => said.some((text) => new RegExp(`\\b${word}\\b`, "i").test(text)));
     check(found.length === 0, `${avoid.length} avoided words, in ${said.length} descriptions, field names, and answers: ${found.length ? found.join(", ") : "none used"}`);
